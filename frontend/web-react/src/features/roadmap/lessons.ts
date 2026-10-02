@@ -11,16 +11,16 @@ export type Lesson = {
 }
 
 export const lessons: Lesson[] = [
-  { id: 1, title: 'Números en la plaza', context: 'Arcos de piedra', activity: 'Conteo · 8 min', state: 'complete', x: 50, y: 16, labelSide: 'right' },
-  { id: 2, title: 'Sumas con retablos', context: 'Arte en miniatura', activity: 'Suma · 10 min', state: 'complete', x: 27, y: 25, labelSide: 'right' },
-  { id: 3, title: 'La aventura de restar', context: 'Puestos de la plaza', activity: 'Resta · 8 min', state: 'active', x: 73, y: 34.5, labelSide: 'left' },
-  { id: 4, title: 'Compras en el mercado', context: 'Feria de artesanía', activity: 'Desafío · 12 min', state: 'locked', x: 35, y: 43, labelSide: 'right' },
-  { id: 5, title: 'Patrones en los tejidos', context: 'Colores y simetría', activity: 'Multiplicación · 9 min', state: 'locked', x: 68, y: 52, labelSide: 'left' },
-  { id: 6, title: 'Medimos el camino', context: 'Laderas y andenes', activity: 'Medidas · 10 min', state: 'locked', x: 25, y: 61, labelSide: 'right' },
-  { id: 7, title: 'Formas en la piedra', context: 'Antiguas construcciones', activity: 'Geometría · 8 min', state: 'locked', x: 75, y: 70, labelSide: 'left' },
-  { id: 8, title: 'La hora de las campanas', context: 'Torres de la plaza', activity: 'Tiempo · 9 min', state: 'locked', x: 36, y: 79, labelSide: 'right' },
-  { id: 9, title: 'Contamos los pasos', context: 'Sendero de altura', activity: 'Medidas · 10 min', state: 'locked', x: 67, y: 88, labelSide: 'left' },
-  { id: 10, title: 'Reto de la cosecha', context: 'Huertas del valle', activity: 'Gran desafío · 15 min', state: 'locked', x: 50, y: 96, labelSide: 'left' },
+  { id: 1, title: 'Números en la plaza', context: 'Arcos de piedra', activity: 'Conteo · 8 min', state: 'complete', x: 50, y: 10, labelSide: 'right' },
+  { id: 2, title: 'Sumas con retablos', context: 'Arte en miniatura', activity: 'Suma · 10 min', state: 'complete', x: 27, y: 19, labelSide: 'right' },
+  { id: 3, title: 'La aventura de restar', context: 'Puestos de la plaza', activity: 'Resta · 8 min', state: 'active', x: 73, y: 28.5, labelSide: 'left' },
+  { id: 4, title: 'Compras en el mercado', context: 'Feria de artesanía', activity: 'Desafío · 12 min', state: 'locked', x: 35, y: 37, labelSide: 'right' },
+  { id: 5, title: 'Patrones en los tejidos', context: 'Colores y simetría', activity: 'Multiplicación · 9 min', state: 'locked', x: 68, y: 46, labelSide: 'left' },
+  { id: 6, title: 'Medimos el camino', context: 'Laderas y andenes', activity: 'Medidas · 10 min', state: 'locked', x: 25, y: 55, labelSide: 'right' },
+  { id: 7, title: 'Formas en la piedra', context: 'Antiguas construcciones', activity: 'Geometría · 8 min', state: 'locked', x: 75, y: 64, labelSide: 'left' },
+  { id: 8, title: 'La hora de las campanas', context: 'Torres de la plaza', activity: 'Tiempo · 9 min', state: 'locked', x: 36, y: 73, labelSide: 'right' },
+  { id: 9, title: 'Contamos los pasos', context: 'Sendero de altura', activity: 'Medidas · 10 min', state: 'locked', x: 67, y: 82, labelSide: 'left' },
+  { id: 10, title: 'Reto de la cosecha', context: 'Huertas del valle', activity: 'Gran desafío · 15 min', state: 'locked', x: 50, y: 90, labelSide: 'left' },
 ]
 
 export const createTrailPath = (points: { x: number; y: number }[]) => {

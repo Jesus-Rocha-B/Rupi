@@ -4,6 +4,7 @@
 CREATE DATABASE IF NOT EXISTS rupi
   CHARACTER SET utf8mb4;
 USE rupi;
+SET NAMES utf8mb4;
 
 CREATE TABLE IF NOT EXISTS identidad_cuenta_usuario (
   id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,

@@ -31,7 +31,6 @@ function getNodeDisplayState(state: RouteNode['state']): { cssClass: string; lab
     case 'EN_CURSO':
       return { cssClass: 'active', label: 'en curso · jugar ahora' }
     case 'DISPONIBLE':
-      return { cssClass: 'active', label: 'disponible · jugar ahora' }
     case 'BLOQUEADO':
     default:
       return { cssClass: 'locked', label: 'bloqueado' }
@@ -87,7 +86,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
         {route.nodes.map((node) => {
           const { cssClass, label: stateLabel } = getNodeDisplayState(node.state)
-          const canOpen = node.state !== 'BLOQUEADO'
+          const canOpen = cssClass !== 'locked'
           const posX = node.position?.x ?? 50
           const posY = node.position?.y ?? 10
           const labelSide = posX > 50 ? 'left' : 'right'
@@ -142,7 +141,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
       <div className="map-legend" id="logros">
         <span><i className="legend-dot done" />Completado</span>
-        <span><i className="legend-dot now" />En curso / Siguiente reto</span>
+        <span><i className="legend-dot now" />Siguiente reto</span>
         <span><i className="legend-dot locked" />Por desbloquear</span>
       </div>
       <a className="image-credit" href="https://commons.wikimedia.org/wiki/File:PLAZA_MAYOR_DE_AYACUCHO.jpg" target="_blank" rel="noreferrer">

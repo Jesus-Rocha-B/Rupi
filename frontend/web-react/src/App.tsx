@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { RupiCharacter } from './components/RupiCharacter'
 import { Roadmap } from './features/roadmap/Roadmap'
+import { RoadmapSkeleton } from './features/roadmap/RoadmapSkeleton'
 import {
   fetchRouteDetail,
   fetchStudentRoutes,
@@ -50,6 +51,19 @@ function App() {
   const [tutorHintOpen, setTutorHintOpen] = useState(false)
 
   const [reloadKey, setReloadKey] = useState(0)
+
+  // Cierre accesible de modal con tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && selectedNode) {
+        setSelectedNode(null)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedNode])
 
   const handleRetry = () => {
     setLoading(true)
@@ -125,6 +139,9 @@ function App() {
 
   return (
     <div className="app-shell">
+      <a href="#main-content" className="skip-link">
+        Saltar al contenido principal
+      </a>
       <aside className="sidebar">
         <a className="brand" href="#inicio" aria-label="Rupi, inicio">
           <img className="brand-logo" src="/rupi-logo.jpg" alt="" />
@@ -150,8 +167,9 @@ function App() {
             type="button"
             title={studentId ? 'Clic para simular cierre de sesión' : 'Clic para iniciar sesión'}
             onClick={handleToggleStudent}
+            aria-label={studentId ? 'Estudiante Mateo Quispe, 2.° de primaria. Toca para alternar sesión.' : 'Sin sesión iniciada. Toca para acceder.'}
           >
-            <span className="avatar small">{studentId ? 'M' : '?'}</span>
+            <span className="avatar small" aria-hidden="true">{studentId ? 'M' : '?'}</span>
             <span>
               <b>{studentId ? 'Mateo Quispe' : 'Sin sesión'}</b>
               <small>{studentId ? '2.º de primaria' : 'Toca para acceder'}</small>
@@ -160,7 +178,7 @@ function App() {
         </div>
       </aside>
 
-      <main className="main-content" id="ruta">
+      <main className="main-content" id="main-content">
         <section className="course-heading" aria-labelledby="course-title">
           <div>
             <div className="eyebrow">TU RUTA DE APRENDIZAJE</div>
@@ -180,19 +198,24 @@ function App() {
               <div><Sparkles className="progress-star" aria-hidden="true" /><b>Tu aventura va tomando forma</b></div>
               <span className="progress-numbers">{completedNodes} de {totalNodes} niveles <b>·</b> {progressPct}%</span>
             </div>
-            <div className="progress-track">
+            <div
+              className="progress-track"
+              role="progressbar"
+              aria-valuenow={progressPct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Porcentaje de avance en la ruta"
+            >
               <div className="progress-fill" style={{ width: `${progressPct}%` }} />
             </div>
           </section>
         )}
 
-        {/* Estado 1: Cargando */}
+        {/* Estado 1: Cargando con Esqueleto */}
         {loading && (
-          <section className="status-panel" aria-busy="true">
-            <div className="status-panel-icon loading"><Sparkles aria-hidden="true" /></div>
-            <h2>Cargando tu ruta de aprendizaje...</h2>
-            <p>Rupi está trayendo tus niveles y el mapa de Ayacucho desde el servidor.</p>
-          </section>
+          <div aria-busy="true">
+            <RoadmapSkeleton />
+          </div>
         )}
 
         {/* Estado 2: Error de conexión o 503 */}
@@ -309,9 +332,10 @@ function App() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
             onClick={(event) => event.stopPropagation()}
           >
-            <button className="modal-close" type="button" onClick={() => setSelectedNode(null)} aria-label="Cerrar">
+            <button className="modal-close" type="button" onClick={() => setSelectedNode(null)} aria-label="Cerrar modal">
               <X aria-hidden="true" />
             </button>
             <div className="modal-icon">
@@ -321,7 +345,7 @@ function App() {
               PARADA #{selectedNode.sequence} · {selectedNode.activityType}
             </span>
             <h2 id="modal-title">{selectedNode.title}</h2>
-            <p>
+            <p id="modal-desc">
               {selectedNode.state === 'COMPLETADO'
                 ? '¡Ya completaste esta actividad! Puedes volver a explorarla cuando quieras.'
                 : '¡Es hora de aprender! En esta actividad practicarás con pistas y pequeños desafíos.'}
