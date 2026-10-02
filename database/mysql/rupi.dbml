@@ -1,0 +1,1439 @@
+Project RUPI {
+  database_type: 'MySQL'
+  Note: 'Modelo integral para las 60 historias; implementar por etapas'
+}
+
+// schema.sql conserva CHECK, collation, UNSIGNED y columnas generadas.
+
+Enum identidad_cuenta_usuario_estado {
+  INVITADO
+  ACTIVO
+  BLOQUEADO
+  DESHABILITADO
+}
+
+Enum curriculo_version_catalogo_estado {
+  BORRADOR
+  ACTIVO
+  RETIRADO
+}
+
+Enum aprendizaje_actividad_tipo {
+  LECCION
+  RETO
+  CUESTIONARIO
+  TARJETAS_MEMORIA
+  INFOGRAFIA
+}
+
+Enum aprendizaje_version_actividad_estado {
+  BORRADOR
+  PUBLICADO
+  RETIRADO
+}
+
+Enum aprendizaje_bloque_contenido_tipo {
+  TEXTO
+  IMAGEN
+  AUDIO
+  VIDEO
+  DESTACADO
+  ADJUNTO
+}
+
+Enum aprendizaje_version_ruta_estado {
+  BORRADOR
+  PUBLICADO
+  PAUSADO
+  RETIRADO
+}
+
+Enum aprendizaje_inscripcion_ruta_estado {
+  ACTIVO
+  COMPLETADO
+  RETIRADO
+  SUSPENDIDO
+}
+
+Enum aprendizaje_progreso_nodo_estado {
+  BLOQUEADO
+  DISPONIBLE
+  EN_CURSO
+  COMPLETADO
+}
+
+Enum identidad_sesion_usuario_cliente {
+  WEB_ADMIN
+  WEB_USUARIO
+  MOVIL
+}
+
+Enum identidad_dispositivo_plataforma {
+  ANDROID
+  IOS
+  WEB
+}
+
+Enum identidad_intento_acceso_resultado {
+  CORRECTO
+  INCORRECTO
+  BLOQUEADO
+}
+
+Enum identidad_factor_mfa_tipo {
+  TOTP
+  CORREO
+}
+
+Enum escuela_institucion_nivel {
+  PUBLICA
+  PRIVADA
+  OTRA
+}
+
+Enum escuela_anio_escolar_estado {
+  PLANIFICADO
+  ACTIVO
+  CERRADO
+}
+
+Enum escuela_membresia_aula_rol {
+  DOCENTE
+  ESTUDIANTE
+  ASISTENTE
+}
+
+Enum escuela_membresia_aula_estado {
+  INVITADO
+  ACTIVO
+  RETIRADO
+}
+
+Enum escuela_consentimiento_tutor_proposito {
+  CUENTA
+  TUTORIA_IA
+  NOTIFICACIONES
+  DATOS_ANALITICOS
+}
+
+Enum escuela_consentimiento_tutor_metodo_verificacion {
+  CODIGO_CORREO
+  REGISTRO_ESCOLAR
+  OTRO
+}
+
+Enum escuela_consentimiento_tutor_estado {
+  PENDIENTE
+  OTORGADO
+  REVOCADO
+}
+
+Enum escuela_periodo_academico_tipo {
+  BIMESTRE
+  TRIMESTRE
+  SEMESTRE
+  PERSONALIZADO
+}
+
+Enum aprendizaje_sesion_estudio_origen {
+  WEB
+  MOVIL
+}
+
+Enum escuela_evento_calendario_tipo {
+  CLASE
+  EVALUACION
+  ENTREGA
+  RECORDATORIO
+  OTRO
+}
+
+Enum aprendizaje_entrega_tarea_estado {
+  PENDIENTE
+  EN_CURSO
+  ENTREGADA
+  REVISADA
+  ANULADA
+}
+
+Enum aprendizaje_reto_diario_estado {
+  BORRADOR
+  PUBLICADO
+  RETIRADO
+}
+
+Enum evaluacion_pregunta_tipo {
+  OPCION_UNICA
+  OPCION_MULTIPLE
+  VERDADERO_FALSO
+  TEXTO_CORTO
+}
+
+Enum evaluacion_intento_estado {
+  EN_CURSO
+  COMPLETADO
+  ABANDONADO
+}
+
+Enum aprendizaje_recomendacion_refuerzo_estado {
+  PENDIENTE
+  APROBADA
+  AJUSTADA
+  RECHAZADA
+  ASIGNADA
+}
+
+Enum notificacion_preferencia_categoria_categoria {
+  TAREA
+  RECORDATORIO
+  PROGRESO
+  SISTEMA
+  IA
+}
+
+Enum notificacion_preferencia_categoria_canal {
+  INTERNA
+  CORREO
+  PUSH
+}
+
+Enum notificacion_programacion_categoria {
+  TAREA
+  RECORDATORIO
+  PROGRESO
+  SISTEMA
+  IA
+}
+
+Enum notificacion_mensaje_categoria {
+  TAREA
+  RECORDATORIO
+  PROGRESO
+  SISTEMA
+  IA
+}
+
+Enum notificacion_entrega_canal {
+  INTERNA
+  CORREO
+  PUSH
+}
+
+Enum notificacion_entrega_estado {
+  PENDIENTE
+  ENVIADA
+  ENTREGADA
+  FALLIDA
+  OMITIDA
+}
+
+Enum gamificacion_meta_diaria_tipo {
+  MINUTOS
+  ACTIVIDADES
+  EXPERIENCIA
+}
+
+Enum gamificacion_movimiento_experiencia_motivo {
+  ACTIVIDAD
+  RETO
+  INSIGNIA
+  AJUSTE
+  REVERSO
+}
+
+Enum gamificacion_accesorio_tipo {
+  SOMBRERO
+  VESTIMENTA
+  FONDO
+  MARCO
+  ANIMACION
+}
+
+Enum ia_politica_nivel_ayuda {
+  PISTAS
+  GUIADO
+  EXPLICACION
+}
+
+Enum ia_politica_estado {
+  BORRADOR
+  ACTIVA
+  RETIRADA
+}
+
+Enum ia_mensaje_tutor_emisor {
+  ESTUDIANTE
+  TUTOR_IA
+  SISTEMA
+}
+
+Enum ia_regla_moderacion_categoria {
+  SEGURIDAD
+  PRIVACIDAD
+  LENGUAJE
+  FUERA_DE_TEMA
+  JAILBREAK
+}
+
+Enum ia_regla_moderacion_accion {
+  PERMITIR
+  ADVERTIR
+  BLOQUEAR
+  DERIVAR
+}
+
+Enum ia_evento_moderacion_categoria {
+  SEGURIDAD
+  PRIVACIDAD
+  LENGUAJE
+  FUERA_DE_TEMA
+  JAILBREAK
+}
+
+Enum ia_evento_moderacion_accion {
+  PERMITIR
+  ADVERTIR
+  BLOQUEAR
+  DERIVAR
+}
+
+Enum ia_tarea_generacion_tipo {
+  CUESTIONARIO
+  TARJETAS
+  INFOGRAFIA
+  AUDIO
+  EJEMPLOS
+  REMEDIACION
+}
+
+Enum ia_tarea_generacion_estado {
+  PENDIENTE
+  PROCESANDO
+  COMPLETADA
+  FALLIDA
+  CANCELADA
+}
+
+Enum operaciones_evento_sincronizacion_estado {
+  RECIBIDO
+  APLICADO
+  DUPLICADO
+  RECHAZADO
+  ERROR
+}
+
+Enum operaciones_respaldo_tipo {
+  COMPLETO
+  INCREMENTAL
+  BINLOG
+}
+
+Enum operaciones_respaldo_estado {
+  EN_CURSO
+  CORRECTO
+  FALLIDO
+  VERIFICADO
+}
+
+Enum operaciones_prueba_recuperacion_resultado {
+  EXITOSA
+  FALLIDA
+  PARCIAL
+}
+
+Enum operaciones_incidente_categoria {
+  DISPONIBILIDAD
+  RENDIMIENTO
+  SINCRONIZACION
+  IA
+  BASE_DATOS
+  OTRO
+}
+
+Enum operaciones_incidente_severidad {
+  BAJA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+Enum operaciones_incidente_estado {
+  ABIERTO
+  EN_ATENCION
+  RESUELTO
+  CERRADO
+}
+
+Enum operaciones_evento_auditoria_resultado {
+  CORRECTO
+  RECHAZADO
+  ERROR
+}
+
+Table identidad_cuenta_usuario {
+  id CHAR(36) [pk]
+  nombre_usuario VARCHAR(80) [not null, unique]
+  correo VARCHAR(254) [unique]
+  hash_clave VARCHAR(255) [not null]
+  estado identidad_cuenta_usuario_estado [not null]
+  bloqueado_hasta DATETIME(6)
+  clave_cambiada_en DATETIME(6) [not null]
+  creado_en DATETIME(6) [not null]
+  actualizado_en DATETIME(6) [not null]
+  desactivado_en DATETIME(6)
+}
+
+Table identidad_perfil_usuario {
+  usuario_id CHAR(36) [pk]
+  nombre VARCHAR(100)
+  apellido VARCHAR(100)
+  nombre_preferido VARCHAR(100)
+  alias_publico VARCHAR(40)
+  mostrar_en_clasificacion BOOLEAN [not null]
+  idioma VARCHAR(12) [not null]
+  zona_horaria VARCHAR(64) [not null]
+  indexes {
+    (alias_publico) [unique]
+  }
+}
+
+Table curriculo_version_catalogo {
+  id CHAR(36) [pk]
+  etiqueta_version VARCHAR(60) [not null, unique]
+  referencia_origen VARCHAR(255)
+  vigente_desde DATE
+  estado curriculo_version_catalogo_estado [not null]
+  creado_en DATETIME(6) [not null]
+}
+
+Table curriculo_grado {
+  id CHAR(36) [pk]
+  numero_grado TINYINT [not null, unique]
+  nombre VARCHAR(80) [not null]
+}
+
+Table curriculo_area {
+  id CHAR(36) [pk]
+  version_catalogo_id CHAR(36) [not null]
+  codigo VARCHAR(40) [not null]
+  nombre VARCHAR(120) [not null]
+  indexes {
+    (version_catalogo_id, codigo) [unique]
+    (id, version_catalogo_id) [unique]
+  }
+}
+
+Table curriculo_competencia {
+  id CHAR(36) [pk]
+  area_id CHAR(36) [not null]
+  codigo VARCHAR(60) [not null]
+  nombre VARCHAR(180) [not null]
+  descripcion TEXT
+  indexes {
+    (area_id, codigo) [unique]
+  }
+}
+
+Table curriculo_unidad {
+  id CHAR(36) [pk]
+  version_catalogo_id CHAR(36) [not null]
+  grado_id CHAR(36) [not null]
+  area_id CHAR(36) [not null]
+  codigo VARCHAR(60) [not null]
+  titulo VARCHAR(180) [not null]
+  numero_secuencia SMALLINT
+  indexes {
+    (version_catalogo_id, grado_id, area_id, codigo) [unique]
+    (id, version_catalogo_id, area_id) [unique]
+  }
+}
+
+Table curriculo_unidad_competencia {
+  unidad_id CHAR(36) [not null]
+  competencia_id CHAR(36) [not null]
+  indexes {
+    (unidad_id, competencia_id) [pk]
+  }
+}
+
+Table recurso_archivo_multimedia {
+  id CHAR(36) [pk]
+  creado_por CHAR(36)
+  proveedor_almacenamiento VARCHAR(40)
+  clave_almacenamiento VARCHAR(500)
+  url_externa VARCHAR(1000)
+  nombre_original VARCHAR(255) [not null]
+  tipo_mime VARCHAR(120) [not null]
+  tamano_bytes BIGINT
+  hash_sha256 BINARY(32)
+  texto_accesibilidad VARCHAR(500)
+  creado_en DATETIME(6) [not null]
+}
+
+Table aprendizaje_actividad {
+  id CHAR(36) [pk]
+  tipo aprendizaje_actividad_tipo [not null]
+  creado_por CHAR(36)
+  creado_en DATETIME(6) [not null]
+  archivado_en DATETIME(6)
+}
+
+Table aprendizaje_version_actividad {
+  id CHAR(36) [pk]
+  actividad_id CHAR(36) [not null]
+  numero_version INT [not null]
+  titulo VARCHAR(180) [not null]
+  instrucciones TEXT
+  idioma VARCHAR(12) [not null]
+  dificultad TINYINT
+  minutos_estimados SMALLINT
+  estado aprendizaje_version_actividad_estado [not null]
+  creado_por CHAR(36)
+  creado_en DATETIME(6) [not null]
+  publicado_en DATETIME(6)
+  indexes {
+    (actividad_id, numero_version) [unique]
+    (id, actividad_id) [unique]
+  }
+}
+
+Table aprendizaje_bloque_contenido {
+  id CHAR(36) [pk]
+  version_actividad_id CHAR(36) [not null]
+  numero_secuencia SMALLINT [not null]
+  tipo aprendizaje_bloque_contenido_tipo [not null]
+  texto_cuerpo TEXT
+  archivo_multimedia_id CHAR(36)
+  texto_accesibilidad VARCHAR(500)
+  indexes {
+    (version_actividad_id, numero_secuencia) [unique]
+  }
+}
+
+Table aprendizaje_actividad_unidad {
+  version_actividad_id CHAR(36) [not null]
+  unidad_id CHAR(36) [not null]
+  indexes {
+    (version_actividad_id, unidad_id) [pk]
+  }
+}
+
+Table aprendizaje_ruta {
+  id CHAR(36) [pk]
+  propietario_id CHAR(36)
+  codigo VARCHAR(40) [unique]
+  titulo VARCHAR(180) [not null]
+  descripcion TEXT
+  creado_en DATETIME(6) [not null]
+  actualizado_en DATETIME(6) [not null]
+  archivado_en DATETIME(6)
+  indexes {
+    (titulo, descripcion)
+  }
+}
+
+Table aprendizaje_version_ruta {
+  id CHAR(36) [pk]
+  ruta_id CHAR(36) [not null]
+  version_catalogo_id CHAR(36) [not null]
+  grado_id CHAR(36) [not null]
+  area_id CHAR(36) [not null]
+  numero_version INT [not null]
+  estado aprendizaje_version_ruta_estado [not null]
+  creado_por CHAR(36)
+  creado_en DATETIME(6) [not null]
+  publicado_en DATETIME(6)
+  indexes {
+    (ruta_id, numero_version) [unique]
+    (id, version_catalogo_id, grado_id, area_id) [unique]
+  }
+}
+
+Table aprendizaje_nodo_ruta {
+  id CHAR(36) [pk]
+  version_ruta_id CHAR(36) [not null]
+  version_actividad_id CHAR(36) [not null]
+  unidad_id CHAR(36)
+  nodo_prerrequisito_id CHAR(36)
+  numero_secuencia SMALLINT [not null]
+  mapa_x DECIMAL(5,2)
+  mapa_y DECIMAL(5,2)
+  es_opcional BOOLEAN [not null]
+  indexes {
+    (version_ruta_id, numero_secuencia) [unique]
+    (version_ruta_id, id) [unique]
+    (version_actividad_id)
+  }
+}
+
+Table aprendizaje_codigo_acceso_ruta {
+  id CHAR(36) [pk]
+  version_ruta_id CHAR(36) [not null]
+  hash_codigo BINARY(32) [not null, unique]
+  creado_por CHAR(36)
+  valido_desde DATETIME(6) [not null]
+  valido_hasta DATETIME(6)
+  maximo_usos INT
+  revocado_en DATETIME(6)
+}
+
+Table aprendizaje_inscripcion_ruta {
+  id CHAR(36) [pk]
+  version_ruta_id CHAR(36) [not null]
+  estudiante_id CHAR(36) [not null]
+  codigo_acceso_id CHAR(36)
+  estado aprendizaje_inscripcion_ruta_estado [not null]
+  ultimo_nodo_visitado_id CHAR(36)
+  inscrito_en DATETIME(6) [not null]
+  completado_en DATETIME(6)
+  indexes {
+    (version_ruta_id, estudiante_id) [unique]
+    (id, version_ruta_id) [unique]
+  }
+}
+
+Table aprendizaje_progreso_nodo {
+  inscripcion_id CHAR(36) [not null]
+  version_ruta_id CHAR(36) [not null]
+  nodo_ruta_id CHAR(36) [not null]
+  estado aprendizaje_progreso_nodo_estado [not null]
+  desbloqueado_en DATETIME(6)
+  primer_acceso_en DATETIME(6)
+  completado_en DATETIME(6)
+  indexes {
+    (inscripcion_id, nodo_ruta_id) [pk]
+  }
+}
+
+Table identidad_rol {
+  id CHAR(36) [pk]
+  codigo VARCHAR(40) [not null, unique]
+  nombre VARCHAR(100) [not null]
+  descripcion VARCHAR(255)
+}
+
+Table identidad_permiso {
+  id CHAR(36) [pk]
+  codigo VARCHAR(80) [not null, unique]
+  descripcion VARCHAR(255)
+}
+
+Table identidad_usuario_rol {
+  usuario_id CHAR(36) [not null]
+  rol_id CHAR(36) [not null]
+  asignado_por CHAR(36)
+  asignado_en DATETIME(6) [not null]
+  indexes {
+    (usuario_id, rol_id) [pk]
+  }
+}
+
+Table identidad_rol_permiso {
+  rol_id CHAR(36) [not null]
+  permiso_id CHAR(36) [not null]
+  indexes {
+    (rol_id, permiso_id) [pk]
+  }
+}
+
+Table identidad_sesion_usuario {
+  id CHAR(36) [pk]
+  usuario_id CHAR(36) [not null]
+  token_hash BINARY(32) [not null, unique]
+  revocada_en DATETIME(6)
+  usuario_activo_id CHAR(36)
+  cliente identidad_sesion_usuario_cliente [not null]
+  creada_en DATETIME(6) [not null]
+  actividad_en DATETIME(6) [not null]
+  expira_en DATETIME(6) [not null]
+  indexes {
+    (usuario_activo_id) [unique]
+    (usuario_id, expira_en)
+  }
+}
+
+Table identidad_dispositivo {
+  id CHAR(36) [pk]
+  usuario_id CHAR(36) [not null]
+  plataforma identidad_dispositivo_plataforma [not null]
+  hash_instalacion BINARY(32) [not null]
+  version_aplicacion VARCHAR(40)
+  registrado_en DATETIME(6) [not null]
+  ultimo_acceso_en DATETIME(6)
+  revocado_en DATETIME(6)
+  indexes {
+    (usuario_id, hash_instalacion) [unique]
+    (id, usuario_id) [unique]
+  }
+}
+
+Table identidad_intento_acceso {
+  id BIGINT [pk]
+  usuario_id CHAR(36)
+  identificador_hash BINARY(32) [not null]
+  resultado identidad_intento_acceso_resultado [not null]
+  origen_hash BINARY(32)
+  ocurrido_en DATETIME(6) [not null]
+  indexes {
+    (identificador_hash, ocurrido_en)
+    (usuario_id, ocurrido_en)
+  }
+}
+
+Table identidad_factor_mfa {
+  id CHAR(36) [pk]
+  usuario_id CHAR(36) [not null]
+  tipo identidad_factor_mfa_tipo [not null]
+  secreto_cifrado VARBINARY(1024)
+  referencia_clave VARCHAR(255)
+  destino_enmascarado VARCHAR(120)
+  verificado_en DATETIME(6)
+  creado_en DATETIME(6) [not null]
+  desactivado_en DATETIME(6)
+  indexes {
+    (usuario_id, desactivado_en)
+  }
+}
+
+Table identidad_codigo_recuperacion {
+  id CHAR(36) [pk]
+  factor_mfa_id CHAR(36) [not null]
+  codigo_hash BINARY(32) [not null]
+  creado_en DATETIME(6) [not null]
+  usado_en DATETIME(6)
+  indexes {
+    (factor_mfa_id, codigo_hash) [unique]
+  }
+}
+
+Table identidad_token_restablecer_clave {
+  id CHAR(36) [pk]
+  usuario_id CHAR(36) [not null]
+  token_hash BINARY(32) [not null, unique]
+  creado_en DATETIME(6) [not null]
+  expira_en DATETIME(6) [not null]
+  usado_en DATETIME(6)
+}
+
+Table escuela_institucion {
+  id CHAR(36) [pk]
+  codigo VARCHAR(40) [unique]
+  nombre VARCHAR(180) [not null]
+  nivel escuela_institucion_nivel [not null]
+  ubigeo CHAR(6)
+  activa BOOLEAN [not null]
+  creado_en DATETIME(6) [not null]
+}
+
+Table escuela_anio_escolar {
+  id CHAR(36) [pk]
+  institucion_id CHAR(36) [not null]
+  anio SMALLINT [not null]
+  comienza DATE
+  termina DATE
+  estado escuela_anio_escolar_estado [not null]
+  indexes {
+    (id, institucion_id) [unique]
+    (institucion_id, anio) [unique]
+  }
+}
+
+Table escuela_aula {
+  id CHAR(36) [pk]
+  institucion_id CHAR(36) [not null]
+  anio_escolar_id CHAR(36) [not null]
+  grado_id CHAR(36) [not null]
+  codigo VARCHAR(40) [not null]
+  nombre VARCHAR(120) [not null]
+  docente_responsable_id CHAR(36)
+  activa BOOLEAN [not null]
+  indexes {
+    (anio_escolar_id, codigo) [unique]
+    (id, institucion_id) [unique]
+  }
+}
+
+Table escuela_membresia_aula {
+  id CHAR(36) [pk]
+  aula_id CHAR(36) [not null]
+  usuario_id CHAR(36) [not null]
+  rol escuela_membresia_aula_rol [not null]
+  estado escuela_membresia_aula_estado [not null]
+  ingreso_en DATETIME(6) [not null]
+  retiro_en DATETIME(6)
+  indexes {
+    (aula_id, usuario_id) [unique]
+    (id, aula_id) [unique]
+  }
+}
+
+Table escuela_consentimiento_tutor {
+  id CHAR(36) [pk]
+  estudiante_id CHAR(36) [not null]
+  tutor_usuario_id CHAR(36)
+  relacion VARCHAR(40)
+  correo_tutor_cifrado VARBINARY(512)
+  referencia_clave VARCHAR(255)
+  proposito escuela_consentimiento_tutor_proposito [not null]
+  version_aviso VARCHAR(40) [not null]
+  metodo_verificacion escuela_consentimiento_tutor_metodo_verificacion
+  evidencia_referencia VARCHAR(255)
+  estado escuela_consentimiento_tutor_estado [not null]
+  registrado_en DATETIME(6) [not null]
+  revocado_en DATETIME(6)
+}
+
+Table escuela_periodo_academico {
+  id CHAR(36) [pk]
+  anio_escolar_id CHAR(36) [not null]
+  tipo escuela_periodo_academico_tipo [not null]
+  numero TINYINT [not null]
+  nombre VARCHAR(80) [not null]
+  comienza DATE [not null]
+  termina DATE [not null]
+  indexes {
+    (anio_escolar_id, tipo, numero) [unique]
+  }
+}
+
+Table curriculo_meta_aprendizaje {
+  id CHAR(36) [pk]
+  competencia_id CHAR(36) [not null]
+  grado_id CHAR(36) [not null]
+  codigo VARCHAR(60) [not null]
+  descripcion TEXT [not null]
+  indexes {
+    (competencia_id, grado_id, codigo) [unique]
+  }
+}
+
+Table curriculo_unidad_meta {
+  unidad_id CHAR(36) [not null]
+  meta_id CHAR(36) [not null]
+  indexes {
+    (unidad_id, meta_id) [pk]
+  }
+}
+
+Table curriculo_estandar {
+  id CHAR(36) [pk]
+  competencia_id CHAR(36) [not null]
+  grado_id CHAR(36)
+  codigo VARCHAR(60) [not null]
+  descripcion TEXT [not null]
+  indexes {
+    (competencia_id, codigo) [unique]
+  }
+}
+
+Table curriculo_unidad_estandar {
+  unidad_id CHAR(36) [not null]
+  estandar_id CHAR(36) [not null]
+  indexes {
+    (unidad_id, estandar_id) [pk]
+  }
+}
+
+Table aprendizaje_sesion_estudio {
+  id CHAR(36) [pk]
+  usuario_id CHAR(36) [not null]
+  inscripcion_id CHAR(36)
+  nodo_ruta_id CHAR(36)
+  inicio_en DATETIME(6) [not null]
+  fin_en DATETIME(6)
+  origen aprendizaje_sesion_estudio_origen [not null]
+  cliente_evento_id CHAR(36) [not null]
+  indexes {
+    (usuario_id, cliente_evento_id) [unique]
+    (usuario_id, inicio_en)
+  }
+}
+
+Table escuela_evento_calendario {
+  id CHAR(36) [pk]
+  aula_id CHAR(36) [not null]
+  creado_por CHAR(36) [not null]
+  titulo VARCHAR(180) [not null]
+  descripcion TEXT
+  tipo escuela_evento_calendario_tipo [not null]
+  inicia_en DATETIME(6) [not null]
+  termina_en DATETIME(6)
+  creado_en DATETIME(6) [not null]
+}
+
+Table aprendizaje_tarea {
+  id CHAR(36) [pk]
+  actividad_version_id CHAR(36) [not null]
+  asignada_por CHAR(36) [not null]
+  titulo VARCHAR(180) [not null]
+  instrucciones TEXT
+  creada_en DATETIME(6) [not null]
+}
+
+Table aprendizaje_entrega_tarea {
+  id CHAR(36) [pk]
+  tarea_id CHAR(36) [not null]
+  aula_id CHAR(36)
+  estudiante_id CHAR(36) [not null]
+  asignada_en DATETIME(6) [not null]
+  vence_en DATETIME(6)
+  estado aprendizaje_entrega_tarea_estado [not null]
+  indexes {
+    (tarea_id, estudiante_id) [unique]
+    (id, estudiante_id) [unique]
+  }
+}
+
+Table aprendizaje_reto_diario {
+  id CHAR(36) [pk]
+  fecha DATE [not null]
+  version_actividad_id CHAR(36) [not null]
+  grado_id CHAR(36) [not null]
+  estado aprendizaje_reto_diario_estado [not null]
+  indexes {
+    (fecha, grado_id) [unique]
+  }
+}
+
+Table aprendizaje_tarjeta_memoria {
+  id CHAR(36) [pk]
+  version_actividad_id CHAR(36) [not null]
+  numero_secuencia SMALLINT [not null]
+  frente TEXT [not null]
+  reverso TEXT [not null]
+  indexes {
+    (version_actividad_id, numero_secuencia) [unique]
+  }
+}
+
+Table aprendizaje_repaso_tarjeta {
+  usuario_id CHAR(36) [not null]
+  tarjeta_id CHAR(36) [not null]
+  proximo_repaso_en DATETIME(6) [not null]
+  intervalo_dias SMALLINT [not null]
+  factor_facilidad DECIMAL(4,2) [not null]
+  repasada_en DATETIME(6)
+  indexes {
+    (usuario_id, tarjeta_id) [pk]
+  }
+}
+
+Table evaluacion_pregunta {
+  id CHAR(36) [pk]
+  version_actividad_id CHAR(36) [not null]
+  numero_secuencia SMALLINT [not null]
+  tipo evaluacion_pregunta_tipo [not null]
+  enunciado TEXT [not null]
+  explicacion TEXT
+  puntos DECIMAL(7,2) [not null]
+  indexes {
+    (version_actividad_id, numero_secuencia) [unique]
+  }
+}
+
+Table evaluacion_opcion_respuesta {
+  id CHAR(36) [pk]
+  pregunta_id CHAR(36) [not null]
+  numero_secuencia SMALLINT [not null]
+  texto TEXT [not null]
+  es_correcta BOOLEAN [not null]
+  indexes {
+    (pregunta_id, numero_secuencia) [unique]
+    (id, pregunta_id) [unique]
+  }
+}
+
+Table evaluacion_intento {
+  id CHAR(36) [pk]
+  estudiante_id CHAR(36) [not null]
+  version_actividad_id CHAR(36) [not null]
+  inscripcion_id CHAR(36)
+  entrega_tarea_id CHAR(36)
+  numero_intento SMALLINT [not null]
+  iniciado_en DATETIME(6) [not null]
+  finalizado_en DATETIME(6)
+  puntaje DECIMAL(9,2)
+  estado evaluacion_intento_estado [not null]
+  cliente_evento_id CHAR(36) [not null]
+  indexes {
+    (estudiante_id, cliente_evento_id) [unique]
+    (estudiante_id, iniciado_en)
+  }
+}
+
+Table evaluacion_respuesta {
+  id CHAR(36) [pk]
+  intento_id CHAR(36) [not null]
+  pregunta_id CHAR(36) [not null]
+  texto_respuesta TEXT
+  es_correcta BOOLEAN
+  puntaje_obtenido DECIMAL(9,2)
+  respondida_en DATETIME(6) [not null]
+  indexes {
+    (intento_id, pregunta_id) [unique]
+    (id, pregunta_id) [unique]
+  }
+}
+
+Table evaluacion_respuesta_opcion {
+  respuesta_id CHAR(36) [not null]
+  pregunta_id CHAR(36) [not null]
+  opcion_id CHAR(36) [not null]
+  indexes {
+    (respuesta_id, opcion_id) [pk]
+  }
+}
+
+Table aprendizaje_recomendacion_refuerzo {
+  id CHAR(36) [pk]
+  estudiante_id CHAR(36) [not null]
+  unidad_id CHAR(36) [not null]
+  intento_origen_id CHAR(36)
+  actividad_sugerida_id CHAR(36) [not null]
+  actividad_aprobada_id CHAR(36)
+  entrega_tarea_id CHAR(36)
+  motivo_codigo VARCHAR(80) [not null]
+  estado aprendizaje_recomendacion_refuerzo_estado [not null]
+  decidida_por CHAR(36)
+  creada_en DATETIME(6) [not null]
+  decidida_en DATETIME(6)
+  indexes {
+    (estudiante_id, estado, creada_en)
+  }
+}
+
+Table notificacion_preferencia {
+  usuario_id CHAR(36) [pk]
+  no_molestar_desde TIME
+  no_molestar_hasta TIME
+  actualizada_en DATETIME(6) [not null]
+}
+
+Table notificacion_preferencia_categoria {
+  usuario_id CHAR(36) [not null]
+  categoria notificacion_preferencia_categoria_categoria [not null]
+  habilitada BOOLEAN [not null]
+  canal notificacion_preferencia_categoria_canal [not null]
+  indexes {
+    (usuario_id, categoria, canal) [pk]
+  }
+}
+
+Table notificacion_programacion {
+  usuario_id CHAR(36) [not null]
+  categoria notificacion_programacion_categoria [not null]
+  dia_semana TINYINT [not null]
+  hora_local TIME [not null]
+  habilitada BOOLEAN [not null]
+  indexes {
+    (usuario_id, categoria, dia_semana) [pk]
+  }
+}
+
+Table notificacion_dispositivo {
+  id CHAR(36) [pk]
+  dispositivo_id CHAR(36) [not null]
+  token_cifrado VARBINARY(2048) [not null]
+  referencia_clave VARCHAR(255) [not null]
+  token_hash BINARY(32) [not null, unique]
+  registrado_en DATETIME(6) [not null]
+  ultimo_uso_en DATETIME(6)
+  revocado_en DATETIME(6)
+}
+
+Table notificacion_mensaje {
+  id CHAR(36) [pk]
+  usuario_id CHAR(36) [not null]
+  categoria notificacion_mensaje_categoria [not null]
+  titulo VARCHAR(160) [not null]
+  cuerpo VARCHAR(500) [not null]
+  destino_ruta VARCHAR(500)
+  creada_en DATETIME(6) [not null]
+  leida_en DATETIME(6)
+  expira_en DATETIME(6)
+  indexes {
+    (usuario_id, creada_en)
+  }
+}
+
+Table notificacion_entrega {
+  id CHAR(36) [pk]
+  mensaje_id CHAR(36) [not null]
+  dispositivo_id CHAR(36)
+  canal notificacion_entrega_canal [not null]
+  estado notificacion_entrega_estado [not null]
+  proveedor_id VARCHAR(180)
+  intentos TINYINT [not null]
+  programada_en DATETIME(6) [not null]
+  completada_en DATETIME(6)
+  indexes {
+    (estado, programada_en)
+  }
+}
+
+Table gamificacion_meta_diaria {
+  usuario_id CHAR(36) [not null]
+  fecha_local DATE [not null]
+  tipo gamificacion_meta_diaria_tipo [not null]
+  objetivo DECIMAL(9,2) [not null]
+  actualizada_en DATETIME(6) [not null]
+  indexes {
+    (usuario_id, fecha_local, tipo) [pk]
+  }
+}
+
+Table gamificacion_movimiento_experiencia {
+  id CHAR(36) [pk]
+  usuario_id CHAR(36) [not null]
+  cantidad INT [not null]
+  motivo gamificacion_movimiento_experiencia_motivo [not null]
+  referencia_tipo VARCHAR(40)
+  referencia_id CHAR(36)
+  evento_idempotencia CHAR(36) [not null]
+  ocurrido_en DATETIME(6) [not null]
+  indexes {
+    (usuario_id, evento_idempotencia) [unique]
+    (usuario_id, ocurrido_en)
+  }
+}
+
+Table gamificacion_insignia {
+  id CHAR(36) [pk]
+  codigo VARCHAR(60) [not null, unique]
+  nombre VARCHAR(120) [not null]
+  descripcion VARCHAR(255) [not null]
+  icono_archivo_id CHAR(36)
+  criterio JSON [not null]
+  activa BOOLEAN [not null]
+}
+
+Table gamificacion_insignia_usuario {
+  usuario_id CHAR(36) [not null]
+  insignia_id CHAR(36) [not null]
+  obtenida_en DATETIME(6) [not null]
+  indexes {
+    (usuario_id, insignia_id) [pk]
+  }
+}
+
+Table gamificacion_accesorio {
+  id CHAR(36) [pk]
+  codigo VARCHAR(60) [not null, unique]
+  nombre VARCHAR(120) [not null]
+  tipo gamificacion_accesorio_tipo [not null]
+  archivo_multimedia_id CHAR(36) [not null]
+  costo_experiencia INT [not null]
+  activo BOOLEAN [not null]
+}
+
+Table gamificacion_inventario_usuario {
+  usuario_id CHAR(36) [not null]
+  accesorio_id CHAR(36) [not null]
+  obtenido_en DATETIME(6) [not null]
+  equipado BOOLEAN [not null]
+  indexes {
+    (usuario_id, accesorio_id) [pk]
+  }
+}
+
+Table ia_politica {
+  id CHAR(36) [pk]
+  codigo VARCHAR(60) [not null]
+  numero_version INT [not null]
+  nivel_ayuda ia_politica_nivel_ayuda [not null]
+  instrucciones_sistema TEXT [not null]
+  edad_minima TINYINT
+  edad_maxima TINYINT
+  retencion_dias SMALLINT [not null]
+  estado ia_politica_estado [not null]
+  creado_por CHAR(36)
+  creado_en DATETIME(6) [not null]
+  indexes {
+    (codigo, numero_version) [unique]
+  }
+}
+
+Table ia_politica_aula {
+  aula_id CHAR(36) [pk]
+  politica_id CHAR(36) [not null]
+  habilitada BOOLEAN [not null]
+  actualizada_por CHAR(36) [not null]
+  actualizada_en DATETIME(6) [not null]
+}
+
+Table ia_configuracion_proveedor {
+  id CHAR(36) [pk]
+  nombre VARCHAR(80) [not null]
+  modelo VARCHAR(120) [not null]
+  secreto_referencia VARCHAR(255) [not null]
+  activa BOOLEAN [not null]
+  parametros_no_secretos JSON
+  creado_en DATETIME(6) [not null]
+}
+
+Table ia_conversacion_tutor {
+  id CHAR(36) [pk]
+  usuario_id CHAR(36) [not null]
+  aula_id CHAR(36)
+  politica_id CHAR(36) [not null]
+  actividad_version_id CHAR(36)
+  iniciada_en DATETIME(6) [not null]
+  cerrada_en DATETIME(6)
+  eliminar_despues DATETIME(6)
+  indexes {
+    (usuario_id, iniciada_en)
+  }
+}
+
+Table ia_mensaje_tutor {
+  id CHAR(36) [pk]
+  conversacion_id CHAR(36) [not null]
+  secuencia INT [not null]
+  emisor ia_mensaje_tutor_emisor [not null]
+  contenido TEXT [not null]
+  modelo VARCHAR(120)
+  creado_en DATETIME(6) [not null]
+  indexes {
+    (conversacion_id, secuencia) [unique]
+  }
+}
+
+Table ia_regla_moderacion {
+  id CHAR(36) [pk]
+  codigo VARCHAR(60) [not null, unique]
+  categoria ia_regla_moderacion_categoria [not null]
+  patron_hash BINARY(32)
+  patron_cifrado VARBINARY(2048)
+  referencia_clave VARCHAR(255)
+  accion ia_regla_moderacion_accion [not null]
+  severidad TINYINT [not null]
+  activa BOOLEAN [not null]
+}
+
+Table ia_evento_moderacion {
+  id CHAR(36) [pk]
+  mensaje_id CHAR(36)
+  regla_id CHAR(36)
+  categoria ia_evento_moderacion_categoria [not null]
+  accion ia_evento_moderacion_accion [not null]
+  puntaje DECIMAL(5,4)
+  requiere_revision BOOLEAN [not null]
+  revisado_por CHAR(36)
+  revisado_en DATETIME(6)
+  ocurrido_en DATETIME(6) [not null]
+  indexes {
+    (requiere_revision, revisado_en)
+  }
+}
+
+Table ia_tarea_generacion {
+  id CHAR(36) [pk]
+  solicitante_id CHAR(36) [not null]
+  proveedor_id CHAR(36)
+  tipo ia_tarea_generacion_tipo [not null]
+  estado ia_tarea_generacion_estado [not null]
+  entrada_referencia VARCHAR(500)
+  resultado_actividad_id CHAR(36)
+  resultado_archivo_id CHAR(36)
+  error_codigo VARCHAR(80)
+  solicitada_en DATETIME(6) [not null]
+  completada_en DATETIME(6)
+  indexes {
+    (estado, solicitada_en)
+  }
+}
+
+Table operaciones_evento_sincronizacion {
+  id CHAR(36) [pk]
+  usuario_id CHAR(36) [not null]
+  dispositivo_id CHAR(36)
+  evento_cliente_id CHAR(36) [not null]
+  tipo_evento VARCHAR(80) [not null]
+  estado operaciones_evento_sincronizacion_estado [not null]
+  codigo_resultado VARCHAR(80)
+  recibido_en DATETIME(6) [not null]
+  indexes {
+    (usuario_id, evento_cliente_id) [unique]
+    (estado, recibido_en)
+  }
+}
+
+Table operaciones_respaldo {
+  id CHAR(36) [pk]
+  tipo operaciones_respaldo_tipo [not null]
+  iniciado_en DATETIME(6) [not null]
+  finalizado_en DATETIME(6)
+  estado operaciones_respaldo_estado [not null]
+  ubicacion_referencia VARCHAR(500)
+  tamano_bytes BIGINT
+  version_esquema VARCHAR(60)
+}
+
+Table operaciones_prueba_recuperacion {
+  id CHAR(36) [pk]
+  respaldo_id CHAR(36) [not null]
+  iniciada_en DATETIME(6) [not null]
+  finalizada_en DATETIME(6)
+  resultado operaciones_prueba_recuperacion_resultado [not null]
+  duracion_segundos INT
+  informe_referencia VARCHAR(500)
+  ejecutada_por VARCHAR(120) [not null]
+}
+
+Table operaciones_incidente {
+  id CHAR(36) [pk]
+  servicio VARCHAR(80) [not null]
+  categoria operaciones_incidente_categoria [not null]
+  severidad operaciones_incidente_severidad [not null]
+  estado operaciones_incidente_estado [not null]
+  resumen VARCHAR(500) [not null]
+  referencia_externa VARCHAR(255)
+  iniciado_en DATETIME(6) [not null]
+  resuelto_en DATETIME(6)
+}
+
+Table operaciones_evento_auditoria {
+  id BIGINT [pk]
+  actor_usuario_id CHAR(36)
+  dominio VARCHAR(60) [not null]
+  accion VARCHAR(80) [not null]
+  entidad_tipo VARCHAR(80) [not null]
+  entidad_id CHAR(36)
+  resultado operaciones_evento_auditoria_resultado [not null]
+  ocurrido_en DATETIME(6) [not null]
+  correlacion_id CHAR(36)
+  indexes {
+    (entidad_tipo, entidad_id, ocurrido_en)
+    (actor_usuario_id, ocurrido_en)
+  }
+}
+
+Ref: identidad_perfil_usuario.usuario_id > identidad_cuenta_usuario.id
+Ref: curriculo_area.version_catalogo_id > curriculo_version_catalogo.id
+Ref: curriculo_competencia.area_id > curriculo_area.id
+Ref: curriculo_unidad.version_catalogo_id > curriculo_version_catalogo.id
+Ref: curriculo_unidad.grado_id > curriculo_grado.id
+Ref: curriculo_unidad.(area_id, version_catalogo_id) > curriculo_area.(id, version_catalogo_id)
+Ref: curriculo_unidad_competencia.unidad_id > curriculo_unidad.id
+Ref: curriculo_unidad_competencia.competencia_id > curriculo_competencia.id
+Ref: recurso_archivo_multimedia.creado_por > identidad_cuenta_usuario.id
+Ref: aprendizaje_actividad.creado_por > identidad_cuenta_usuario.id
+Ref: aprendizaje_version_actividad.actividad_id > aprendizaje_actividad.id
+Ref: aprendizaje_version_actividad.creado_por > identidad_cuenta_usuario.id
+Ref: aprendizaje_bloque_contenido.version_actividad_id > aprendizaje_version_actividad.id
+Ref: aprendizaje_bloque_contenido.archivo_multimedia_id > recurso_archivo_multimedia.id
+Ref: aprendizaje_actividad_unidad.version_actividad_id > aprendizaje_version_actividad.id
+Ref: aprendizaje_actividad_unidad.unidad_id > curriculo_unidad.id
+Ref: aprendizaje_ruta.propietario_id > identidad_cuenta_usuario.id
+Ref: aprendizaje_version_ruta.ruta_id > aprendizaje_ruta.id
+Ref: aprendizaje_version_ruta.version_catalogo_id > curriculo_version_catalogo.id
+Ref: aprendizaje_version_ruta.grado_id > curriculo_grado.id
+Ref: aprendizaje_version_ruta.(area_id, version_catalogo_id) > curriculo_area.(id, version_catalogo_id)
+Ref: aprendizaje_version_ruta.creado_por > identidad_cuenta_usuario.id
+Ref: aprendizaje_nodo_ruta.version_ruta_id > aprendizaje_version_ruta.id
+Ref: aprendizaje_nodo_ruta.version_actividad_id > aprendizaje_version_actividad.id
+Ref: aprendizaje_nodo_ruta.unidad_id > curriculo_unidad.id
+Ref: aprendizaje_nodo_ruta.(version_ruta_id, nodo_prerrequisito_id) > aprendizaje_nodo_ruta.(version_ruta_id, id)
+Ref: aprendizaje_codigo_acceso_ruta.version_ruta_id > aprendizaje_version_ruta.id
+Ref: aprendizaje_codigo_acceso_ruta.creado_por > identidad_cuenta_usuario.id
+Ref: aprendizaje_inscripcion_ruta.version_ruta_id > aprendizaje_version_ruta.id
+Ref: aprendizaje_inscripcion_ruta.estudiante_id > identidad_cuenta_usuario.id
+Ref: aprendizaje_inscripcion_ruta.codigo_acceso_id > aprendizaje_codigo_acceso_ruta.id
+Ref: aprendizaje_inscripcion_ruta.(version_ruta_id, ultimo_nodo_visitado_id) > aprendizaje_nodo_ruta.(version_ruta_id, id)
+Ref: aprendizaje_progreso_nodo.(inscripcion_id, version_ruta_id) > aprendizaje_inscripcion_ruta.(id, version_ruta_id)
+Ref: aprendizaje_progreso_nodo.(version_ruta_id, nodo_ruta_id) > aprendizaje_nodo_ruta.(version_ruta_id, id)
+Ref: identidad_usuario_rol.usuario_id > identidad_cuenta_usuario.id
+Ref: identidad_usuario_rol.rol_id > identidad_rol.id
+Ref: identidad_usuario_rol.asignado_por > identidad_cuenta_usuario.id
+Ref: identidad_rol_permiso.rol_id > identidad_rol.id
+Ref: identidad_rol_permiso.permiso_id > identidad_permiso.id
+Ref: identidad_sesion_usuario.usuario_id > identidad_cuenta_usuario.id
+Ref: identidad_dispositivo.usuario_id > identidad_cuenta_usuario.id
+Ref: identidad_intento_acceso.usuario_id > identidad_cuenta_usuario.id
+Ref: identidad_factor_mfa.usuario_id > identidad_cuenta_usuario.id
+Ref: identidad_codigo_recuperacion.factor_mfa_id > identidad_factor_mfa.id
+Ref: identidad_token_restablecer_clave.usuario_id > identidad_cuenta_usuario.id
+Ref: escuela_anio_escolar.institucion_id > escuela_institucion.id
+Ref: escuela_aula.(anio_escolar_id, institucion_id) > escuela_anio_escolar.(id, institucion_id)
+Ref: escuela_aula.grado_id > curriculo_grado.id
+Ref: escuela_aula.docente_responsable_id > identidad_cuenta_usuario.id
+Ref: escuela_membresia_aula.aula_id > escuela_aula.id
+Ref: escuela_membresia_aula.usuario_id > identidad_cuenta_usuario.id
+Ref: escuela_consentimiento_tutor.estudiante_id > identidad_cuenta_usuario.id
+Ref: escuela_consentimiento_tutor.tutor_usuario_id > identidad_cuenta_usuario.id
+Ref: escuela_periodo_academico.anio_escolar_id > escuela_anio_escolar.id
+Ref: curriculo_meta_aprendizaje.competencia_id > curriculo_competencia.id
+Ref: curriculo_meta_aprendizaje.grado_id > curriculo_grado.id
+Ref: curriculo_unidad_meta.unidad_id > curriculo_unidad.id
+Ref: curriculo_unidad_meta.meta_id > curriculo_meta_aprendizaje.id
+Ref: curriculo_estandar.competencia_id > curriculo_competencia.id
+Ref: curriculo_estandar.grado_id > curriculo_grado.id
+Ref: curriculo_unidad_estandar.unidad_id > curriculo_unidad.id
+Ref: curriculo_unidad_estandar.estandar_id > curriculo_estandar.id
+Ref: aprendizaje_sesion_estudio.usuario_id > identidad_cuenta_usuario.id
+Ref: aprendizaje_sesion_estudio.inscripcion_id > aprendizaje_inscripcion_ruta.id
+Ref: aprendizaje_sesion_estudio.nodo_ruta_id > aprendizaje_nodo_ruta.id
+Ref: escuela_evento_calendario.aula_id > escuela_aula.id
+Ref: escuela_evento_calendario.creado_por > identidad_cuenta_usuario.id
+Ref: aprendizaje_tarea.actividad_version_id > aprendizaje_version_actividad.id
+Ref: aprendizaje_tarea.asignada_por > identidad_cuenta_usuario.id
+Ref: aprendizaje_entrega_tarea.tarea_id > aprendizaje_tarea.id
+Ref: aprendizaje_entrega_tarea.aula_id > escuela_aula.id
+Ref: aprendizaje_entrega_tarea.estudiante_id > identidad_cuenta_usuario.id
+Ref: aprendizaje_reto_diario.version_actividad_id > aprendizaje_version_actividad.id
+Ref: aprendizaje_reto_diario.grado_id > curriculo_grado.id
+Ref: aprendizaje_tarjeta_memoria.version_actividad_id > aprendizaje_version_actividad.id
+Ref: aprendizaje_repaso_tarjeta.usuario_id > identidad_cuenta_usuario.id
+Ref: aprendizaje_repaso_tarjeta.tarjeta_id > aprendizaje_tarjeta_memoria.id
+Ref: evaluacion_pregunta.version_actividad_id > aprendizaje_version_actividad.id
+Ref: evaluacion_opcion_respuesta.pregunta_id > evaluacion_pregunta.id
+Ref: evaluacion_intento.estudiante_id > identidad_cuenta_usuario.id
+Ref: evaluacion_intento.version_actividad_id > aprendizaje_version_actividad.id
+Ref: evaluacion_intento.inscripcion_id > aprendizaje_inscripcion_ruta.id
+Ref: evaluacion_intento.entrega_tarea_id > aprendizaje_entrega_tarea.id
+Ref: evaluacion_respuesta.intento_id > evaluacion_intento.id
+Ref: evaluacion_respuesta.pregunta_id > evaluacion_pregunta.id
+Ref: evaluacion_respuesta_opcion.(respuesta_id, pregunta_id) > evaluacion_respuesta.(id, pregunta_id)
+Ref: evaluacion_respuesta_opcion.(opcion_id, pregunta_id) > evaluacion_opcion_respuesta.(id, pregunta_id)
+Ref: aprendizaje_recomendacion_refuerzo.estudiante_id > identidad_cuenta_usuario.id
+Ref: aprendizaje_recomendacion_refuerzo.unidad_id > curriculo_unidad.id
+Ref: aprendizaje_recomendacion_refuerzo.intento_origen_id > evaluacion_intento.id
+Ref: aprendizaje_recomendacion_refuerzo.actividad_sugerida_id > aprendizaje_version_actividad.id
+Ref: aprendizaje_recomendacion_refuerzo.actividad_aprobada_id > aprendizaje_version_actividad.id
+Ref: aprendizaje_recomendacion_refuerzo.entrega_tarea_id > aprendizaje_entrega_tarea.id
+Ref: aprendizaje_recomendacion_refuerzo.decidida_por > identidad_cuenta_usuario.id
+Ref: notificacion_preferencia.usuario_id > identidad_cuenta_usuario.id
+Ref: notificacion_preferencia_categoria.usuario_id > identidad_cuenta_usuario.id
+Ref: notificacion_programacion.usuario_id > identidad_cuenta_usuario.id
+Ref: notificacion_dispositivo.dispositivo_id > identidad_dispositivo.id
+Ref: notificacion_mensaje.usuario_id > identidad_cuenta_usuario.id
+Ref: notificacion_entrega.mensaje_id > notificacion_mensaje.id
+Ref: notificacion_entrega.dispositivo_id > notificacion_dispositivo.id
+Ref: gamificacion_meta_diaria.usuario_id > identidad_cuenta_usuario.id
+Ref: gamificacion_movimiento_experiencia.usuario_id > identidad_cuenta_usuario.id
+Ref: gamificacion_insignia.icono_archivo_id > recurso_archivo_multimedia.id
+Ref: gamificacion_insignia_usuario.usuario_id > identidad_cuenta_usuario.id
+Ref: gamificacion_insignia_usuario.insignia_id > gamificacion_insignia.id
+Ref: gamificacion_accesorio.archivo_multimedia_id > recurso_archivo_multimedia.id
+Ref: gamificacion_inventario_usuario.usuario_id > identidad_cuenta_usuario.id
+Ref: gamificacion_inventario_usuario.accesorio_id > gamificacion_accesorio.id
+Ref: ia_politica.creado_por > identidad_cuenta_usuario.id
+Ref: ia_politica_aula.aula_id > escuela_aula.id
+Ref: ia_politica_aula.politica_id > ia_politica.id
+Ref: ia_politica_aula.actualizada_por > identidad_cuenta_usuario.id
+Ref: ia_conversacion_tutor.usuario_id > identidad_cuenta_usuario.id
+Ref: ia_conversacion_tutor.aula_id > escuela_aula.id
+Ref: ia_conversacion_tutor.politica_id > ia_politica.id
+Ref: ia_conversacion_tutor.actividad_version_id > aprendizaje_version_actividad.id
+Ref: ia_mensaje_tutor.conversacion_id > ia_conversacion_tutor.id
+Ref: ia_evento_moderacion.mensaje_id > ia_mensaje_tutor.id
+Ref: ia_evento_moderacion.regla_id > ia_regla_moderacion.id
+Ref: ia_evento_moderacion.revisado_por > identidad_cuenta_usuario.id
+Ref: ia_tarea_generacion.solicitante_id > identidad_cuenta_usuario.id
+Ref: ia_tarea_generacion.proveedor_id > ia_configuracion_proveedor.id
+Ref: ia_tarea_generacion.resultado_actividad_id > aprendizaje_actividad.id
+Ref: ia_tarea_generacion.resultado_archivo_id > recurso_archivo_multimedia.id
+Ref: operaciones_evento_sincronizacion.usuario_id > identidad_cuenta_usuario.id
+Ref: operaciones_evento_sincronizacion.dispositivo_id > identidad_dispositivo.id
+Ref: operaciones_prueba_recuperacion.respaldo_id > operaciones_respaldo.id
+Ref: operaciones_evento_auditoria.actor_usuario_id > identidad_cuenta_usuario.id
