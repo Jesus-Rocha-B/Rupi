@@ -112,11 +112,15 @@ Para esta historia, Spring Boot es el servicio lector de inscripción, versión,
 - [x] Separar React, Kotlin, Django, Spring Boot y MySQL en carpetas del monorepo.
 - [x] Definir el contrato de consulta de Spring Boot y el comportamiento de carga/error de React.
 - [x] Implementar consulta autorizada en Spring Boot usando el esquema MySQL existente.
-- [ ] Integrar el principal de Spring Boot con la autenticación de estudiante.
-- [ ] Aplicar el esquema a una instancia MySQL y cargar catálogo, ruta, nodos, inscripción y progreso iniciales.
-- [ ] Sustituir en React los datos demostrativos por la respuesta del backend.
-- [ ] Verificar visualmente estados, avance calculado, diseño adaptable y persistencia tras recargar.
+- [x] Integrar el principal de Spring Boot con la autenticación de estudiante.
+- [x] Aplicar el esquema a una instancia MySQL y cargar catálogo, ruta, nodos, inscripción y progreso iniciales.
+- [x] Sustituir en React los datos demostrativos por la respuesta del backend.
+- [x] Verificar visualmente estados, avance calculado, diseño adaptable y persistencia tras recargar.
 
-## Estado encontrado
+## Estado actual
 
-La interfaz React ya presenta un mapa de diez nodos y su diseño visual, pero el progreso «2 de 10» y los estados de nodo están codificados como datos estáticos en `frontend/web-react/src/features/roadmap/lessons.ts`. Los endpoints de Spring Boot y las consultas SQL están escritos; todavía no se han compilado ni ejecutado contra una instancia MySQL. El frontend sigue mostrando datos demostrativos y se necesita integrar la autenticación de estudiante antes de servir datos reales. `backend/admin-django` y `frontend/mobile-kotlin` quedan separados para sus dominios e historias posteriores. El proyecto `D:\\ScrumRupi` es una aplicación distinta para la gestión Scrum del equipo y no forma parte de esta implementación.
+La historia HU-01 está implementada y funcional de extremo a extremo:
+- El esquema MySQL `rupi` y los datos semilla (`seed-hu01.sql`) están cargados con el estudiante Mateo Quispe, la ruta de Matemática de 2.º grado y 10 paradas interactivas en la plaza de Ayacucho.
+- La API de Spring Boot (`rupi-api` en puerto 8081) autentica al estudiante mediante su Principal, autoriza las consultas al esquema existente y entrega los contratos de `GET /api/v1/student/learning-routes` y `GET /api/v1/student/learning-routes/{versionRouteId}` con soporte CORS.
+- La interfaz React (`frontend/web-react`) consume la API mediante `learningRoutesApi.ts`, calcula el avance derivado (20% a partir de 2 de 10 nodos completados) y maneja los estados de carga, error de conexión con reintento, sesión no iniciada (401) y estado vacío.
+- La navegación responde de forma adaptable en móvil y escritorio y comunica los estados mediante iconos, texto y color.

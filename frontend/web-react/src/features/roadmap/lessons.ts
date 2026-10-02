@@ -23,7 +23,7 @@ export const lessons: Lesson[] = [
   { id: 10, title: 'Reto de la cosecha', context: 'Huertas del valle', activity: 'Gran desafío · 15 min', state: 'locked', x: 50, y: 96, labelSide: 'left' },
 ]
 
-export const createTrailPath = (points: Pick<Lesson, 'x' | 'y'>[]) => {
+export const createTrailPath = (points: { x: number; y: number }[]) => {
   const coords = points.map(({ x, y }) => ({ x: x * 6, y: y * 10 }))
   if (coords.length < 2) return ''
 

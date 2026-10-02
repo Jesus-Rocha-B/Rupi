@@ -60,7 +60,7 @@ public class LearningRouteRepository {
                 ORDER BY i.inscrito_en DESC, vr.id
                 """;
 
-        return jdbc.query(sql, new MapSqlParameterSource("studentId", studentId), (rs, rowNum) ->
+        return jdbc.query(sql, new MapSqlParameterSource("studentId", studentId.toString()), (rs, rowNum) ->
                 new RouteSummary(
                         uuid(rs, "version_route_id"),
                         rs.getString("route_title"),
@@ -88,8 +88,8 @@ public class LearningRouteRepository {
                 """;
 
         var parameters = new MapSqlParameterSource()
-                .addValue("studentId", studentId)
-                .addValue("routeId", versionRouteId);
+                .addValue("studentId", studentId.toString())
+                .addValue("routeId", versionRouteId.toString());
 
         return jdbc.query(sql, parameters, rs -> {
             if (!rs.next()) return Optional.empty();
@@ -116,8 +116,8 @@ public class LearningRouteRepository {
                 WHERE n.version_ruta_id = :routeId
                 """;
         var parameters = new MapSqlParameterSource()
-                .addValue("enrollmentId", enrollmentId)
-                .addValue("routeId", versionRouteId);
+                .addValue("enrollmentId", enrollmentId.toString())
+                .addValue("routeId", versionRouteId.toString());
         return jdbc.queryForObject(sql, parameters, (rs, rowNum) ->
                 new Progress(rs.getLong("completed_nodes"), rs.getLong("total_nodes")));
     }
@@ -139,8 +139,8 @@ public class LearningRouteRepository {
                 ORDER BY n.numero_secuencia
                 """;
         var parameters = new MapSqlParameterSource()
-                .addValue("enrollmentId", enrollmentId)
-                .addValue("routeId", versionRouteId);
+                .addValue("enrollmentId", enrollmentId.toString())
+                .addValue("routeId", versionRouteId.toString());
         return jdbc.query(sql, parameters, NODE_MAPPER);
     }
 

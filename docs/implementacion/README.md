@@ -24,7 +24,7 @@ React no recibe `estudianteId` desde el navegador ni accede a MySQL directamente
 
 | Orden | HU | Resultado | Dependencia | Estado |
 |---|---|---|---|---|
-| 1 | HU-01 · Mapa interactivo | Rutas inscritas y avance real representados en el mapa. | Identidad estudiante, MySQL con datos iniciales y conexión React/API. | Hay UI, contrato y consultas fuente; integración real pendiente. |
+| 1 | HU-01 · Mapa interactivo | Rutas inscritas y avance real representados en el mapa. | Identidad estudiante, MySQL con datos iniciales y conexión React/API. | Completada. |
 | 2 | HU-02 · Hacer clic en un nivel | Iniciar la actividad correcta y marcarla en curso. | HU-01 y contenido publicado. | Pendiente. |
 | 3 | HU-03 · Regresar al punto exacto | Restaurar mapa/actividad donde se quedó el estudiante. | HU-02 guarda visita y avance en el servidor. | Pendiente. |
 | 4 | HU-04 · Ruta según unidades MINEDU | Mostrar ruta ordenada y agrupada por unidades curriculares. | Catálogo versionado y nodos vinculados a sus unidades. | Pendiente. |
@@ -167,12 +167,12 @@ La calificación de respuestas, finalización y entrega de XP quedan fuera de es
 
 ### HU-01 · Hacer funcional el mapa con datos reales
 
-- [ ] Elegir/provisionar MySQL 8.4 de desarrollo y aplicar/validar el esquema.
-- [ ] Preparar datos curriculares, ruta, nodos, inscripción y progreso inicial.
-- [ ] Integrar principal de Spring con autenticación de estudiante.
-- [ ] Compilar y ejecutar API contra la base de desarrollo.
-- [ ] Conectar React a la API y retirar el progreso ficticio de la vista.
-- [ ] Completar carga, error/reintento, falta de sesión y estado vacío.
+- [x] Elegir/provisionar MySQL 8.4 de desarrollo y aplicar/validar el esquema.
+- [x] Preparar datos curriculares, ruta, nodos, inscripción y progreso inicial.
+- [x] Integrar principal de Spring con autenticación de estudiante.
+- [x] Compilar y ejecutar API contra la base de desarrollo.
+- [x] Conectar React a la API y retirar el progreso ficticio de la vista.
+- [x] Completar carga, error/reintento, falta de sesión y estado vacío.
 
 ### HU-02 · Iniciar una lección
 

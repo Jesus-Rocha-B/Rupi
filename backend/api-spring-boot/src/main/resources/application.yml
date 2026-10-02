@@ -13,6 +13,11 @@ spring:
       mode: never
 
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8081}
   error:
     include-message: never
+
+rupi:
+  auth:
+    default-student-id: ${DEFAULT_STUDENT_ID:}
+
