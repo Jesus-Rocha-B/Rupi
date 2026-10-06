@@ -57,7 +57,7 @@ public class LearningRouteRepository {
                   AND r.archivado_en IS NULL
                 GROUP BY vr.id, r.titulo, g.numero_grado, g.nombre,
                          a.codigo, a.nombre, i.estado, i.inscrito_en
-                ORDER BY i.inscrito_en DESC, vr.id
+                ORDER BY g.numero_grado, a.nombre, r.titulo, vr.id
                 """;
 
         return jdbc.query(sql, new MapSqlParameterSource("studentId", studentId.toString()), (rs, rowNum) ->
@@ -126,7 +126,7 @@ public class LearningRouteRepository {
         String sql = """
                 SELECT n.id AS node_id, n.numero_secuencia, va.titulo AS activity_title,
                        act.tipo AS activity_type, va.minutos_estimados,
-                       COALESCE(p.estado, 'BLOQUEADO') AS progress_state,
+                       p.estado AS progress_state,
                        n.es_opcional, n.mapa_x, n.mapa_y
                 FROM aprendizaje_nodo_ruta n
                 JOIN aprendizaje_version_actividad va ON va.id = n.version_actividad_id

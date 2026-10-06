@@ -19,5 +19,5 @@ server:
 
 rupi:
   auth:
-    default-student-id: ${DEFAULT_STUDENT_ID:}
+    demo-session-token: ${RUPI_DEMO_SESSION_TOKEN:}
 

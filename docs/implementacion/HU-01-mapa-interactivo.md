@@ -124,3 +124,8 @@ La historia HU-01 está implementada y funcional de extremo a extremo:
 - La API de Spring Boot (`rupi-api` en puerto 8081) autentica al estudiante mediante su Principal, autoriza las consultas al esquema existente y entrega los contratos de `GET /api/v1/student/learning-routes` y `GET /api/v1/student/learning-routes/{versionRouteId}` con soporte CORS.
 - La interfaz React (`frontend/web-react`) consume la API mediante `learningRoutesApi.ts`, calcula el avance derivado (20% a partir de 2 de 10 nodos completados) y maneja los estados de carga, error de conexión con reintento, sesión no iniciada (401) y estado vacío.
 - La navegación responde de forma adaptable en móvil y escritorio y comunica los estados mediante iconos, texto y color.
+
+## Revisión posterior de implementación
+
+La verificación actual, correcciones y límites de autenticación se documentan en [HU-01-verificacion-local.md](HU-01-verificacion-local.md). La sesión demo no constituye un sistema de inicio de sesión de producción.
+

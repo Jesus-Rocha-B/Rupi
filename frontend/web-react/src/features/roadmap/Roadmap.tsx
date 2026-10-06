@@ -1,21 +1,9 @@
 import { useMemo } from 'react'
-import { Check, MapPin, Sparkles, Star } from 'lucide-react'
+import { Check, Lock, MapPin, Sparkles, Star } from 'lucide-react'
+import { nodeStateLabels } from './nodeStates'
 import { RupiCharacter } from '../../components/RupiCharacter'
 import { createTrailPath } from './lessons'
 import type { RouteDetail, RouteNode } from '../../services/learningRoutesApi'
-
-const STOP_CONTEXTS: Record<number, string> = {
-  1: 'Arcos de piedra',
-  2: 'Arte en miniatura',
-  3: 'Puestos de la plaza',
-  4: 'Feria de artesanía',
-  5: 'Colores y simetría',
-  6: 'Laderas y andenes',
-  7: 'Antiguas construcciones',
-  8: 'Torres de la plaza',
-  9: 'Sendero de altura',
-  10: 'Huertas del valle',
-}
 
 type Props = {
   route: RouteDetail
@@ -29,8 +17,9 @@ function getNodeDisplayState(state: RouteNode['state']): { cssClass: string; lab
     case 'COMPLETADO':
       return { cssClass: 'complete', label: 'completado' }
     case 'EN_CURSO':
-      return { cssClass: 'active', label: 'en curso · jugar ahora' }
+      return { cssClass: 'active', label: 'en curso' }
     case 'DISPONIBLE':
+      return { cssClass: 'available', label: 'disponible' }
     case 'BLOQUEADO':
     default:
       return { cssClass: 'locked', label: 'bloqueado' }
@@ -39,9 +28,10 @@ function getNodeDisplayState(state: RouteNode['state']): { cssClass: string; lab
 
 export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Props) {
   const points = useMemo(() => {
-    return route.nodes
-      .filter((n) => n.position !== null)
-      .map((n) => ({ x: n.position!.x, y: n.position!.y }))
+    return route.nodes.map((n, index) => n.position ?? {
+      x: index % 2 ? 30 : 65,
+      y: 10 + index * 80 / Math.max(1, route.nodes.length - 1),
+    })
   }, [route.nodes])
 
   const trailPath = useMemo(() => createTrailPath(points), [points])
@@ -49,9 +39,9 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
   return (
     <section className="map-panel" id="explorar" aria-labelledby="roadmap-title">
       <header className="unit-heading">
-        <span className="unit-number">01</span>
+        <span className="unit-number"><MapPin aria-hidden="true" /></span>
         <div className="unit-copy">
-          <span className="eyebrow">UN PASEO ENTRE PORTALES Y RETABLOS</span>
+          <span className="eyebrow">El camino se hace aprendiendo</span>
           <h3 id="roadmap-title">{route.title}</h3>
           <span className="unit-subtitle">
             {route.progress.totalNodes} paradas para descubrir y aprender ({route.area.name} · {route.grade.name})
@@ -76,7 +66,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
         </span>
       </div>
 
-      <div className="map-area" aria-label={`Recorrido de ${route.progress.totalNodes} actividades`}>
+      <div className="map-area" style={{ minHeight: `${Math.max(750, route.nodes.length * 125)}px` }} aria-label={`Recorrido de ${route.progress.totalNodes} actividades`}>
         <svg className="path-line" viewBox="0 0 600 1000" preserveAspectRatio="none" aria-hidden="true">
           <path className="road-shadow" d={trailPath} />
           <path className="road-edge" d={trailPath} />
@@ -84,13 +74,13 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
           <path className="road-center" d={trailPath} />
         </svg>
 
-        {route.nodes.map((node) => {
+        {route.nodes.map((node, index) => {
           const { cssClass, label: stateLabel } = getNodeDisplayState(node.state)
           const canOpen = cssClass !== 'locked'
-          const posX = node.position?.x ?? 50
-          const posY = node.position?.y ?? 10
-          const labelSide = posX > 50 ? 'left' : 'right'
-          const context = STOP_CONTEXTS[node.sequence] ?? 'Parada escolar'
+          const posX = points[index].x
+          const posY = points[index].y
+          const labelSide = posX >= 50 ? 'left' : 'right'
+          const context = `Parada ${node.sequence}`
           const activityBadge = `${node.activityType === 'RETO' ? 'Reto' : 'Lección'}${node.estimatedMinutes ? ` · ${node.estimatedMinutes} min` : ''}`
 
           return (
@@ -112,7 +102,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                     <Check aria-hidden="true" />
                   ) : node.state === 'EN_CURSO' ? (
                     <Star aria-hidden="true" />
-                  ) : (
+                  ) : node.state === 'BLOQUEADO' ? <Lock aria-hidden="true" /> : (
                     node.sequence
                   )}
                 </span>
@@ -129,6 +119,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                   {context}
                 </span>
                 <b>{node.title}</b>
+                <span className="node-state">{nodeStateLabels[node.state]}{node.optional ? ' · Opcional' : ''}</span>
                 <span>{activityBadge}</span>
               </button>
             </div>
@@ -141,8 +132,9 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
       <div className="map-legend" id="logros">
         <span><i className="legend-dot done" />Completado</span>
-        <span><i className="legend-dot now" />Siguiente reto</span>
-        <span><i className="legend-dot locked" />Por desbloquear</span>
+        <span><i className="legend-dot now" />En curso</span>
+        <span><i className="legend-dot available" />Disponible</span>
+        <span><i className="legend-dot locked" />Bloqueado</span>
       </div>
       <a className="image-credit" href="https://commons.wikimedia.org/wiki/File:PLAZA_MAYOR_DE_AYACUCHO.jpg" target="_blank" rel="noreferrer">
         Foto: Pollinhhsano · Wikimedia Commons · CC BY-SA 4.0
@@ -150,3 +142,6 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
     </section>
   )
 }
+
+
+

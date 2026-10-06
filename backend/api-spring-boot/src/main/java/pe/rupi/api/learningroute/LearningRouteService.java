@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pe.rupi.api.learningroute.LearningRouteDtos.Progress;
 import org.springframework.web.server.ResponseStatusException;
 
 import pe.rupi.api.learningroute.LearningRouteDtos.RouteDetailResponse;
@@ -22,11 +24,15 @@ public class LearningRouteService {
         return repository.findRoutesForStudent(studentId);
     }
 
+    @Transactional(readOnly = true)
     public RouteDetailResponse getForStudent(UUID studentId, UUID versionRouteId) {
         var route = repository.findRouteForStudent(studentId, versionRouteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        var progress = repository.findProgress(route.enrollment().id(), versionRouteId);
         var nodes = repository.findNodes(route.enrollment().id(), versionRouteId);
+        if (nodes.stream().anyMatch(node -> node.state() == null)) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
+        }
+        var progress = new Progress(nodes.stream().filter(node -> "COMPLETADO".equals(node.state())).count(), nodes.size());
         return route.toResponse(progress, nodes);
     }
 }

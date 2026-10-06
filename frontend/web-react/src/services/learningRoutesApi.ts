@@ -62,41 +62,30 @@ export class ApiError extends Error {
   }
 }
 
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 
-export async function fetchStudentRoutes(studentId?: string): Promise<RouteSummary[]> {
-  const headers: HeadersInit = {}
-  if (studentId) {
-    headers['Authorization'] = `Bearer ${studentId}`
-    headers['X-Student-Id'] = studentId
-  }
+export interface Student { id: string; name: string }
 
-  const response = await fetch(`${API_BASE}/api/v1/student/learning-routes`, {
-    headers,
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${API_BASE}/api/v1/${path}`, {
+    credentials: 'same-origin',
+    ...options,
+    signal: options.signal
+      ? AbortSignal.any([options.signal, AbortSignal.timeout(15000)])
+      : AbortSignal.timeout(15000),
   })
-
-  if (!response.ok) {
-    throw new ApiError(response.status, `Error al obtener rutas: ${response.status}`)
-  }
-
-  const data = await response.json()
-  return data.items ?? []
+  if (!response.ok) throw new ApiError(response.status, `No se pudo consultar la información (${response.status})`)
+  if (response.status === 204) return undefined as T
+  return response.json() as Promise<T>
 }
 
-export async function fetchRouteDetail(versionRouteId: string, studentId?: string): Promise<RouteDetail> {
-  const headers: HeadersInit = {}
-  if (studentId) {
-    headers['Authorization'] = `Bearer ${studentId}`
-    headers['X-Student-Id'] = studentId
-  }
-
-  const response = await fetch(`${API_BASE}/api/v1/student/learning-routes/${versionRouteId}`, {
-    headers,
-  })
-
-  if (!response.ok) {
-    throw new ApiError(response.status, `Error al obtener la ruta: ${response.status}`)
-  }
-
-  return response.json()
+export const fetchSession = (signal?: AbortSignal) => request<Student>('student/session', { signal })
+export const fetchSessionOptions = (signal?: AbortSignal) => request<{ demoAvailable: boolean }>('auth/options', { signal })
+export const loginDemo = () => request<Student>('auth/demo', { method: 'POST' })
+export const logout = () => request<void>('auth/logout', { method: 'POST' })
+export async function fetchStudentRoutes(signal?: AbortSignal): Promise<RouteSummary[]> {
+  return (await request<{ items: RouteSummary[] }>('student/learning-routes', { signal })).items
 }
+export const fetchRouteDetail = (id: string, signal?: AbortSignal) =>
+  request<RouteDetail>(`student/learning-routes/${encodeURIComponent(id)}`, { signal })

@@ -487,3 +487,67 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   }
 }
 
+/* HU-01: selection, all four persisted states, and keyboard-accessible details. */
+.route-picker { margin-bottom: 18px; }
+.route-picker label { display: block; font-weight: 700; margin-bottom: 7px; }
+.route-picker select { width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); font: inherit; }
+.trail-stop.available .lesson-node { background: #246a91; box-shadow: 0 5px 0 #154562; color: white; }
+.node-label.available { border-color: #246a91; }
+.node-state { display: block; margin-top: 4px; font-size: 11px; font-weight: 700; color: #344c3c; }
+.legend-dot.available { background: #246a91; }
+.trail-stop.active .lesson-node::after { content: 'En curso'; }
+.lesson-modal { border: 0; color: var(--ink); }
+.lesson-modal::backdrop { background: #17271dcc; }
+.main-content > .map-panel { max-width: 960px; margin-inline: auto; }
+.map-legend { flex-wrap: wrap; }
+@media (max-width: 520px) {
+  .main-content > .map-panel .map-area { margin-inline: 0; }
+  .node-label { min-width: 110px; max-width: 135px; }
+}
+@media (max-width: 760px) {
+  .sidebar-bottom { display: flex; width: auto; margin: 0; }
+  .sidebar-bottom .help-bubble { display: none; }
+  .profile-button { padding: 0; width: 36px; }
+  .profile-button > span:not(.avatar) { display: none; }
+}
+/* Rupi: forest green, rock-cock orange, sun yellow and sky blue. */
+.journey-overview { margin: 22px 0; border-radius: 24px; background: #eef5e8; overflow: hidden; border: 1px solid #dbe8d2; }
+.journey-intro { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 24px 28px 8px; }
+.journey-greeting { margin: 0 0 6px; color: #34523b; font-weight: 700; }
+.journey-intro h2 { margin: 0; color: #173e30; font: 800 clamp(26px,4vw,38px)/1.15 var(--display-font); }
+.journey-intro p:last-child { color: #43614c; margin-bottom: 0; line-height: 1.5; }
+.journey-mascot { width: 100px; height: 110px; flex-shrink: 0; }
+.journey-progress { padding: 20px 28px; }
+.journey-progress-label { display: flex; justify-content: space-between; gap: 14px; color: #264b34; margin-bottom: 10px; font-size: 14px; }
+.journey-overview .progress-track { height: 12px; background: #d4e2ca; }
+.journey-overview .progress-fill { background: #31724b; }
+.journey-stats { display: flex; flex-wrap: wrap; gap: 16px 24px; padding: 0; margin: 18px 0 0; list-style: none; color: #34523b; font-size: 13px; }
+.journey-stats li { display: flex; gap: 6px; align-items: center; }
+.journey-stats svg { width: 18px; height: 18px; }
+.route-picker select:focus-visible { outline: 3px solid #246a91; outline-offset: 3px; }
+.node-label b { font-size: 14px; line-height: 1.35; }
+.node-label .node-state { font-size: 12px; }
+.lesson-modal { max-width: calc(100vw - 32px); }
+@media (max-width: 520px) {
+  .journey-intro { padding: 18px 18px 0; gap: 8px; }
+  .journey-mascot { width: 72px; height: 90px; }
+  .journey-intro p:last-child { font-size: 13px; }
+  .journey-progress { padding: 18px; }
+  .journey-stats { gap: 10px 14px; font-size: 12px; }
+  .map-area { display: flex; flex-direction: column; gap: 20px; height: auto; min-height: 0 !important; padding: 28px 18px; }
+  .path-line, .map-decoration { display: none; }
+  .trail-stop { position: relative; display: flex; align-items: center; gap: 18px; left: auto !important; top: auto !important; transform: none; width: 100%; height: auto; }
+  .trail-stop::before { content: ''; position: absolute; left: 26px; top: 40px; bottom: -45px; border-left: 5px dashed #ffe6a7; z-index: -1; }
+  .trail-stop:last-of-type::before { display: none; }
+  .lesson-node, .trail-stop.active .lesson-node { position: static; transform: none; width: 54px; height: 54px; flex: 0 0 54px; animation: none; }
+  .trail-stop.active .lesson-node::after { display: none; }
+  .node-label, .node-label.left, .node-label.right { position: static; transform: none; text-align: left; min-width: 0; max-width: none; flex: 1; padding: 12px; }
+  .node-label b { font-size: 14px; }
+  .node-label .stop-place { font-size: 10px; }
+  .node-label > span:last-child { font-size: 12px; }
+  .map-legend { font-size: 11px; }
+}
+@media (max-width: 520px) {
+  .map-area .node-label:not(:disabled):hover { transform: translateY(-2px); }
+  .node-label.left .stop-place { justify-content: flex-start; }
+}
