@@ -1,8 +1,11 @@
-type Props = { className?: string }
+type Props = {
+  className?: string
+  mood?: 'idle' | 'jumping' | 'thinking' | 'cheering'
+}
 
-export function RupiCharacter({ className = '' }: Props) {
+export function RupiCharacter({ className = '', mood = 'idle' }: Props) {
   return (
-    <svg className={`rupi-character ${className}`} viewBox="0 0 160 170" aria-hidden="true" focusable="false">
+    <svg className={`rupi-character mood-${mood} ${className}`} viewBox="0 0 160 170" aria-hidden="true" focusable="false">
       <ellipse className="rupi-ground-shadow" cx="81" cy="157" rx="47" ry="8" />
       <g className="rupi-tail"><path d="M48 116 20 131q11 2 21-2l-13 13q18-2 30-15" /><path d="m47 119-18 15" /></g>
       <path className="rupi-body" d="M38 112c-7-20 0-45 18-56 16-10 42-9 58 5 17 15 20 42 11 62-9 19-29 28-52 26-19-2-31-14-35-37Z" />

@@ -36,6 +36,33 @@ export interface RouteSummary {
   totalNodes: number
 }
 
+export interface CulturalFact {
+  id: string
+  nodeSequence: number | null
+  order: number
+  title: string
+  content: string
+  icon: string
+  source: string
+}
+
+export interface CulturalContext {
+  id: string
+  code: string
+  city: string
+  place: string
+  title: string
+  description: string | null
+  motivationalMessage: string
+  imageUrl: string
+  imageAlt: string
+  author: string
+  source: string
+  license: string
+  licenseUrl: string
+  facts: CulturalFact[]
+}
+
 export interface RouteDetail {
   versionRouteId: string
   title: string
@@ -51,6 +78,7 @@ export interface RouteDetail {
     totalNodes: number
   }
   nodes: RouteNode[]
+  culturalContext?: CulturalContext | null
 }
 
 export class ApiError extends Error {

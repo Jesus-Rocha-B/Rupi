@@ -164,3 +164,51 @@ ON DUPLICATE KEY UPDATE
   desbloqueado_en = VALUES(desbloqueado_en),
   primer_acceso_en = VALUES(primer_acceso_en),
   completado_en = VALUES(completado_en);
+
+-- 9. Contexto cultural y datos curiosos verificados de Ayacucho (Dominio Curricular)
+INSERT INTO curriculo_contexto_cultural (
+  id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
+  imagen_url, imagen_alt, credito_autor, credito_fuente, credito_licencia, credito_url
+) VALUES (
+  'cc000000-0000-4000-8000-000000000001',
+  'r0000000-0000-4000-8000-000000000001',
+  'AYACUCHO_PLAZA',
+  'Ayacucho',
+  'Plaza Mayor de Ayacucho',
+  'Hecho con raíces peruanas',
+  'La hermosa plaza de Ayacucho acompaña nuestra ruta. Cada rincón del Perú guarda historias y aprendizajes por descubrir.',
+  'No hay prisa en el camino. ¡Cada paso que das te hace crecer!',
+  '/images/ayacucho-plaza.jpg',
+  'Plaza Mayor de Ayacucho con sus tradicionales arquerías blancas y cielo andino',
+  'Pollinhhsano',
+  'Wikimedia Commons',
+  'CC BY-SA 4.0',
+  'https://commons.wikimedia.org/wiki/File:PLAZA_MAYOR_DE_AYACUCHO.jpg'
+) ON DUPLICATE KEY UPDATE
+  ciudad = VALUES(ciudad),
+  lugar = VALUES(lugar),
+  titulo = VALUES(titulo),
+  descripcion = VALUES(descripcion),
+  mensaje_animo = VALUES(mensaje_animo);
+
+INSERT INTO curriculo_contexto_cultural_dato (
+  id, contexto_cultural_id, parada_secuencia, orden, titulo, contenido, icono, fuente, estado
+) VALUES
+  ('fd000000-0000-4000-8000-000000000001', 'cc000000-0000-4000-8000-000000000001', 1, 1, 'Arquerías de piedra blanca', 'La Plaza de Ayacucho es una de las más grandes del Perú y está rodeada por hermosos arcos de piedra blanca.', 'landmark', 'MINCETUR - Guía de Turismo de Ayacucho', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000002', 'cc000000-0000-4000-8000-000000000001', 2, 2, 'Cajas mágicas: retablos', 'Los retablos ayacuchanos son coloridas cajas de madera que guardan pequeñas figuras modeladas y pintadas con amor.', 'palette', 'Ministerio de Cultura del Perú - Patrimonio Cultural de la Nación', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000003', 'cc000000-0000-4000-8000-000000000001', 3, 3, 'El rico pan chapla', 'En los mercados de Ayacucho se hornea el pan chapla, un pancito esponjoso y calentito que se come con queso andino.', 'store', 'PromPerú - Cocina Tradicional Ayacuchana', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000004', 'cc000000-0000-4000-8000-000000000001', 4, 4, 'El trueque en la plaza', 'Antes de usar monedas, las familias intercambiaban maíz, papitas y frutas como muestra de amistad y apoyo mutuo.', 'coins', 'Banco Central de Reserva del Perú - Museo Central', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000005', 'cc000000-0000-4000-8000-000000000001', 5, 5, 'Tejidos de Santa Ana', 'Los artesanos tejen mantas con lanas teñidas con plantas naturales, creando formas geométricas llenas de historia.', 'layers', 'Ministerio de Cultura - Arte Tradicional de Ayacucho', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000006', 'cc000000-0000-4000-8000-000000000001', 6, 6, 'Ciudad de las iglesias', 'Ayacucho tiene más de treinta templos históricos de piedra con torres altas que miran hacia las montañas.', 'mountain', 'Municipalidad Provincial de Huamanga / MINCETUR', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000007', 'cc000000-0000-4000-8000-000000000001', 7, 7, 'Piedra de Huamanga', 'Es una piedra blanca y suave como la cera. Con ella se tallan figuras brillantes y nacimientos muy delicados.', 'shapes', 'Ministerio de Cultura - Declaratoria Patrimonio Cultural de la Nación', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000008', 'cc000000-0000-4000-8000-000000000001', 8, 8, 'Campanas cantarinas', 'La Catedral de Ayacucho tiene campanas de bronce que tocan alegres melodías para avisar las fiestas del pueblo.', 'bell', 'Arzobispado de Ayacucho', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000009', 'cc000000-0000-4000-8000-000000000001', 9, 9, 'El santuario de Quinua', 'A pocos kilómetros de la plaza está la Pampa de Ayacucho, un campo verde donde se selló la libertad del Perú.', 'footprints', 'Sernanp - Santuario Histórico de la Pampa de Ayacucho', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000010', 'cc000000-0000-4000-8000-000000000001', 10, 10, 'La fiesta de la cosecha', 'En los campos andinos se cosechan cientos de tipos de papas nativas con colores divertidos como amarillo y morado.', 'award', 'Centro Internacional de la Papa (CIP) / INIA', 'PUBLICADO'),
+  ('fd000000-0000-4000-8000-000000000011', 'cc000000-0000-4000-8000-000000000001', NULL, 11, 'Rupi, el gallito de las rocas', 'El gallito de las rocas es el ave nacional del Perú. Sus plumas son de un rojo brillante y le gusta saltar entre los árboles.', 'sparkles', 'SERFOR - Fauna Silvestre del Perú', 'PUBLICADO')
+ON DUPLICATE KEY UPDATE
+  titulo = VALUES(titulo),
+  contenido = VALUES(contenido),
+  icono = VALUES(icono),
+  fuente = VALUES(fuente),
+  estado = VALUES(estado);
+

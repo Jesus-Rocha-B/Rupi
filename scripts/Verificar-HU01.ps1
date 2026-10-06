@@ -8,8 +8,36 @@ function Sql([string]$query) {
     if ($LASTEXITCODE -ne 0) { throw 'SQL verification failed' }
 }
 function Request([string]$path, [int]$expected, [hashtable]$headers = @{}) {
-    $response = Invoke-WebRequest "http://127.0.0.1:8081/api/v1/$path" -Headers $headers -SkipHttpErrorCheck
-    if ([int]$response.StatusCode -ne $expected) { throw "Expected $expected for $path, got $($response.StatusCode)" }
+    $url = "http://127.0.0.1:8081/api/v1/$path"
+    $response = $null
+    $actualStatus = 0
+    try {
+        $response = Invoke-WebRequest -Uri $url -Headers $headers -UseBasicParsing
+        $actualStatus = [int]$response.StatusCode
+    } catch [System.Net.WebException] {
+        if ($_.Exception.Response) {
+            $webResp = [System.Net.HttpWebResponse]$_.Exception.Response
+            $actualStatus = [int]$webResp.StatusCode
+            $content = $null
+            $stream = $webResp.GetResponseStream()
+            if ($stream) {
+                $reader = New-Object System.IO.StreamReader($stream)
+                $content = $reader.ReadToEnd()
+            }
+            $respHeaders = @{}
+            foreach ($k in $webResp.Headers.AllKeys) {
+                $respHeaders[$k] = $webResp.Headers[$k]
+            }
+            $response = [PSCustomObject]@{
+                StatusCode = $actualStatus
+                Content = $content
+                Headers = $respHeaders
+            }
+        } else {
+            throw $_
+        }
+    }
+    if ($actualStatus -ne $expected) { throw "Expected $expected for $path, got $actualStatus" }
     Write-Host "PASS $expected $path"
     return $response
 }

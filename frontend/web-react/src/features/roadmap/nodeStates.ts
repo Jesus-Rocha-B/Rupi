@@ -1,8 +1,8 @@
 import type { NodeState } from '../../services/learningRoutesApi'
 
 export const nodeStateLabels: Record<NodeState, string> = {
-  COMPLETADO: 'Completado',
-  EN_CURSO: 'En curso',
-  DISPONIBLE: 'Disponible',
-  BLOQUEADO: 'Bloqueado',
+  COMPLETADO: '¡Lo lograste!',
+  EN_CURSO: '¡Sigue por aquí!',
+  DISPONIBLE: '¡Puedes entrar!',
+  BLOQUEADO: 'Aún no',
 }

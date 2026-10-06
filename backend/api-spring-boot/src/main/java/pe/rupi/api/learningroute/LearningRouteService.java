@@ -33,6 +33,7 @@ public class LearningRouteService {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
         }
         var progress = new Progress(nodes.stream().filter(node -> "COMPLETADO".equals(node.state())).count(), nodes.size());
-        return route.toResponse(progress, nodes);
+        var culturalContext = repository.findCulturalContextForRoute(route.routeId()).orElse(null);
+        return route.toResponse(progress, nodes, culturalContext);
     }
 }

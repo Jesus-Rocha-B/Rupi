@@ -15,7 +15,7 @@ class LearningRouteServiceTest {
     final LearningRouteService service = new LearningRouteService(repository);
     void enrolled() {
         when(repository.findRouteForStudent(student, route)).thenReturn(Optional.of(
-            new LearningRouteRepository.RouteHeader(route, "Ruta", new Grade(2, "Segundo"),
+            new LearningRouteRepository.RouteHeader(route, route, "Ruta", new Grade(2, "Segundo"),
                 new Area("MAT", "Matemática"), new Enrollment(enrollment, "ACTIVO", null))));
     }
     RouteNode node(String state) { return new RouteNode(UUID.randomUUID(), 1, "Actividad", "RETO", 8, state, false, null); }
@@ -38,5 +38,22 @@ class LearningRouteServiceTest {
         enrolled();
         when(repository.findNodes(enrollment, route)).thenReturn(List.of());
         assertEquals(new Progress(0, 0), service.getForStudent(student, route).progress());
+    }
+    @Test void culturalContextIsIncludedWhenAvailable() {
+        enrolled();
+        when(repository.findNodes(enrollment, route)).thenReturn(List.of(node("COMPLETADO")));
+        var context = new CulturalContext(UUID.randomUUID(), "AYACUCHO_PLAZA", "Ayacucho", "Plaza", "Hecho con raíces",
+                "Desc", "No hay prisa", "/img.jpg", "Alt", "Autor", "Fuente", "CC BY-SA 4.0", "http://lic", List.of());
+        when(repository.findCulturalContextForRoute(route)).thenReturn(Optional.of(context));
+        var result = service.getForStudent(student, route);
+        assertNotNull(result.culturalContext());
+        assertEquals("Ayacucho", result.culturalContext().city());
+    }
+    @Test void culturalContextIsNullWhenMissing() {
+        enrolled();
+        when(repository.findNodes(enrollment, route)).thenReturn(List.of(node("COMPLETADO")));
+        when(repository.findCulturalContextForRoute(route)).thenReturn(Optional.empty());
+        var result = service.getForStudent(student, route);
+        assertNull(result.culturalContext());
     }
 }

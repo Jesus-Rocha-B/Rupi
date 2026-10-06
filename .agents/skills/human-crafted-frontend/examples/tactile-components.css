@@ -1,0 +1,80 @@
+/* Ejemplos de Componentes Artesanales y Táctiles para RUPI */
+
+/* 1. Botón de Aventura Principal */
+.rupi-btn-adventure {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--rupi-accent-orange, #f95738);
+  color: #ffffff;
+  font-family: var(--font-family-display, 'Nunito', sans-serif);
+  font-size: 16px;
+  font-weight: 800;
+  padding: 14px 28px;
+  border: none;
+  border-radius: var(--radius-md, 16px);
+  box-shadow: 0 5px 0 var(--rupi-accent-orange-dark, #cc3a1d);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+  user-select: none;
+}
+
+.rupi-btn-adventure:hover {
+  background-color: #ff684a;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 var(--rupi-accent-orange-dark, #cc3a1d);
+}
+
+.rupi-btn-adventure:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--rupi-accent-orange-dark, #cc3a1d);
+}
+
+.rupi-btn-adventure:focus-visible {
+  outline: 3px solid var(--rupi-sky-blue, #246a91);
+  outline-offset: 3px;
+}
+
+/* 2. Tarjeta con Identidad (Card Artesanal) */
+.rupi-card {
+  background-color: var(--rupi-primary-light, #eef5e8);
+  border: 1.5px solid var(--rupi-primary-border, #dbe8d2);
+  border-radius: var(--radius-lg, 24px);
+  padding: 24px 28px;
+  color: var(--rupi-earth-ink, #1a2e22);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 3. Nodo de Mapa Táctil (Game Token) */
+.rupi-map-node {
+  width: 58px;
+  height: 58px;
+  border-radius: var(--radius-full, 9999px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 18px;
+  border: 3px solid #ffffff;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.rupi-map-node.disponible {
+  background: var(--rupi-sky-blue, #246a91);
+  color: #ffffff;
+  box-shadow: 0 6px 0 var(--rupi-sky-blue-dark, #154562);
+}
+
+.rupi-map-node.disponible:hover {
+  transform: scale(1.08) translateY(-3px);
+  box-shadow: 0 9px 0 var(--rupi-sky-blue-dark, #154562);
+}
+
+.rupi-map-node.disponible:active {
+  transform: scale(0.98) translateY(3px);
+  box-shadow: 0 2px 0 var(--rupi-sky-blue-dark, #154562);
+}

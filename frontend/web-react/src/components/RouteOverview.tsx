@@ -1,23 +1,123 @@
-import { ArrowDown, Check, Flag, Footprints } from 'lucide-react'
+import { ArrowRight, Play, Star, Volume2 } from 'lucide-react'
 import { RupiCharacter } from './RupiCharacter'
-import type { RouteDetail } from '../services/learningRoutesApi'
+import { speakText } from '../utils/speech'
+import type { RouteDetail, RouteNode } from '../services/learningRoutesApi'
 
-export function RouteOverview({ route, name }: { route: RouteDetail; name: string }) {
+type Props = {
+  route: RouteDetail
+  name: string
+  onSelect?: (node: RouteNode) => void
+}
+
+export function RouteOverview({ route, name, onSelect }: Props) {
   const completed = route.progress.completedNodes
-  const total = route.progress.totalNodes
-  const percent = total ? Math.round(completed / total * 100) : 0
-  const available = route.nodes.filter(node => node.state === 'DISPONIBLE').length
-  const inProgress = route.nodes.filter(node => node.state === 'EN_CURSO').length
-  return <section className="adventure-welcome" aria-label="Resumen de tu aventura">
-    <div className="welcome-banner">
-      <div className="welcome-copy"><span className="welcome-greeting">¡Qué bueno verte, {name}!</span><h2>Un pequeño paso.<br />Un gran descubrimiento.</h2><p>Explora, aprende y descubre lo que eres capaz de hacer.<br className="desktop-break" /> Rupi te acompaña en cada parada.</p><a href="#explorar" className="welcome-link">Vamos a mi mapa <ArrowDown size={17} aria-hidden="true" /></a></div>
-      <div className="welcome-art" aria-hidden="true"><span className="art-sun" /><span className="art-orbit orbit-one" /><span className="art-orbit orbit-two" /><span className="art-star star-a">✦</span><span className="art-star star-b">✦</span><RupiCharacter /><span className="mascot-sign">¡Vamos juntos!</span></div>
-    </div>
-    <div className="welcome-stats">
-      <div className="overall-progress"><div><span>Tu recorrido</span><strong>{percent}<small>%</small></strong></div><div className="overall-track"><div className="progress-track" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label="Porcentaje de avance en la ruta"><div className="progress-fill" style={{width:`${percent}%`}} /></div><p>{completed} de {total} actividades completadas</p></div></div>
-      <div className="stat-item"><span className="stat-icon done"><Check aria-hidden="true" /></span><div><b>{completed}</b><span>Completadas</span></div></div>
-      <div className="stat-item"><span className="stat-icon underway"><Footprints aria-hidden="true" /></span><div><b>{inProgress}</b><span>En curso</span></div></div>
-      <div className="stat-item"><span className="stat-icon ready"><Flag aria-hidden="true" /></span><div><b>{available}</b><span>Disponibles</span></div></div>
-    </div>
-  </section>
+  const total = route.progress.totalNodes || 10
+  const nextNode =
+    route.nodes.find((node) => node.state === 'EN_CURSO') ??
+    route.nodes.find((node) => node.state === 'DISPONIBLE')
+
+  const progressPhrase =
+    completed === 0
+      ? `¡Todo listo para empezar tu aventura, ${name}!`
+      : completed === total
+      ? `¡Increíble, ${name}! ¡Completaste todas las paradas!`
+      : `¡Ya llevas ${completed} de ${total} paradas logradas, ${name}! ¡Qué gran esfuerzo!`
+
+  const nextActionTitle = nextNode
+    ? nextNode.state === 'EN_CURSO'
+      ? `¡Seguir con: ${nextNode.title}!`
+      : `¡Empezar: ${nextNode.title}!`
+    : '¡Ver mi mapa de paradas!'
+
+  return (
+    <section className="adventure-welcome" aria-label="Resumen de tu aventura">
+      <div className="welcome-compact-grid">
+        {/* Columna izquierda: Saludo, Rupi y CTA principal del siguiente paso */}
+        <div className="welcome-main-col">
+          <div className="welcome-header-mini">
+            <span className="welcome-greeting">¡Hola, {name}!</span>
+            <button
+              type="button"
+              className="listen-greeting-btn"
+              onClick={() => speakText(`${progressPhrase}. Tu siguiente paso es ${nextActionTitle}`)}
+              aria-label="Escuchar tu avance y siguiente paso"
+              title="Escuchar"
+            >
+              <Volume2 size={16} aria-hidden="true" />
+            </button>
+          </div>
+
+          <h2 className="welcome-title">
+            Un paso a la vez, <span className="title-highlight">descubriendo el Perú</span>.
+          </h2>
+
+          <p className="welcome-phrase">{progressPhrase}</p>
+
+          {/* Botón táctil principal: Tu siguiente paso visible de inmediato */}
+          {nextNode && (
+            <div className="hero-cta-wrapper">
+              <button
+                type="button"
+                className="hero-next-button"
+                onClick={() => onSelect?.(nextNode)}
+                aria-label={`Continuar con: ${nextNode.title}`}
+              >
+                <span className="cta-icon-box">
+                  <Play size={18} fill="currentColor" aria-hidden="true" />
+                </span>
+                <span className="cta-label-group">
+                  <small className="cta-kicker">Tu siguiente paso</small>
+                  <strong className="cta-title">{nextActionTitle}</strong>
+                </span>
+                <ArrowRight size={20} className="cta-arrow" aria-hidden="true" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Columna derecha: Progreso visual con estrellas ganadas y Rupi */}
+        <div className="welcome-progress-col">
+          <div className="stars-progress-card" role="region" aria-label="Estrellas ganadas">
+            <div className="stars-card-top">
+              <span className="stars-card-label">
+                <Star size={16} fill="#ffd26a" stroke="#dca331" aria-hidden="true" />
+                <b>Estrellas ganadas</b>
+              </span>
+              <span className="stars-count-badge" aria-label={`${completed} de ${total} estrellas`}>
+                <b>{completed}</b>
+                <span className="stars-count-sep">/</span>
+                <span>{total}</span>
+              </span>
+            </div>
+
+            {/* Fila de estrellas: solo estrellas ganadas en dorado y vacías para las pendientes */}
+            <div className="stars-track" aria-hidden="true">
+              {Array.from({ length: total }).map((_, index) => {
+                const isEarned = index < completed
+                return (
+                  <span
+                    key={index}
+                    className={`star-seed ${isEarned ? 'earned' : 'pending'}`}
+                    title={`Parada ${index + 1}`}
+                  >
+                    <Star
+                      size={20}
+                      fill={isEarned ? '#ffd26a' : 'none'}
+                      stroke={isEarned ? '#dca331' : '#b6c7b2'}
+                      strokeWidth={2}
+                    />
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="mascot-badge" aria-hidden="true">
+            <RupiCharacter mood="cheering" className="mascot-img-sm" />
+            <span className="mascot-cheer">¡Vamos juntos!</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }

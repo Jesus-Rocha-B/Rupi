@@ -13,6 +13,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import pe.rupi.api.learningroute.LearningRouteDtos.Area;
+import pe.rupi.api.learningroute.LearningRouteDtos.CulturalContext;
+import pe.rupi.api.learningroute.LearningRouteDtos.CulturalFact;
 import pe.rupi.api.learningroute.LearningRouteDtos.Enrollment;
 import pe.rupi.api.learningroute.LearningRouteDtos.Grade;
 import pe.rupi.api.learningroute.LearningRouteDtos.Position;
@@ -74,7 +76,7 @@ public class LearningRouteRepository {
 
     public Optional<RouteHeader> findRouteForStudent(UUID studentId, UUID versionRouteId) {
         String sql = """
-                SELECT vr.id AS version_route_id, r.titulo AS route_title,
+                SELECT vr.id AS version_route_id, r.id AS route_id, r.titulo AS route_title,
                        g.numero_grado, g.nombre AS grade_name,
                        a.codigo AS area_code, a.nombre AS area_name,
                        i.id AS enrollment_id, i.estado AS enrollment_state,
@@ -95,6 +97,7 @@ public class LearningRouteRepository {
             if (!rs.next()) return Optional.empty();
             return Optional.of(new RouteHeader(
                     uuid(rs, "version_route_id"),
+                    uuid(rs, "route_id"),
                     rs.getString("route_title"),
                     new Grade(rs.getInt("numero_grado"), rs.getString("grade_name")),
                     new Area(rs.getString("area_code"), rs.getString("area_name")),
@@ -169,15 +172,72 @@ public class LearningRouteRepository {
         return value == null ? null : UUID.fromString(value);
     }
 
+    public Optional<CulturalContext> findCulturalContextForRoute(UUID routeId) {
+        String sql = """
+                SELECT id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
+                       imagen_url, imagen_alt, credito_autor, credito_fuente,
+                       credito_licencia, credito_url
+                FROM curriculo_contexto_cultural
+                WHERE ruta_id = :routeId
+                """;
+        var parameters = new MapSqlParameterSource("routeId", routeId.toString());
+        return jdbc.query(sql, parameters, rs -> {
+            if (!rs.next()) return Optional.empty();
+            UUID contextId = uuid(rs, "id");
+            List<CulturalFact> facts = findFactsForContext(contextId);
+            return Optional.of(new CulturalContext(
+                    contextId,
+                    rs.getString("codigo"),
+                    rs.getString("ciudad"),
+                    rs.getString("lugar"),
+                    rs.getString("titulo"),
+                    rs.getString("descripcion"),
+                    rs.getString("mensaje_animo"),
+                    rs.getString("imagen_url"),
+                    rs.getString("imagen_alt"),
+                    rs.getString("credito_autor"),
+                    rs.getString("credito_fuente"),
+                    rs.getString("credito_licencia"),
+                    rs.getString("credito_url"),
+                    facts
+            ));
+        });
+    }
+
+    public List<CulturalFact> findFactsForContext(UUID contextId) {
+        String sql = """
+                SELECT id, parada_secuencia, orden, titulo, contenido, icono, fuente
+                FROM curriculo_contexto_cultural_dato
+                WHERE contexto_cultural_id = :contextId
+                  AND estado = 'PUBLICADO'
+                ORDER BY orden, parada_secuencia, id
+                """;
+        var parameters = new MapSqlParameterSource("contextId", contextId.toString());
+        return jdbc.query(sql, parameters, (rs, rowNum) -> new CulturalFact(
+                uuid(rs, "id"),
+                (Integer) rs.getObject("parada_secuencia"),
+                rs.getInt("orden"),
+                rs.getString("titulo"),
+                rs.getString("contenido"),
+                rs.getString("icono"),
+                rs.getString("fuente")
+        ));
+    }
+
     public record RouteHeader(
             UUID versionRouteId,
+            UUID routeId,
             String title,
             Grade grade,
             Area area,
             Enrollment enrollment
     ) {
         public RouteDetailResponse toResponse(Progress progress, List<RouteNode> nodes) {
-            return new RouteDetailResponse(versionRouteId, title, grade, area, enrollment, progress, nodes);
+            return toResponse(progress, nodes, null);
+        }
+
+        public RouteDetailResponse toResponse(Progress progress, List<RouteNode> nodes, CulturalContext culturalContext) {
+            return new RouteDetailResponse(versionRouteId, title, grade, area, enrollment, progress, nodes, culturalContext);
         }
     }
 }

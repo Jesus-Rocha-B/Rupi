@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, ArrowRight, Bird, Check, Compass, Heart, House, Inbox, Lock, RefreshCw, Star, X } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Bird, Check, Compass, Heart, House, Inbox, Lock, RefreshCw, Star, Volume2, X } from 'lucide-react'
 import { Roadmap } from './features/roadmap/Roadmap'
 import { RoadmapSkeleton } from './features/roadmap/RoadmapSkeleton'
 import { ApiError, fetchRouteDetail, fetchStudentRoutes, fetchSession, fetchSessionOptions, loginDemo, logout, type RouteDetail, type RouteNode, type RouteSummary, type Student } from './services/learningRoutesApi'
 import { nodeStateLabels } from './features/roadmap/nodeStates'
 import { RouteOverview } from './components/RouteOverview'
 import { RouteCompanion } from './components/RouteCompanion'
+import { speakText } from './utils/speech'
 import './App.css'
-import './redesign.css'
 
 const guideMessages = [
   'Cada parada muestra el avance que has guardado en tu ruta.',
@@ -99,7 +99,7 @@ function App() {
         <div className="school-label">MI ESPACIO</div>
         <nav className="main-nav" aria-label="Navegación principal">
           <a className="nav-item selected" href="#main-content" aria-current="page"><House aria-hidden="true" />Mi ruta</a>
-          <a className="nav-item" href="#mis-rutas"><Compass aria-hidden="true" />Mis inscripciones</a>
+          <a className="nav-item" href="#mis-rutas"><Compass aria-hidden="true" />Mis aventuras</a>
         </nav>
         <div className="sidebar-bottom">
           <div className="help-bubble">¿Necesitas otra ruta?<br /><span>Consulta con tu docente.</span><div className="help-face"><Bird aria-hidden="true" /></div></div>
@@ -112,13 +112,13 @@ function App() {
         <section className="course-heading" aria-labelledby="course-title">
           <div><div className="eyebrow">Tu espacio para descubrir</div><h1 id="course-title">Mi ruta de aprendizaje {selectedRoute && <span className="grade-pill">{selectedRoute.grade.name}</span>}</h1><p>Un mundo por aprender. A tu propio ritmo.</p></div>
         </section>
-        <section id="mis-rutas" className="route-picker" aria-label="Rutas inscritas">
-          {routes.length > 0 && <><label htmlFor="route-select">Mis rutas inscritas</label><select id="route-select" value={selectedRoute?.versionRouteId ?? routeId} disabled={loading || sessionBusy} onChange={event => { resetView(); setRouteId(event.target.value) }}>
+        {routes.length > 1 && <section id="mis-rutas" className="route-picker" aria-label="Rutas inscritas">
+          <label htmlFor="route-select">Mis aventuras inscritas</label><select id="route-select" value={selectedRoute?.versionRouteId ?? routeId} disabled={loading || sessionBusy} onChange={event => { resetView(); setRouteId(event.target.value) }}>
             {!selectedRoute && !routeId && <option value="" disabled>Cargando ruta…</option>}
             {routes.map(route => <option key={route.versionRouteId} value={route.versionRouteId}>{route.grade.name} · {route.area.name} · {route.title} ({route.completedNodes}/{route.totalNodes})</option>)}
-          </select></>}
-        </section>
-        {selectedRoute && <RouteOverview route={selectedRoute} name={student?.name ?? "estudiante"} />}
+          </select>
+        </section>}
+        {selectedRoute && <RouteOverview route={selectedRoute} name={student?.name ?? "estudiante"} onSelect={setSelectedNode} />}
         {loading && <div aria-busy="true"><p role="status">Cargando tu ruta y tu progreso…</p><RoadmapSkeleton /></div>}
         {!loading && errorType === 'NETWORK' && <section className="status-panel" role="alert"><div className="status-panel-icon error"><AlertTriangle aria-hidden="true" /></div><h2>No pudimos consultar tu progreso</h2><p>Tu avance sigue guardado. Espera un momento y vuelve a intentarlo.</p><button className="status-action-btn" onClick={retry}><RefreshCw aria-hidden="true" />Reintentar</button></section>}
         {!loading && errorType === 'NOT_FOUND' && <section className="status-panel" role="alert"><h2>Esta ruta ya no está disponible</h2><p>Puede haber cambiado tu inscripción. Consulta tus rutas de nuevo.</p><button className="status-action-btn" onClick={() => { resetView(); setRouteId(''); setReloadKey(value => value + 1) }}>Volver a mis rutas</button></section>}
@@ -131,7 +131,19 @@ function App() {
         <button className="modal-close" autoFocus onClick={() => setSelectedNode(null)} aria-label="Cerrar detalle"><X aria-hidden="true" /></button>
         <div className="modal-icon">{selectedNode.state === 'COMPLETADO' ? <Check aria-hidden="true" /> : <Star aria-hidden="true" />}</div>
         <span className="eyebrow">PARADA #{selectedNode.sequence} · {nodeStateLabels[selectedNode.state]}</span>
-        <h2 id="modal-title">{selectedNode.title}</h2><p id="modal-desc">{selectedNode.activityType}{selectedNode.estimatedMinutes != null ? ` · ${selectedNode.estimatedMinutes} minutos` : ''}. Aquí puedes consultar el progreso guardado de esta actividad.</p>
+        <div className="modal-title-row">
+          <h2 id="modal-title">{selectedNode.title}</h2>
+          <button
+            type="button"
+            className="modal-listen-btn"
+            onClick={() => speakText(`Parada ${selectedNode.sequence}: ${selectedNode.title}. ${nodeStateLabels[selectedNode.state]}`)}
+            aria-label="Escuchar título"
+            title="Escuchar"
+          >
+            <Volume2 size={18} aria-hidden="true" />
+          </button>
+        </div>
+        <p id="modal-desc">{selectedNode.activityType}{selectedNode.estimatedMinutes != null ? ` · ${selectedNode.estimatedMinutes} minutos aprox.` : ''}. Aquí puedes consultar el progreso guardado de esta actividad.</p>
         <button className="start-button" onClick={() => setSelectedNode(null)}>Volver al mapa <ArrowRight aria-hidden="true" /></button>
       </dialog>}
     </div>

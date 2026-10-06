@@ -19,6 +19,33 @@ public final class LearningRouteDtos {
             long totalNodes
     ) {}
 
+    public record CulturalFact(
+            UUID id,
+            Integer nodeSequence,
+            int order,
+            String title,
+            String content,
+            String icon,
+            String source
+    ) {}
+
+    public record CulturalContext(
+            UUID id,
+            String code,
+            String city,
+            String place,
+            String title,
+            String description,
+            String motivationalMessage,
+            String imageUrl,
+            String imageAlt,
+            String author,
+            String source,
+            String license,
+            String licenseUrl,
+            List<CulturalFact> facts
+    ) {}
+
     public record RouteDetailResponse(
             UUID versionRouteId,
             String title,
@@ -26,8 +53,22 @@ public final class LearningRouteDtos {
             Area area,
             Enrollment enrollment,
             Progress progress,
-            List<RouteNode> nodes
-    ) {}
+            List<RouteNode> nodes,
+            CulturalContext culturalContext
+    ) {
+        public RouteDetailResponse(
+                UUID versionRouteId,
+                String title,
+                Grade grade,
+                Area area,
+                Enrollment enrollment,
+                Progress progress,
+                List<RouteNode> nodes
+        ) {
+            this(versionRouteId, title, grade, area, enrollment, progress, nodes, null);
+        }
+    }
+
 
     public record Grade(int number, String name) {}
 
