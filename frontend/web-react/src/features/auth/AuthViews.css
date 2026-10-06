@@ -1,0 +1,2277 @@
+/* ==========================================================================
+   ESTILOS ARQUITECTÓNICOS Y VISUALES · LOGIN DE DOS PANELES (RUPI)
+   Inspirado en la geografía andina, materiales escolares y accesibilidad infantil.
+   Cero IA slop · Tacto físico 3D · 100dvh responsivo · Cero emojis
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Contenedor de pantalla completa dividida (Split Screen)
+   -------------------------------------------------------------------------- */
+.login-split-page {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #ffffff;
+  overflow-x: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   2. Panel Izquierdo: Marca, Identidad y Narrativa Visual
+   -------------------------------------------------------------------------- */
+.login-brand-panel {
+  flex: 0 0 52%;
+  position: relative;
+  background: radial-gradient(circle at 20% 20%, #fffbf0 0%, #f4faf6 55%, #e6f3eb 100%);
+  border-right: 2px solid var(--line, #dbe8d2);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 36px clamp(24px, 4vw, 52px);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Decoraciones andinas de fondo (SVG animado ligero) */
+.brand-panel-decorations {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.andean-hills-svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 56%;
+}
+
+/* Sol Andino radiante en las cumbres */
+.andean-sun .sun-core {
+  fill: #ffd26a;
+}
+
+.andean-sun .sun-ray-ring {
+  fill: none;
+  stroke: #f4a261;
+  stroke-width: 2.5;
+  stroke-dasharray: 6 6;
+  transform-origin: 85px 65px;
+  animation: sun-ring-rotate 24s linear infinite;
+}
+
+.andean-sun .sun-inner-glow {
+  fill: #fff0b8;
+  opacity: 0.85;
+  animation: sun-glow-pulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes sun-ring-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sun-glow-pulse {
+  from { transform: scale(0.92); opacity: 0.7; }
+  to { transform: scale(1.08); opacity: 0.95; }
+}
+
+/* Nubes andinas flotando suavemente */
+.andean-cloud {
+  fill: #ffffff;
+}
+
+.andean-cloud.cloud-1 {
+  opacity: 0.8;
+  animation: cloud-float-left 20s ease-in-out infinite alternate;
+}
+
+.andean-cloud.cloud-2 {
+  opacity: 0.65;
+  animation: cloud-float-right 25s ease-in-out infinite alternate;
+}
+
+@keyframes cloud-float-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(45px); }
+}
+
+@keyframes cloud-float-right {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-35px); }
+}
+
+/* Capas de montañas */
+.hill-back {
+  fill: #d5e9dc;
+  opacity: 0.75;
+}
+
+.mountain-snowcap {
+  fill: #ffffff;
+  opacity: 0.95;
+}
+
+.hill-mid {
+  fill: #bddcc7;
+  opacity: 0.88;
+}
+
+.hill-front {
+  fill: #a3cfae;
+}
+
+/* Flora andina silvestre en los cerros (retamas) */
+.andean-flora {
+  transform-origin: bottom center;
+  animation: flora-sway 3.2s ease-in-out infinite alternate;
+}
+
+.flora-stem {
+  stroke: #31724b;
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+}
+
+.flora-bloom.bloom-yellow {
+  fill: #ffd26a;
+}
+
+.flora-bloom.bloom-orange {
+  fill: #f95738;
+}
+
+@keyframes flora-sway {
+  from {
+    transform: rotate(-1.5deg);
+  }
+  to {
+    transform: rotate(2deg);
+  }
+}
+
+/* Camino sinuoso animado con base sólida y guiones dinámicos */
+.trail-path-base {
+  fill: none;
+  stroke: #e8c09a;
+  stroke-width: 6;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+
+.trail-path {
+  fill: none;
+  stroke: #f95738;
+  stroke-width: 3.5;
+  stroke-dasharray: 8 8;
+  stroke-linecap: round;
+  opacity: 0.95;
+  animation: road-travel-dash 1.8s linear infinite;
+}
+
+@keyframes road-travel-dash {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+/* Hitos / Paradas de la ruta en la montaña */
+.map-stop-node.stop-completed {
+  fill: #31724b;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+}
+
+.map-stop-node.stop-active {
+  fill: #f95738;
+  stroke: #ffffff;
+  stroke-width: 3;
+}
+
+.map-stop-node.stop-target {
+  fill: #ffd26a;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+}
+
+.map-stop-pulse {
+  fill: none;
+  stroke: #f95738;
+  stroke-width: 2.5;
+  transform-origin: 280px 220px;
+  animation: stop-pulse-wave 2.2s ease-out infinite;
+}
+
+@keyframes stop-pulse-wave {
+  0% {
+    r: 9;
+    opacity: 0.9;
+  }
+  100% {
+    r: 22;
+    opacity: 0;
+  }
+}
+
+/* Contenido del panel de marca */
+.brand-panel-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.brand-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo-img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 3px #ffd26a, 0 3px 8px rgba(158, 71, 47, 0.2);
+}
+
+.brand-title {
+  color: var(--ink, #173e30);
+  font: 900 28px var(--display-font, 'Nunito', sans-serif);
+  letter-spacing: -1.2px;
+}
+
+.brand-dot {
+  color: var(--red, #f95738);
+}
+
+.brand-region-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #fdf6ec;
+  border: 1.5px solid #ffd26a;
+  color: #9e592d;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+/* Escenario central de Rupi */
+.brand-character-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: auto 0;
+  padding: 10px 0;
+  width: 100%;
+}
+
+/* Burbuja de diálogo cálida de Rupi */
+.rupi-speech-balloon {
+  position: relative;
+  max-width: 390px;
+  width: 100%;
+  margin: 0 auto 16px;
+  background: #ffffff;
+  border: 2.5px solid #31724b;
+  border-radius: 20px;
+  padding: 13px 18px;
+  box-shadow: 0 5px 0 #235538, 0 8px 18px rgba(23, 62, 48, 0.08);
+  z-index: 5;
+  animation: balloon-float 3.8s ease-in-out infinite;
+}
+
+@keyframes balloon-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.speech-balloon-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.speech-balloon-pill {
+  background: #edf6ec;
+  color: #235538;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid #c2e2c5;
+}
+
+.speech-audio-btn {
+  background: #fff8e2;
+  border: 1.5px solid #ffd26a;
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #98591e;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #e4b238;
+  transition: transform 0.08s, box-shadow 0.08s, background 0.1s;
+}
+
+.speech-audio-btn:hover {
+  background: #ffefcb;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #e4b238;
+}
+
+.speech-audio-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #e4b238;
+}
+
+.speech-balloon-text {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink, #173e30);
+  line-height: 1.4;
+}
+
+.speech-balloon-tail {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 12px solid #31724b;
+}
+
+.speech-balloon-tail::after {
+  content: '';
+  position: absolute;
+  bottom: 2.5px;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid #ffffff;
+}
+
+/* Contenedor relativo de Rupi y sus elementos orbitales */
+.brand-rupi-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 250px;
+}
+
+.character-halo {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, #fff1db 0%, rgba(255, 241, 219, 0.45) 50%, rgba(255, 241, 219, 0) 75%);
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
+  animation: halo-pulse 4.5s ease-in-out infinite alternate;
+}
+
+/* Rayos solares rotativos tipo grabado artesanal */
+.character-sun-rays {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 210, 106, 0.22) 0deg 15deg,
+    transparent 15deg 30deg
+  );
+  pointer-events: none;
+  z-index: 1;
+  animation: sun-rays-spin 36s linear infinite;
+}
+
+@keyframes sun-rays-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes halo-pulse {
+  0%, 100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+/* Botón interactivo de Rupi */
+.brand-rupi-button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  outline: none;
+  border-radius: 32px;
+}
+
+.brand-rupi-button:focus-visible {
+  outline: 3px solid #246a91;
+  outline-offset: 6px;
+}
+
+.brand-rupi-button:hover .brand-rupi-mascot {
+  transform: scale(1.08) translateY(-10px) rotate(-2deg);
+}
+
+.brand-rupi-button:hover .rupi-wing {
+  animation-duration: 0.35s !important;
+}
+
+.brand-rupi-button.jumping .brand-rupi-mascot {
+  animation: rupi-super-celebration 1.15s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.brand-rupi-button.jumping .rupi-wing {
+  animation: rupi-wing-celebrate 0.16s ease-in-out infinite alternate !important;
+}
+
+.brand-rupi-button.jumping .rupi-ground-shadow {
+  animation: rupi-jump-shadow 1.15s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* Mascota con animación viva, orgánica y alegre */
+.brand-rupi-mascot {
+  position: relative;
+  z-index: 2;
+  width: min(250px, 35vw);
+  height: min(250px, 35vw);
+  filter: drop-shadow(0 14px 18px rgba(23, 62, 48, 0.18));
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: rupi-lively-idle 3.4s ease-in-out infinite;
+}
+
+/* Microanimaciones sincronizadas de las partes de Rupi */
+.brand-rupi-mascot .rupi-wing {
+  animation: rupi-wing-flutter 0.8s ease-in-out infinite !important;
+}
+
+.brand-rupi-mascot .rupi-crest {
+  animation: rupi-crest-dance 1.8s ease-in-out infinite !important;
+}
+
+.brand-rupi-mascot .rupi-tail {
+  animation: rupi-tail-flick 1.6s ease-in-out infinite !important;
+}
+
+.brand-rupi-mascot .rupi-beak {
+  animation: rupi-beak-chirp 2.5s ease-in-out infinite !important;
+}
+
+.brand-rupi-mascot .rupi-feet {
+  animation: rupi-feet-tap 1.7s ease-in-out infinite !important;
+}
+
+.brand-rupi-mascot .rupi-ground-shadow {
+  animation: rupi-shadow-sync 3.4s ease-in-out infinite !important;
+}
+
+/* Movimiento continuo de Rupi: respiración, balanceo y saltito curioso */
+@keyframes rupi-lively-idle {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1, 1);
+  }
+  15% {
+    transform: translateY(-6px) rotate(-2deg) scale(0.98, 1.02);
+  }
+  30% {
+    transform: translateY(0) rotate(0deg) scale(1.02, 0.98);
+  }
+  48% {
+    transform: translateY(-16px) rotate(3deg) scale(0.96, 1.04);
+  }
+  62% {
+    transform: translateY(-4px) rotate(-1deg) scale(1.01, 0.99);
+  }
+  75% {
+    transform: translateY(-10px) rotate(2deg) scale(0.98, 1.02);
+  }
+  88% {
+    transform: translateY(0) rotate(0deg) scale(1.01, 0.99);
+  }
+}
+
+/* Salto de gran celebración cuando el estudiante toca a Rupi */
+@keyframes rupi-super-celebration {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  12% {
+    transform: translateY(12px) scale(1.16, 0.84);
+  }
+  35% {
+    transform: translateY(-48px) scale(0.92, 1.14) rotate(-8deg);
+  }
+  55% {
+    transform: translateY(-52px) scale(1.1, 1.02) rotate(6deg);
+  }
+  74% {
+    transform: translateY(-16px) scale(0.96, 1.05) rotate(-2deg);
+  }
+  88% {
+    transform: translateY(10px) scale(1.14, 0.88);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+/* Aleteo alegre y natural */
+@keyframes rupi-wing-flutter {
+  0%, 100% {
+    transform: rotate(6deg);
+  }
+  20% {
+    transform: rotate(-24deg);
+  }
+  35% {
+    transform: rotate(4deg);
+  }
+  55% {
+    transform: rotate(-30deg);
+  }
+  75% {
+    transform: rotate(8deg);
+  }
+  88% {
+    transform: rotate(-18deg);
+  }
+}
+
+/* Aleteo rápido de júbilo durante el salto */
+@keyframes rupi-wing-celebrate {
+  from {
+    transform: rotate(18deg) scale(1.05);
+  }
+  to {
+    transform: rotate(-36deg) scale(0.95);
+  }
+}
+
+/* Danza del copete gallito de las rocas */
+@keyframes rupi-crest-dance {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(8deg) scale(1.06, 0.98);
+  }
+  50% {
+    transform: rotate(-4deg) scale(0.98, 1.04);
+  }
+  75% {
+    transform: rotate(6deg) scale(1.04, 1);
+  }
+}
+
+/* Movimiento pícaro de la colita */
+@keyframes rupi-tail-flick {
+  0%, 100% {
+    transform: rotate(-2deg);
+  }
+  30% {
+    transform: rotate(9deg);
+  }
+  60% {
+    transform: rotate(-5deg);
+  }
+  85% {
+    transform: rotate(6deg);
+  }
+}
+
+/* Canto y gorjeo del pico */
+@keyframes rupi-beak-chirp {
+  0%, 65%, 100% {
+    transform: scale(1);
+  }
+  72%, 84% {
+    transform: scale(1, 0.8) rotate(-4deg);
+  }
+  78%, 90% {
+    transform: scale(1.06, 1.1) rotate(2deg);
+  }
+}
+
+/* Pasitos rítmicos de las patitas */
+@keyframes rupi-feet-tap {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  15% {
+    transform: translateY(-3px);
+  }
+  30% {
+    transform: translateY(0);
+  }
+  60% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Sombra proyectada en el suelo sincronizada con el balanceo */
+@keyframes rupi-shadow-sync {
+  0%, 30%, 88%, 100% {
+    transform: scaleX(1);
+    opacity: 0.9;
+  }
+  15% {
+    transform: scaleX(0.88);
+    opacity: 0.7;
+  }
+  48% {
+    transform: scaleX(0.68);
+    opacity: 0.35;
+  }
+  62% {
+    transform: scaleX(0.92);
+    opacity: 0.8;
+  }
+  75% {
+    transform: scaleX(0.78);
+    opacity: 0.5;
+  }
+}
+
+/* Sombra durante el salto de gran altura */
+@keyframes rupi-jump-shadow {
+  0%, 100% {
+    transform: scaleX(1);
+    opacity: 0.9;
+  }
+  12% {
+    transform: scaleX(1.15);
+    opacity: 0.95;
+  }
+  45%, 55% {
+    transform: scaleX(0.42);
+    opacity: 0.2;
+  }
+  88% {
+    transform: scaleX(1.18);
+    opacity: 0.95;
+  }
+}
+
+/* Indicador táctil para saludar a Rupi */
+.rupi-tap-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: -6px;
+  background: #ffffff;
+  border: 1.5px solid #ffd26a;
+  border-radius: 14px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #a05a28;
+  box-shadow: 0 3px 0 #e4b238;
+  transition: transform 0.15s, background 0.15s;
+  animation: hint-bounce 2.4s ease-in-out infinite;
+}
+
+@keyframes hint-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.brand-rupi-button:hover .rupi-tap-hint {
+  background: #fff8e8;
+  transform: translateY(-2px);
+}
+
+/* Chispitas mágicas decorativas */
+.rupi-sparkle {
+  position: absolute;
+  color: #f4a261;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.rupi-sparkle.sparkle-tl {
+  top: 10%;
+  left: 14%;
+  animation: sparkle-twinkle 2.5s ease-in-out infinite;
+}
+
+.rupi-sparkle.sparkle-tr {
+  top: 18%;
+  right: 14%;
+  animation: sparkle-twinkle 3s ease-in-out 0.9s infinite;
+}
+
+.rupi-sparkle.sparkle-bl {
+  bottom: 14%;
+  left: 15%;
+  animation: sparkle-twinkle 2.8s ease-in-out 0.4s infinite;
+}
+
+.rupi-sparkle.sparkle-br {
+  bottom: 18%;
+  right: 16%;
+  animation: sparkle-twinkle 2.7s ease-in-out 1.5s infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(0.65) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3) rotate(90deg);
+  }
+}
+
+/* Insignias escolares flotantes con microanimación 3D */
+.floating-badge {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border-radius: 16px;
+  font-size: 11.5px;
+  font-weight: 900;
+  z-index: 3;
+  pointer-events: none;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08), 0 8px 16px rgba(23, 62, 48, 0.06);
+}
+
+.badge-icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.floating-badge.badge-math {
+  top: 8%;
+  right: 2%;
+  background: #fff8e2;
+  border: 2px solid #ffd26a;
+  color: #98591e;
+  animation: badge-float-1 4.2s ease-in-out infinite;
+}
+
+.floating-badge.badge-routes {
+  top: 46%;
+  left: 0%;
+  background: #edf6fb;
+  border: 2px solid #246a91;
+  color: #1b5373;
+  animation: badge-float-2 4.8s ease-in-out 0.8s infinite;
+}
+
+.floating-badge.badge-cheer {
+  bottom: 10%;
+  right: 4%;
+  background: #f0faf3;
+  border: 2px solid #31724b;
+  color: #235538;
+  animation: badge-float-3 4.1s ease-in-out 1.5s infinite;
+}
+
+@keyframes badge-float-1 {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(2deg);
+  }
+}
+
+@keyframes badge-float-2 {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-11px) rotate(-2deg);
+  }
+}
+
+@keyframes badge-float-3 {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+/* ==========================================================================
+   Roles de Rupi: Lector (Comunicación), Matemático, Científico (CYT)
+   ========================================================================== */
+/* 1. Rupi Lector */
+.rupi-open-book {
+  transform-origin: 77px 125px;
+  animation: book-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes book-bob {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1deg);
+  }
+}
+
+.rupi-reading-quill {
+  transform-origin: 108px 100px;
+  animation: quill-tilt 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes quill-tilt {
+  from {
+    transform: rotate(-6deg);
+  }
+  to {
+    transform: rotate(8deg);
+  }
+}
+
+.reading-glyph {
+  opacity: 0.85;
+  animation: glyph-float 2.8s ease-in-out infinite;
+}
+
+.reading-glyph.glyph-a {
+  animation-delay: 0s;
+}
+
+.reading-glyph.glyph-b {
+  animation-delay: 0.9s;
+}
+
+.reading-glyph.glyph-c {
+  animation-delay: 1.8s;
+}
+
+@keyframes glyph-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-7px) scale(1.18);
+    opacity: 1;
+  }
+}
+
+/* 2. Rupi Matemático */
+.rupi-academic-cap {
+  transform-origin: 85px 38px;
+  animation: cap-bob 3.6s ease-in-out infinite;
+}
+
+@keyframes cap-bob {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  40% {
+    transform: rotate(4deg);
+  }
+  80% {
+    transform: rotate(-3deg);
+  }
+}
+
+.rupi-math-pencil {
+  transform-origin: 120px 72px;
+  animation: pencil-wiggle 2.2s ease-in-out infinite alternate;
+}
+
+@keyframes pencil-wiggle {
+  from {
+    transform: rotate(16deg) scale(0.98);
+  }
+  to {
+    transform: rotate(30deg) scale(1.04);
+  }
+}
+
+.rupi-math-ruler {
+  transform-origin: 46px 128px;
+  animation: ruler-tap 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes ruler-tap {
+  from {
+    transform: rotate(-34deg);
+  }
+  to {
+    transform: rotate(-22deg);
+  }
+}
+
+.math-symbol {
+  animation: math-symbol-float 3s ease-in-out infinite;
+  opacity: 0.9;
+}
+
+.math-symbol.sym-plus {
+  animation-delay: 0s;
+}
+
+.math-symbol.sym-times {
+  animation-delay: 0.75s;
+}
+
+.math-symbol.sym-equal {
+  animation-delay: 1.5s;
+}
+
+.math-symbol.sym-div {
+  animation-delay: 2.25s;
+}
+
+@keyframes math-symbol-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(-9px) scale(1.22);
+    opacity: 1;
+  }
+}
+
+/* 3. Rupi Científico */
+.rupi-scientist-glasses {
+  transform-origin: 91px 83px;
+  animation: glasses-adjust 4s ease-in-out infinite;
+}
+
+@keyframes glasses-adjust {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-2px);
+  }
+  70% {
+    transform: translateY(1px);
+  }
+}
+
+.flask-bubble {
+  animation: bubble-rise 2.4s ease-in infinite;
+}
+
+.flask-bubble.b1 {
+  animation-delay: 0s;
+}
+
+.flask-bubble.b2 {
+  animation-delay: 0.6s;
+}
+
+.flask-bubble.b3 {
+  animation-delay: 1.2s;
+}
+
+.flask-bubble.b4 {
+  animation-delay: 1.8s;
+}
+
+@keyframes bubble-rise {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-22px) scale(1.25);
+    opacity: 0;
+  }
+}
+
+.atom-orbit.orbit-1 {
+  animation: orbit-spin 6s linear infinite;
+  transform-origin: 127px 116px;
+}
+
+.atom-orbit.orbit-2 {
+  animation: orbit-spin-rev 7s linear infinite;
+  transform-origin: 127px 116px;
+}
+
+@keyframes orbit-spin {
+  to {
+    transform: rotate(332deg);
+  }
+}
+
+@keyframes orbit-spin-rev {
+  to {
+    transform: rotate(-325deg);
+  }
+}
+
+/* Selector interactivo de cursos de Rupi en el panel de login */
+.rupi-course-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.course-role-chip {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 2px solid var(--line, #dbe8d2);
+  border-radius: 14px;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted, #43614c);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 3px 0 #d1ded4;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.course-role-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #c2cfc5;
+}
+
+.course-role-chip:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #c2cfc5;
+}
+
+.course-role-chip.active {
+  border-color: #31724b;
+  color: #173e30;
+  background: #f4faf6;
+  box-shadow: 0 4px 0 #235538;
+}
+
+.course-role-chip.active.role-reader {
+  border-color: #246a91;
+  color: #154561;
+  background: #f0f7fb;
+  box-shadow: 0 4px 0 #1b5373;
+}
+
+.course-role-chip.active.role-mathematician {
+  border-color: #f95738;
+  color: #a32f18;
+  background: #fdf5f3;
+  box-shadow: 0 4px 0 #cc3a1d;
+}
+
+.course-role-chip.active.role-scientist {
+  border-color: #31724b;
+  color: #1b4d30;
+  background: #f2f9f4;
+  box-shadow: 0 4px 0 #235538;
+}
+
+/* Barra de progreso de 10 segundos en el chip activo */
+.chip-timer-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: currentColor;
+  width: 0%;
+  animation: chip-timer-fill 10s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes chip-timer-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Lema oficial */
+.brand-slogan-box {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 2px solid var(--line, #dbe8d2);
+  border-radius: 20px;
+  padding: 18px 22px;
+  box-shadow: 0 5px 0 #d1ded4;
+}
+
+.brand-slogan-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--ink, #173e30);
+  line-height: 1.25;
+}
+
+.brand-slogan-text {
+  margin: 6px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted, #43614c);
+  line-height: 1.35;
+}
+
+/* --------------------------------------------------------------------------
+   3. Panel Derecho: Formulario Escolar
+   -------------------------------------------------------------------------- */
+.login-form-panel {
+  flex: 0 0 48%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px clamp(20px, 4vw, 48px);
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.form-panel-inner {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Encabezado del formulario */
+.form-panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.greeting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.greeting-heading {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--ink, #173e30);
+  letter-spacing: -0.6px;
+  line-height: 1.2;
+}
+
+.greeting-audio-btn {
+  background: #fdf6ec;
+  border: 2px solid #ffd26a;
+  color: #9e592d;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #e6ba50;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  flex-shrink: 0;
+}
+
+.greeting-audio-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #e6ba50;
+}
+
+.greeting-audio-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #e6ba50;
+}
+
+.greeting-instruction {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--muted, #43614c);
+  line-height: 1.4;
+}
+
+/* Formulario */
+.student-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink, #173e30);
+}
+
+.input-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-input {
+  width: 100%;
+  height: 52px;
+  min-height: 48px;
+  padding: 0 16px;
+  background: #ffffff;
+  border: 2px solid var(--line, #dbe8d2);
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink, #173e30);
+  box-shadow: inset 0 2px 4px rgba(23, 62, 48, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.field-input::placeholder {
+  color: #9aa89f;
+  font-weight: 600;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--red, #f95738);
+  box-shadow: 0 0 0 3px rgba(249, 87, 56, 0.22);
+}
+
+.input-shell.with-toggle .field-input {
+  padding-right: 56px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 4px;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: #6d7e72;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.password-toggle-btn:hover {
+  background: #f4f6f2;
+  color: var(--ink, #173e30);
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 3px solid #ffd26a;
+  outline-offset: 2px;
+}
+
+/* Alerta de Bloq Mayús */
+.caps-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: #fff8e1;
+  border: 1.5px solid #ffd54f;
+  border-radius: 10px;
+  color: #8d6e00;
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+/* Banner de error o información */
+.login-alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.login-alert-banner.error {
+  background: #fdf1ed;
+  border: 2px solid #f6b5a8;
+  color: #ad3319;
+}
+
+.login-alert-banner.info {
+  background: #eef6fc;
+  border: 2px solid #a8cce4;
+  color: #1e5270;
+}
+
+.login-alert-banner p {
+  margin: 0;
+}
+
+/* Botón principal único con volumen 3D */
+.primary-login-btn {
+  width: 100%;
+  height: 52px;
+  min-height: 48px;
+  background: var(--red, #f95738);
+  color: #ffffff;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--red-dark, #cc3a1d);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  margin-top: 4px;
+}
+
+.primary-login-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--red-dark, #cc3a1d);
+}
+
+.primary-login-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--red-dark, #cc3a1d);
+}
+
+.primary-login-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.primary-login-btn:focus-visible {
+  outline: 3px solid #ffd26a;
+  outline-offset: 3px;
+}
+
+/* Ayuda escolar en línea */
+.school-help-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted, #43614c);
+  text-align: center;
+  padding: 4px 0;
+}
+
+/* Acceso técnico para desarrollo local */
+.dev-demo-wrapper {
+  padding-top: 10px;
+  border-top: 1.5px dashed var(--line, #dbe8d2);
+  display: flex;
+  justify-content: center;
+}
+
+.dev-demo-trigger-btn {
+  background: #f7faf7;
+  border: 1.5px dashed #9dc8ab;
+  color: var(--green, #31724b);
+  border-radius: 10px;
+  padding: 8px 14px;
+  min-height: 40px;
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.dev-demo-trigger-btn:hover:not(:disabled) {
+  background: #edf6ef;
+  border-color: #31724b;
+}
+
+.dev-demo-trigger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Pie de seguridad */
+.form-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #6d7e72;
+  font-size: 14px;
+  font-weight: 700;
+  padding-top: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Pantalla de carga inicial limpia
+   -------------------------------------------------------------------------- */
+.app-loading-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   5. Adaptación Responsiva (Tablet y Móvil)
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .login-split-page {
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Franja superior compacta para el panel de marca */
+  .login-brand-panel {
+    flex: 0 0 auto;
+    border-right: none;
+    border-bottom: 2px solid var(--line, #dbe8d2);
+    padding: 18px 20px;
+    gap: 12px;
+  }
+
+  .brand-panel-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand-character-stage {
+    display: none;
+  }
+
+  .brand-slogan-box {
+    display: none;
+  }
+
+  .andean-hills-svg {
+    height: 100%;
+    opacity: 0.35;
+  }
+
+  /* El formulario toma el resto de la pantalla en móvil */
+  .login-form-panel {
+    flex: 1;
+    padding: 28px 18px;
+    align-items: flex-start;
+  }
+
+  .form-panel-inner {
+    max-width: 100%;
+  }
+
+  .greeting-heading {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 390px) {
+  .login-brand-panel {
+    padding: 14px 14px;
+  }
+
+  .brand-title {
+    font-size: 24px;
+  }
+
+  .brand-region-tag {
+    display: none;
+  }
+
+  .greeting-heading {
+    font-size: 24px;
+  }
+
+  .greeting-instruction {
+    font-size: 14px;
+  }
+
+  .field-input {
+    font-size: 15px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. Accesibilidad: Reducción de Movimiento
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .brand-rupi-mascot,
+  .brand-rupi-mascot .rupi-wing,
+  .brand-rupi-mascot .rupi-crest,
+  .brand-rupi-mascot .rupi-tail,
+  .brand-rupi-mascot .rupi-beak,
+  .brand-rupi-mascot .rupi-feet,
+  .brand-rupi-mascot .rupi-ground-shadow,
+  .sun-ray-ring,
+  .sun-inner-glow,
+  .andean-cloud,
+  .andean-flora,
+  .trail-path,
+  .map-stop-pulse,
+  .rupi-speech-balloon,
+  .character-halo,
+  .character-sun-rays,
+  .rupi-sparkle,
+  .floating-badge,
+  .rupi-tap-hint,
+  .rupi-open-book,
+  .rupi-reading-quill,
+  .reading-glyph,
+  .rupi-academic-cap,
+  .rupi-math-pencil,
+  .rupi-math-ruler,
+  .math-symbol,
+  .rupi-scientist-glasses,
+  .flask-bubble,
+  .atom-orbit,
+  .chip-timer-bar {
+    animation: none !important;
+  }
+
+  .greeting-audio-btn,
+  .speech-audio-btn,
+  .primary-login-btn,
+  .field-input,
+  .brand-rupi-button,
+  .brand-rupi-mascot {
+    transition: none !important;
+  }
+}
+
+
+/* ==========================================================================
+   7. Estilos para Selección de Grado (GradeSelectView)
+   ========================================================================== */
+.grade-screen-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 32px 16px;
+  background: #faf8f5;
+  box-sizing: border-box;
+}
+
+.grade-container {
+  width: 100%;
+  max-width: 920px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.grade-header {
+  background: var(--paper, #fffefa);
+  border: 2px solid var(--line, #dbe8d2);
+  border-radius: 24px;
+  padding: 24px 28px;
+  box-shadow: 0 6px 0 #d1ded4;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grade-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grade-badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fdf6ec;
+  border: 1.5px solid #ffd26a;
+  color: #9e592d;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.grade-logout-btn {
+  background: transparent;
+  border: 1.5px solid #dbe8d2;
+  color: #647568;
+  border-radius: 10px;
+  padding: 6px 12px;
+  min-height: 38px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.grade-logout-btn:hover {
+  background: #fdefeb;
+  border-color: #f6b5a8;
+  color: #ad3319;
+}
+
+.grade-hero-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.grade-rupi-holder {
+  flex: 0 0 84px;
+  width: 84px;
+  height: 84px;
+  background: #fff4ea;
+  border: 2px solid #ffd26a;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 0 #f0c150;
+  overflow: hidden;
+}
+
+.grade-rupi-svg {
+  width: 90px;
+  height: 90px;
+  transform: translateY(6px);
+}
+
+.grade-hero-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grade-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.grade-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--ink, #173e30);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.grade-student-name {
+  color: var(--red, #f95738);
+}
+
+.grade-listen-btn {
+  background: #fdf6ec;
+  border: 1.5px solid #ffd26a;
+  color: #9e592d;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #e6ba50;
+  transition: transform 0.1s ease;
+  flex-shrink: 0;
+}
+
+.grade-listen-btn:hover {
+  transform: translateY(-2px);
+}
+
+.grade-listen-btn:active {
+  transform: translateY(1px);
+}
+
+.grade-subtitle {
+  font-size: 14px;
+  color: var(--muted, #43614c);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.grade-notice-banner {
+  background: #fdf8e6;
+  border: 2px solid #f6d165;
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #8f5d07;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 3px 0 #e6ba50;
+}
+
+.grade-notice-banner p {
+  margin: 0;
+}
+
+.grade-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.grade-card {
+  background: var(--paper, #fffefa);
+  border: 2px solid var(--line, #dbe8d2);
+  border-radius: 20px;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 220px;
+  box-shadow: 0 6px 0 #d1ded4;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  cursor: pointer;
+}
+
+.grade-card.available {
+  border: 2.5px solid var(--green, #31724b);
+  background: linear-gradient(180deg, #ffffff 0%, #f4faf6 100%);
+  box-shadow: 0 8px 0 #285f3d;
+}
+
+.grade-card.available:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 0 #285f3d;
+  border-color: #215134;
+}
+
+.grade-card.available:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #285f3d;
+}
+
+.grade-card.locked {
+  background: #f7f6f2;
+  border-color: #e0ded8;
+  box-shadow: 0 4px 0 #cfccc5;
+  opacity: 0.85;
+}
+
+.grade-card.locked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #cfccc5;
+}
+
+.grade-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grade-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grade-card.available .grade-card-icon {
+  background: #eaf6ee;
+  border: 1.5px solid #a3d4b2;
+  color: var(--green, #31724b);
+}
+
+.grade-card.locked .grade-card-icon {
+  background: #eceae3;
+  border: 1.5px solid #dbd8cf;
+  color: #8c887e;
+}
+
+.grade-status-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 9px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.grade-status-pill.ready {
+  background: #fff4ea;
+  border: 1.5px solid #f95738;
+  color: #c93b1d;
+}
+
+.grade-status-pill.soon {
+  background: #eceae3;
+  color: #7b786f;
+}
+
+.grade-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.grade-card-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--ink, #173e30);
+  margin: 0;
+}
+
+.grade-card-desc {
+  font-size: 13px;
+  color: var(--muted, #43614c);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.grade-route-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 5px 8px;
+  background: #e8f4ec;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--green, #31724b);
+}
+
+.grade-card-footer {
+  margin-top: auto;
+}
+
+.grade-select-btn {
+  width: 100%;
+  min-height: 48px;
+  background: var(--green, #31724b);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #215134;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.grade-select-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #215134;
+}
+
+.grade-select-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #215134;
+}
+
+.grade-locked-indicator {
+  width: 100%;
+  min-height: 44px;
+  background: #eceae3;
+  border: 1px dashed #cfccc5;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8c887e;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.grade-footer-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #647568;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  padding-top: 10px;
+}
+
+.current-grade-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fdf6ec;
+  border: 1.5px solid #ffd26a;
+  border-radius: 20px;
+  padding: 4px 12px;
+  color: #9e592d;
+  font-size: 12px;
+  font-weight: 900;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+.change-grade-btn {
+  background: #ffffff;
+  border: 1px solid #ffd26a;
+  border-radius: 12px;
+  color: #8a481c;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.change-grade-btn:hover {
+  background: #fff0d4;
+}
+
+/* ==========================================================================
+   Estilos de Selección de Cursos (Course Selection)
+   ========================================================================== */
+.courses-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.course-card {
+  background: var(--paper, #fffefa);
+  border: 2.5px solid var(--line, #dbe8d2);
+  border-radius: 22px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 290px;
+  box-shadow: 0 6px 0 #d1ded4;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+}
+
+.course-card:active {
+  transform: translateY(2px);
+}
+
+.course-card.comunicacion {
+  border-color: #246a91;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f7fb 100%);
+  box-shadow: 0 6px 0 #1b5373;
+}
+.course-card.comunicacion:hover {
+  border-color: #174b6a;
+  box-shadow: 0 10px 0 #1b5373;
+}
+.course-card.comunicacion:active {
+  box-shadow: 0 2px 0 #1b5373;
+}
+
+.course-card.matematica {
+  border-color: #f95738;
+  background: linear-gradient(180deg, #ffffff 0%, #fff6f4 100%);
+  box-shadow: 0 6px 0 #cc3a1d;
+}
+.course-card.matematica:hover {
+  border-color: #d83d1e;
+  box-shadow: 0 10px 0 #cc3a1d;
+}
+.course-card.matematica:active {
+  box-shadow: 0 2px 0 #cc3a1d;
+}
+
+.course-card.cyt {
+  border-color: #31724b;
+  background: linear-gradient(180deg, #ffffff 0%, #f2faf5 100%);
+  box-shadow: 0 6px 0 #235538;
+}
+.course-card.cyt:hover {
+  border-color: #215134;
+  box-shadow: 0 10px 0 #235538;
+}
+.course-card.cyt:active {
+  box-shadow: 0 2px 0 #235538;
+}
+
+.course-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.course-mascot-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #ffffff;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.course-mascot-avatar .rupi-character {
+  width: 74px;
+  height: 74px;
+  transform: translateY(5px);
+}
+
+.course-area-pill {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 12px;
+  letter-spacing: 0.4px;
+}
+
+.course-card.comunicacion .course-area-pill {
+  background: #e2f1fa;
+  color: #154561;
+  border: 1px solid #a8cce4;
+}
+
+.course-card.matematica .course-area-pill {
+  background: #ffebe6;
+  color: #ad3319;
+  border: 1px solid #f6b5a8;
+}
+
+.course-card.cyt .course-area-pill {
+  background: #e5f5ea;
+  color: #1e5a35;
+  border: 1px solid #a5d8b5;
+}
+
+.course-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.course-card-title {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--ink, #173e30);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.course-card-desc {
+  font-size: 13px;
+  color: var(--muted, #43614c);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.course-card-badge-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--green, #31724b);
+}
+
+.course-card-btn {
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #ffffff;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.course-card.comunicacion .course-card-btn {
+  background: #246a91;
+  box-shadow: 0 4px 0 #1b5373;
+}
+
+.course-card.matematica .course-card-btn {
+  background: #f95738;
+  box-shadow: 0 4px 0 #cc3a1d;
+}
+
+.course-card.cyt .course-card-btn {
+  background: #31724b;
+  box-shadow: 0 4px 0 #235538;
+}
+
+.course-card-btn:hover {
+  transform: translateY(-2px);
+}
+
+.course-card-btn:active {
+  transform: translateY(2px);
+}
+
+.back-to-grades-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1.5px solid var(--line, #dbe8d2);
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted, #43614c);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.back-to-grades-btn:hover {
+  background: #f4f8f4;
+  color: var(--ink, #173e30);
+}
+
+@media (max-width: 900px) {
+  .grade-cards-grid,
+  .courses-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .grade-hero-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .grade-cards-grid,
+  .courses-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .current-grade-badge {
+    margin-left: 0;
+    margin-top: 8px;
+    display: flex;
+    width: fit-content;
+  }
+}

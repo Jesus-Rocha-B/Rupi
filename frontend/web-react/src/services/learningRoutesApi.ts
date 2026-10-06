@@ -110,6 +110,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const fetchSession = (signal?: AbortSignal) => request<Student>('student/session', { signal })
 export const fetchSessionOptions = (signal?: AbortSignal) => request<{ demoAvailable: boolean }>('auth/options', { signal })
+export const login = (username: string, password: string) =>
+  request<Student>('auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  })
 export const loginDemo = () => request<Student>('auth/demo', { method: 'POST' })
 export const logout = () => request<void>('auth/logout', { method: 'POST' })
 export async function fetchStudentRoutes(signal?: AbortSignal): Promise<RouteSummary[]> {

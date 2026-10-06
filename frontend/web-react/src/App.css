@@ -1,3 +1,5 @@
+@import './features/auth/AuthViews.css';
+
 :root {
   /* Tokens de tipografía */
   --body-font: 'Nunito', system-ui, -apple-system, sans-serif;

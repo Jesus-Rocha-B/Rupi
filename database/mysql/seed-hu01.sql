@@ -14,7 +14,7 @@ UPDATE curriculo_grado SET nombre = '4.° de primaria' WHERE numero_grado = 4;
 UPDATE curriculo_grado SET nombre = '5.° de primaria' WHERE numero_grado = 5;
 UPDATE curriculo_grado SET nombre = '6.° de primaria' WHERE numero_grado = 6;
 
--- 2. Estudiante de prueba
+-- 2. Estudiante de prueba (Credenciales de desarrollo: usuario 'estudiante.demo', contraseña '123456')
 INSERT INTO identidad_cuenta_usuario (
   id, nombre_usuario, correo, hash_clave, estado, desactivado_en
 ) VALUES (
