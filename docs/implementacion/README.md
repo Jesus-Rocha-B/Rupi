@@ -27,7 +27,7 @@ React no recibe `estudianteId` desde el navegador ni accede a MySQL directamente
 | 1 | HU-01 · Mapa interactivo | Rutas inscritas y avance real representados en el mapa. | Identidad estudiante, MySQL con datos iniciales y conexión React/API. | Completada. |
 | 2 | HU-02 · Hacer clic en un nivel | Iniciar la actividad correcta y marcarla en curso. | HU-01 y contenido publicado. | Implementada y verificada localmente. |
 | 3 | HU-03 · Regresar al punto exacto | Restaurar mapa/actividad donde se quedó el estudiante. | HU-02 guarda visita y avance en el servidor. | Implementada y verificada localmente. |
-| 4 | HU-04 · Ruta según unidades MINEDU | Mostrar ruta ordenada y agrupada por unidades curriculares. | Catálogo versionado y nodos vinculados a sus unidades. | Pendiente. |
+| 4 | HU-04 · Ruta según unidades MINEDU | Mostrar ruta ordenada y agrupada por unidades curriculares. | Catálogo versionado y nodos vinculados a sus unidades. | Implementada con datos oficiales del MINEDU y unidades de demostración; falta aceptación del equipo. |
 
 La historia HU-03 depende de que HU-02 registre la visita. HU-04 depende de datos oficiales/versionados; no se cumple con texto decorativo ni ordenado solo en React.
 
@@ -188,9 +188,9 @@ La calificación de respuestas, finalización y entrega de XP quedan fuera de es
 
 ### HU-04 · Alinear con el currículo
 
-- [ ] Preparar catálogo vigente de prueba y vinculaciones curriculares.
-- [ ] Validar grado, área, versión curricular y pertenencia de unidades en backend/publicación.
-- [ ] Agrupar y ordenar la ruta en API/React conservando el progreso individual.
+- [x] Preparar catálogo vigente de prueba y vinculaciones curriculares (V07: competencias, estándares y desempeños oficiales del MINEDU; unidades de demostración. Ver HU-04-fuentes-curriculares.md).
+- [x] Validar grado, área, versión curricular y pertenencia de unidades en backend (`RouteCurriculum`). Falta el proceso de publicación, que corresponde a Django.
+- [x] Agrupar y ordenar la ruta en API/React conservando el progreso individual. Mapa revisado en navegador. Pendiente: aceptación del equipo.
 
 ## Definición de terminado
 
@@ -198,6 +198,7 @@ Cada historia se marca terminada cuando sus criterios pueden demostrarse en la w
 
 ## Referencias
 
+- [HU-04: ruta por unidades, decisiones, investigación y evidencia](HU-04-ruta-por-unidades.md) y [fuentes curriculares](HU-04-fuentes-curriculares.md)
 - [HU-01: mapa, criterios y contrato API](HU-01-mapa-interactivo.md)
 - [README de MySQL](../../database/mysql/README.md)
 - [DDL MySQL](../../database/mysql/schema.sql)

@@ -46,6 +46,7 @@ nodes=[uid() for _ in range(4)]
 activities=[uid() for _ in range(4)]
 activity_versions=[uid() for _ in range(4)]
 blocks=[uid() for _ in range(4)]
+unit_ids=[uid() for _ in range(3)]
 usernames=['qa_'+u.replace('-','')[:16] for u in users]
 password='Rupi-test-'+uuid.uuid4().hex
 salt=uuid.uuid4().hex
@@ -102,9 +103,27 @@ try:
     check('reanudar nodo retirado ofrece alternativa válida',request(c1,'student/learning-routes/'+versions[0])[1]['enrollment']['lastVisitedNodeId']==nodes[1])
     sql(f"UPDATE aprendizaje_progreso_nodo SET estado='COMPLETADO',completado_en=UTC_TIMESTAMP(6) WHERE inscripcion_id='{enrollments[0]}' AND nodo_ruta_id='{nodes[1]}'")
     check('repasar no borra finalización',start(c1,versions[0],nodes[1])[1]['state']=='COMPLETADO')
+    def curriculum(): return request(c1,'student/learning-routes/'+versions[0])[1]
+    def states(d): return [(n['id'],n['state']) for n in d['nodes']]
+    before=curriculum()
+    check('ruta sin unidades: SIN_UNIDADES y sin grupos',before['curriculum']['status']=='SIN_UNIDADES' and before['curriculum']['units']==[])
+    for i,(seq,grade_id) in enumerate([(2,grade),(1,grade),(1,sql("SELECT id FROM curriculo_grado WHERE numero_grado=3"))]):
+        sql(f"INSERT INTO curriculo_unidad(id,version_catalogo_id,grado_id,area_id,codigo,titulo,numero_secuencia) VALUES ('{unit_ids[i]}','{catalog}','{grade_id}','{area}','QA-{unit_ids[i]}','Unidad QA {i}',{seq})")
+    sql(f"UPDATE aprendizaje_nodo_ruta SET unidad_id='{unit_ids[0]}' WHERE id IN ('{nodes[0]}','{nodes[1]}'); UPDATE aprendizaje_nodo_ruta SET unidad_id='{unit_ids[1]}' WHERE id='{nodes[2]}'")
+    grouped=curriculum()
+    groups=grouped['curriculum']['units']
+    check('unidades en orden curricular, no de inserción',grouped['curriculum']['status']=='COMPLETA' and [g['id'] for g in groups]==[unit_ids[1],unit_ids[0]])
+    check('paradas de cada unidad conservan su orden',groups[1]['nodeIds']==[nodes[0],nodes[1]] and groups[0]['nodeIds']==[nodes[2]])
+    check('agrupar no altera progreso ni estados',states(grouped)==states(before) and grouped['progress']==before['progress'])
+    sql(f"UPDATE aprendizaje_nodo_ruta SET unidad_id=NULL WHERE id='{nodes[2]}'")
+    partial=curriculum()['curriculum']
+    check('parada sin unidad va a un grupo final explícito',partial['status']=='PARCIAL' and partial['units'][-1]['id'] is None and partial['units'][-1]['nodeIds']==[nodes[2]])
+    sql(f"UPDATE aprendizaje_nodo_ruta SET unidad_id='{unit_ids[2]}' WHERE id='{nodes[2]}'")
+    wrong=curriculum()
+    check('unidad de otro grado: INCOHERENTE y sin mezclar',wrong['curriculum']['status']=='INCOHERENTE' and wrong['curriculum']['units']==[] and len(wrong['nodes'])==3)
     sql(f"UPDATE aprendizaje_version_ruta SET estado='PAUSADO' WHERE id='{versions[0]}'")
     check('ruta pausada rechaza inicio',start(c1,versions[0],nodes[1])[0]==404)
     print(f'{len(passed)} comprobaciones HTTP/MySQL correctas.')
 finally:
-    sql(f"DELETE FROM identidad_sesion_usuario WHERE usuario_id IN ({ids(users)}); DELETE FROM identidad_intento_acceso WHERE usuario_id IN ({ids(users)}); DELETE FROM aprendizaje_progreso_nodo WHERE inscripcion_id IN ({ids(enrollments)}); DELETE FROM aprendizaje_inscripcion_ruta WHERE id IN ({ids(enrollments)}); DELETE FROM aprendizaje_nodo_ruta WHERE id IN ({ids(nodes)}); DELETE FROM aprendizaje_bloque_contenido WHERE id IN ({ids(blocks)}); DELETE FROM aprendizaje_version_actividad WHERE id IN ({ids(activity_versions)}); DELETE FROM aprendizaje_actividad WHERE id IN ({ids(activities)}); DELETE FROM aprendizaje_version_ruta WHERE id IN ({ids(versions)}); DELETE FROM aprendizaje_ruta WHERE id IN ({ids(routes)}); DELETE FROM identidad_cuenta_usuario WHERE id IN ({ids(users)})")
+    sql(f"DELETE FROM identidad_sesion_usuario WHERE usuario_id IN ({ids(users)}); DELETE FROM identidad_intento_acceso WHERE usuario_id IN ({ids(users)}); DELETE FROM aprendizaje_progreso_nodo WHERE inscripcion_id IN ({ids(enrollments)}); DELETE FROM aprendizaje_inscripcion_ruta WHERE id IN ({ids(enrollments)}); DELETE FROM aprendizaje_nodo_ruta WHERE id IN ({ids(nodes)}); DELETE FROM curriculo_unidad WHERE id IN ({ids(unit_ids)}); DELETE FROM aprendizaje_bloque_contenido WHERE id IN ({ids(blocks)}); DELETE FROM aprendizaje_version_actividad WHERE id IN ({ids(activity_versions)}); DELETE FROM aprendizaje_actividad WHERE id IN ({ids(activities)}); DELETE FROM aprendizaje_version_ruta WHERE id IN ({ids(versions)}); DELETE FROM aprendizaje_ruta WHERE id IN ({ids(routes)}); DELETE FROM identidad_cuenta_usuario WHERE id IN ({ids(users)})")
     print('Datos ficticios de esta ejecución eliminados; datos existentes conservados.')

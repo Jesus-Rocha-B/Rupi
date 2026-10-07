@@ -41,6 +41,7 @@ public class LearningRouteService {
         var enrollment = new LearningRouteDtos.Enrollment(route.enrollment().id(), route.enrollment().state(),
                 resume == null ? null : resume.id());
         return new RouteDetailResponse(route.versionRouteId(), route.title(), route.grade(), route.area(),
-                enrollment, progress, nodes, culturalContext);
+                enrollment, progress, nodes, culturalContext,
+                RouteCurriculum.build(repository.findCurriculum(versionRouteId), nodes));
     }
 }

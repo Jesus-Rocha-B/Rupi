@@ -2,7 +2,31 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
-## 2026-10-07 · sin commit
+## 2026-10-07 · HU-04: ruta agrupada por unidades
+
+Detalle, sustentación y evidencia en `docs/implementacion/HU-04-ruta-por-unidades.md`. Fuentes y límites en `HU-04-fuentes-curriculares.md`.
+
+**Datos**
+- `migrations/V07__unidades_curriculares_hu04.sql`: datos **oficiales** del MINEDU (Programa curricular de Educación Primaria, RM 281-2016 modificada por RM 159-2017) para Matemática de 2.°: 4 competencias con capacidades, 4 estándares del ciclo III y 23 desempeños. Más 3 unidades **de demostración** (`DEMO-MAT2-U1..U3`) con sus vínculos a nodos, actividades, estándares y desempeños. Idempotente; no toca progreso.
+- Corrige la procedencia del catálogo: `CNEB-2024`, sin fuente, pasa a `CNEB-2017`, vigente desde 2017 (también en `seed-hu01.sql`).
+- Aplicada a la base local con copia previa de las tablas de progreso; el progreso quedó igual.
+
+**API**
+- `GET .../learning-routes/{id}` añade `curriculum` (`status`, `message`, `units`). Es aditivo: `nodes`, `progress` y `enrollment` no cambian. Estados: `COMPLETA`, `PARCIAL`, `SIN_UNIDADES`, `NO_VIGENTE`, `INCOHERENTE`. Una unidad de otro catálogo, grado o área nunca se mezcla. Las paradas sin unidad van a un grupo final «Otras paradas».
+- Código: `RouteCurriculum.java` (nuevo), `findCurriculum` en el repositorio, DTOs y servicio. Prueba `RouteCurriculumTest` (8).
+
+**Web**
+- Bandas de unidad en el mapa con título, competencias oficiales («Currículo MINEDU: …») y avance por unidad; aviso si el estado no es `COMPLETA`. Archivos: `unitGroups.ts`, `UnitBands.css`, `Roadmap.tsx`, `learningRoutesApi.ts`. Prueba `tests/unitGroups.test.ts` (3).
+- Corregidos en móvil: bandas sobre las paradas y conector punteado sobre el título.
+
+**Pruebas**
+- `verify_learning_flow.py`: 6 escenarios nuevos (29 en total).
+- Nuevos `scripts/verify_hu04_content.py` (11), `scripts/verify_hu04_pantalla.mjs` (10, Playwright instalado fuera del repo) y `scripts/fixtures/hu04-orden-esperado.json`.
+
+**Documentación**
+- Nuevos `HU-04-ruta-por-unidades.md` y `HU-04-fuentes-curriculares.md`; actualizados `README.md` de implementación, `entorno-linux.md`, `MAPA-DE-CODIGO.md`, `CONTEXTO.md` y `ESTADO.md`.
+
+## 2026-10-07 · `f90307e`, `fad6e2c`
 
 - Soporte de entorno **Linux (probado en Fedora)**: `iniciar-rupi.sh` (MySQL 8.4 portable en 3307, API en 8081, Vite en 5173) y `detener-rupi.sh`. Equivalen a los `.ps1` de Windows.
 - Documentación del entorno Linux: `LEEME-LOCAL-LINUX.md` y `docs/implementacion/entorno-linux.md`. Usa Temurin 21 en `~/jdks/`, sin `sudo`, y convive con el MariaDB del sistema.

@@ -94,6 +94,7 @@ Con `mysql --defaults-file=.local/root.cnf --default-character-set=utf8mb4 < arc
 3. `database/mysql/seed-hu01.sql`
 4. `database/mysql/migrations/V06__reparar_hash_demo.sql`
 5. `database/mysql/seed-hu02.sql`
+6. `database/mysql/migrations/V07__unidades_curriculares_hu04.sql` (unidades de prueba de HU-04; se puede repetir sin riesgo)
 
 `V05__ultima_visita.sql` solo se aplica a bases anteriores: el `schema.sql` actual ya incluye esas columnas. Debe resultar un esquema `rupi` con 79 tablas y la cuenta `estudiante.demo` con hash `pbkdf2_sha256`. No repitas las semillas sobre progreso real.
 

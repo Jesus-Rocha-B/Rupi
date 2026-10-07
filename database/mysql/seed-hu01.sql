@@ -44,9 +44,9 @@ INSERT INTO curriculo_version_catalogo (
   id, etiqueta_version, referencia_origen, vigente_desde, estado
 ) VALUES (
   'c0000000-0000-4000-8000-000000000001',
-  'CNEB-2024',
-  'Currículo Nacional de la Educación Básica - MINEDU',
-  '2024-01-01',
+  'CNEB-2017',
+  'Currículo Nacional de la Educación Básica, MINEDU (RM 281-2016-MINEDU, modificada por RM 159-2017-MINEDU). Programa curricular de Educación Primaria.',
+  '2017-01-01',
   'ACTIVO'
 ) ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 

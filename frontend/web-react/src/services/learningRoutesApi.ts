@@ -64,6 +64,29 @@ export interface CulturalContext {
   facts: CulturalFact[]
 }
 
+export interface Competency {
+  code: string
+  name: string
+}
+
+/** Grupo de paradas. `id` es null en el grupo final de paradas sin unidad. */
+export interface RouteUnit {
+  id: string | null
+  code: string | null
+  title: string
+  sequence: number | null
+  competencies: Competency[]
+  nodeIds: string[]
+}
+
+export type CurriculumStatus = 'COMPLETA' | 'PARCIAL' | 'SIN_UNIDADES' | 'NO_VIGENTE' | 'INCOHERENTE'
+
+export interface Curriculum {
+  status: CurriculumStatus
+  message: string | null
+  units: RouteUnit[]
+}
+
 export interface RouteDetail {
   versionRouteId: string
   title: string
@@ -80,6 +103,7 @@ export interface RouteDetail {
   }
   nodes: RouteNode[]
   culturalContext?: CulturalContext | null
+  curriculum?: Curriculum | null
 }
 
 export class ApiError extends Error {

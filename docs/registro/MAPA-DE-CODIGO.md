@@ -15,6 +15,7 @@ Para ubicar archivos sin explorar. Rutas relativas a la raíz del repo.
 | `learningroute/LearningRouteController.java` | `GET /api/v1/student/learning-routes` y `GET .../{versionRouteId}`. |
 | `learningroute/LearningRouteService.java` | Arma la ruta con progreso derivado y contexto cultural. |
 | `learningroute/LearningRouteRepository.java` | SQL de rutas, nodos, progreso y contexto cultural (`curriculo_contexto_cultural*`). |
+| `learningroute/RouteCurriculum.java` | HU-04: agrupa nodos por unidad, ordena por `numero_secuencia` y valida catálogo, grado y área. |
 | `learningroute/LearningRouteDtos.java` | Registros de respuesta, incluido `CulturalContext`. |
 | `learningroute/ActivityController.java` | `POST .../{routeId}/nodes/{nodeId}/start`. |
 | `learningroute/ActivityService.java` | Inicio transaccional e idempotente, y último nodo visitado. |
@@ -31,6 +32,7 @@ Configuración: `src/main/resources/application.yml`. Variables: `RUPI_DB_URL`, 
 | `features/auth/GradeSelectView.tsx` | Selección de grado (1.º–6.º) y de curso. |
 | `features/roadmap/Roadmap.tsx` | Mapa interactivo y enfoque en el nodo recordado. |
 | `features/roadmap/ActivityBlocks.tsx` | Bloques de actividad (sin HTML interpretado). |
+| `features/roadmap/unitGroups.ts`, `UnitBands.css` | HU-04: bandas de unidad sobre el mapa. Prueba en `tests/unitGroups.test.ts`. |
 | `features/roadmap/nodeStates.ts` | Estados de nodo (bloqueado, disponible, en curso, completado). |
 | `features/roadmap/routeSelection.ts` | Elige la ruta más reciente. Prueba en `tests/routeSelection.test.ts`. |
 | `features/roadmap/RoadmapSkeleton.tsx` | Estado de carga. |
@@ -46,7 +48,7 @@ Recursos: `public/images/` (fondo de Ayacucho con su atribución).
 ## Base de datos · `database/mysql/`
 
 - `schema.sql`: DDL de 77 tablas más los grados. `rupi.dbml`: diagrama. `modelo.md`: normalización e invariantes.
-- `migrations/`: `V04` contexto cultural, `V05` última visita, `V06` reparar hash demo.
+- `migrations/`: `V04` contexto cultural, `V05` última visita, `V06` reparar hash demo, `V07` unidades y competencias de prueba de HU-04.
 - `seed-hu01.sql` (ruta, 10 nodos, inscripción y progreso demo; **no repetir sobre datos reales**) y `seed-hu02.sql` (contenido de actividades).
 
 ## Django · `backend/admin-django/`

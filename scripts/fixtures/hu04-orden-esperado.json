@@ -1,0 +1,14 @@
+{
+  "_nota": "Orden esperado de la ruta demo de Matemática de 2.° (HU-04). Se escribió a mano, aparte de la base de datos, para no comparar la base consigo misma. Si cambias unidades o paradas a propósito, actualiza este archivo. Las unidades son de demostración; las competencias y desempeños son del CNEB oficial (docs/implementacion/HU-04-fuentes-curriculares.md).",
+  "versionRutaId": "b0000000-0000-4000-8000-000000000001",
+  "catalogo": "CNEB-2017",
+  "desempenosPorCompetencia": { "MAT-C1": 7, "MAT-C2": 5, "MAT-C3": 6, "MAT-C4": 5 },
+  "unidades": [
+    { "titulo": "Unidad 1: contamos, sumamos y restamos", "competencias": ["MAT-C1"],
+      "paradas": ["Números en la plaza", "Sumas con retablos", "La aventura de restar", "Compras en el mercado"] },
+    { "titulo": "Unidad 2: patrones y formas", "competencias": ["MAT-C2", "MAT-C3"],
+      "paradas": ["Patrones en los tejidos", "Medimos el camino", "Formas en la piedra"] },
+    { "titulo": "Unidad 3: medimos y comparamos", "competencias": ["MAT-C1", "MAT-C3"],
+      "paradas": ["La hora de las campanas", "Contamos los pasos", "Reto de la cosecha"] }
+  ]
+}

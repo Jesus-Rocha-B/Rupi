@@ -55,7 +55,8 @@ public final class LearningRouteDtos {
             Enrollment enrollment,
             Progress progress,
             List<RouteNode> nodes,
-            CulturalContext culturalContext
+            CulturalContext culturalContext,
+            Curriculum curriculum
     ) {
         public RouteDetailResponse(
                 UUID versionRouteId,
@@ -66,9 +67,37 @@ public final class LearningRouteDtos {
                 Progress progress,
                 List<RouteNode> nodes
         ) {
-            this(versionRouteId, title, grade, area, enrollment, progress, nodes, null);
+            this(versionRouteId, title, grade, area, enrollment, progress, nodes, null, null);
+        }
+
+        public RouteDetailResponse(
+                UUID versionRouteId,
+                String title,
+                Grade grade,
+                Area area,
+                Enrollment enrollment,
+                Progress progress,
+                List<RouteNode> nodes,
+                CulturalContext culturalContext
+        ) {
+            this(versionRouteId, title, grade, area, enrollment, progress, nodes, culturalContext, null);
         }
     }
+
+    public record Competency(String code, String name) {}
+
+    /** Grupo de paradas. Si {@code id} es null es el grupo final de paradas sin unidad. */
+    public record RouteUnit(
+            UUID id,
+            String code,
+            String title,
+            Integer sequence,
+            List<Competency> competencies,
+            List<UUID> nodeIds
+    ) {}
+
+    /** Estado curricular: COMPLETA, PARCIAL, SIN_UNIDADES, NO_VIGENTE o INCOHERENTE. */
+    public record Curriculum(String status, String message, List<RouteUnit> units) {}
 
 
     public record Grade(int number, String name) {}

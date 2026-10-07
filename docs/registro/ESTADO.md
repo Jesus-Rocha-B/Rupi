@@ -1,6 +1,6 @@
 # Estado actual · RUPI
 
-Actualizado: 2026-10-07 · rama `main` · último commit `6b0049b`.
+Actualizado: 2026-10-07 · rama `main` · HU-04 incluida en el último commit (`git log -1`).
 
 ## Historias de usuario
 
@@ -9,22 +9,24 @@ Actualizado: 2026-10-07 · rama `main` · último commit `6b0049b`.
 | HU-01 | Mapa interactivo con datos reales por estudiante | Completada |
 | HU-02 | Clic en un nivel: abrir actividad y marcarla EN_CURSO | Implementada y verificada localmente |
 | HU-03 | Regresar al punto exacto del mapa | Implementada y verificada localmente |
-| HU-04 | Ruta agrupada por unidades MINEDU | **Pendiente, es la siguiente** |
+| HU-04 | Ruta agrupada por unidades MINEDU | Implementada y revisada en navegador. Competencias, estándares y desempeños son oficiales; las unidades son de demostración |
 
 «Verificada localmente» no sustituye la aceptación del docente ni la validación pedagógica. No marcar la entrega como aceptada sin revisar con el equipo los criterios de S07.
 
-## Trabajo sin commitear (al 2026-10-07)
+## Trabajo sin commitear
 
-Soporte de entorno Linux (probado en Fedora): `iniciar-rupi.sh`, `detener-rupi.sh`, `LEEME-LOCAL-LINUX.md`, `docs/implementacion/entorno-linux.md`. Además, esta carpeta `docs/registro/`.
-
-Comprobado el 2026-10-07 en Fedora 44: `./iniciar-rupi.sh` levanta MySQL, API y web, y `verify_learning_flow.py` pasa sus 23 comprobaciones. Sin probar: otras distribuciones, ARM, y `mvn test`, `npm run build` y `npm run lint` en Linux.
+Ninguno al cerrar HU-04. Detalle de lo que cambió en `docs/registro/CHANGELOG.md`.
 
 ## Pendiente
 
 **HU-04** (detalle en `docs/implementacion/README.md`):
-- [ ] Catálogo vigente de prueba y vínculos curriculares (`aprendizaje_nodo_ruta.unidad_id`, `aprendizaje_actividad_unidad`).
-- [ ] Validar en el backend grado, área, versión de catálogo y pertenencia de unidades.
-- [ ] Agrupar y ordenar la ruta por unidad en API y React sin perder el progreso individual.
+- [x] Tarea 4: `verify_hu04_content.py` y `verify_hu04_pantalla.mjs` comparan base, API y pantalla con `scripts/fixtures/hu04-orden-esperado.json`.
+- [x] Mapa revisado en Firefox (escritorio 1280 px y móvil 375 px) con Playwright.
+- [ ] Reemplazar las unidades `DEMO-*` por la programación real cuando Django cargue el catálogo oficial (ver `docs/implementacion/HU-04-fuentes-curriculares.md`).
+- [ ] Alinear el contenido de los nodos 7–10 (`seed-hu02.sql`) con sus títulos.
+- [ ] Seguir el proceso de actualización del CNEB (RM 393-2026-MINEDU).
+- [ ] Confirmar con el equipo la regla de paradas sin unidad (hoy: grupo final «Otras paradas»).
+- [ ] Si las paradas de una unidad no son contiguas, el mapa sigue el orden de la ruta y repite la banda; revisar si hace falta reordenar.
 
 **Fuera del alcance actual** (otras historias): finalización de actividades, calificación, XP, desbloqueo del siguiente nodo, intentos de evaluación, Django admin y la app Kotlin.
 
@@ -36,6 +38,8 @@ Comprobado el 2026-10-07 en Fedora 44: `./iniciar-rupi.sh` levanta MySQL, API y 
 - Las hojas de estilo son muy grandes (`App.css` y `AuthViews.css`, unas 2300 líneas cada una) y podrían dividirse.
 - `frontend/web-react/src/features/roadmap/lessons.ts` es un resto del origen estático anterior; comprobar si aún se usa.
 
-## Última evidencia de pruebas (2026-10-06, Windows)
+## Última evidencia de pruebas (2026-10-07, Fedora)
 
-28 pruebas Java y 2 de selección de rutas aprobadas. Build de producción y ESLint verificados. `scripts/verify_learning_flow.py` ejecutó 23 escenarios HTTP contra MySQL real. Falta repetir en Fedora.
+36 pruebas Java y 5 de Node aprobadas. Build de producción y ESLint verificados. `scripts/verify_learning_flow.py`: 29 comprobaciones HTTP/MySQL. `scripts/verify_hu04_content.py`: 11 y `scripts/verify_hu04_pantalla.mjs`: 10 (Firefox, 1280 y 375 px). Detalle en `docs/implementacion/HU-04-ruta-por-unidades.md`.
+
+El entorno Linux se probó en Fedora 44 (`./iniciar-rupi.sh` levanta MySQL, API y web). Sin probar: otras distribuciones y ARM.

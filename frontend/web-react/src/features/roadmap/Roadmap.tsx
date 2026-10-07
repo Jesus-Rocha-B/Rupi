@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useState } from 'react'
+import { Fragment, useEffect, useRef, useMemo, useState } from 'react'
 import {
   Check,
   Star,
@@ -23,6 +23,8 @@ import {
 import { nodeStateLabels } from './nodeStates'
 import { RupiCharacter } from '../../components/RupiCharacter'
 import { createTrailPath } from './lessons'
+import { unitBandsByNode } from './unitGroups'
+import './UnitBands.css'
 import { speakText } from '../../utils/speech'
 import type { RouteDetail, RouteNode } from '../../services/learningRoutesApi'
 
@@ -93,16 +95,24 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
   // Separación vertical fija de 145px entre paradas
   const STOP_VERTICAL_GAP = 145
   const TOP_OFFSET = 75
+  const UNIT_BAND_GAP = 124
+  const unitBands = useMemo(() => unitBandsByNode(route), [route])
+  // Cada banda de unidad empuja hacia abajo las paradas que le siguen
+  const bandsBefore = useMemo(() => {
+    let count = 0
+    return route.nodes.map(node => (unitBands.has(node.id) ? ++count : count))
+  }, [route.nodes, unitBands])
   const totalMapHeight = useMemo(() => {
-    return Math.max(800, TOP_OFFSET + (route.nodes.length - 1) * STOP_VERTICAL_GAP + 100)
-  }, [route.nodes.length])
+    const bands = bandsBefore.length ? bandsBefore[bandsBefore.length - 1] : 0
+    return Math.max(800, TOP_OFFSET + (route.nodes.length - 1) * STOP_VERTICAL_GAP + bands * UNIT_BAND_GAP + 100)
+  }, [route.nodes.length, bandsBefore])
 
   // Coordenadas con etiquetas dirigidas al exterior del camino
   const points = useMemo(() => {
     return route.nodes.map((_, index) => {
       const isGoal = index === route.nodes.length - 1
       const xPercent = isGoal ? 50 : index % 2 ? 34 : 66
-      const yPixel = TOP_OFFSET + index * STOP_VERTICAL_GAP
+      const yPixel = TOP_OFFSET + index * STOP_VERTICAL_GAP + bandsBefore[index] * UNIT_BAND_GAP
       const yPercent = (yPixel / totalMapHeight) * 100
       return {
         x: xPercent,
@@ -110,7 +120,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
         pixelY: yPixel,
       }
     })
-  }, [route.nodes, totalMapHeight])
+  }, [route.nodes, totalMapHeight, bandsBefore])
 
   const trailPath = useMemo(() => createTrailPath(points), [points])
 
@@ -152,6 +162,12 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
         </span>
       </header>
 
+      {route.curriculum && route.curriculum.status !== 'COMPLETA' && route.curriculum.message && (
+        <p className={`curriculum-note ${route.curriculum.status.toLowerCase()}`} role="status">
+          {route.curriculum.message}
+        </p>
+      )}
+
       <div
         className="map-area"
         style={{ height: `${totalMapHeight}px`, minHeight: `${totalMapHeight}px` }}
@@ -182,12 +198,26 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
           const isActive = index === activeIndex
           const isGoal = index === route.nodes.length - 1
           const ThemeIcon = getStopThemeIcon(node.sequence)
+          const band = unitBands.get(node.id)
 
           return (
+            <Fragment key={node.id}>
+            {band && (
+              <div className="unit-band" style={{ top: `${posY - UNIT_BAND_GAP - 20}px` }} role="group" aria-label={`${band.unit.title}. ${band.completed} de ${band.total} paradas completadas`}>
+                <span className="unit-band-text">
+                  <span className="unit-band-title">{band.unit.title}</span>
+                  {band.unit.competencies.length > 0 && (
+                    <span className="unit-band-competencies">
+                      Currículo MINEDU: {band.unit.competencies.map(item => item.name).join(' · ')}
+                    </span>
+                  )}
+                </span>
+                <span className="unit-band-progress">{band.completed} de {band.total}</span>
+              </div>
+            )}
             <div
               className={`trail-stop ${cssClass} ${isActive ? 'is-current-active' : ''} ${isGoal ? 'is-final-goal' : ''}`}
               id={node.sequence === 3 ? 'retos' : undefined}
-              key={node.id}
               style={{ left: `${posX}%`, top: `${posY}px` }}
             >
               {/* Destellos de celebración en paradas completadas */}
@@ -284,6 +314,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                 </div>
               )}
             </div>
+            </Fragment>
           )
         })}
 

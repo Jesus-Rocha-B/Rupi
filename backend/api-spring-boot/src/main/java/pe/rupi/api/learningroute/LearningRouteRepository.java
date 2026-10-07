@@ -147,6 +147,47 @@ public class LearningRouteRepository {
         return jdbc.query(sql, parameters, NODE_MAPPER);
     }
 
+    public Optional<RouteCurriculum.Data> findCurriculum(UUID versionRouteId) {
+        var parameters = new MapSqlParameterSource("routeId", versionRouteId.toString());
+        var header = jdbc.query("""
+                SELECT vr.version_catalogo_id, vr.grado_id, vr.area_id, vc.estado AS catalog_state
+                FROM aprendizaje_version_ruta vr
+                JOIN curriculo_version_catalogo vc ON vc.id = vr.version_catalogo_id
+                WHERE vr.id = :routeId
+                """, parameters, rs -> rs.next()
+                ? new String[] {rs.getString("version_catalogo_id"), rs.getString("grado_id"),
+                        rs.getString("area_id"), rs.getString("catalog_state")}
+                : null);
+        if (header == null) return Optional.empty();
+
+        var nodeUnits = jdbc.query("""
+                SELECT id, unidad_id FROM aprendizaje_nodo_ruta
+                WHERE version_ruta_id = :routeId ORDER BY numero_secuencia
+                """, parameters, (rs, rowNum) -> new RouteCurriculum.NodeUnit(uuid(rs, "id"), nullableUuid(rs, "unidad_id")));
+        var units = jdbc.query("""
+                SELECT DISTINCT u.id, u.codigo, u.titulo, u.numero_secuencia,
+                       u.version_catalogo_id, u.grado_id, u.area_id
+                FROM aprendizaje_nodo_ruta n
+                JOIN curriculo_unidad u ON u.id = n.unidad_id
+                WHERE n.version_ruta_id = :routeId
+                """, parameters, (rs, rowNum) -> new RouteCurriculum.UnitRow(
+                uuid(rs, "id"), rs.getString("codigo"), rs.getString("titulo"),
+                (Integer) rs.getObject("numero_secuencia"), uuid(rs, "version_catalogo_id"),
+                uuid(rs, "grado_id"), uuid(rs, "area_id")));
+        var competencies = jdbc.query("""
+                SELECT DISTINCT uc.unidad_id, c.codigo, c.nombre, ar.version_catalogo_id, ar.id AS area_id
+                FROM aprendizaje_nodo_ruta n
+                JOIN curriculo_unidad_competencia uc ON uc.unidad_id = n.unidad_id
+                JOIN curriculo_competencia c ON c.id = uc.competencia_id
+                JOIN curriculo_area ar ON ar.id = c.area_id
+                WHERE n.version_ruta_id = :routeId
+                """, parameters, (rs, rowNum) -> new RouteCurriculum.CompetencyRow(
+                uuid(rs, "unidad_id"), rs.getString("codigo"), rs.getString("nombre"),
+                uuid(rs, "version_catalogo_id"), uuid(rs, "area_id")));
+        return Optional.of(new RouteCurriculum.Data(UUID.fromString(header[0]), header[3],
+                UUID.fromString(header[1]), UUID.fromString(header[2]), nodeUnits, units, competencies));
+    }
+
     private static final RowMapper<RouteNode> NODE_MAPPER = (rs, rowNum) -> {
         BigDecimal x = rs.getBigDecimal("mapa_x");
         BigDecimal y = rs.getBigDecimal("mapa_y");

@@ -47,6 +47,8 @@ JAVA_HOME=~/jdks/jdk-21.0.12.1+1 mvn -f backend/api-spring-boot/pom.xml test
 npm run build && npm run lint
 node --experimental-strip-types --test frontend/web-react/tests/routeSelection.test.ts
 python3 -I scripts/verify_learning_flow.py --root-config .local/root.cnf --mysql .local/mysql-8.4.11-linux-glibc2.28-x86_64/bin/mysql
+python3 -I scripts/verify_hu04_content.py --root-config .local/root.cnf --mysql .local/mysql-8.4.11-linux-glibc2.28-x86_64/bin/mysql
+PLAYWRIGHT_DIR=/tmp/pw node scripts/verify_hu04_pantalla.mjs   # Playwright fuera del repo
 ```
 
 En Linux, para consultar la base de Rupi hay que usar el cliente de `.local/mysql-8.4.*/bin/mysql`; el `mysql` del sistema es el de MariaDB.
@@ -59,6 +61,8 @@ En Linux, para consultar la base de Rupi hay que usar el cliente de `.local/mysq
 - El contenido de actividades se renderiza sin interpretar HTML.
 - Las migraciones se versionan en `database/mysql/migrations/` (V04–V06). `seed-hu01.sql` actualiza estados de demostración y no se vuelve a ejecutar sobre progreso real.
 - Falta elegir el mecanismo único de migraciones entre Django y Spring, y resolver privacidad y acceso de menores antes de publicar.
+
+- Datos curriculares: competencias, estándares y desempeños de Matemática de 2.° son del CNEB oficial (ver `docs/implementacion/HU-04-fuentes-curriculares.md`). Las unidades `DEMO-*` son de demostración, porque el MINEDU no publica unidades de primaria. El catálogo `CNEB-2017` es el vigente al 2026-10-07; hay una comisión de actualización (RM 393-2026-MINEDU) sin versión nueva publicada.
 
 ## Documentación existente (no duplicada aquí)
 
