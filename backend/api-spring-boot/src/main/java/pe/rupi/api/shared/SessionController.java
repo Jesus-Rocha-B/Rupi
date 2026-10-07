@@ -96,7 +96,7 @@ public class SessionController {
         return loopback && localHost;
     }
 
-    private static void checkOrigin(HttpServletRequest request) {
+    public static void checkOrigin(HttpServletRequest request) {
         String origin = request.getHeader("Origin");
         if (origin == null) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
@@ -107,9 +107,9 @@ public class SessionController {
             boolean sameOrigin = uri.getHost().equalsIgnoreCase(request.getServerName())
                     && originPort == request.getServerPort()
                     && uri.getScheme().equalsIgnoreCase(request.getScheme());
-            boolean allowedDevOrigin = isLocal(request)
+            boolean allowedDevOrigin = isLocal(request) && "http".equalsIgnoreCase(uri.getScheme())
                     && ("localhost".equalsIgnoreCase(uri.getHost()) || "127.0.0.1".equals(uri.getHost()))
-                    && (uri.getPort() == 5173 || uri.getPort() == 8081 || uri.getPort() == -1);
+                    && (uri.getPort() == 5173 || uri.getPort() == 8081);
             if (!sameOrigin && !allowedDevOrigin) {
                 throw new IllegalArgumentException();
             }
@@ -119,11 +119,6 @@ public class SessionController {
     }
 
     private static String resolveClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            int comma = xForwardedFor.indexOf(',');
-            return (comma >= 0 ? xForwardedFor.substring(0, comma) : xForwardedFor).trim();
-        }
         return request.getRemoteAddr();
     }
 }

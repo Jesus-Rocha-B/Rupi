@@ -125,7 +125,7 @@ class StudentAuthenticationFilterTest {
     void loginWithRateLimitingReturns429() {
         var sessions = mock(StudentSessionService.class);
         when(sessions.authenticate(anyString(), anyString(), anyString()))
-                .thenReturn(StudentSessionService.AuthenticationResult.rateLimited());
+                .thenReturn(StudentSessionService.AuthenticationResult.throttled());
 
         var controller = new SessionController(sessions, "");
         var request = new MockHttpServletRequest("POST", "/api/v1/auth/login");

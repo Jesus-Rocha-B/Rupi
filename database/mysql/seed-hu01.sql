@@ -21,7 +21,7 @@ INSERT INTO identidad_cuenta_usuario (
   '11111111-1111-4111-8111-111111111111',
   'estudiante.demo',
   'estudiante.demo@rupi.pe',
-  '$2a$10$w8.t5n6E1.1J5E1P1.1KuexL3q.8P8gN7g5q0u9q4x8z3v6y2t1W2',
+  'pbkdf2_sha256$600000$rupi-dev-hu01$8LkMHYbhvu/QFEd17e3Ilkb37nI2vSgtJUg4jaCaNjE=',
   'ACTIVO',
   NULL
 ) ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
@@ -63,7 +63,7 @@ INSERT INTO curriculo_area (
 INSERT INTO aprendizaje_ruta (
   id, propietario_id, codigo, titulo, descripcion
 ) VALUES (
-  'r0000000-0000-4000-8000-000000000001',
+  'd0000000-0000-4000-8000-000000000001',
   '11111111-1111-4111-8111-111111111111',
   'MAT-2P-PLAZA',
   'Matemática: aventura en la plaza',
@@ -74,7 +74,7 @@ INSERT INTO aprendizaje_version_ruta (
   id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en
 ) VALUES (
   'b0000000-0000-4000-8000-000000000001',
-  'r0000000-0000-4000-8000-000000000001',
+  'd0000000-0000-4000-8000-000000000001',
   'c0000000-0000-4000-8000-000000000001',
   '00000000-0000-4000-8000-000000000002',
   'a0000000-0000-4000-8000-000000000001',
@@ -171,7 +171,7 @@ INSERT INTO curriculo_contexto_cultural (
   imagen_url, imagen_alt, credito_autor, credito_fuente, credito_licencia, credito_url
 ) VALUES (
   'cc000000-0000-4000-8000-000000000001',
-  'r0000000-0000-4000-8000-000000000001',
+  'd0000000-0000-4000-8000-000000000001',
   'AYACUCHO_PLAZA',
   'Ayacucho',
   'Plaza Mayor de Ayacucho',

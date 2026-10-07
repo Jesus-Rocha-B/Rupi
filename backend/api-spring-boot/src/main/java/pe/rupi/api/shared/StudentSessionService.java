@@ -50,7 +50,7 @@ public class StudentSessionService {
             return new AuthenticationResult(true, false, student, token);
         }
 
-        public static AuthenticationResult rateLimited() {
+        public static AuthenticationResult throttled() {
             return new AuthenticationResult(false, true, null, null);
         }
 
@@ -113,6 +113,7 @@ public class StudentSessionService {
                 .stream().findFirst();
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public AuthenticationResult authenticate(String rawUsername, String rawPassword, String clientIp) {
         if (rawUsername == null || rawUsername.isBlank() || rawPassword == null || rawPassword.isBlank()) {
             return AuthenticationResult.badCredentials();
@@ -146,7 +147,7 @@ public class StudentSessionService {
                     INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
                     VALUES (NULL, ?, 'BLOQUEADO', ?, UTC_TIMESTAMP(6))
                     """, idHash, originHash);
-            return AuthenticationResult.rateLimited();
+            return AuthenticationResult.throttled();
         }
 
         // 2. Consulta de cuenta de usuario

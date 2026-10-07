@@ -38,10 +38,6 @@ public class PasswordService {
                 if (bcrypt.matches(rawPassword, storedHash)) {
                     return true;
                 }
-                // Compatibilidad con la semilla inicial de desarrollo en entornos locales
-                if (SEED_DEV_HASH.equals(storedHash) && "123456".equals(rawPassword)) {
-                    return true;
-                }
                 return false;
             } catch (RuntimeException ignored) {
                 return false;
