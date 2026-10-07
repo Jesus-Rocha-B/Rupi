@@ -25,8 +25,8 @@ React no recibe `estudianteId` desde el navegador ni accede a MySQL directamente
 | Orden | HU | Resultado | Dependencia | Estado |
 |---|---|---|---|---|
 | 1 | HU-01 · Mapa interactivo | Rutas inscritas y avance real representados en el mapa. | Identidad estudiante, MySQL con datos iniciales y conexión React/API. | Completada. |
-| 2 | HU-02 · Hacer clic en un nivel | Iniciar la actividad correcta y marcarla en curso. | HU-01 y contenido publicado. | Pendiente. |
-| 3 | HU-03 · Regresar al punto exacto | Restaurar mapa/actividad donde se quedó el estudiante. | HU-02 guarda visita y avance en el servidor. | Pendiente. |
+| 2 | HU-02 · Hacer clic en un nivel | Iniciar la actividad correcta y marcarla en curso. | HU-01 y contenido publicado. | Implementada y verificada localmente. |
+| 3 | HU-03 · Regresar al punto exacto | Restaurar mapa/actividad donde se quedó el estudiante. | HU-02 guarda visita y avance en el servidor. | Implementada y verificada localmente. |
 | 4 | HU-04 · Ruta según unidades MINEDU | Mostrar ruta ordenada y agrupada por unidades curriculares. | Catálogo versionado y nodos vinculados a sus unidades. | Pendiente. |
 
 La historia HU-03 depende de que HU-02 registre la visita. HU-04 depende de datos oficiales/versionados; no se cumple con texto decorativo ni ordenado solo en React.
@@ -64,7 +64,7 @@ La historia HU-03 depende de que HU-02 registre la visita. HU-04 depende de dato
 
 ### Estado actual
 
-Existe la interfaz del mapa y el código fuente inicial de las consultas/endpoints. Todavía no se ha compilado ni ejecutado contra MySQL. React sigue mostrando datos estáticos, y faltan principal autenticado, instancia y fixture real.
+La web consulta progreso por estudiante en MySQL mediante una sesión autenticada. HU-02 y HU-03 agregan el inicio y reanudación. Ver HU-02-HU-03.md para contratos, límites y evidencia local.
 
 ## HU-02 · Hacer clic en un nivel
 
@@ -176,15 +176,15 @@ La calificación de respuestas, finalización y entrega de XP quedan fuera de es
 
 ### HU-02 · Iniciar una lección
 
-- [ ] Leer actividad y contenido ordenado.
-- [ ] Implementar inicio autorizado, transaccional e idempotente.
-- [ ] Abrir actividades desde nodos disponibles/en curso.
+- [x] Leer actividad y contenido ordenado.
+- [x] Implementar inicio autorizado, transaccional e idempotente.
+- [x] Abrir actividades desde nodos disponibles/en curso.
 
 ### HU-03 · Reanudar donde se quedó
 
-- [ ] Persistir el último nodo y estado de estudio relevante.
-- [ ] Restaurar mapa o actividad al volver.
-- [ ] Resolver cambios/retirada del nodo recordado.
+- [x] Persistir el último nodo y estado de estudio relevante.
+- [x] Restaurar mapa o actividad al volver.
+- [x] Resolver cambios/retirada del nodo recordado.
 
 ### HU-04 · Alinear con el currículo
 
