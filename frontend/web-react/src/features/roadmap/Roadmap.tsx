@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import {
   Check,
   Star,
@@ -77,6 +77,19 @@ function getStopThemeIcon(sequence: number) {
 export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Props) {
   const [rupiMood, setRupiMood] = useState<'idle' | 'jumping' | 'cheering' | 'thinking'>('cheering')
 
+  const restored = useRef('')
+  useEffect(() => {
+    if (restored.current === route.versionRouteId) return
+    const node = route.nodes.find(item => item.id === route.enrollment.lastVisitedNodeId && item.state !== 'BLOQUEADO')
+    if (!node) return
+    const button = document.getElementById(`node-${node.id}`)
+    if (button) {
+      restored.current = route.versionRouteId
+      button.scrollIntoView({ block: 'center', behavior: 'instant' })
+      button.focus({ preventScroll: true })
+    }
+  }, [route])
+
   // Separación vertical fija de 145px entre paradas
   const STOP_VERTICAL_GAP = 145
   const TOP_OFFSET = 75
@@ -103,11 +116,13 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
   // Identificar el nodo activo
   const activeIndex = useMemo(() => {
+    const remembered = route.nodes.findIndex(n => n.id === route.enrollment.lastVisitedNodeId && n.state !== 'BLOQUEADO')
+    if (remembered !== -1) return remembered
     const idx = route.nodes.findIndex((n) => n.state === 'EN_CURSO')
     if (idx !== -1) return idx
     const availIdx = route.nodes.findIndex((n) => n.state === 'DISPONIBLE')
     return availIdx !== -1 ? availIdx : 0
-  }, [route.nodes])
+  }, [route.nodes, route.enrollment.lastVisitedNodeId])
 
   const handleGuideAction = () => {
     setRupiMood((prev) => (prev === 'jumping' ? 'cheering' : 'jumping'))
@@ -186,6 +201,8 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
               {/* Nodo circular con ícono temático y número legible en insignia */}
               <button
+                id={`node-${node.id}`}
+                disabled={!canOpen}
                 className={`lesson-node ${cssClass} ${isGoal ? 'is-goal-node' : ''}`}
                 type="button"
                 onClick={() => handleNodeInteraction(node)}

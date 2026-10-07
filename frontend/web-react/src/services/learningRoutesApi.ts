@@ -27,6 +27,7 @@ export interface RouteNode {
 }
 
 export interface RouteSummary {
+  lastVisitedAt: string | null
   versionRouteId: string
   title: string
   grade: Grade
@@ -123,3 +124,14 @@ export async function fetchStudentRoutes(signal?: AbortSignal): Promise<RouteSum
 }
 export const fetchRouteDetail = (id: string, signal?: AbortSignal) =>
   request<RouteDetail>(`student/learning-routes/${encodeURIComponent(id)}`, { signal })
+
+export interface ActivityContent {
+  nodeId: string
+  title: string
+  instructions: string | null
+  state: NodeState
+  blocks: { id: string; type: string; text: string | null; url: string | null; accessibleText: string | null }[]
+}
+export const startActivity = (routeId: string, nodeId: string, signal?: AbortSignal) =>
+  request<ActivityContent>(`student/learning-routes/${encodeURIComponent(routeId)}/nodes/${encodeURIComponent(nodeId)}/start`,
+    { method: 'POST', signal })

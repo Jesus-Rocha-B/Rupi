@@ -16,7 +16,8 @@ public final class LearningRouteDtos {
             Area area,
             String enrollmentState,
             long completedNodes,
-            long totalNodes
+            long totalNodes,
+            String lastVisitedAt
     ) {}
 
     public record CulturalFact(

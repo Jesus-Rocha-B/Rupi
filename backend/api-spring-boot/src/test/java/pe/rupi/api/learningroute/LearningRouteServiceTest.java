@@ -56,4 +56,20 @@ class LearningRouteServiceTest {
         var result = service.getForStudent(student, route);
         assertNull(result.culturalContext());
     }
+    @Test void resumeUsesTheRememberedNodeRatherThanFirstInProgress() {
+        var first = node("EN_CURSO"); var last = node("EN_CURSO");
+        when(repository.findRouteForStudent(student, route)).thenReturn(Optional.of(
+            new LearningRouteRepository.RouteHeader(route, route, "Ruta", new Grade(2, "Segundo"),
+                new Area("MAT", "Matemática"), new Enrollment(enrollment, "ACTIVO", last.id()))));
+        when(repository.findNodes(enrollment, route)).thenReturn(List.of(first, last));
+        assertEquals(last.id(), service.getForStudent(student, route).enrollment().lastVisitedNodeId());
+    }
+    @Test void blockedRememberedNodeFallsBackToAccessibleNode() {
+        var blocked = node("BLOQUEADO"); var available = node("DISPONIBLE");
+        when(repository.findRouteForStudent(student, route)).thenReturn(Optional.of(
+            new LearningRouteRepository.RouteHeader(route, route, "Ruta", new Grade(2, "Segundo"),
+                new Area("MAT", "Matemática"), new Enrollment(enrollment, "ACTIVO", blocked.id()))));
+        when(repository.findNodes(enrollment, route)).thenReturn(List.of(blocked, available));
+        assertEquals(available.id(), service.getForStudent(student, route).enrollment().lastVisitedNodeId());
+    }
 }

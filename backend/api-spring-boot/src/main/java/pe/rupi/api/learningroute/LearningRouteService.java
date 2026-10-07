@@ -34,6 +34,13 @@ public class LearningRouteService {
         }
         var progress = new Progress(nodes.stream().filter(node -> "COMPLETADO".equals(node.state())).count(), nodes.size());
         var culturalContext = repository.findCulturalContextForRoute(route.routeId()).orElse(null);
-        return route.toResponse(progress, nodes, culturalContext);
+        var remembered = route.enrollment().lastVisitedNodeId();
+        var resume = nodes.stream().filter(n -> n.id().equals(remembered) && !"BLOQUEADO".equals(n.state()))
+                .findFirst().orElseGet(() -> nodes.stream().filter(n -> "EN_CURSO".equals(n.state()))
+                .findFirst().orElseGet(() -> nodes.stream().filter(n -> "DISPONIBLE".equals(n.state())).findFirst().orElse(null)));
+        var enrollment = new LearningRouteDtos.Enrollment(route.enrollment().id(), route.enrollment().state(),
+                resume == null ? null : resume.id());
+        return new RouteDetailResponse(route.versionRouteId(), route.title(), route.grade(), route.area(),
+                enrollment, progress, nodes, culturalContext);
     }
 }

@@ -11,8 +11,9 @@ type Props = {
 
 export function RouteOverview({ route, name, onSelect }: Props) {
   const completed = route.progress.completedNodes
-  const total = route.progress.totalNodes || 10
+  const total = route.progress.totalNodes
   const nextNode =
+    route.nodes.find(node => node.id === route.enrollment.lastVisitedNodeId && node.state !== 'BLOQUEADO') ??
     route.nodes.find((node) => node.state === 'EN_CURSO') ??
     route.nodes.find((node) => node.state === 'DISPONIBLE')
 

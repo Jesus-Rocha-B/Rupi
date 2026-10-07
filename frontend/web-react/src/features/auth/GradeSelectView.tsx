@@ -14,10 +14,12 @@ import {
 } from 'lucide-react'
 import { RupiCharacter } from '../../components/RupiCharacter'
 import { speakText } from '../../utils/speech'
-import type { Student } from '../../services/learningRoutesApi'
+import { areaKey, matchingRoutes } from '../roadmap/routeSelection'
+import type { RouteSummary, Student } from '../../services/learningRoutesApi'
 
 type Props = {
   student: Student
+  routes: RouteSummary[]
   initialGrade?: number | null
   onSelectGradeAndCourse: (gradeNumber: number, courseCode: string) => void
   onLogout: () => void
@@ -33,37 +35,37 @@ interface SecondaryGradeOption {
 const SECONDARY_GRADES: SecondaryGradeOption[] = [
   {
     number: 1,
-    title: '1.° de secundaria',
-    subtitle: 'Inicio de secundaria: Comunicación, Matemática y CYT listos',
+    title: '1.° de primaria',
+    subtitle: 'Inicio de primaria: Comunicación, Matemática y CYT listos',
     coursesCount: 3,
   },
   {
     number: 2,
-    title: '2.° de secundaria',
+    title: '2.° de primaria',
     subtitle: 'Consolidación de competencias y retos escolares',
     coursesCount: 3,
   },
   {
     number: 3,
-    title: '3.° de secundaria',
+    title: '3.° de primaria',
     subtitle: 'Razonamiento científico y literatura analítica',
     coursesCount: 3,
   },
   {
     number: 4,
-    title: '4.° de secundaria',
+    title: '4.° de primaria',
     subtitle: 'Pensamiento crítico y proyectos de indagación',
     coursesCount: 3,
   },
   {
     number: 5,
-    title: '5.° de secundaria',
+    title: '5.° de primaria',
     subtitle: 'Liderazgo escolar y preparación académica',
     coursesCount: 3,
   },
   {
     number: 6,
-    title: '6.° de secundaria',
+    title: '6.° de primaria',
     subtitle: 'Graduación y proyectos de impacto en el Perú',
     coursesCount: 3,
   },
@@ -91,7 +93,7 @@ const BASE_COURSES: CourseOption[] = [
     code: 'MATEMATICA',
     name: 'Matemática',
     role: 'mathematician',
-    description: 'Álgebra, geometría andina, cálculo y ruta activa de desafíos numéricos.',
+    description: 'Números, operaciones, formas y desafíos para aprender paso a paso.',
     badgeText: 'Ruta activa en Ayacucho',
     available: true,
   },
@@ -107,6 +109,7 @@ const BASE_COURSES: CourseOption[] = [
 
 export function GradeSelectView({
   student,
+  routes,
   initialGrade = null,
   onSelectGradeAndCourse,
   onLogout,
@@ -114,22 +117,36 @@ export function GradeSelectView({
   const [selectedGradeNumber, setSelectedGradeNumber] = useState<number | null>(initialGrade)
   const [notice, setNotice] = useState<string | null>(null)
 
-  const selectedGradeObj = SECONDARY_GRADES.find((g) => g.number === selectedGradeNumber)
+  const grades = SECONDARY_GRADES.map(grade => ({ ...grade,
+    subtitle: 'Rutas de aprendizaje de primaria asignadas por tu docente.',
+    coursesCount: new Set(routes.filter(route => route.grade.number === grade.number).map(route => areaKey(route.area.code))).size,
+  }))
+  const courses = BASE_COURSES.map(course => ({ ...course,
+    available: matchingRoutes(routes, selectedGradeNumber, course.code).length > 0,
+  }))
+  for (const route of routes.filter(route => route.grade.number === selectedGradeNumber)) {
+    if (!courses.some(course => course.code === areaKey(route.area.code))) {
+      courses.push({ code: areaKey(route.area.code), name: route.area.name, role: 'reader',
+        description: 'Explora las actividades de tu ruta.', badgeText: route.area.name, available: true })
+    }
+  }
+  const selectedGradeObj = grades.find((g) => g.number === selectedGradeNumber)
 
   function handleGradeClick(grade: SecondaryGradeOption) {
+    if (!grade.coursesCount) return
     setNotice(null)
     setSelectedGradeNumber(grade.number)
     speakText(`Has elegido ${grade.title}. Ahora selecciona tu curso: Comunicación, Matemática o Ciencia y Tecnología.`)
   }
 
   function handleCourseClick(course: CourseOption) {
-    if (!selectedGradeNumber) return
+    if (!selectedGradeNumber || !course.available) return
     onSelectGradeAndCourse(selectedGradeNumber, course.code)
   }
 
   const welcomeInstruction = selectedGradeNumber
-    ? `En ${selectedGradeObj?.title} tienes disponibles Comunicación, Matemática y Ciencia y Tecnología. Elige tu curso para ingresar.`
-    : `¡Hola, ${student.name}! ¿En qué grado estás? Selecciona tu grado de 1.° a 6.° de secundaria para ver tus cursos.`
+    ? `En ${selectedGradeObj?.title} puedes elegir entre los cursos que tu docente ha habilitado.`
+    : `¡Hola, ${student.name}! ¿En qué grado estás? Selecciona tu grado de 1.° a 6.° de primaria para ver tus cursos.`
 
   return (
     <section className="grade-screen-wrapper" aria-labelledby="grade-main-title">
@@ -143,7 +160,7 @@ export function GradeSelectView({
                 <span>
                   {selectedGradeNumber
                     ? `${selectedGradeObj?.title.toUpperCase()} · CURSOS`
-                    : 'SECUNDARIA · SELECCIÓN DE GRADO'}
+                    : 'PRIMARIA · SELECCIÓN DE GRADO'}
                 </span>
               </span>
 
@@ -155,7 +172,7 @@ export function GradeSelectView({
                     setSelectedGradeNumber(null)
                     setNotice(null)
                   }}
-                  title="Elegir otro grado de secundaria"
+                  title="Elegir otro grado de primaria"
                 >
                   <ArrowLeft size={15} aria-hidden="true" />
                   <span>Cambiar grado</span>
@@ -213,8 +230,8 @@ export function GradeSelectView({
               </div>
               <p className="grade-subtitle">
                 {selectedGradeNumber
-                  ? 'Para este grado tienes Comunicación, Matemática y CYT. Selecciona tu materia para entrar a tu aula.'
-                  : 'Elige tu año de secundaria (1.° a 6.°) para ver los cursos que ofrecemos.'}
+                  ? 'Elige un curso habilitado. Los demás estarán disponibles cuando tu docente asigne una ruta.'
+                  : routes.length ? 'Elige un grado con rutas asignadas para entrar a tu aula.' : 'Aún no tienes rutas asignadas. Pide a tu docente que te inscriba para comenzar.'}
               </p>
             </div>
           </div>
@@ -227,14 +244,14 @@ export function GradeSelectView({
           </div>
         )}
 
-        {/* PASO 1: Selección de Grado (1.° a 6.° de Secundaria) */}
+        {/* PASO 1: Selección de Grado (1.° a 6.° de Primaria) */}
         {!selectedGradeNumber && (
-          <div className="grade-cards-grid" role="list" aria-label="Grados de secundaria disponibles">
-            {SECONDARY_GRADES.map((grade) => (
+          <div className="grade-cards-grid" role="list" aria-label="Grados de primaria disponibles">
+            {grades.map((grade) => (
               <div
                 key={grade.number}
                 role="listitem"
-                className="grade-card available"
+                className={`grade-card ${grade.coursesCount ? 'available' : 'unavailable'}`}
                 onClick={() => handleGradeClick(grade)}
               >
                 <div className="grade-card-top">
@@ -244,7 +261,7 @@ export function GradeSelectView({
 
                   <span className="grade-status-pill ready">
                     <Sparkles size={12} aria-hidden="true" />
-                    <span>3 cursos listos</span>
+                    <span>{grade.coursesCount ? `${grade.coursesCount} ${grade.coursesCount === 1 ? 'curso disponible' : 'cursos disponibles'}` : 'Sin rutas asignadas'}</span>
                   </span>
                 </div>
 
@@ -254,7 +271,7 @@ export function GradeSelectView({
 
                   <div className="grade-route-preview">
                     <BookOpen size={14} aria-hidden="true" />
-                    <span>Comunicación, Matemática y CYT</span>
+                    <span>Rutas de tu aula</span>
                   </div>
                 </div>
 
@@ -262,6 +279,7 @@ export function GradeSelectView({
                   <button
                     type="button"
                     className="grade-select-btn"
+                    disabled={!grade.coursesCount}
                     onClick={(e) => {
                       e.stopPropagation()
                       handleGradeClick(grade)
@@ -280,7 +298,7 @@ export function GradeSelectView({
         {/* PASO 2: Selección de Cursos para el Grado Elegido (Comunicación, Matemática, CYT) */}
         {selectedGradeNumber && (
           <div className="courses-cards-grid" role="list" aria-label={`Cursos de ${selectedGradeObj?.title}`}>
-            {BASE_COURSES.map((course) => {
+            {courses.map((course) => {
               const cardClass =
                 course.code === 'COMUNICACION'
                   ? 'comunicacion'
@@ -292,14 +310,14 @@ export function GradeSelectView({
                 <div
                   key={course.code}
                   role="listitem"
-                  className={`course-card ${cardClass}`}
+                  className={`course-card ${cardClass} ${course.available ? '' : 'unavailable'}`}
                   onClick={() => handleCourseClick(course)}
                 >
                   <div className="course-card-header">
                     <div className="course-mascot-avatar" aria-hidden="true">
                       <RupiCharacter role={course.role} mood="idle" />
                     </div>
-                    <span className="course-area-pill">{course.badgeText}</span>
+                    <span className="course-area-pill">{course.available ? 'Ruta disponible' : 'Aún no disponible'}</span>
                   </div>
 
                   <div className="course-card-body">
@@ -315,6 +333,7 @@ export function GradeSelectView({
                     <button
                       type="button"
                       className="course-card-btn"
+                      disabled={!course.available}
                       onClick={(e) => {
                         e.stopPropagation()
                         handleCourseClick(course)
@@ -324,7 +343,7 @@ export function GradeSelectView({
                       {course.code === 'COMUNICACION' && <BookOpen size={18} aria-hidden="true" />}
                       {course.code === 'MATEMATICA' && <Calculator size={18} aria-hidden="true" />}
                       {course.code === 'CYT' && <FlaskConical size={18} aria-hidden="true" />}
-                      <span>Entrar a {course.name}</span>
+                      <span>{course.available ? `Entrar a ${course.name}` : 'Sin ruta asignada'}</span>
                     </button>
                   </div>
                 </div>
@@ -339,7 +358,7 @@ export function GradeSelectView({
           <span>
             {selectedGradeNumber
               ? `Cursos alineados al Currículo Nacional de Educación Básica para ${selectedGradeObj?.title}.`
-              : 'Selecciona tu grado de secundaria para ver los cursos que ofrecemos con Rupi.'}
+              : 'Selecciona tu grado de primaria para ver los cursos que ofrecemos con Rupi.'}
           </span>
         </footer>
       </div>

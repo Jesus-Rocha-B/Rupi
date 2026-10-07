@@ -237,6 +237,7 @@ CREATE TABLE IF NOT EXISTS aprendizaje_inscripcion_ruta (
   codigo_acceso_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
   estado ENUM('ACTIVO','COMPLETADO','RETIRADO','SUSPENDIDO') NOT NULL DEFAULT 'ACTIVO',
   ultimo_nodo_visitado_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  ultima_visita_en DATETIME(6) NULL,
   inscrito_en DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   completado_en DATETIME(6) NULL,
   UNIQUE KEY uq_ruta_estudiante (version_ruta_id, estudiante_id),

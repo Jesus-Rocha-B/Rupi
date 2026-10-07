@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BookOpen,
   Calculator,
-  Compass,
   Eye,
   EyeOff,
   FlaskConical,
@@ -24,6 +23,7 @@ type Props = {
   onLoginDemo: () => Promise<void>
   sessionBusy: boolean
   demoAvailable: boolean
+  serviceError?: string | null
 }
 
 interface RupiCourseCharacter {
@@ -58,7 +58,7 @@ const RUPI_COURSES: RupiCourseCharacter[] = [
   },
 ]
 
-export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable }: Props) {
+export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, serviceError }: Props) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -118,7 +118,7 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable }: 
     }
 
     try {
-      await onLogin(trimmedUser, trimmedPass)
+      await onLogin(trimmedUser, password)
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 429) {
@@ -370,6 +370,7 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable }: 
           </header>
 
           <form className="student-login-form" onSubmit={handleSubmit} noValidate>
+              {serviceError && <p role="alert" className="auth-feedback error">{serviceError}</p>}
             {/* Campo Usuario */}
             <div className="form-group">
               <label htmlFor="student-username" className="field-label">

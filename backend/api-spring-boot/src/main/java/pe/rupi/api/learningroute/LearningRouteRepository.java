@@ -44,7 +44,7 @@ public class LearningRouteRepository {
                 SELECT vr.id AS version_route_id, r.titulo AS route_title,
                        g.numero_grado, g.nombre AS grade_name,
                        a.codigo AS area_code, a.nombre AS area_name,
-                       i.estado AS enrollment_state,
+                       i.estado AS enrollment_state, i.ultima_visita_en,
                        COUNT(DISTINCT n.id) AS total_nodes,
                        COUNT(DISTINCT CASE WHEN p.estado = 'COMPLETADO' THEN n.id END) AS completed_nodes
                 """ + ENROLLMENT_FROM + """
@@ -58,8 +58,8 @@ public class LearningRouteRepository {
                   AND vr.estado = 'PUBLICADO'
                   AND r.archivado_en IS NULL
                 GROUP BY vr.id, r.titulo, g.numero_grado, g.nombre,
-                         a.codigo, a.nombre, i.estado, i.inscrito_en
-                ORDER BY g.numero_grado, a.nombre, r.titulo, vr.id
+                         a.codigo, a.nombre, i.estado, i.inscrito_en, i.ultima_visita_en
+                ORDER BY i.ultima_visita_en DESC, g.numero_grado, a.nombre, r.titulo, vr.id
                 """;
 
         return jdbc.query(sql, new MapSqlParameterSource("studentId", studentId.toString()), (rs, rowNum) ->
@@ -70,7 +70,7 @@ public class LearningRouteRepository {
                         new Area(rs.getString("area_code"), rs.getString("area_name")),
                         rs.getString("enrollment_state"),
                         rs.getLong("completed_nodes"),
-                        rs.getLong("total_nodes")
+                        rs.getLong("total_nodes"), rs.getString("ultima_visita_en")
                 ));
     }
 
@@ -129,7 +129,7 @@ public class LearningRouteRepository {
         String sql = """
                 SELECT n.id AS node_id, n.numero_secuencia, va.titulo AS activity_title,
                        act.tipo AS activity_type, va.minutos_estimados,
-                       p.estado AS progress_state,
+                       CASE WHEN va.estado <> 'PUBLICADO' OR act.archivado_en IS NOT NULL THEN 'BLOQUEADO' ELSE p.estado END AS progress_state,
                        n.es_opcional, n.mapa_x, n.mapa_y
                 FROM aprendizaje_nodo_ruta n
                 JOIN aprendizaje_version_actividad va ON va.id = n.version_actividad_id
