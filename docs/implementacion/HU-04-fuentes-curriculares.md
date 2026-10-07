@@ -18,7 +18,7 @@ Los textos están transcritos tal cual, sin resumir. Cada uno se comparó con el
 
 - **Las tres unidades** (`DEMO-MAT2-U1` a `U3`). El MINEDU no publica unidades para primaria: cada docente o colegio las programa a partir de competencias, estándares y desempeños. Aquí agrupan los diez nodos de la ruta y enlazan los desempeños que trabaja cada tramo (`curriculo_unidad_meta`, `curriculo_unidad_estandar`).
 - **El reparto de nodos** en unidades 1–4, 5–7 y 8–10 y el vínculo entre cada unidad y sus desempeños. Es criterio del equipo y falta validarlo con un docente.
-- **Los nodos, sus actividades y su contenido**, que vienen de `seed-hu01.sql` y `seed-hu02.sql`.
+- **Los nodos, sus actividades y su contenido**, que vienen de `seed-hu01.sql` y `seed-hu02.sql`. Los textos de las paradas 6 a 10 se reescribieron en V07.
 
 ## Corrección hecha al catálogo
 
@@ -28,7 +28,7 @@ La semilla antigua llamaba al catálogo `CNEB-2024`, con vigencia desde 2024-01-
 
 - **Actualización del CNEB.** El 19 de julio de 2026 el MINEDU creó una comisión para actualizar el currículo (RM 393-2026-MINEDU, vigente hasta el 31 de diciembre de 2027). No se encontró una versión posterior publicada, y la nota consultada no dice que la actual deje de regir. Si se publica una nueva, hay que cargarla como otra `curriculo_version_catalogo` y no sobrescribir esta.
 - **Calendario 2026.** Los medios reportan cuatro bloques lectivos de nueve semanas (RM 501-2025-MINEDU). Es una fuente secundaria y no se usó en los datos. Podría servir para ordenar unidades por bloque.
-- **Contenido de los nodos 7 a 10.** En `seed-hu02.sql` el texto no siempre coincide con el título del nodo. Por ejemplo, «Formas en la piedra» trae contenido sobre decenas. Las unidades se agruparon por título.
+- **Textos de las paradas 6 a 10.** Los reescribí para que coincidan con el título de cada parada y con los desempeños oficiales (V07 y `seed-hu02.sql`). Son de demostración y no los revisó un docente.
 
 ## Cómo reemplazarlo por datos reales
 

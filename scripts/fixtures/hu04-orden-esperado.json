@@ -6,9 +6,9 @@
   "unidades": [
     { "titulo": "Unidad 1: contamos, sumamos y restamos", "competencias": ["MAT-C1"],
       "paradas": ["Números en la plaza", "Sumas con retablos", "La aventura de restar", "Compras en el mercado"] },
-    { "titulo": "Unidad 2: patrones y formas", "competencias": ["MAT-C2", "MAT-C3"],
+    { "titulo": "Unidad 2: patrones, medidas y formas", "competencias": ["MAT-C2", "MAT-C3"],
       "paradas": ["Patrones en los tejidos", "Medimos el camino", "Formas en la piedra"] },
-    { "titulo": "Unidad 3: medimos y comparamos", "competencias": ["MAT-C1", "MAT-C3"],
+    { "titulo": "Unidad 3: tiempo, pasos y retos", "competencias": ["MAT-C1", "MAT-C3"],
       "paradas": ["La hora de las campanas", "Contamos los pasos", "Reto de la cosecha"] }
   ]
 }

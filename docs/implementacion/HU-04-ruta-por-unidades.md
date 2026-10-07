@@ -55,7 +55,7 @@ Consulta del 2026-10-07. Detalle y páginas en [HU-04-fuentes-curriculares.md](H
 
 **Cómo se obtuvo.** Se descargó el PDF oficial del Programa curricular de Educación Primaria (396 páginas), se extrajo su texto y se transcribieron estándares y desempeños. Cada texto se comparó con el PDF y, donde la extracción era ambigua, con la imagen de la página. Esa comparación detectó una diferencia («continuar y completar patrones»), ya corregida. La comparación con el PDF se hizo a mano y no quedó como prueba repetible.
 
-**No se pudo confirmar:** que el CNEB actual deje de regir cuando termine la actualización; que el reparto de nodos coincida con el de algún docente real; y el contenido de los nodos 7 a 10, que no siempre coincide con su título (`seed-hu02.sql`).
+**No se pudo confirmar:** que el CNEB actual deje de regir cuando termine la actualización; que el reparto de nodos coincida con el de algún docente real; y que los textos de las paradas 6 a 10, reescritos para que coincidan con su título y con los desempeños oficiales, sean adecuados para el aula: no los revisó un docente.
 
 ## 6. Diseño
 
@@ -85,7 +85,7 @@ Migración: [`V07__unidades_curriculares_hu04.sql`](../../database/mysql/migrati
       {
         "id": "d1000000-0000-4000-8000-000000000002",
         "code": "DEMO-MAT2-U2",
-        "title": "Unidad 2: patrones y formas",
+        "title": "Unidad 2: patrones, medidas y formas",
         "sequence": 2,
         "competencies": [
           { "code": "MAT-C2", "name": "Resuelve problemas de regularidad, equivalencia y cambio" },
@@ -147,9 +147,10 @@ PLAYWRIGHT_DIR=/tmp/pw node scripts/verify_hu04_pantalla.mjs
 ## 8. Registro de cambios
 
 **Base de datos**
-- Nueva `migrations/V07__unidades_curriculares_hu04.sql`: 4 competencias con capacidades, 4 estándares del ciclo III, 23 desempeños de 2.°, 3 unidades de demostración y sus vínculos (nodos, actividades, competencias, estándares y desempeños).
+- Nueva `migrations/V07__unidades_curriculares_hu04.sql` (incluye el contenido alineado de las paradas 6 a 10, ver más abajo): 4 competencias con capacidades, 4 estándares del ciclo III, 23 desempeños de 2.°, 3 unidades de demostración y sus vínculos (nodos, actividades, competencias, estándares y desempeños).
 - V07 corrige la procedencia del catálogo: `CNEB-2024`, vigente desde 2024 y sin fuente, pasa a `CNEB-2017`, vigente desde 2017, con la referencia a RM 281-2016 y RM 159-2017.
 - `seed-hu01.sql` queda alineado con esa corrección para las bases nuevas.
+- **Contenido de las paradas 6 a 10:** la semilla antigua traía textos que no coincidían con el título (por ejemplo, «Formas en la piedra» hablaba de decenas). V07 los reemplaza por textos sobre longitud, formas, días de la semana, medir con pasos y un reto de la cosecha, cada uno ligado a un desempeño oficial de 2.°. `seed-hu02.sql` trae los mismos textos para las bases nuevas. Las unidades 2 y 3 pasaron a llamarse «patrones, medidas y formas» y «tiempo, pasos y retos», y se ajustaron sus desempeños vinculados (13 vínculos unidad–desempeño en total).
 - **Historial de V07:** la primera versión solo tenía 4 competencias sin texto y 3 unidades de prueba. Se rehízo antes del primer commit con los textos oficiales, estándares y desempeños, y se le añadió la corrección del catálogo.
 
 **Backend (`learningroute/`)**
@@ -177,11 +178,11 @@ PLAYWRIGHT_DIR=/tmp/pw node scripts/verify_hu04_pantalla.mjs
 
 - **Las unidades no son oficiales.** Un docente debe validar el reparto de nodos y los desempeños asignados.
 - **El orden esperado lo definimos nosotros.** Las pruebas garantizan que pantalla, API y base lo respetan. Que sea el de un colegio real solo lo confirma un docente.
-- **El contenido de los nodos 7 a 10 no siempre coincide con su título** (`seed-hu02.sql`, problema previo). Las unidades se agruparon por título.
+- **Los textos de las paradas 6 a 10 son de demostración.** Se alinearon con su título y con los desempeños oficiales, pero no los revisó un docente.
 - **Nodos sin unidad al final** es una regla provisional.
 - **Unidad partida en tramos:** la banda se repetiría y no se reordena. Con los datos actuales no ocurre.
 - **Actualización del CNEB en curso.** Una versión nueva se cargaría como otro catálogo, sin sobrescribir `CNEB-2017`.
 - **Solo lectura:** estándares y desempeños no llegan a la pantalla del estudiante y no hay forma de editar unidades. El administrador de Django sigue siendo un esqueleto.
 - **Pendientes del proyecto:** privacidad y acceso de menores, y el mecanismo único de migraciones, antes de publicar.
 
-Pendientes concretos de HU-04: confirmar con el equipo la regla de nodos sin unidad y el reparto de unidades; cargar las unidades reales desde Django cuando exista ese módulo; alinear el contenido de los nodos 7 a 10 con sus títulos; probar en un teléfono real y medir el contraste; revisar si la cabecera móvil, que ya desbordaba antes de HU-04, necesita arreglo; y seguir el proceso de actualización del CNEB.
+Pendientes concretos de HU-04: confirmar con el equipo la regla de nodos sin unidad y el reparto de unidades; cargar las unidades reales desde Django cuando exista ese módulo; probar en un teléfono real y medir el contraste; revisar si la cabecera móvil, que ya desbordaba antes de HU-04, necesita arreglo; y seguir el proceso de actualización del CNEB.

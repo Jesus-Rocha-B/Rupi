@@ -23,7 +23,7 @@ Ninguno al cerrar HU-04. Detalle de lo que cambió en `docs/registro/CHANGELOG.m
 - [x] Tarea 4: `verify_hu04_content.py` y `verify_hu04_pantalla.mjs` comparan base, API y pantalla con `scripts/fixtures/hu04-orden-esperado.json`.
 - [x] Mapa revisado en Firefox (escritorio 1280 px y móvil 375 px) con Playwright.
 - [ ] Reemplazar las unidades `DEMO-*` por la programación real cuando Django cargue el catálogo oficial (ver `docs/implementacion/HU-04-fuentes-curriculares.md`).
-- [ ] Alinear el contenido de los nodos 7–10 (`seed-hu02.sql`) con sus títulos.
+- [x] Contenido de las paradas 6–10 alineado con su título y con desempeños oficiales (V07, `seed-hu02.sql`). Sin validar con un docente.
 - [ ] Seguir el proceso de actualización del CNEB (RM 393-2026-MINEDU).
 - [ ] Confirmar con el equipo la regla de paradas sin unidad (hoy: grupo final «Otras paradas»).
 - [ ] Si las paradas de una unidad no son contiguas, el mapa sigue el orden de la ruta y repite la banda; revisar si hace falta reordenar.

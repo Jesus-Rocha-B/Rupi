@@ -10,11 +10,11 @@ SELECT CONCAT('bb000000-0000-4000-8000-', LPAD(n.numero_secuencia, 12, '0')),
          WHEN 3 THEN 'En una canasta hay 9 panes. Si se venden 3, quedan 6: 9 menos 3 es 6. Dibuja 8 panes y tacha 2. ¿Cuántos quedan?'
          WHEN 4 THEN 'Una fruta cuesta 2 soles. Dos frutas cuestan 4 soles. Si llevas 5 soles, ¿cuánto recibirás de vuelto? Puedes dibujar las monedas.'
          WHEN 5 THEN 'Observa este patrón: rojo, amarillo, rojo, amarillo. El siguiente color es rojo. Crea en tu cuaderno otro patrón con dos formas.'
-         WHEN 6 THEN 'Busca un círculo, un cuadrado y un triángulo entre los objetos de tu casa. Dibuja cada uno y cuenta sus lados.'
-         WHEN 7 THEN 'Agrupa 10 semillas: has formado una decena. Si añades 3 semillas tienes 13, una decena y tres unidades. Representa el número 15.'
-         WHEN 8 THEN 'Compara 12 y 15: ambos tienen una decena, pero 5 unidades son más que 2. Por eso 15 es mayor que 12. Compara ahora 14 y 11.'
-         WHEN 9 THEN 'Tres canastas tienen dos papas cada una. Puedes sumar 2 + 2 + 2 para encontrar 6 papas. Dibuja cuatro canastas con dos papas.'
-         ELSE 'Repasa a tu ritmo: cuenta 10 objetos, separa 4 y explica cuántos quedan. Cuenta cómo encontraste la respuesta a tu docente.'
+         WHEN 6 THEN 'Imagina un camino de piedra en la plaza. Mide un trozo con tus manos, una al lado de otra, y cuenta cuántas manos mide. Mide otro trozo y compara: ¿cuál es más largo? Si enrollas un sorbete sigue midiendo lo mismo.'
+         WHEN 7 THEN 'Mira las piedras y los arcos de la plaza: ¿qué formas ves? Busca un círculo, un cuadrado y un triángulo, dibuja cada uno y cuenta sus lados. ¿Cuáles ruedan y cuáles no?'
+         WHEN 8 THEN 'Las campanas anuncian los días de fiesta. Di los días de la semana en orden: lunes, martes, miércoles... Si hoy es martes, ¿qué día es mañana? Mira el horario de tu clase y cuenta cuántos días vas al colegio.'
+         WHEN 9 THEN 'Camina del banco a la fuente contando tus pasos: uno, dos, tres... Si das 6 pasos hacia la fuente y 4 de regreso, ¿cuántos pasos diste en total? Compara con un amigo: ¿quién dio más pasos?'
+         ELSE 'En la cosecha hay 12 papas en una canasta. Si se llevan 5, ¿cuántas quedan? Si luego agregas 3, ¿cuántas hay? Explica a tu docente cómo lo pensaste y compara tu respuesta con la de un amigo.'
        END
 FROM aprendizaje_nodo_ruta n
 WHERE n.version_ruta_id = 'b0000000-0000-4000-8000-000000000001'

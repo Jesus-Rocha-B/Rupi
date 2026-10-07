@@ -101,8 +101,8 @@ ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
 -- 5. Tres unidades de demostración de 2.° grado, mismo catálogo y misma área que la ruta
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, titulo, numero_secuencia) VALUES
   ('d1000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'DEMO-MAT2-U1', 'Unidad 1: contamos, sumamos y restamos', 1),
-  ('d1000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'DEMO-MAT2-U2', 'Unidad 2: patrones y formas', 2),
-  ('d1000000-0000-4000-8000-000000000003', 'c0000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'DEMO-MAT2-U3', 'Unidad 3: medimos y comparamos', 3)
+  ('d1000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'DEMO-MAT2-U2', 'Unidad 2: patrones, medidas y formas', 2),
+  ('d1000000-0000-4000-8000-000000000003', 'c0000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'DEMO-MAT2-U3', 'Unidad 3: tiempo, pasos y retos', 3)
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), numero_secuencia = VALUES(numero_secuencia);
 
 -- 6. Qué competencias, estándares y desempeños oficiales trabaja cada unidad (se rehacen en cada aplicación)
@@ -133,9 +133,10 @@ INSERT INTO curriculo_unidad_meta (unidad_id, meta_id) VALUES
   ('d1000000-0000-4000-8000-000000000002', 'f1000000-0000-4000-8000-000000000204'),
   ('d1000000-0000-4000-8000-000000000002', 'f1000000-0000-4000-8000-000000000301'),
   ('d1000000-0000-4000-8000-000000000002', 'f1000000-0000-4000-8000-000000000303'),
+  ('d1000000-0000-4000-8000-000000000002', 'f1000000-0000-4000-8000-000000000304'),
+  ('d1000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000101'),
   ('d1000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000105'),
-  ('d1000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000106'),
-  ('d1000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000304'),
+  ('d1000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000107'),
   ('d1000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000305');
 
 -- 7. Vincular los nodos a su unidad: paradas 1–4, 5–7 y 8–10.
@@ -155,3 +156,16 @@ SELECT n.version_actividad_id, n.unidad_id
 FROM aprendizaje_nodo_ruta n
 WHERE n.version_ruta_id = 'b0000000-0000-4000-8000-000000000001'
   AND n.unidad_id IS NOT NULL;
+
+-- 9. Contenido de las paradas 6 a 10 alineado con su título y con los desempeños oficiales que trabaja su unidad
+--    (la semilla antigua traía textos que no coincidían con el título). Datos de demostración, sin validar con un docente.
+UPDATE aprendizaje_bloque_contenido SET texto_cuerpo = 'Imagina un camino de piedra en la plaza. Mide un trozo con tus manos, una al lado de otra, y cuenta cuántas manos mide. Mide otro trozo y compara: ¿cuál es más largo? Si enrollas un sorbete sigue midiendo lo mismo.'
+WHERE version_actividad_id = 'fa000000-0000-4000-8000-000000000006' AND numero_secuencia = 1;
+UPDATE aprendizaje_bloque_contenido SET texto_cuerpo = 'Mira las piedras y los arcos de la plaza: ¿qué formas ves? Busca un círculo, un cuadrado y un triángulo, dibuja cada uno y cuenta sus lados. ¿Cuáles ruedan y cuáles no?'
+WHERE version_actividad_id = 'fa000000-0000-4000-8000-000000000007' AND numero_secuencia = 1;
+UPDATE aprendizaje_bloque_contenido SET texto_cuerpo = 'Las campanas anuncian los días de fiesta. Di los días de la semana en orden: lunes, martes, miércoles... Si hoy es martes, ¿qué día es mañana? Mira el horario de tu clase y cuenta cuántos días vas al colegio.'
+WHERE version_actividad_id = 'fa000000-0000-4000-8000-000000000008' AND numero_secuencia = 1;
+UPDATE aprendizaje_bloque_contenido SET texto_cuerpo = 'Camina del banco a la fuente contando tus pasos: uno, dos, tres... Si das 6 pasos hacia la fuente y 4 de regreso, ¿cuántos pasos diste en total? Compara con un amigo: ¿quién dio más pasos?'
+WHERE version_actividad_id = 'fa000000-0000-4000-8000-000000000009' AND numero_secuencia = 1;
+UPDATE aprendizaje_bloque_contenido SET texto_cuerpo = 'En la cosecha hay 12 papas en una canasta. Si se llevan 5, ¿cuántas quedan? Si luego agregas 3, ¿cuántas hay? Explica a tu docente cómo lo pensaste y compara tu respuesta con la de un amigo.'
+WHERE version_actividad_id = 'fa000000-0000-4000-8000-000000000010' AND numero_secuencia = 1;

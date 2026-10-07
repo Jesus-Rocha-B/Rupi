@@ -2,6 +2,12 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-07 · HU-04: contenido de las paradas 6 a 10 alineado
+
+- V07 y `seed-hu02.sql`: los textos de las paradas 6 a 10 no coincidían con su título (p. ej. «Formas en la piedra» hablaba de decenas). Se reescribieron sobre longitud, formas, días de la semana, medir con pasos y un reto de la cosecha, ligados a desempeños oficiales de 2.°. Demostración, sin validar con un docente.
+- Unidades 2 y 3 renombradas: «patrones, medidas y formas» y «tiempo, pasos y retos»; desempeños vinculados ajustados (13 vínculos).
+- `scripts/fixtures/hu04-orden-esperado.json` y `HU-04-ruta-por-unidades.md` actualizados. `verify_hu04_content.py`, `verify_hu04_pantalla.mjs` y `verify_learning_flow.py` pasan.
+
 ## 2026-10-07 · HU-04: ruta agrupada por unidades
 
 Detalle, sustentación y evidencia en `docs/implementacion/HU-04-ruta-por-unidades.md`. Fuentes y límites en `HU-04-fuentes-curriculares.md`.
