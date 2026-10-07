@@ -58,7 +58,8 @@ Solo `curriculo/models.py` y `curriculo/admin.py`, como esqueleto. Sin app funci
 ## Scripts y entorno
 
 - `iniciar-rupi.sh` / `detener-rupi.sh` (Linux) y `Iniciar-Rupi.cmd|ps1` / `Detener-Rupi.ps1` (Windows).
-- `scripts/verify_learning_flow.py` (23 escenarios HTTP), `scripts/Verificar-HU01.ps1` y `scripts/Verificar-Auth.ps1`.
+- `scripts/verify_learning_flow.py` (29 escenarios HTTP/MySQL, 6 de HU-04), `scripts/Verificar-HU01.ps1` y `scripts/Verificar-Auth.ps1`.
+- HU-04: `scripts/verify_hu04_content.py` (contenido de la ruta demo en base y API), `scripts/verify_hu04_pantalla.mjs` (orden dibujado en Firefox; Playwright fuera del repo) y `scripts/fixtures/hu04-orden-esperado.json` (orden esperado, escrito a mano).
 - `.local/` (ignorado): `env.sh`, `my.cnf`, `root.cnf`, `mysql-data`, logs y pids.
 
 ## Skills de diseño
