@@ -24,6 +24,8 @@ public class ActivityService {
 =======
 import org.springframework.web.server.ResponseStatusException;
 
+import pe.rupi.api.evaluation.EvaluationService;
+import pe.rupi.api.evaluation.EvaluationDtos.QuestionDto;
 import pe.rupi.api.learningroute.LearningRouteDtos.ActivityCompleteResponse;
 import pe.rupi.api.learningroute.LearningRouteDtos.ContentBlock;
 import pe.rupi.api.learningroute.LearningRouteDtos.NextUnlockedNode;
@@ -31,14 +33,23 @@ import pe.rupi.api.learningroute.LearningRouteDtos.NextUnlockedNode;
 @Service
 public class ActivityService {
     private final NamedParameterJdbcTemplate jdbc;
+    private final EvaluationService evaluationService;
 
-    public ActivityService(NamedParameterJdbcTemplate jdbc) {
+    public ActivityService(NamedParameterJdbcTemplate jdbc, EvaluationService evaluationService) {
         this.jdbc = jdbc;
+        this.evaluationService = evaluationService;
     }
 
 >>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     public record Block(String id, String type, String text, String url, String accessibleText) {}
-    public record Activity(String nodeId, String title, String instructions, String state, List<Block> blocks) {}
+    public record Activity(
+            String nodeId,
+            String title,
+            String instructions,
+            String state,
+            List<Block> blocks,
+            List<QuestionDto> questions
+    ) {}
     record Access(String enrollmentId, String activityId, String title, String instructions, String state) {}
 
     @Transactional
@@ -150,8 +161,9 @@ public class ActivityService {
                 rs.getString("texto_accesible")
         ));
 
+        var questions = evaluationService.findQuestionsForActivity(UUID.fromString(access.activityId()));
         String currentState = "DISPONIBLE".equalsIgnoreCase(access.state()) ? "EN_CURSO" : access.state();
-        return new Activity(nodeId.toString(), access.title(), access.instructions(), currentState, blocks);
+        return new Activity(nodeId.toString(), access.title(), access.instructions(), currentState, blocks, questions);
     }
 
     @Transactional
