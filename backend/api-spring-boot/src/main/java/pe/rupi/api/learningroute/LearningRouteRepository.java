@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import pe.rupi.api.learningroute.LearningRouteDtos.Area;
 import pe.rupi.api.learningroute.LearningRouteDtos.CulturalContext;
 import pe.rupi.api.learningroute.LearningRouteDtos.CulturalFact;
+import pe.rupi.api.learningroute.LearningRouteDtos.Curriculum;
 import pe.rupi.api.learningroute.LearningRouteDtos.Enrollment;
 import pe.rupi.api.learningroute.LearningRouteDtos.Grade;
 import pe.rupi.api.learningroute.LearningRouteDtos.Position;
@@ -147,6 +148,7 @@ public class LearningRouteRepository {
         return jdbc.query(sql, parameters, NODE_MAPPER);
     }
 
+<<<<<<< HEAD
     public Optional<RouteCurriculum.Data> findCurriculum(UUID versionRouteId) {
         var parameters = new MapSqlParameterSource("routeId", versionRouteId.toString());
         var header = jdbc.query("""
@@ -186,6 +188,70 @@ public class LearningRouteRepository {
                 uuid(rs, "version_catalogo_id"), uuid(rs, "area_id")));
         return Optional.of(new RouteCurriculum.Data(UUID.fromString(header[0]), header[3],
                 UUID.fromString(header[1]), UUID.fromString(header[2]), nodeUnits, units, competencies));
+=======
+    public Optional<RouteCurriculum.Data> findCurriculumData(UUID versionRouteId) {
+        String sqlHeader = """
+                SELECT vr.version_catalogo_id AS catalogo_id, vc.estado AS catalogo_estado, vr.grado_id, vr.area_id
+                FROM aprendizaje_version_ruta vr
+                JOIN curriculo_version_catalogo vc ON vc.id = vr.version_catalogo_id
+                WHERE vr.id = :routeId
+                """;
+        var params = new MapSqlParameterSource("routeId", versionRouteId.toString());
+        return jdbc.query(sqlHeader, params, rs -> {
+            if (!rs.next()) return Optional.empty();
+            UUID catalogId = uuid(rs, "catalogo_id");
+            String catalogState = rs.getString("catalogo_estado");
+            UUID gradeId = uuid(rs, "grado_id");
+            UUID areaId = uuid(rs, "area_id");
+
+            String sqlNodes = """
+                    SELECT n.id AS node_id, n.unidad_id
+                    FROM aprendizaje_nodo_ruta n
+                    WHERE n.version_ruta_id = :routeId AND n.unidad_id IS NOT NULL
+                    """;
+            List<RouteCurriculum.NodeUnit> nodeUnits = jdbc.query(sqlNodes, params, (r, i) ->
+                    new RouteCurriculum.NodeUnit(uuid(r, "node_id"), uuid(r, "unidad_id")));
+
+            String sqlUnits = """
+                    SELECT u.id AS unit_id, u.codigo, u.titulo, u.numero_secuencia, u.version_catalogo_id AS catalogo_id, u.grado_id, u.area_id
+                    FROM curriculo_unidad u
+                    WHERE u.version_catalogo_id = :catalogId AND u.grado_id = :gradeId AND u.area_id = :areaId
+                    ORDER BY u.numero_secuencia
+                    """;
+            var unitParams = new MapSqlParameterSource("catalogId", catalogId.toString())
+                    .addValue("gradeId", gradeId.toString())
+                    .addValue("areaId", areaId.toString());
+            List<RouteCurriculum.UnitRow> units = jdbc.query(sqlUnits, unitParams, (r, i) ->
+                    new RouteCurriculum.UnitRow(
+                            uuid(r, "unit_id"),
+                            r.getString("codigo"),
+                            r.getString("titulo"),
+                            r.getInt("numero_secuencia"),
+                            uuid(r, "catalogo_id"),
+                            uuid(r, "grado_id"),
+                            uuid(r, "area_id")
+                    ));
+
+            String sqlCompetencies = """
+                    SELECT uc.unidad_id, c.codigo, c.nombre, a.version_catalogo_id AS catalogo_id, c.area_id
+                    FROM curriculo_unidad_competencia uc
+                    JOIN curriculo_competencia c ON c.id = uc.competencia_id
+                    JOIN curriculo_area a ON a.id = c.area_id
+                    JOIN curriculo_unidad u ON u.id = uc.unidad_id
+                    WHERE u.version_catalogo_id = :catalogId AND u.grado_id = :gradeId AND u.area_id = :areaId
+                    """;
+            List<RouteCurriculum.CompetencyRow> competencies = jdbc.query(sqlCompetencies, unitParams, (r, i) ->
+                    new RouteCurriculum.CompetencyRow(
+                            uuid(r, "unidad_id"),
+                            r.getString("codigo"),
+                            r.getString("nombre"),
+                            uuid(r, "catalogo_id"),
+                            uuid(r, "area_id")
+                    ));
+
+            return Optional.of(new RouteCurriculum.Data(catalogId, catalogState, gradeId, areaId, nodeUnits, units, competencies));
+        });
+>>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     }
 
     private static final RowMapper<RouteNode> NODE_MAPPER = (rs, rowNum) -> {
@@ -274,11 +340,11 @@ public class LearningRouteRepository {
             Enrollment enrollment
     ) {
         public RouteDetailResponse toResponse(Progress progress, List<RouteNode> nodes) {
-            return toResponse(progress, nodes, null);
+            return toResponse(progress, nodes, null, null);
         }
 
-        public RouteDetailResponse toResponse(Progress progress, List<RouteNode> nodes, CulturalContext culturalContext) {
-            return new RouteDetailResponse(versionRouteId, title, grade, area, enrollment, progress, nodes, culturalContext);
+        public RouteDetailResponse toResponse(Progress progress, List<RouteNode> nodes, CulturalContext culturalContext, Curriculum curriculum) {
+            return new RouteDetailResponse(versionRouteId, title, grade, area, enrollment, progress, nodes, culturalContext, curriculum);
         }
     }
 }

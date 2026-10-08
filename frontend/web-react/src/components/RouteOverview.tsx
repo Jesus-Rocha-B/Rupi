@@ -1,4 +1,4 @@
-import { ArrowRight, Play, Star, Volume2 } from 'lucide-react'
+import { ArrowRight, Play, Sparkles, Star, Volume2 } from 'lucide-react'
 import { RupiCharacter } from './RupiCharacter'
 import { speakText } from '../utils/speech'
 import type { RouteDetail, RouteNode } from '../services/learningRoutesApi'
@@ -11,9 +11,18 @@ type Props = {
 
 export function RouteOverview({ route, name, onSelect }: Props) {
   const completed = route.progress.completedNodes
+<<<<<<< HEAD
   const total = route.progress.totalNodes
   const nextNode =
     route.nodes.find(node => node.id === route.enrollment.lastVisitedNodeId && node.state !== 'BLOQUEADO') ??
+=======
+  const total = route.progress.totalNodes || 10
+  const lastVisited = route.enrollment?.lastVisitedNodeId
+    ? route.nodes.find((node) => node.id === route.enrollment.lastVisitedNodeId && node.state !== 'BLOQUEADO')
+    : undefined
+  const nextNode =
+    lastVisited ??
+>>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     route.nodes.find((node) => node.state === 'EN_CURSO') ??
     route.nodes.find((node) => node.state === 'DISPONIBLE')
 
@@ -84,11 +93,17 @@ export function RouteOverview({ route, name, onSelect }: Props) {
                 <Star size={16} fill="#ffd26a" stroke="#dca331" aria-hidden="true" />
                 <b>Estrellas ganadas</b>
               </span>
-              <span className="stars-count-badge" aria-label={`${completed} de ${total} estrellas`}>
-                <b>{completed}</b>
-                <span className="stars-count-sep">/</span>
-                <span>{total}</span>
-              </span>
+              <div className="stars-badges-group">
+                <span className="stars-count-badge" aria-label={`${completed} de ${total} estrellas`}>
+                  <b>{completed}</b>
+                  <span className="stars-count-sep">/</span>
+                  <span>{total}</span>
+                </span>
+                <span className="xp-count-badge" title="Puntos de experiencia acumulados" aria-label={`${completed * 50} puntos de experiencia`}>
+                  <Sparkles size={13} aria-hidden="true" />
+                  <b>{completed * 50} XP</b>
+                </span>
+              </div>
             </div>
 
             {/* Fila de estrellas: solo estrellas ganadas en dorado y vacías para las pendientes */}

@@ -2252,10 +2252,333 @@
   color: var(--ink, #173e30);
 }
 
+/* --------------------------------------------------------------------------
+   7. Estados de Tarjetas de Grados y Cursos (Primaria / Roadmap Activo)
+   -------------------------------------------------------------------------- */
+.grade-card.has-active-route {
+  border: 2.5px solid var(--green, #31724b);
+  background: linear-gradient(180deg, #ffffff 0%, #f4faf6 100%);
+  box-shadow: 0 8px 0 #285f3d;
+}
+
+.grade-status-pill.active-glow {
+  background: #fff0eb;
+  border: 1.5px solid #f95738;
+  color: #c93b1d;
+  font-weight: 900;
+}
+
+.course-card.roadmap-enabled {
+  border-color: #f95738;
+  box-shadow: 0 7px 0 #cc3a1d;
+}
+
+.course-card.roadmap-enabled:hover {
+  border-color: #d83d1e;
+  box-shadow: 0 11px 0 #cc3a1d;
+}
+
+.course-card.roadmap-restricted {
+  opacity: 0.92;
+  border-style: dashed;
+}
+
+.course-card-btn.active-roadmap-btn {
+  background: #f95738;
+  box-shadow: 0 4px 0 #cc3a1d;
+}
+
+.course-card-btn.active-roadmap-btn:hover {
+  background: #e84c2f;
+  box-shadow: 0 6px 0 #cc3a1d;
+}
+
+.course-card-btn.preview-course-btn {
+  background: #ffffff;
+  color: var(--ink, #173e30);
+  border: 2px solid var(--line, #dbe8d2);
+  box-shadow: 0 4px 0 #cfdbd0;
+}
+
+.course-card-btn.preview-course-btn:hover {
+  background: #f7faf7;
+  border-color: #31724b;
+  color: #31724b;
+}
+
+/* --------------------------------------------------------------------------
+   8. Barra de Cambio de Materia en el Aula Escolar (Course Switch Bar)
+   -------------------------------------------------------------------------- */
+.course-switch-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 22px;
+  flex-wrap: wrap;
+}
+
+.course-switch-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 18px;
+  background: var(--paper, #fffefa);
+  border: 2px solid var(--line, #dbe8d2);
+  border-radius: 16px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--muted, #43614c);
+  cursor: pointer;
+  box-shadow: 0 3px 0 #cfdbd0;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.course-switch-tab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #cfdbd0;
+  color: var(--ink, #173e30);
+  background: #ffffff;
+}
+
+.course-switch-tab:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #cfdbd0;
+}
+
+.course-switch-tab:focus-visible {
+  outline: 3px solid #ffd26a;
+  outline-offset: 3px;
+}
+
+.course-switch-tab.active {
+  color: #ffffff;
+}
+
+.course-switch-tab.active.comunicacion {
+  background: #246a91;
+  border-color: #174b6a;
+  box-shadow: 0 4px 0 #133c55;
+}
+
+.course-switch-tab.active.matematica {
+  background: #f95738;
+  border-color: #cc3a1d;
+  box-shadow: 0 4px 0 #b32f14;
+}
+
+.course-switch-tab.active.cyt {
+  background: #31724b;
+  border-color: #215134;
+  box-shadow: 0 4px 0 #183e27;
+}
+
+.tab-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+}
+
+.tab-status-pill.active {
+  background: #ffebe6;
+  color: #ad3319;
+}
+
+.course-switch-tab.active.matematica .tab-status-pill.active {
+  background: #ffffff;
+  color: #cc3a1d;
+}
+
+.tab-status-pill.locked {
+  background: #edeae3;
+  color: #7b776f;
+}
+
+.course-switch-tab.active .tab-status-pill.locked {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   9. Panel de Curso con Roadmap Restringido (Course Locked Panel)
+   -------------------------------------------------------------------------- */
+.course-locked-panel {
+  margin: 18px 0 28px;
+  width: 100%;
+}
+
+.course-locked-card {
+  background: var(--paper, #fffefa);
+  border: 2px solid var(--line, #dbe8d2);
+  border-radius: 24px;
+  padding: 32px 36px;
+  box-shadow: 0 8px 0 #cfdbd0;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.course-locked-mascot {
+  flex: 0 0 130px;
+  width: 130px;
+  height: 130px;
+  background: radial-gradient(circle, #fff9e6 0%, #f4faf6 70%);
+  border: 2px solid #ffd26a;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 0 #e6ba50;
+  overflow: hidden;
+}
+
+.locked-rupi-svg {
+  width: 125px;
+  height: 125px;
+  transform: translateY(8px);
+}
+
+.course-locked-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.course-locked-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fdf5ea;
+  border: 1.5px solid #ffd26a;
+  color: #8c531a;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.course-locked-content h2 {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ink, #173e30);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.locked-course-desc {
+  font-size: 14.5px;
+  color: var(--muted, #43614c);
+  margin: 0 0 10px;
+  line-height: 1.5;
+  max-width: 680px;
+}
+
+.course-locked-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.go-to-math-btn {
+  min-height: 48px;
+  padding: 10px 22px;
+  background: var(--red, #f95738);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--red-dark, #cc3a1d);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.go-to-math-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--red-dark, #cc3a1d);
+}
+
+.go-to-math-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--red-dark, #cc3a1d);
+}
+
+.go-to-math-btn:focus-visible {
+  outline: 3px solid #ffd26a;
+  outline-offset: 3px;
+}
+
+.change-course-alt-btn {
+  min-height: 48px;
+  padding: 10px 18px;
+  background: #ffffff;
+  color: var(--muted, #43614c);
+  border: 1.5px solid var(--line, #dbe8d2);
+  border-radius: 14px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #cfdbd0;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.change-course-alt-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #cfdbd0;
+  color: var(--ink, #173e30);
+}
+
+.change-course-alt-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #cfdbd0;
+}
+
+.locked-speech-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #fdf6ec;
+  border: 1.5px solid #ffd26a;
+  color: #9e592d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #e6ba50;
+  transition: transform 0.08s ease;
+}
+
+.locked-speech-btn:hover {
+  transform: translateY(-2px);
+}
+
+.locked-speech-btn:active {
+  transform: translateY(1px);
+}
+
 @media (max-width: 900px) {
   .grade-cards-grid,
   .courses-cards-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .course-locked-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px;
+    gap: 20px;
   }
 }
 
@@ -2274,4 +2597,21 @@
     display: flex;
     width: fit-content;
   }
+  .course-switch-bar {
+    gap: 8px;
+  }
+  .course-switch-tab {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .course-locked-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .go-to-math-btn,
+  .change-course-alt-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
+

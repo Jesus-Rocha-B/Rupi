@@ -6,7 +6,16 @@ SET CHARACTER SET utf8mb4;
 
 USE rupi;
 
--- 1. Asegurar nombres con tildes y caracteres correctos en curriculo_grado
+-- 1. Asegurar nombres con tildes y caracteres correctos en curriculo_grado (Exclusivo Primaria)
+INSERT INTO curriculo_grado (id, numero_grado, nombre) VALUES
+  ('00000000-0000-4000-8000-000000000001', 1, '1.° de primaria'),
+  ('00000000-0000-4000-8000-000000000002', 2, '2.° de primaria'),
+  ('00000000-0000-4000-8000-000000000003', 3, '3.° de primaria'),
+  ('00000000-0000-4000-8000-000000000004', 4, '4.° de primaria'),
+  ('00000000-0000-4000-8000-000000000005', 5, '5.° de primaria'),
+  ('00000000-0000-4000-8000-000000000006', 6, '6.° de primaria')
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+
 UPDATE curriculo_grado SET nombre = '1.° de primaria' WHERE numero_grado = 1;
 UPDATE curriculo_grado SET nombre = '2.° de primaria' WHERE numero_grado = 2;
 UPDATE curriculo_grado SET nombre = '3.° de primaria' WHERE numero_grado = 3;
@@ -211,4 +220,69 @@ ON DUPLICATE KEY UPDATE
   icono = VALUES(icono),
   fuente = VALUES(fuente),
   estado = VALUES(estado);
+
+-- 10. Institución educativa oficial de Ayacucho y asignación del estudiante Mateo Quispe
+INSERT INTO escuela_institucion (id, codigo, nombre, nivel, ubigeo, activa) VALUES
+  ('i0000000-0000-4000-8000-000000000001', '38001', 'I.E. 38001 Mariscal Sucre', 'PUBLICA', '050101', TRUE)
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+
+INSERT INTO escuela_anio_escolar (id, institucion_id, anio, estado) VALUES
+  ('y0000000-0000-4000-8000-000000000001', 'i0000000-0000-4000-8000-000000000001', 2026, 'ACTIVO')
+ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
+
+INSERT INTO escuela_aula (id, institucion_id, anio_escolar_id, grado_id, codigo, nombre) VALUES
+  ('au000000-0000-4000-8000-000000000001', 'i0000000-0000-4000-8000-000000000001', 'y0000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002', '2A', '2.° Primaria A')
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+
+INSERT INTO escuela_membresia_aula (id, aula_id, usuario_id, rol, estado) VALUES
+  ('m0000000-0000-4000-8000-000000000001', 'au000000-0000-4000-8000-000000000001', '11111111-1111-4111-8111-111111111111', 'ESTUDIANTE', 'ACTIVO')
+ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
+
+-- 11. Competencias oficiales y Unidades Curriculares MINEDU (HU-04)
+INSERT INTO curriculo_competencia (id, area_id, codigo, nombre, descripcion) VALUES
+  ('c1000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 'RES_CANT', 'Resuelve problemas de cantidad', 'Traduce cantidades a expresiones numéricas y comunica su comprensión de los números y operaciones.'),
+  ('c1000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'RES_REG', 'Resuelve problemas de regularidad, equivalencia y cambio', 'Traduce datos y condiciones a patrones y relaciones de cambio.')
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+
+INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, titulo, numero_secuencia) VALUES
+  ('u0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'U1-2P-MAT', 'Unidad 1: Cantidades y números en nuestra comunidad', 1),
+  ('u0000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'U2-2P-MAT', 'Unidad 2: Medición, formas y patrones andinos', 2)
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+
+INSERT INTO curriculo_unidad_competencia (unidad_id, competencia_id) VALUES
+  ('u0000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001'),
+  ('u0000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000002')
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id);
+
+-- Asignar las 10 paradas a sus respectivas unidades curriculares oficiales (5 paradas por unidad)
+UPDATE aprendizaje_nodo_ruta SET unidad_id = 'u0000000-0000-4000-8000-000000000001'
+WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000001' AND numero_secuencia BETWEEN 1 AND 5;
+
+UPDATE aprendizaje_nodo_ruta SET unidad_id = 'u0000000-0000-4000-8000-000000000002'
+WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000001' AND numero_secuencia BETWEEN 6 AND 10;
+
+-- 12. Instrucciones pedagógicas en versiones de actividad
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Observa la plaza de Ayacucho y cuenta los elementos que la rodean.' WHERE id = 'fa000000-0000-4000-8000-000000000001';
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Aprende a sumar figuras usando las coloridas cajitas de retablos.' WHERE id = 'fa000000-0000-4000-8000-000000000002';
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Resuelve retos de resta con los tradicionales panes chapla de Ayacucho.' WHERE id = 'fa000000-0000-4000-8000-000000000003';
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Calcula monedas y sumas sencillas para comprar en el mercado andino.' WHERE id = 'fa000000-0000-4000-8000-000000000004';
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Descubre y completa secuencias de figuras en los telares de Santa Ana.' WHERE id = 'fa000000-0000-4000-8000-000000000005';
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Mide distancias de la plaza usando tus pasos y comparaciones de longitud.' WHERE id = 'fa000000-0000-4000-8000-000000000006';
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Reconoce formas geométricas en las hermosas tallas de piedra blanca.' WHERE id = 'fa000000-0000-4000-8000-000000000007';
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Aprende a leer la hora con las campanas sonoras de la catedral.' WHERE id = 'fa000000-0000-4000-8000-000000000008';
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Cuenta los pasos y calcula recorridos en el histórico campo de Quinua.' WHERE id = 'fa000000-0000-4000-8000-000000000009';
+UPDATE aprendizaje_version_actividad SET instrucciones = 'Pon en práctica todo lo aprendido en el gran desafío de la fiesta de la cosecha.' WHERE id = 'fa000000-0000-4000-8000-000000000010';
+
+-- 13. Bloques de contenido didáctico (HU-02 y HU-05)
+INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, tipo, numero_secuencia, texto, url_recurso, texto_accesible) VALUES
+  ('bc000000-0000-4000-8000-000000000001', 'fa000000-0000-4000-8000-000000000001', 'DESTACADO', 1, '¡Bienvenido a la Plaza Mayor de Ayacucho! Mira las hermosas arquerías blancas que rodean el parque. ¿Cuántos arcos puedes contar en el primer portal?', NULL, NULL),
+  ('bc000000-0000-4000-8000-000000000002', 'fa000000-0000-4000-8000-000000000001', 'TEXTO', 2, 'Los números nos ayudan a ordenar nuestro mundo. Cuando cuentas objetos de uno en uno, el último número que dices te indica cuántos hay en total.', NULL, NULL),
+  ('bc000000-0000-4000-8000-000000000003', 'fa000000-0000-4000-8000-000000000002', 'DESTACADO', 1, 'En un retablo ayacuchano, el maestro artesano modeló 4 músicos en la parte de arriba y 5 bailarines en la parte de abajo. ¿Cuántos personajes modeló en total? 4 + 5 = 9.', NULL, NULL),
+  ('bc000000-0000-4000-8000-000000000004', 'fa000000-0000-4000-8000-000000000002', 'TEXTO', 2, 'Sumar significa juntar o agregar cantidades. Siempre que unes dos grupos, el resultado es mayor que cualquiera de los dos.', NULL, NULL),
+  ('bc000000-0000-4000-8000-000000000005', 'fa000000-0000-4000-8000-000000000003', 'DESTACADO', 1, 'Doña Juana preparó una canasta con 8 panes chapla recién salidos del horno. En el desayuno compartieron 3 panes con queso andino. ¿Cuántos panes quedan en la canasta? 8 - 3 = 5.', NULL, NULL),
+  ('bc000000-0000-4000-8000-000000000006', 'fa000000-0000-4000-8000-000000000003', 'TEXTO', 2, 'Restar es quitar una cantidad de otra para saber cuánto nos queda o calcular la diferencia entre dos números.', NULL, NULL),
+  ('bc000000-0000-4000-8000-000000000007', 'fa000000-0000-4000-8000-000000000004', 'DESTACADO', 1, 'En el mercado de artesanías compramos un silbato de arcilla a 3 soles y una bolsita de tela a 4 soles. Con una moneda de 10 soles, ¿cuánto recibimos de vuelto? 10 - 7 = 3 soles.', NULL, NULL),
+  ('bc000000-0000-4000-8000-000000000008', 'fa000000-0000-4000-8000-000000000005', 'DESTACADO', 1, 'Observa el borde de la manta: triángulo rojo, estrella amarilla, triángulo rojo, estrella amarilla... ¿Qué figura sigue? ¡Sigue el triángulo rojo!', NULL, NULL)
+ON DUPLICATE KEY UPDATE texto = VALUES(texto);
+
 

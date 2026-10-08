@@ -47,6 +47,21 @@ public final class LearningRouteDtos {
             List<CulturalFact> facts
     ) {}
 
+    public record Competency(String code, String name) {}
+
+    public record RouteUnit(
+            UUID id,
+            String code,
+            String title,
+            Integer sequence,
+            int totalNodes,
+            int completedNodes,
+            List<Competency> competencies,
+            List<RouteNode> nodes
+    ) {}
+
+    public record Curriculum(String status, String message, List<RouteUnit> units) {}
+
     public record RouteDetailResponse(
             UUID versionRouteId,
             String title,
@@ -65,9 +80,23 @@ public final class LearningRouteDtos {
                 Area area,
                 Enrollment enrollment,
                 Progress progress,
+                List<RouteNode> nodes,
+                CulturalContext culturalContext
+        ) {
+            this(versionRouteId, title, grade, area, enrollment, progress, nodes, culturalContext, null);
+        }
+
+        public RouteDetailResponse(
+                UUID versionRouteId,
+                String title,
+                Grade grade,
+                Area area,
+                Enrollment enrollment,
+                Progress progress,
                 List<RouteNode> nodes
         ) {
             this(versionRouteId, title, grade, area, enrollment, progress, nodes, null, null);
+<<<<<<< HEAD
         }
 
         public RouteDetailResponse(
@@ -100,6 +129,11 @@ public final class LearningRouteDtos {
     public record Curriculum(String status, String message, List<RouteUnit> units) {}
 
 
+=======
+        }
+    }
+
+>>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     public record Grade(int number, String name) {}
 
     public record Area(String code, String name) {}
@@ -119,5 +153,36 @@ public final class LearningRouteDtos {
             String state,
             boolean optional,
             Position position
+    ) {}
+
+    public record ContentBlock(
+            String id,
+            String type,
+            String text,
+            String url,
+            String accessibleText
+    ) {}
+
+    public record ActivityContent(
+            UUID nodeId,
+            String title,
+            String instructions,
+            String state,
+            List<ContentBlock> blocks
+    ) {}
+
+    public record NextUnlockedNode(
+            UUID id,
+            int sequence,
+            String title
+    ) {}
+
+    public record ActivityCompleteResponse(
+            UUID nodeId,
+            String state,
+            int experienceEarned,
+            int totalExperience,
+            NextUnlockedNode nextUnlockedNode,
+            String rupiMessage
     ) {}
 }

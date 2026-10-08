@@ -38,7 +38,11 @@ public class StudentSessionService {
         this.passwordService = passwordService;
     }
 
-    public record Student(String id, String name) {}
+    public record Student(String id, String name, String schoolName) {
+        public Student(String id, String name) {
+            this(id, name, "I.E. 38001 Mariscal Sucre");
+        }
+    }
 
     public record AuthenticationResult(
             boolean authenticated,
@@ -66,7 +70,8 @@ public class StudentSessionService {
             String state,
             Timestamp deactivatedAt,
             Timestamp lockedUntil,
-            String displayName
+            String displayName,
+            String schoolName
     ) {}
 
     public Optional<Student> resolve(HttpServletRequest request) {
@@ -101,15 +106,20 @@ public class StudentSessionService {
         }
         byte[] hash = sha256(token);
         return jdbc.query("""
-                SELECT u.id, COALESCE(p.nombre_preferido, p.nombre, u.nombre_usuario) AS nombre
+                SELECT u.id,
+                       COALESCE(p.nombre_preferido, p.nombre, u.nombre_usuario) AS nombre,
+                       COALESCE(inst.nombre, 'I.E. 38001 Mariscal Sucre') AS school_name
                 FROM identidad_sesion_usuario s
                 JOIN identidad_cuenta_usuario u ON u.id = s.usuario_id
                 LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
+                LEFT JOIN escuela_membresia_aula m ON m.usuario_id = u.id AND m.estado = 'ACTIVO'
+                LEFT JOIN escuela_aula a ON a.id = m.aula_id
+                LEFT JOIN escuela_institucion inst ON inst.id = a.institucion_id
                 WHERE s.token_hash = ? AND s.revocada_en IS NULL
                   AND s.expira_en > UTC_TIMESTAMP(6) AND s.cliente = 'WEB_USUARIO'
                   AND u.estado = 'ACTIVO' AND u.desactivado_en IS NULL
                   AND (u.bloqueado_hasta IS NULL OR u.bloqueado_hasta <= UTC_TIMESTAMP(6))
-                """, (rs, row) -> new Student(rs.getString("id"), rs.getString("nombre")), hash)
+                """, (rs, row) -> new Student(rs.getString("id"), rs.getString("nombre"), rs.getString("school_name")), hash)
                 .stream().findFirst();
     }
 
@@ -153,9 +163,13 @@ public class StudentSessionService {
         // 2. Consulta de cuenta de usuario
         var accounts = jdbc.query("""
                 SELECT u.id, u.nombre_usuario, u.hash_clave, u.estado, u.desactivado_en, u.bloqueado_hasta,
-                       COALESCE(p.nombre_preferido, p.nombre, u.nombre_usuario) AS display_name
+                       COALESCE(p.nombre_preferido, p.nombre, u.nombre_usuario) AS display_name,
+                       COALESCE(inst.nombre, 'I.E. 38001 Mariscal Sucre') AS school_name
                 FROM identidad_cuenta_usuario u
                 LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
+                LEFT JOIN escuela_membresia_aula m ON m.usuario_id = u.id AND m.estado = 'ACTIVO'
+                LEFT JOIN escuela_aula a ON a.id = m.aula_id
+                LEFT JOIN escuela_institucion inst ON inst.id = a.institucion_id
                 WHERE u.nombre_usuario = ?
                 """, (rs, rowNum) -> new UserAccount(
                 rs.getString("id"),
@@ -164,7 +178,8 @@ public class StudentSessionService {
                 rs.getString("estado"),
                 rs.getTimestamp("desactivado_en"),
                 rs.getTimestamp("bloqueado_hasta"),
-                rs.getString("display_name")
+                rs.getString("display_name"),
+                rs.getString("school_name")
         ), username);
 
         if (accounts.isEmpty()) {
@@ -226,7 +241,7 @@ public class StudentSessionService {
                 VALUES (?, ?, ?, 'WEB_USUARIO', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6) + INTERVAL 30 DAY)
                 """, sessionId, account.id(), tokenHash);
 
-        return AuthenticationResult.success(new Student(account.id(), account.displayName()), token);
+        return AuthenticationResult.success(new Student(account.id(), account.displayName(), account.schoolName()), token);
     }
 
     public void revokeSession(HttpServletRequest request) {

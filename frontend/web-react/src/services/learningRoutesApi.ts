@@ -35,6 +35,7 @@ export interface RouteSummary {
   enrollmentState: string
   completedNodes: number
   totalNodes: number
+  lastVisitedAt?: string | null
 }
 
 export interface CulturalFact {
@@ -69,6 +70,7 @@ export interface Competency {
   name: string
 }
 
+<<<<<<< HEAD
 /** Grupo de paradas. `id` es null en el grupo final de paradas sin unidad. */
 export interface RouteUnit {
   id: string | null
@@ -84,6 +86,22 @@ export type CurriculumStatus = 'COMPLETA' | 'PARCIAL' | 'SIN_UNIDADES' | 'NO_VIG
 export interface Curriculum {
   status: CurriculumStatus
   message: string | null
+=======
+export interface RouteUnit {
+  id: string | null
+  code: string
+  title: string
+  sequence: number
+  totalNodes: number
+  completedNodes: number
+  competencies: Competency[]
+  nodes: RouteNode[]
+}
+
+export interface Curriculum {
+  status: 'COMPLETA' | 'PARCIAL' | 'SIN_UNIDADES' | 'NO_VIGENTE' | 'INCOHERENTE'
+  message: string
+>>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
   units: RouteUnit[]
 }
 
@@ -104,6 +122,40 @@ export interface RouteDetail {
   nodes: RouteNode[]
   culturalContext?: CulturalContext | null
   curriculum?: Curriculum | null
+<<<<<<< HEAD
+=======
+}
+
+export interface ActivityBlock {
+  id: string
+  type: string
+  text: string | null
+  url: string | null
+  accessibleText: string | null
+}
+
+export interface ActivityContent {
+  nodeId: string
+  title: string
+  instructions: string | null
+  state: string
+  blocks: ActivityBlock[]
+}
+
+export interface NextUnlockedNode {
+  id: string
+  sequence: number
+  title: string
+}
+
+export interface ActivityCompleteResult {
+  nodeId: string
+  state: string
+  experienceEarned: number
+  totalExperience: number
+  nextUnlockedNode: NextUnlockedNode | null
+  rupiMessage: string
+>>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
 }
 
 export class ApiError extends Error {
@@ -115,10 +167,14 @@ export class ApiError extends Error {
   }
 }
 
-
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 
-export interface Student { id: string; name: string }
+export interface Student {
+  id: string
+  name: string
+  schoolName?: string
+  institutionName?: string
+}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE}/api/v1/${path}`, {
@@ -149,6 +205,7 @@ export async function fetchStudentRoutes(signal?: AbortSignal): Promise<RouteSum
 export const fetchRouteDetail = (id: string, signal?: AbortSignal) =>
   request<RouteDetail>(`student/learning-routes/${encodeURIComponent(id)}`, { signal })
 
+<<<<<<< HEAD
 export interface ActivityContent {
   nodeId: string
   title: string
@@ -159,3 +216,16 @@ export interface ActivityContent {
 export const startActivity = (routeId: string, nodeId: string, signal?: AbortSignal) =>
   request<ActivityContent>(`student/learning-routes/${encodeURIComponent(routeId)}/nodes/${encodeURIComponent(nodeId)}/start`,
     { method: 'POST', signal })
+=======
+export const startActivity = (routeId: string, nodeId: string, signal?: AbortSignal) =>
+  request<ActivityContent>(
+    `student/learning-routes/${encodeURIComponent(routeId)}/nodes/${encodeURIComponent(nodeId)}/start`,
+    { method: 'POST', signal }
+  )
+
+export const completeActivity = (routeId: string, nodeId: string, signal?: AbortSignal) =>
+  request<ActivityCompleteResult>(
+    `student/learning-routes/${encodeURIComponent(routeId)}/nodes/${encodeURIComponent(nodeId)}/complete`,
+    { method: 'POST', signal }
+  )
+>>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)

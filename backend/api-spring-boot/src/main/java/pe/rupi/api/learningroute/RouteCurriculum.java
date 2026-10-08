@@ -38,6 +38,7 @@ final class RouteCurriculum {
                 List<NodeUnit> nodeUnits, List<UnitRow> units, List<CompetencyRow> competencies) {}
 
     static Curriculum build(Optional<Data> found, List<RouteNode> nodes) {
+<<<<<<< HEAD
         if (found.isEmpty()) return noUnits();
         Data data = found.get();
         Map<UUID, UUID> unitOfNode = new HashMap<>();
@@ -103,5 +104,112 @@ final class RouteCurriculum {
         }
         return data.competencies().stream().filter(row -> usedUnits.contains(row.unitId()))
                 .allMatch(row -> row.catalogId().equals(data.catalogId()) && row.areaId().equals(data.areaId()));
+=======
+        if (found.isEmpty() || nodes.isEmpty()) {
+            return new Curriculum(NO_UNITS, "Esta ruta aún no tiene unidades curriculares asociadas.", List.of());
+        }
+        var data = found.get();
+        if (!"ACTIVO".equalsIgnoreCase(data.catalogState()) && !"PUBLICADO".equalsIgnoreCase(data.catalogState())) {
+            return new Curriculum(OUTDATED, "El catálogo curricular asociado a esta ruta no está vigente.", List.of());
+        }
+
+        var nodeMap = new HashMap<UUID, RouteNode>();
+        for (var node : nodes) {
+            nodeMap.put(node.id(), node);
+        }
+
+        var nodeToUnit = new HashMap<UUID, UUID>();
+        for (var nu : data.nodeUnits()) {
+            nodeToUnit.put(nu.nodeId(), nu.unitId());
+        }
+
+        var validUnits = new ArrayList<UnitRow>();
+        for (var unit : data.units()) {
+            if (data.catalogId().equals(unit.catalogId())
+                    && data.gradeId().equals(unit.gradeId())
+                    && data.areaId().equals(unit.areaId())) {
+                validUnits.add(unit);
+            }
+        }
+        validUnits.sort(Comparator.comparing(UnitRow::sequence));
+
+        var competenciesByUnit = new HashMap<UUID, List<Competency>>();
+        for (var c : data.competencies()) {
+            if (data.catalogId().equals(c.catalogId()) && data.areaId().equals(c.areaId())) {
+                competenciesByUnit.computeIfAbsent(c.unitId(), _ -> new ArrayList<>())
+                        .add(new Competency(c.code(), c.name()));
+            }
+        }
+
+        var unitsOut = new ArrayList<RouteUnit>();
+        var assignedNodeIds = new HashSet<UUID>();
+
+        for (var unit : validUnits) {
+            var unitNodes = new ArrayList<RouteNode>();
+            for (var node : nodes) {
+                if (unit.id().equals(nodeToUnit.get(node.id()))) {
+                    unitNodes.add(node);
+                    assignedNodeIds.add(node.id());
+                }
+            }
+            unitNodes.sort(Comparator.comparing(RouteNode::sequence));
+
+            int completed = 0;
+            for (var un : unitNodes) {
+                if ("COMPLETADO".equalsIgnoreCase(un.state())) {
+                    completed++;
+                }
+            }
+
+            unitsOut.add(new RouteUnit(
+                    unit.id(),
+                    unit.code(),
+                    unit.title(),
+                    unit.sequence(),
+                    unitNodes.size(),
+                    completed,
+                    competenciesByUnit.getOrDefault(unit.id(), List.of()),
+                    unitNodes
+            ));
+        }
+
+        var unassignedNodes = new ArrayList<RouteNode>();
+        for (var node : nodes) {
+            if (!assignedNodeIds.contains(node.id())) {
+                unassignedNodes.add(node);
+            }
+        }
+        unassignedNodes.sort(Comparator.comparing(RouteNode::sequence));
+
+        if (!unassignedNodes.isEmpty() && !unitsOut.isEmpty()) {
+            int completed = 0;
+            for (var un : unassignedNodes) {
+                if ("COMPLETADO".equalsIgnoreCase(un.state())) {
+                    completed++;
+                }
+            }
+            unitsOut.add(new RouteUnit(
+                    null,
+                    "OTRAS",
+                    "Otras paradas",
+                    unitsOut.size() + 1,
+                    unassignedNodes.size(),
+                    completed,
+                    List.of(),
+                    unassignedNodes
+            ));
+        }
+
+        if (unitsOut.isEmpty()) {
+            return new Curriculum(NO_UNITS, "No se encontraron unidades vigentes para el grado y área.", List.of());
+        }
+
+        String status = unassignedNodes.isEmpty() ? COMPLETE : PARTIAL;
+        String message = COMPLETE.equals(status)
+                ? "Ruta organizada según las unidades del Currículo Nacional."
+                : "Algunas paradas de la ruta no están vinculadas a una unidad curricular oficial.";
+
+        return new Curriculum(status, message, unitsOut);
+>>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     }
 }
