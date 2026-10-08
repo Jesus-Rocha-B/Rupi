@@ -48,7 +48,18 @@ public class EvaluationService {
         ));
 
         if (questionsRaw.isEmpty()) {
-            return List.of();
+            seedDefaultQuestions(activityVersionId);
+            questionsRaw = jdbc.query(sqlQuestions, params, (rs, _) -> new QuestionRaw(
+                    UUID.fromString(rs.getString("id")),
+                    rs.getInt("numero_secuencia"),
+                    rs.getString("tipo"),
+                    rs.getString("enunciado"),
+                    rs.getString("explicacion"),
+                    rs.getBigDecimal("puntos")
+            ));
+            if (questionsRaw.isEmpty()) {
+                return List.of();
+            }
         }
 
         String sqlOptions = """
@@ -228,6 +239,95 @@ public class EvaluationService {
                 feedbackMessage,
                 correctOptionId,
                 qInfo.explanation()
+        );
+    }
+
+    private void seedDefaultQuestions(UUID activityVersionId) {
+        String q1Id = UUID.nameUUIDFromBytes((activityVersionId + ":Q1").getBytes(StandardCharsets.UTF_8)).toString();
+        String q2Id = UUID.nameUUIDFromBytes((activityVersionId + ":Q2").getBytes(StandardCharsets.UTF_8)).toString();
+
+        jdbc.update("""
+                INSERT IGNORE INTO evaluacion_pregunta
+                (id, version_actividad_id, numero_secuencia, tipo, enunciado, explicacion, puntos)
+                VALUES
+                (:q1Id, :actId, 1, 'OPCION_UNICA',
+                 'En la feria de Ayacucho, María contó 5 retablos en una mesa y 4 en otra. ¿Cuántos retablos vio en total?',
+                 'Sumamos 5 + 4 = 9 retablos en total. ¡Excelente razonamiento!', 1.0),
+                (:q2Id, :actId, 2, 'OPCION_UNICA',
+                 'En la Plaza Mayor había 10 palomas comiendo maíz. Si 3 volaron al campanario, ¿cuántas palomas quedaron en la plaza?',
+                 'Restamos 10 - 3 = 7 palomas. ¡Gran trabajo con la sustracción!', 1.0)
+                """, new MapSqlParameterSource()
+                .addValue("q1Id", q1Id)
+                .addValue("q2Id", q2Id)
+                .addValue("actId", activityVersionId.toString()));
+
+        // Opciones para Q1: 9 (correcta), 8, 10
+        String o1Id = UUID.nameUUIDFromBytes((q1Id + ":O1").getBytes(StandardCharsets.UTF_8)).toString();
+        String o2Id = UUID.nameUUIDFromBytes((q1Id + ":O2").getBytes(StandardCharsets.UTF_8)).toString();
+        String o3Id = UUID.nameUUIDFromBytes((q1Id + ":O3").getBytes(StandardCharsets.UTF_8)).toString();
+
+        jdbc.update("""
+                INSERT IGNORE INTO evaluacion_opcion_respuesta
+                (id, pregunta_id, numero_secuencia, texto, es_correcta)
+                VALUES
+                (:o1, :q1, 1, '9 retablos', TRUE),
+                (:o2, :q1, 2, '8 retablos', FALSE),
+                (:o3, :q1, 3, '10 retablos', FALSE)
+                """, new MapSqlParameterSource()
+                .addValue("o1", o1Id).addValue("o2", o2Id).addValue("o3", o3Id).addValue("q1", q1Id));
+
+        // Opciones para Q2: 7 (correcta), 6, 8
+        String o4Id = UUID.nameUUIDFromBytes((q2Id + ":O1").getBytes(StandardCharsets.UTF_8)).toString();
+        String o5Id = UUID.nameUUIDFromBytes((q2Id + ":O2").getBytes(StandardCharsets.UTF_8)).toString();
+        String o6Id = UUID.nameUUIDFromBytes((q2Id + ":O3").getBytes(StandardCharsets.UTF_8)).toString();
+
+        jdbc.update("""
+                INSERT IGNORE INTO evaluacion_opcion_respuesta
+                (id, pregunta_id, numero_secuencia, texto, es_correcta)
+                VALUES
+                (:o4, :q2, 1, '7 palomas', TRUE),
+                (:o5, :q2, 2, '6 palomas', FALSE),
+                (:o6, :q2, 3, '8 palomas', FALSE)
+                """, new MapSqlParameterSource()
+                .addValue("o4", o4Id).addValue("o5", o5Id).addValue("o6", o6Id).addValue("q2", q2Id));
+    }
+
+    public EvaluationSummaryDto getEvaluationSummary(UUID studentId, UUID activityVersionId) {
+        String sql = """
+                SELECT COUNT(r.id) AS total_answered,
+                       SUM(CASE WHEN r.es_correcta = TRUE THEN 1 ELSE 0 END) AS correct_count,
+                       COALESCE(SUM(r.puntaje_obtenido), 0) AS total_score
+                FROM evaluacion_intento i
+                JOIN evaluacion_respuesta r ON r.intento_id = i.id
+                WHERE i.estudiante_id = :studentId AND i.version_actividad_id = :actId
+                """;
+        var params = new MapSqlParameterSource()
+                .addValue("studentId", studentId.toString())
+                .addValue("actId", activityVersionId.toString());
+
+        record RawSummary(int totalAnswered, int correctCount, BigDecimal totalScore) {}
+        var raw = jdbc.query(sql, params, (rs, _) -> new RawSummary(
+                rs.getInt("total_answered"),
+                rs.getInt("correct_count"),
+                rs.getBigDecimal("total_score")
+        )).stream().findFirst().orElse(new RawSummary(0, 0, BigDecimal.ZERO));
+
+        int totalQuestions = findQuestionsForActivity(activityVersionId).size();
+        String feedback;
+        if (raw.correctCount() == totalQuestions && totalQuestions > 0) {
+            feedback = "¡Perfecto, genio de las matemáticas! Has acertado todas las preguntas con maestría.";
+        } else if (raw.correctCount() > 0) {
+            feedback = "¡Muy buen avance! Cada respuesta acertada refuerza tu aprendizaje con Rupi.";
+        } else {
+            feedback = "¡Sigue practicando! El esfuerzo constante es la clave de todo gran explorador.";
+        }
+
+        return new EvaluationSummaryDto(
+                totalQuestions,
+                raw.correctCount(),
+                raw.totalScore(),
+                BigDecimal.valueOf(totalQuestions),
+                feedback
         );
     }
 }

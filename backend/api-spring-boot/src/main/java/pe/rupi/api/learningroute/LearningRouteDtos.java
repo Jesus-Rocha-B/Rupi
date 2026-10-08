@@ -96,44 +96,9 @@ public final class LearningRouteDtos {
                 List<RouteNode> nodes
         ) {
             this(versionRouteId, title, grade, area, enrollment, progress, nodes, null, null);
-<<<<<<< HEAD
-        }
-
-        public RouteDetailResponse(
-                UUID versionRouteId,
-                String title,
-                Grade grade,
-                Area area,
-                Enrollment enrollment,
-                Progress progress,
-                List<RouteNode> nodes,
-                CulturalContext culturalContext
-        ) {
-            this(versionRouteId, title, grade, area, enrollment, progress, nodes, culturalContext, null);
         }
     }
 
-    public record Competency(String code, String name) {}
-
-    /** Grupo de paradas. Si {@code id} es null es el grupo final de paradas sin unidad. */
-    public record RouteUnit(
-            UUID id,
-            String code,
-            String title,
-            Integer sequence,
-            List<Competency> competencies,
-            List<UUID> nodeIds
-    ) {}
-
-    /** Estado curricular: COMPLETA, PARCIAL, SIN_UNIDADES, NO_VIGENTE o INCOHERENTE. */
-    public record Curriculum(String status, String message, List<RouteUnit> units) {}
-
-
-=======
-        }
-    }
-
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     public record Grade(int number, String name) {}
 
     public record Area(String code, String name) {}
@@ -177,12 +142,31 @@ public final class LearningRouteDtos {
             String title
     ) {}
 
+    public record BadgeDto(
+            String code,
+            String name,
+            String description,
+            String icon
+    ) {}
+
     public record ActivityCompleteResponse(
             UUID nodeId,
             String state,
             int experienceEarned,
             int totalExperience,
             NextUnlockedNode nextUnlockedNode,
-            String rupiMessage
-    ) {}
+            String rupiMessage,
+            BadgeDto badgeEarned
+    ) {
+        public ActivityCompleteResponse(
+                UUID nodeId,
+                String state,
+                int experienceEarned,
+                int totalExperience,
+                NextUnlockedNode nextUnlockedNode,
+                String rupiMessage
+        ) {
+            this(nodeId, state, experienceEarned, totalExperience, nextUnlockedNode, rupiMessage, null);
+        }
+    }
 }

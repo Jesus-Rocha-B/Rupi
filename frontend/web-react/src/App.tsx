@@ -1,10 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-<<<<<<< HEAD
-import { AlertTriangle, ArrowRight, Bird, Check, Compass, GraduationCap, Heart, House, Inbox, RefreshCw, Star, Volume2, X } from 'lucide-react'
-import { Roadmap } from './features/roadmap/Roadmap'
-import { RoadmapSkeleton } from './features/roadmap/RoadmapSkeleton'
-import { ApiError, fetchRouteDetail, fetchStudentRoutes, fetchSession, fetchSessionOptions, login, loginDemo, logout, startActivity, type ActivityContent, type RouteDetail, type RouteNode, type RouteSummary, type Student } from './services/learningRoutesApi'
-=======
 import {
   AlertTriangle,
   ArrowRight,
@@ -32,6 +26,7 @@ import {
   ApiError,
   fetchRouteDetail,
   fetchStudentRoutes,
+  fetchStudentBadges,
   fetchSession,
   fetchSessionOptions,
   login,
@@ -40,12 +35,12 @@ import {
   startActivity,
   type ActivityCompleteResult,
   type ActivityContent,
+  type BadgeDto,
   type RouteDetail,
   type RouteNode,
   type RouteSummary,
   type Student,
 } from './services/learningRoutesApi'
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
 import { nodeStateLabels } from './features/roadmap/nodeStates'
 import { RouteOverview } from './components/RouteOverview'
 import { RouteCompanion } from './components/RouteCompanion'
@@ -54,8 +49,6 @@ import { GradeSelectView } from './features/auth/GradeSelectView'
 import { RupiCharacter } from './components/RupiCharacter'
 import { ActivityBlocks } from './features/roadmap/ActivityBlocks'
 import { speakText } from './utils/speech'
-import { areaKey, matchingRoutes } from './features/roadmap/routeSelection'
-import { ActivityBlocks } from './features/roadmap/ActivityBlocks'
 import './App.css'
 
 const guideMessages = [
@@ -76,6 +69,7 @@ function App() {
   const [student, setStudent] = useState<Student | null>(null)
   const [demoAvailable, setDemoAvailable] = useState(false)
   const [routes, setRoutes] = useState<RouteSummary[]>([])
+  const [badges, setBadges] = useState<BadgeDto[]>([])
   const [routeId, setRouteId] = useState('')
   const [selectedRoute, setSelectedRoute] = useState<RouteDetail | null>(null)
   const [selectedNode, setSelectedNode] = useState<RouteNode | null>(null)
@@ -87,12 +81,13 @@ function App() {
   const [guideIndex, setGuideIndex] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
   const [sessionBusy, setSessionBusy] = useState(false)
-  const [activity, setActivity] = useState<ActivityContent | null>(null)
-  const [activityBusy, setActivityBusy] = useState(false)
-  const [activityError, setActivityError] = useState<string | null>(null)
-  const activityRequest = useRef<AbortController | null>(null)
-  const [selectedGrade, setSelectedGrade] = useState<number | null>(null)
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null)
+  const [selectedGrade, setSelectedGrade] = useState<number | null>(() => {
+    const saved = localStorage.getItem('rupi_selected_grade')
+    return saved ? parseInt(saved, 10) : 2
+  })
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(() => {
+    return localStorage.getItem('rupi_selected_course') || 'MATEMATICA'
+  })
   const dialog = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -129,6 +124,12 @@ function App() {
 
   function handleActivityCompleted(result: ActivityCompleteResult) {
     if (!selectedRoute) return
+    if (result.badgeEarned) {
+      setBadges(prev => {
+        if (prev.some(b => b.code === result.badgeEarned!.code)) return prev
+        return [...prev, result.badgeEarned!]
+      })
+    }
     setSelectedRoute(prev => {
       if (!prev) return prev
       const updatedNodes = prev.nodes.map(n => {
@@ -185,22 +186,6 @@ function App() {
         if (signal.aborted) return
         setStudent(current)
         setRoutes(list)
-<<<<<<< HEAD
-        if (!list.length) { setErrorType('EMPTY'); setLoading(false); return }
-        if (selectedGrade === null || selectedCourse === null) {
-          // Only restore a server-recorded visit on initial login, never a previous user's browser preferences.
-          if (list[0].lastVisitedAt && routeId !== 'choose') {
-            setSelectedGrade(list[0].grade.number)
-            setSelectedCourse(areaKey(list[0].area.code))
-            setRouteId(list[0].versionRouteId)
-          }
-          setLoading(false)
-          return
-        }
-        const candidates = matchingRoutes(list, selectedGrade, selectedCourse)
-        if (!candidates.length) { setSelectedRoute(null); setErrorType('EMPTY'); setLoading(false); return }
-        const id = candidates.some(route => route.versionRouteId === routeId) ? routeId : candidates[0].versionRouteId
-=======
         if (!list.length) {
           setErrorType('EMPTY')
           setLoading(false)
@@ -209,11 +194,16 @@ function App() {
         const id = list.some(route => route.versionRouteId === routeId)
           ? routeId
           : list[0].versionRouteId
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
         const detail = await fetchRouteDetail(id, signal)
         if (signal.aborted) return
         setSelectedRoute(detail)
         setErrorType(null)
+        try {
+          const earnedBadges = await fetchStudentBadges(signal)
+          if (!signal.aborted) setBadges(earnedBadges)
+        } catch {
+          // Si no hay insignias o falla la consulta, no interrumpe el aula
+        }
         setLoading(false)
       } catch (error) {
         if (signal.aborted) return
@@ -243,65 +233,13 @@ function App() {
     setLoading(true)
     setErrorType(null)
     setSelectedRoute(null)
-    closeActivity()
+    setSelectedNode(null)
   }
   function retry() {
     resetView()
     setReloadKey(value => value + 1)
   }
 
-<<<<<<< HEAD
-  const courseRoutes = matchingRoutes(routes, selectedGrade, selectedCourse)
-
-  function handleSelectGradeAndCourse(gradeNumber: number, courseCode: string) {
-    const available = matchingRoutes(routes, gradeNumber, courseCode)
-    if (!available.length) return
-    resetView()
-    setSelectedGrade(gradeNumber)
-    setSelectedCourse(courseCode)
-    setRouteId(available[0].versionRouteId)
-  }
-
-  function closeActivity() {
-    activityRequest.current?.abort()
-    setSelectedNode(null)
-    setActivity(null)
-    setActivityError(null)
-    setActivityBusy(false)
-  }
-
-  async function openActivity(node: RouteNode) {
-    if (!selectedRoute || node.state === 'BLOQUEADO') return
-    activityRequest.current?.abort()
-    const controller = new AbortController()
-    activityRequest.current = controller
-    const currentRoute = selectedRoute.versionRouteId
-    setSelectedNode(node)
-    setActivity(null)
-    setActivityError(null)
-    setActivityBusy(true)
-    try {
-      const content = await startActivity(currentRoute, node.id, controller.signal)
-      if (controller.signal.aborted) return
-      setActivity(content)
-      setSelectedRoute(previous => previous?.versionRouteId === currentRoute ? {
-        ...previous, enrollment: { ...previous.enrollment, lastVisitedNodeId: node.id },
-        nodes: previous.nodes.map(item => item.id === node.id ? { ...item, state: content.state } : item),
-      } : previous)
-    } catch (error) {
-      if (controller.signal.aborted) return
-      const status = error instanceof ApiError ? error.status : 0
-      if (status === 401) {
-        closeActivity(); setStudent(null); setRoutes([]); setSelectedRoute(null)
-        setSelectedGrade(null); setSelectedCourse(null); setRouteId('')
-        setErrorType('UNAUTHORIZED')
-      } else {
-        setActivityError(status === 404 || status === 409
-          ? 'Esta actividad todavía no está disponible. Vuelve al mapa o consulta a tu docente.'
-          : 'No pudimos abrir la actividad. Revisa tu conexión y vuelve a intentarlo.')
-      }
-    } finally { if (!controller.signal.aborted) setActivityBusy(false) }
-=======
   function handleSelectGradeAndCourse(gradeNumber: number | null, courseCode: string | null) {
     setSelectedGrade(gradeNumber)
     setSelectedCourse(courseCode)
@@ -315,7 +253,6 @@ function App() {
     } else {
       localStorage.removeItem('rupi_selected_course')
     }
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
   }
 
   async function handleLogout() {
@@ -325,6 +262,7 @@ function App() {
       await logout()
       setStudent(null)
       setRoutes([])
+      setBadges([])
       setRouteId('')
       setSelectedGrade(null)
       setSelectedCourse(null)
@@ -431,13 +369,6 @@ function App() {
           </a>
         </nav>
         <div className="sidebar-bottom">
-<<<<<<< HEAD
-          <div className="help-bubble">¿Necesitas otra ruta?<br /><span>Consulta con tu docente.</span><div className="help-face"><Bird aria-hidden="true" /></div></div>
-          <button className="profile-button" type="button" disabled={loading || sessionBusy} onClick={() => void handleLogout()} aria-label={`Cerrar sesión de ${student.name}`}>
-            <span className="avatar small" aria-hidden="true">{student.name.charAt(0)}</span>
-            <span><b>{student.name}</b><small>{`${selectedRoute?.grade.name ?? `${selectedGrade}.° de primaria`} · ${selectedRoute?.area.name ?? getCourseLabel(selectedCourse)} · Salir`}</small></span>
-          </button>
-=======
           <div className="help-bubble">
             ¿Necesitas otra ruta?
             <br />
@@ -473,71 +404,11 @@ function App() {
               <span>Salir</span>
             </button>
           </div>
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
         </div>
       </aside>
 
       <main className="main-content" id="main-content">
         <section className="course-heading" aria-labelledby="course-title">
-<<<<<<< HEAD
-              <div>
-                <div className="eyebrow">Tu espacio para descubrir</div>
-                <h1 id="course-title">
-                  Mi ruta de aprendizaje
-                  <span className="current-grade-badge">
-                    <GraduationCap size={16} aria-hidden="true" />
-                    <span>{`${selectedRoute?.grade.name ?? `${selectedGrade}.° de primaria`} · ${selectedRoute?.area.name ?? getCourseLabel(selectedCourse)}`}</span>
-                    <button
-                      type="button"
-                      className="change-grade-btn"
-                      onClick={() => {
-                        setSelectedCourse(null)
-                        closeActivity(); setSelectedRoute(null); setRouteId('choose')
-                      }}
-                      title="Cambiar de curso"
-                      aria-label="Cambiar de curso escolar"
-                    >
-                      Cambiar curso
-                    </button>
-                    <button
-                      type="button"
-                      className="change-grade-btn"
-                      onClick={() => {
-                        setSelectedGrade(null)
-                        setSelectedCourse(null)
-
-                        closeActivity(); setSelectedRoute(null); setRouteId('choose')
-                      }}
-                      title="Cambiar de grado"
-                      aria-label="Cambiar de grado escolar"
-                    >
-                      Cambiar grado
-                    </button>
-                  </span>
-                </h1>
-                <p>Un mundo por aprender. A tu propio ritmo.</p>
-              </div>
-            </section>
-            {courseRoutes.length > 1 && <section id="mis-rutas" className="route-picker" aria-label="Rutas inscritas">
-              <label htmlFor="route-select">Mis aventuras inscritas</label><select id="route-select" value={selectedRoute?.versionRouteId ?? routeId} disabled={loading || sessionBusy} onChange={event => { resetView(); setRouteId(event.target.value) }}>
-                {!selectedRoute && !routeId && <option value="" disabled>Cargando ruta…</option>}
-                {courseRoutes.map(route => <option key={route.versionRouteId} value={route.versionRouteId}>{route.grade.name} · {route.area.name} · {route.title} ({route.completedNodes}/{route.totalNodes})</option>)}
-              </select>
-            </section>}
-            {selectedRoute && <RouteOverview route={selectedRoute} name={student.name} onSelect={node => void openActivity(node)} />}
-            {errorType === 'NETWORK' && <section className="status-panel" role="alert"><div className="status-panel-icon error"><AlertTriangle aria-hidden="true" /></div><h2>No pudimos consultar tu progreso</h2><p>Tu avance sigue guardado. Espera un momento y vuelve a intentarlo.</p><button className="status-action-btn" onClick={retry}><RefreshCw aria-hidden="true" />Reintentar</button></section>}
-            {errorType === 'NOT_FOUND' && <section className="status-panel" role="alert"><h2>Esta ruta ya no está disponible</h2><p>Puede haber cambiado tu inscripción. Consulta tus rutas de nuevo.</p><button className="status-action-btn" onClick={() => { resetView(); setRouteId(''); setReloadKey(value => value + 1) }}>Volver a mis rutas</button></section>}
-            {errorType === 'EMPTY' && <section className="status-panel" role="status"><div className="status-panel-icon empty"><Inbox aria-hidden="true" /></div><h2>Aún no tienes rutas asignadas</h2><p>Pide a tu docente que te inscriba en una ruta para comenzar tu aventura.</p><button className="status-action-btn" onClick={retry}><RefreshCw aria-hidden="true" />Consultar mis inscripciones</button></section>}
-            {selectedRoute && (selectedRoute.nodes.length ? <div className="adventure-layout"><Roadmap route={selectedRoute} guideMessage={guideMessages[guideIndex]} onGuideClick={() => setGuideIndex(index => (index + 1) % guideMessages.length)} onSelectNode={node => void openActivity(node)} /><RouteCompanion route={selectedRoute} onSelect={node => void openActivity(node)} /></div> : <section className="status-panel" role="status"><h2>Esta ruta aún no tiene actividades</h2><p>Consulta con tu docente o selecciona otra ruta.</p></section>)}
-        <footer className="page-footer">Hecho para aprender, crecer y descubrir <Heart aria-label="con cariño" /></footer>
-      </main>
-      {selectedNode && <dialog ref={dialog} className="lesson-modal" aria-labelledby="modal-title" aria-describedby="modal-desc" onCancel={closeActivity} onClick={event => { if (event.target === event.currentTarget) closeActivity() }}>
-        <button className="modal-close" autoFocus onClick={closeActivity} aria-label="Cerrar detalle"><X aria-hidden="true" /></button>
-        <div className="modal-icon">{selectedNode.state === 'COMPLETADO' ? <Check aria-hidden="true" /> : <Star aria-hidden="true" />}</div>
-        <span className="eyebrow">PARADA #{selectedNode.sequence} · {nodeStateLabels[activity?.state ?? selectedNode.state]}</span>
-        <div className="modal-title-row">
-          <h2 id="modal-title">{selectedNode.title}</h2>
-=======
           <div>
             <div className="eyebrow">Tu espacio para descubrir</div>
             <h1 id="course-title">
@@ -580,7 +451,6 @@ function App() {
         {/* Barra interactiva de cambio de materia escolar:
             Permite alternar entre Comunicación, Matemática y CYT en todo momento */}
         <nav className="course-switch-bar" aria-label="Cambiar de materia">
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
           <button
             type="button"
             className={`course-switch-tab ${selectedCourse === 'COMUNICACION' ? 'active comunicacion' : ''}`}
@@ -595,15 +465,6 @@ function App() {
               <span>Sin mapa</span>
             </span>
           </button>
-<<<<<<< HEAD
-        </div>
-        <p id="modal-desc">{selectedNode.activityType}{selectedNode.estimatedMinutes != null ? ` · ${selectedNode.estimatedMinutes} minutos aprox` : ''}. Aprende a tu ritmo. Puedes volver a esta parada cuando lo necesites.</p>
-        {activityBusy && <p role="status">Rupi está abriendo tu actividad…</p>}
-        {activityError && <div role="alert"><p>{activityError}</p><button className="start-button" onClick={() => void openActivity(selectedNode)}>Volver a intentar</button></div>}
-        {activity && <ActivityBlocks activity={activity} />}
-        <button className="start-button" onClick={closeActivity}>Volver al mapa <ArrowRight aria-hidden="true" /></button>
-      </dialog>}
-=======
 
           <button
             type="button"
@@ -669,7 +530,12 @@ function App() {
             )}
 
             {selectedRoute && (
-              <RouteOverview route={selectedRoute} name={student.name} onSelect={handleOpenNode} />
+              <RouteOverview
+                route={selectedRoute}
+                name={student.name}
+                badges={badges}
+                onSelect={handleOpenNode}
+              />
             )}
 
             {errorType === 'NETWORK' && (
@@ -930,7 +796,6 @@ function App() {
           )}
         </dialog>
       )}
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     </div>
   )
 }

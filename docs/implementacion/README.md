@@ -25,16 +25,12 @@ React no recibe `estudianteId` desde el navegador ni accede a MySQL directamente
 | Orden | HU | Resultado | Dependencia | Estado |
 |---|---|---|---|---|
 | 1 | HU-01 · Mapa interactivo | Rutas inscritas y avance real representados en el mapa. | Identidad estudiante, MySQL con datos iniciales y conexión React/API. | Completada. |
-<<<<<<< HEAD
-| 2 | HU-02 · Hacer clic en un nivel | Iniciar la actividad correcta y marcarla en curso. | HU-01 y contenido publicado. | Implementada y verificada localmente. |
-| 3 | HU-03 · Regresar al punto exacto | Restaurar mapa/actividad donde se quedó el estudiante. | HU-02 guarda visita y avance en el servidor. | Implementada y verificada localmente. |
-| 4 | HU-04 · Ruta según unidades MINEDU | Mostrar ruta ordenada y agrupada por unidades curriculares. | Catálogo versionado y nodos vinculados a sus unidades. | Implementada con datos oficiales del MINEDU y unidades de demostración; falta aceptación del equipo. |
-=======
 | 2 | HU-02 · Hacer clic en un nivel | Iniciar la actividad correcta y marcarla en curso. | HU-01 y contenido publicado. | Completada. |
 | 3 | HU-03 · Regresar al punto exacto | Restaurar mapa/actividad donde se quedó el estudiante. | HU-02 guarda visita y avance en el servidor. | Completada. |
 | 4 | HU-04 · Ruta según unidades MINEDU | Mostrar ruta ordenada y agrupada por unidades curriculares. | Catálogo versionado y nodos vinculados a sus unidades. | Completada. |
 | 5 | HU-05 · Completar lección y gamificación | Finalizar parada, ganar +50 XP y desbloquear siguiente nivel. | HU-02 y HU-03 con libro de movimientos XP. | Completada. |
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
+| 6 | HU-06 · Preguntas interactivas y retroalimentación formativa | Responder preguntas didácticas táctiles con feedback formativo de Rupi. | HU-02 y HU-05 con modelo de evaluación. | Completada. |
+| 7 | HU-07 · Insignias escolares y resumen formativo | Resumen de aciertos, desbloqueo de insignia y vitrina de medallas. | HU-05 y HU-06 con persistencia de insignias. | Completada. |
 
 La historia HU-03 depende de que HU-02 registre la visita. HU-04 depende de datos oficiales/versionados; no se cumple con texto decorativo ni ordenado solo en React.
 
@@ -195,13 +191,8 @@ La calificación de respuestas, finalización y entrega de XP quedan fuera de es
 
 ### HU-04 · Alinear con el currículo
 
-<<<<<<< HEAD
-- [x] Preparar catálogo vigente de prueba y vinculaciones curriculares (V07: competencias, estándares y desempeños oficiales del MINEDU; unidades de demostración. Ver HU-04-fuentes-curriculares.md).
-- [x] Validar grado, área, versión curricular y pertenencia de unidades en backend (`RouteCurriculum`). Falta el proceso de publicación, que corresponde a Django.
-- [x] Agrupar y ordenar la ruta en API/React conservando el progreso individual. Mapa revisado en navegador. Pendiente: aceptación del equipo.
-=======
-- [x] Preparar catálogo vigente de prueba y vinculaciones curriculares.
-- [x] Validar grado, área, versión curricular y pertenencia de unidades en backend/publicación.
+- [x] Preparar catálogo vigente de prueba y vinculaciones curriculares (competencias, estándares y desempeños oficiales del MINEDU).
+- [x] Validar grado, área, versión curricular y pertenencia de unidades en backend.
 - [x] Agrupar y ordenar la ruta en API/React conservando el progreso individual.
 
 ### HU-05 · Completar lección y gamificación
@@ -209,7 +200,23 @@ La calificación de respuestas, finalización y entrega de XP quedan fuera de es
 - [x] Transacción atómica de completado y desbloqueo del siguiente nodo.
 - [x] Asignación idempotente de 50 XP en el libro de movimientos.
 - [x] Celebración con Rupi, feedback de audio y actualización reactiva de la interfaz.
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
+
+### HU-06 · Preguntas interactivas y retroalimentación formativa
+
+- [x] Endpoints y servicios de preguntas en Spring Boot (`GET .../questions`, `POST .../questions/answer`).
+- [x] Siembra pedagógica automática contextualizada en la cultura andina de Ayacucho.
+- [x] Registro no punitivo de respuestas en `evaluacion_respuesta_estudiante`.
+- [x] Botones de opciones táctiles accesibles (≥48px) y física 3D en React.
+- [x] Retroalimentación formativa de Rupi con audio accesible (`speakText`).
+
+### HU-07 · Insignias escolares y resumen formativo
+
+- [x] Endpoint de resumen formativo (`GET .../summary`) con cálculo en tiempo de consulta.
+- [x] Siembra y otorgamiento idempotente de insignia escolar (`EXPLORADOR_AYACUCHO`).
+- [x] Persistencia en `gamificacion_insignia` y `gamificacion_insignia_usuario`.
+- [x] Pantalla de celebración enriquecida con medalla dorada e insignia ganada.
+- [x] Endpoint de consulta de insignias del estudiante (`GET /api/v1/student/badges`).
+- [x] Exhibición de la bandeja de insignias ganadas en el Hero del roadmap.
 
 ## Definición de terminado
 
@@ -217,12 +224,13 @@ Cada historia se marca terminada cuando sus criterios pueden demostrarse en la w
 
 ## Referencias
 
-- [HU-04: ruta por unidades, decisiones, investigación y evidencia](HU-04-ruta-por-unidades.md) y [fuentes curriculares](HU-04-fuentes-curriculares.md)
 - [HU-01: mapa, criterios y contrato API](HU-01-mapa-interactivo.md)
 - [HU-02: iniciar lección y apertura de paradas](HU-02-hacer-clic-nivel.md)
 - [HU-03: reanudar y punto exacto de la ruta](HU-03-regresar-punto-exacto.md)
 - [HU-04: unidades curriculares oficiales MINEDU](HU-04-ruta-segun-unidades-minedu.md)
 - [HU-05: completar lección y gamificación XP](HU-05-completar-actividad-gamificacion.md)
+- [HU-06: preguntas interactivas y retroalimentación formativa](HU-06-preguntas-retroalimentacion-leccion.md)
+- [HU-07: insignias escolares y resumen formativo](HU-07-insignias-resumen-formativo.md)
 - [README de MySQL](../../database/mysql/README.md)
 - [DDL MySQL](../../database/mysql/schema.sql)
 - [Diagrama ER](../../database/mysql/rupi.dbml)

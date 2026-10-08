@@ -1,32 +1,19 @@
 package pe.rupi.api.learningroute;
 
-<<<<<<< HEAD
-import java.util.List;
-import java.util.UUID;
-=======
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-<<<<<<< HEAD
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
-
-@Service
-public class ActivityService {
-    private final NamedParameterJdbcTemplate jdbc;
-    public ActivityService(NamedParameterJdbcTemplate jdbc) { this.jdbc = jdbc; }
-=======
 import org.springframework.web.server.ResponseStatusException;
 
 import pe.rupi.api.evaluation.EvaluationService;
 import pe.rupi.api.evaluation.EvaluationDtos.QuestionDto;
 import pe.rupi.api.learningroute.LearningRouteDtos.ActivityCompleteResponse;
+import pe.rupi.api.learningroute.LearningRouteDtos.BadgeDto;
 import pe.rupi.api.learningroute.LearningRouteDtos.ContentBlock;
 import pe.rupi.api.learningroute.LearningRouteDtos.NextUnlockedNode;
 
@@ -35,15 +22,19 @@ public class ActivityService {
     private final NamedParameterJdbcTemplate jdbc;
     private final EvaluationService evaluationService;
 
+    public ActivityService(NamedParameterJdbcTemplate jdbc) {
+        this(jdbc, new EvaluationService(jdbc));
+    }
+
     public ActivityService(NamedParameterJdbcTemplate jdbc, EvaluationService evaluationService) {
         this.jdbc = jdbc;
         this.evaluationService = evaluationService;
     }
 
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     public record Block(String id, String type, String text, String url, String accessibleText) {}
     public record Activity(
             String nodeId,
+            String activityId,
             String title,
             String instructions,
             String state,
@@ -55,50 +46,6 @@ public class ActivityService {
     @Transactional
     public Activity start(UUID studentId, UUID routeId, UUID nodeId) {
         var params = new MapSqlParameterSource("student", studentId.toString())
-<<<<<<< HEAD
-                .addValue("route", routeId.toString()).addValue("node", nodeId.toString());
-        // Lock the enrollment and progress together. Repeated starts preserve first access and completion.
-        var access = jdbc.query("""
-                SELECT i.id AS enrollment_id, va.id AS activity_id, va.titulo, va.instrucciones, p.estado
-                FROM aprendizaje_inscripcion_ruta i
-                JOIN aprendizaje_version_ruta vr ON vr.id = i.version_ruta_id AND vr.estado = 'PUBLICADO'
-                JOIN aprendizaje_ruta r ON r.id = vr.ruta_id AND r.archivado_en IS NULL
-                JOIN aprendizaje_nodo_ruta n ON n.version_ruta_id = vr.id AND n.id = :node
-                JOIN aprendizaje_version_actividad va ON va.id = n.version_actividad_id AND va.estado = 'PUBLICADO'
-                JOIN aprendizaje_actividad a ON a.id = va.actividad_id AND a.archivado_en IS NULL
-                JOIN aprendizaje_progreso_nodo p ON p.inscripcion_id = i.id
-                    AND p.version_ruta_id = vr.id AND p.nodo_ruta_id = n.id
-                WHERE i.estudiante_id = :student AND i.version_ruta_id = :route
-                    AND i.estado IN ('ACTIVO','COMPLETADO')
-                FOR UPDATE OF i, p
-                """, params, (rs, row) -> new Access(rs.getString("enrollment_id"), rs.getString("activity_id"),
-                    rs.getString("titulo"), rs.getString("instrucciones"), rs.getString("estado")));
-        if (access.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        var item = access.getFirst();
-        if (!List.of("DISPONIBLE", "EN_CURSO", "COMPLETADO").contains(item.state()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
-        params.addValue("activity", item.activityId()).addValue("enrollment", item.enrollmentId());
-        var blocks = jdbc.query("""
-                SELECT b.id, b.tipo, b.texto_cuerpo, b.texto_accesibilidad, m.url_externa
-                FROM aprendizaje_bloque_contenido b
-                LEFT JOIN recurso_archivo_multimedia m ON m.id = b.archivo_multimedia_id
-                WHERE b.version_actividad_id = :activity ORDER BY b.numero_secuencia, b.id
-                """, params, (rs, row) -> new Block(rs.getString("id"), rs.getString("tipo"),
-                    rs.getString("texto_cuerpo"), rs.getString("url_externa"), rs.getString("texto_accesibilidad")));
-        if (blocks.isEmpty() && (item.instructions() == null || item.instructions().isBlank()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
-        jdbc.update("""
-                UPDATE aprendizaje_progreso_nodo SET estado = CASE WHEN estado = 'DISPONIBLE' THEN 'EN_CURSO' ELSE estado END,
-                    primer_acceso_en = COALESCE(primer_acceso_en, UTC_TIMESTAMP(6))
-                WHERE inscripcion_id = :enrollment AND version_ruta_id = :route AND nodo_ruta_id = :node
-                """, params);
-        jdbc.update("""
-                UPDATE aprendizaje_inscripcion_ruta SET ultimo_nodo_visitado_id = :node, ultima_visita_en = UTC_TIMESTAMP(6)
-                WHERE id = :enrollment AND estudiante_id = :student AND version_ruta_id = :route
-                """, params);
-        return new Activity(nodeId.toString(), item.title(), item.instructions(),
-                "DISPONIBLE".equals(item.state()) ? "EN_CURSO" : item.state(), blocks);
-=======
                 .addValue("route", routeId.toString())
                 .addValue("node", nodeId.toString());
 
@@ -163,7 +110,7 @@ public class ActivityService {
 
         var questions = evaluationService.findQuestionsForActivity(UUID.fromString(access.activityId()));
         String currentState = "DISPONIBLE".equalsIgnoreCase(access.state()) ? "EN_CURSO" : access.state();
-        return new Activity(nodeId.toString(), access.title(), access.instructions(), currentState, blocks, questions);
+        return new Activity(nodeId.toString(), access.activityId(), access.title(), access.instructions(), currentState, blocks, questions);
     }
 
     @Transactional
@@ -285,6 +232,31 @@ public class ActivityService {
                 WHERE usuario_id = :userId
                 """, new MapSqlParameterSource("userId", studentId.toString()), Integer.class);
 
+        // 5. Gestión de Insignias Escolares (HU-07)
+        BadgeDto badgeEarned = null;
+        if (!wasAlreadyCompleted) {
+            String badgeId = "in000000-0000-4000-8000-000000000001";
+            jdbc.update("""
+                    INSERT IGNORE INTO gamificacion_insignia (id, codigo, nombre, descripcion, criterio, activa)
+                    VALUES (:id, 'EXPLORADOR_AYACUCHO', 'Explorador de Ayacucho',
+                            'Completaste tu primera parada escolar y superaste los desafíos de la lección.', '{}', TRUE)
+                    """, new MapSqlParameterSource("id", badgeId));
+
+            int inserted = jdbc.update("""
+                    INSERT IGNORE INTO gamificacion_insignia_usuario (usuario_id, insignia_id, obtenida_en)
+                    VALUES (:userId, :badgeId, CURRENT_TIMESTAMP(6))
+                    """, new MapSqlParameterSource("userId", studentId.toString()).addValue("badgeId", badgeId));
+
+            if (inserted > 0) {
+                badgeEarned = new BadgeDto(
+                        "EXPLORADOR_AYACUCHO",
+                        "Explorador de Ayacucho",
+                        "Completaste tu primera parada escolar y superaste los desafíos de la lección.",
+                        "medal"
+                );
+            }
+        }
+
         String message = wasAlreadyCompleted
                 ? "¡Excelente repaso! Esta parada ya estaba completada en tu aventura."
                 : (nextUnlocked != null
@@ -297,8 +269,8 @@ public class ActivityService {
                 experienceToAward,
                 totalXp != null ? totalXp : 0,
                 nextUnlocked,
-                message
+                message,
+                badgeEarned
         );
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     }
 }

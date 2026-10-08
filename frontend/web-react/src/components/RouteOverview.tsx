@@ -1,28 +1,23 @@
-import { ArrowRight, Play, Sparkles, Star, Volume2 } from 'lucide-react'
+import { ArrowRight, Award, Play, Sparkles, Star, Volume2 } from 'lucide-react'
 import { RupiCharacter } from './RupiCharacter'
 import { speakText } from '../utils/speech'
-import type { RouteDetail, RouteNode } from '../services/learningRoutesApi'
+import type { BadgeDto, RouteDetail, RouteNode } from '../services/learningRoutesApi'
 
 type Props = {
   route: RouteDetail
   name: string
+  badges?: BadgeDto[]
   onSelect?: (node: RouteNode) => void
 }
 
-export function RouteOverview({ route, name, onSelect }: Props) {
+export function RouteOverview({ route, name, badges = [], onSelect }: Props) {
   const completed = route.progress.completedNodes
-<<<<<<< HEAD
-  const total = route.progress.totalNodes
-  const nextNode =
-    route.nodes.find(node => node.id === route.enrollment.lastVisitedNodeId && node.state !== 'BLOQUEADO') ??
-=======
   const total = route.progress.totalNodes || 10
   const lastVisited = route.enrollment?.lastVisitedNodeId
     ? route.nodes.find((node) => node.id === route.enrollment.lastVisitedNodeId && node.state !== 'BLOQUEADO')
     : undefined
   const nextNode =
     lastVisited ??
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     route.nodes.find((node) => node.state === 'EN_CURSO') ??
     route.nodes.find((node) => node.state === 'DISPONIBLE')
 
@@ -126,6 +121,29 @@ export function RouteOverview({ route, name, onSelect }: Props) {
                 )
               })}
             </div>
+
+            {badges.length > 0 && (
+              <div className="earned-badges-tray" role="region" aria-label="Insignias escolares obtenidas">
+                <span className="badges-tray-title">
+                  <Award size={14} aria-hidden="true" />
+                  <b>Insignias ganadas ({badges.length}):</b>
+                </span>
+                <div className="badges-pill-list">
+                  {badges.map((b) => (
+                    <button
+                      key={b.code}
+                      type="button"
+                      className="earned-badge-chip"
+                      title={`${b.name}: ${b.description}`}
+                      onClick={() => speakText(`Insignia obtenida: ${b.name}. ${b.description}`)}
+                    >
+                      <Award size={14} className="badge-chip-icon" aria-hidden="true" />
+                      <span>{b.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mascot-badge" aria-hidden="true">

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Fragment, useEffect, useRef, useMemo, useState } from 'react'
-=======
 import { useEffect, useMemo, useState } from 'react'
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
 import {
   Check,
   Star,
@@ -32,8 +28,6 @@ import { unitBandsByNode } from './unitGroups'
 import './UnitBands.css'
 import { speakText } from '../../utils/speech'
 import type { RouteDetail, RouteNode } from '../../services/learningRoutesApi'
-import { unitBandsByNode } from './unitGroups'
-import './UnitBands.css'
 
 type Props = {
   route: RouteDetail
@@ -86,29 +80,14 @@ function getStopThemeIcon(sequence: number) {
 export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Props) {
   const [rupiMood, setRupiMood] = useState<'idle' | 'jumping' | 'cheering' | 'thinking'>('cheering')
 
-<<<<<<< HEAD
-  const restored = useRef('')
-  useEffect(() => {
-    if (restored.current === route.versionRouteId) return
-    const node = route.nodes.find(item => item.id === route.enrollment.lastVisitedNodeId && item.state !== 'BLOQUEADO')
-    if (!node) return
-    const button = document.getElementById(`node-${node.id}`)
-    if (button) {
-      restored.current = route.versionRouteId
-      button.scrollIntoView({ block: 'center', behavior: 'instant' })
-      button.focus({ preventScroll: true })
-    }
-  }, [route])
-=======
   // Bandas curriculares por unidad del MINEDU (HU-04)
   const unitBands = useMemo(() => unitBandsByNode(route), [route])
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
 
   // Separación vertical fija de 145px entre paradas
   const STOP_VERTICAL_GAP = 145
   const TOP_OFFSET = 75
   const UNIT_BAND_GAP = 124
-  const unitBands = useMemo(() => unitBandsByNode(route), [route])
+
   // Cada banda de unidad empuja hacia abajo las paradas que le siguen
   const bandsBefore = useMemo(() => {
     let count = 0
@@ -138,22 +117,14 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
   // Identificar el nodo activo (priorizando el último visitado guardado en BD, HU-03)
   const activeIndex = useMemo(() => {
-<<<<<<< HEAD
-    const remembered = route.nodes.findIndex(n => n.id === route.enrollment.lastVisitedNodeId && n.state !== 'BLOQUEADO')
-    if (remembered !== -1) return remembered
-=======
     if (route.enrollment?.lastVisitedNodeId) {
       const lastIdx = route.nodes.findIndex((n) => n.id === route.enrollment.lastVisitedNodeId)
       if (lastIdx !== -1) return lastIdx
     }
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
     const idx = route.nodes.findIndex((n) => n.state === 'EN_CURSO')
     if (idx !== -1) return idx
     const availIdx = route.nodes.findIndex((n) => n.state === 'DISPONIBLE')
     return availIdx !== -1 ? availIdx : 0
-<<<<<<< HEAD
-  }, [route.nodes, route.enrollment.lastVisitedNodeId])
-=======
   }, [route.nodes, route.enrollment?.lastVisitedNodeId])
 
   // Desplazar suavemente el mapa al nodo activo al cargar la ruta (HU-03)
@@ -166,7 +137,6 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
     }, 300)
     return () => clearTimeout(timer)
   }, [route.versionRouteId, route.enrollment?.lastVisitedNodeId])
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
 
   const handleGuideAction = () => {
     setRupiMood((prev) => (prev === 'jumping' ? 'cheering' : 'jumping'))
@@ -232,59 +202,6 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
           const isActive = index === activeIndex
           const isGoal = index === route.nodes.length - 1
           const ThemeIcon = getStopThemeIcon(node.sequence)
-<<<<<<< HEAD
-          const band = unitBands.get(node.id)
-
-          return (
-            <Fragment key={node.id}>
-            {band && (
-              <div className="unit-band" style={{ top: `${posY - UNIT_BAND_GAP - 20}px` }} role="group" aria-label={`${band.unit.title}. ${band.completed} de ${band.total} paradas completadas`}>
-                <span className="unit-band-text">
-                  <span className="unit-band-title">{band.unit.title}</span>
-                  {band.unit.competencies.length > 0 && (
-                    <span className="unit-band-competencies">
-                      Currículo MINEDU: {band.unit.competencies.map(item => item.name).join(' · ')}
-                    </span>
-                  )}
-                </span>
-                <span className="unit-band-progress">{band.completed} de {band.total}</span>
-              </div>
-            )}
-            <div
-              className={`trail-stop ${cssClass} ${isActive ? 'is-current-active' : ''} ${isGoal ? 'is-final-goal' : ''}`}
-              id={node.sequence === 3 ? 'retos' : undefined}
-              style={{ left: `${posX}%`, top: `${posY}px` }}
-            >
-              {/* Destellos de celebración en paradas completadas */}
-              {node.state === 'COMPLETADO' && (
-                <div className="completion-burst" aria-hidden="true">
-                  <span className="burst-star star-1">✦</span>
-                  <span className="burst-star star-2">✦</span>
-                  <span className="burst-star star-3">✦</span>
-                </div>
-              )}
-
-              {/* Nodo circular con ícono temático y número legible en insignia */}
-              <button
-                id={`node-${node.id}`}
-                disabled={!canOpen}
-                className={`lesson-node ${cssClass} ${isGoal ? 'is-goal-node' : ''}`}
-                type="button"
-                onClick={() => handleNodeInteraction(node)}
-                aria-label={`Parada ${node.sequence}: ${node.title}. Estado: ${stateLabel}. ${canOpen ? 'Toca para abrir' : 'Aún no disponible'}`}
-              >
-                <ThemeIcon className="node-theme-icon" aria-hidden="true" />
-                <span className="node-seq-badge" aria-hidden="true">
-                  {node.state === 'COMPLETADO' ? (
-                    <Check size={14} strokeWidth={3.5} />
-                  ) : (
-                    node.sequence
-                  )}
-                </span>
-              </button>
-
-              {/* Etiqueta compacta hacia el exterior con conector al nodo */}
-=======
           const unitBand = unitBands.get(node.id)
 
           return (
@@ -313,8 +230,6 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                   </span>
                 </div>
               )}
-
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
               <div
                 className={`trail-stop ${cssClass} ${isActive ? 'is-current-active' : ''} ${isGoal ? 'is-final-goal' : ''}`}
                 id={node.sequence === 3 ? 'retos' : undefined}

@@ -41,6 +41,15 @@ public class EvaluationController {
         return service.checkAndRecordAnswer(studentId, activityVersionId, request);
     }
 
+    @GetMapping("/{activityVersionId}/summary")
+    public EvaluationDtos.EvaluationSummaryDto getSummary(
+            @PathVariable UUID activityVersionId,
+            Principal principal
+    ) {
+        UUID studentId = studentIdFrom(principal);
+        return service.getEvaluationSummary(studentId, activityVersionId);
+    }
+
     private static UUID studentIdFrom(Principal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
