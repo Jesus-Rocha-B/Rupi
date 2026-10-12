@@ -33,7 +33,7 @@
   align-items: center;
   flex: 1;
   position: relative;
-  min-height: 44px;
+  min-height: 48px;
 }
 
 .search-box-icon {
@@ -65,8 +65,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   border: none;
   background: #f1ede4;
   border-radius: 8px;
@@ -111,7 +113,8 @@
   font-size: 0.92rem;
   font-weight: 800;
   padding: 0 1.1rem;
-  min-height: 44px;
+  min-height: 48px;
+  padding: 0 1.25rem;
   cursor: pointer;
   box-shadow: 0 3px 0 #b73218;
   transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
@@ -186,9 +189,10 @@
   align-items: center;
   gap: 0.35rem;
   background: #ffffff;
-  border: 1.5px solid #31724b;
-  border-radius: 8px;
-  padding: 0.3rem 0.65rem;
+  border: 2px solid #31724b;
+  border-radius: 10px;
+  padding: 0.4rem 0.85rem;
+  min-height: 40px;
   font-size: 0.82rem;
   font-weight: 700;
   color: #173e30;

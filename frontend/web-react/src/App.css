@@ -66,7 +66,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 .brand-dot { color: var(--red); }
 .school-label { display: none; }
 .main-nav { display: flex; flex: 1; justify-content: center; gap: 5px; margin: 0 22px; }
-.nav-item { position: relative; display: flex; align-items: center; gap: 7px; min-height: 44px; padding: 9px 12px; border-radius: 10px; color: #778178; font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap; transition: background .18s,color .18s; }
+.nav-item { position: relative; display: flex; align-items: center; gap: 7px; min-height: 48px; padding: 10px 14px; border-radius: 12px; color: #778178; font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap; transition: background .18s,color .18s; }
 .nav-item:hover { background: #f7f2e8; color: #9e592d; }
 .nav-item.selected { background: #fff0e8; color: #a8402f; }
 .nav-item.selected::after { position: absolute; right: 12px; bottom: -9px; left: 12px; height: 3px; border-radius: 3px 3px 0 0; background: var(--red); content: ''; }
@@ -1568,23 +1568,31 @@ body, button, input, select, textarea {
   -webkit-appearance: none !important;
   display: inline-grid !important;
   place-items: center !important;
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
   border-radius: 50% !important;
-  border: 1.5px solid #ffd26a !important;
+  border: 2px solid #ffd26a !important;
   background: #fffbf2 !important;
   color: #ba5728 !important;
   padding: 0 !important;
   cursor: pointer;
   outline: none;
-  transition: transform 0.1s ease, background 0.15s ease;
+  box-shadow: 0 3px 0 #dca331 !important;
+  transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.08s ease;
 }
 
 .listen-greeting-btn:hover {
   background: #ffd26a !important;
   color: #173e30 !important;
-  transform: scale(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #dca331 !important;
+}
+
+.listen-greeting-btn:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #dca331 !important;
 }
 
 /* 3. Mapa: Fondo coherente (Opción B) y sendero despejado */
@@ -2032,18 +2040,25 @@ body, button, input, select, textarea {
 .rupi-listen-btn {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 5px !important;
+  justify-content: center !important;
+  gap: 6px !important;
   white-space: nowrap !important;
-  padding: 5px 12px !important;
+  padding: 8px 16px !important;
   border-radius: 16px !important;
-  border: 1.5px solid #ffd26a !important;
+  border: 2px solid #ffd26a !important;
   background: #fff8e6 !important;
   color: #9c4524 !important;
   font-size: 14px !important;
   font-weight: 800 !important;
-  min-height: 32px !important;
+  min-height: 48px !important;
   cursor: pointer;
-  transition: transform 0.1s ease, background 0.15s ease;
+  box-shadow: 0 3px 0 #dca331;
+  transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.08s ease;
+}
+
+.rupi-listen-btn:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #dca331 !important;
 }
 
 .rupi-listen-btn:hover {
@@ -2562,17 +2577,22 @@ body, button, input, select, textarea {
 
 .question-listen-btn {
   margin-left: auto;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 12px;
-  border: 1.5px solid #d0deca;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 2px solid #d0deca;
   background: #f7faf4;
   color: #31724b;
   cursor: pointer;
   display: grid;
   place-items: center;
-  box-shadow: 0 2px 0 #c2d4bc;
-  transition: transform 0.08s ease, background 0.12s ease;
+  box-shadow: 0 3px 0 #c2d4bc;
+  transition: transform 0.08s ease, background 0.12s ease, box-shadow 0.08s ease;
+}
+
+.question-listen-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #c2d4bc;
 }
 
 .question-listen-btn:hover {
@@ -2803,17 +2823,22 @@ body, button, input, select, textarea {
 }
 
 .feedback-listen-btn {
-  min-width: 38px;
-  min-height: 38px;
-  border-radius: 10px;
-  border: 1.5px solid #d2ded0;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 2px solid #d2ded0;
   background: #ffffff;
   color: #173e30;
   cursor: pointer;
   display: grid;
   place-items: center;
-  box-shadow: 0 2px 0 #c2d4be;
-  transition: transform 0.08s ease;
+  box-shadow: 0 3px 0 #c2d4be;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.feedback-listen-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #c2d4be;
 }
 
 .feedback-listen-btn:active {
@@ -2882,19 +2907,24 @@ body, button, input, select, textarea {
 .summary-listen-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 6px 14px;
-  border-radius: 12px;
-  border: 1.5px solid #31724b;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  border: 2px solid #31724b;
   background: #ffffff;
   color: #173e30;
   font-family: var(--display-font);
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 2px 0 #225134;
-  transition: transform 0.08s ease;
+  box-shadow: 0 3px 0 #225134;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.summary-listen-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #225134;
 }
 
 .summary-listen-btn:hover {
@@ -3017,19 +3047,24 @@ body, button, input, select, textarea {
 .earned-badge-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 38px;
-  padding: 4px 12px;
-  border-radius: 12px;
-  border: 1.5px solid #ffd26a;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  border: 2px solid #ffd26a;
   background: #fff8e6;
   color: #8c5200;
   font-family: var(--display-font);
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 2px 0 #e4bc55;
-  transition: transform 0.08s ease, background 0.12s ease;
+  box-shadow: 0 3px 0 #dca331;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.earned-badge-chip:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #dca331;
 }
 
 .earned-badge-chip:hover {
