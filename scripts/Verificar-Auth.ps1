@@ -1,8 +1,13 @@
 # Integration checks for student authentication against local Spring Boot and MySQL
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot
-. "$root\.local\env.ps1"
-$mysql = "$root\.local\mysql-8.4.11-winx64\bin\mysql.exe"
+$envFile = Join-Path (Join-Path $root '.local') 'env.ps1'
+if (Test-Path $envFile) {
+    . $envFile
+}
+$mysqlDir = Get-ChildItem -LiteralPath (Join-Path $root '.local') -Directory -Filter 'mysql-8.4*' -ErrorAction SilentlyContinue | Select-Object -First 1
+$mysqlExe = if ($PSVersionTable.PSVersion.Major -lt 6 -or $IsWindows) { 'mysql.exe' } else { 'mysql' }
+$mysql = if ($mysqlDir) { Join-Path (Join-Path $mysqlDir.FullName 'bin') $mysqlExe } else { $null }
 
 function Sql([string]$query) {
     $query | & $mysql "--defaults-file=$root/.local/root.cnf" --database=rupi --batch
@@ -26,19 +31,22 @@ function Request([string]$path, [int]$expected, [string]$method = 'GET', [string
         }
         $response = Invoke-WebRequest @params
         $actualStatus = [int]$response.StatusCode
-    } catch [System.Net.WebException] {
+    } catch {
         if ($_.Exception.Response) {
-            $webResp = [System.Net.HttpWebResponse]$_.Exception.Response
+            $webResp = $_.Exception.Response
             $actualStatus = [int]$webResp.StatusCode
             $content = $null
-            $stream = $webResp.GetResponseStream()
-            if ($stream) {
-                $reader = New-Object System.IO.StreamReader($stream)
-                $content = $reader.ReadToEnd()
-            }
             $respHeaders = @{}
-            foreach ($k in $webResp.Headers.AllKeys) {
-                $respHeaders[$k] = $webResp.Headers[$k]
+            if ($PSVersionTable.PSVersion.Major -ge 6) {
+                $content = $_.ErrorDetails.Message
+                foreach ($h in $webResp.Headers) { $respHeaders[$h.Key] = ($h.Value -join ', ') }
+            } else {
+                $stream = $webResp.GetResponseStream()
+                if ($stream) {
+                    $reader = New-Object System.IO.StreamReader($stream)
+                    $content = $reader.ReadToEnd()
+                }
+                foreach ($k in $webResp.Headers.AllKeys) { $respHeaders[$k] = $webResp.Headers[$k] }
             }
             $response = [PSCustomObject]@{
                 StatusCode = $actualStatus
@@ -77,7 +85,7 @@ try {
     if ($studentData.name -ne 'Mateo') { throw "Expected student name Mateo, got $($studentData.name)" }
     if ($studentData.correo -or $studentData.apellido) { throw "Child privacy violated: leaked PII in student response" }
 
-    $setCookie = $loginResp.Headers['Set-Cookie']
+    $setCookie = $loginResp.Headers['Set-Cookie'] -join '; '
     if (-not $setCookie -or -not ($setCookie -match 'rupi_session=([^;]+)')) {
         throw "Cookie rupi_session not found in Set-Cookie header"
     }
@@ -104,7 +112,7 @@ try {
         Cookie = "rupi_session=$sessionToken"
     }
     $logoutResp = Request 'auth/logout' 204 'POST' $null $logoutHeaders
-    $clearCookie = $logoutResp.Headers['Set-Cookie']
+    $clearCookie = $logoutResp.Headers['Set-Cookie'] -join '; '
     if (-not $clearCookie -or -not ($clearCookie -match 'Max-Age=0|max-age=0')) {
         throw "Logout did not clear rupi_session cookie"
     }

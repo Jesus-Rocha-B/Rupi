@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import {
   Check,
   Star,
@@ -226,12 +226,12 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
           const unitBand = unitBands.get(node.id)
 
           return (
-            <div key={node.id}>
+            <Fragment key={node.id}>
               {/* Banda de encabezado de unidad curricular MINEDU (HU-04) */}
               {unitBand && (
                 <div
                   className="unit-band"
-                  style={{ top: `${Math.max(10, posY - 68)}px` }}
+                  style={{ top: `${posY - UNIT_BAND_GAP - 20}px` }}
                   role="region"
                   aria-label={`Unidad curricular: ${unitBand.unit.title}`}
                 >
@@ -348,7 +348,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                   </div>
                 )}
               </div>
-            </div>
+            </Fragment>
           )
         })}
 

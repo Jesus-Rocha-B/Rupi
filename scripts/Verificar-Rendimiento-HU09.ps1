@@ -10,9 +10,9 @@ Write-Host "====================================================================
 # 1. Autenticar estudiante demo para obtener sesión
 $loginBody = '{"username":"estudiante.demo","password":"123456"}'
 $loginResp = Invoke-WebRequest -Uri "http://127.0.0.1:8081/api/v1/auth/login" -Method POST `
-    -Headers @{"Content-Type"="application/json"} -Body $loginBody -UseBasicParsing
+    -Headers @{"Content-Type"="application/json"; "Origin"="http://127.0.0.1:8081"} -Body $loginBody -UseBasicParsing
 
-$cookieHeader = $loginResp.Headers["Set-Cookie"]
+$cookieHeader = $loginResp.Headers["Set-Cookie"] -join "; "
 $sessionCookie = ""
 if ($cookieHeader -match "rupi_session=([^;]+)") {
     $sessionCookie = $matches[1]

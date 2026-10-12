@@ -28,12 +28,8 @@ public class LearningRouteService {
 
     @Transactional
     public RouteDetailResponse getForStudent(UUID studentId, UUID versionRouteId) {
-        var routeOpt = repository.findRouteForStudent(studentId, versionRouteId);
-        if (routeOpt.isEmpty() && repository.isPublishedRoute(versionRouteId)) {
-            repository.enrollStudentInRoute(studentId, versionRouteId);
-            routeOpt = repository.findRouteForStudent(studentId, versionRouteId);
-        }
-        var route = routeOpt.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        // Leer no inscribe: solo las rutas con inscripción válida se entregan. Inscribirse es explícito (POST /enroll).
+        var route = repository.findRouteForStudent(studentId, versionRouteId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         var nodes = repository.findNodes(route.enrollment().id(), versionRouteId);
         if (nodes.stream().anyMatch(node -> node.state() == null)) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);

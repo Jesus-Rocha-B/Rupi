@@ -53,11 +53,13 @@ Ninguno al cerrar la revisión del 2026-10-12. Detalle en `docs/registro/CHANGEL
 
 Se aplicaron V08–V11 y se corrieron las verificaciones contra la API y MySQL reales. Se corrigieron migraciones V09/V10 que no se aplicaban, permisos MySQL de la API (`grants-spring-boot.sql`), la última visita de HU-03, el filtro de actividades publicadas de HU-02, las reglas de unidades de HU-04 y las fechas en UTC. Detalle en `CHANGELOG.md`.
 
-Pendiente de esta revisión: borrar datos de prueba residuales (usuarios `qa_*`, rutas `QA-*`), decidir si la inscripción abierta a rutas publicadas es intencional frente a los códigos de clase de HU-11, y ejecutar `Verificar-HU*.ps1` (sin `pwsh` aquí) y `verify_hu04_pantalla.mjs` (sin Playwright).
+Segunda pasada (misma fecha): verificados en Fedora con PowerShell 7 y Playwright todos los `Verificar-*.ps1` y la pantalla de HU-04 (ver `CHANGELOG.md`). La inscripción ya no ocurre al leer una ruta; es una acción explícita (`POST /enroll`).
+
+Pendiente: la base local de desarrollo conserva filas antiguas de V09/V10 con ids que no eran UUID; hay que reconstruirla con el orden de `docs/implementacion/entorno-linux.md` (V07 a V11 y `grants-spring-boot.sql`) para que las rutas de V09 abran. Decidir qué rutas del catálogo serán públicas cuando existan rutas privadas del docente.
 
 ## Última evidencia de pruebas (2026-10-12, Fedora)
 
-51 pruebas Java y 12 de Node aprobadas; lint y build verificados. `verify_learning_flow.py`: 29 comprobaciones; `verify_hu04_content.py`: correcto.
+51 pruebas Java y 12 de Node aprobadas; lint y build verificados. `verify_learning_flow.py`: 29 comprobaciones; `verify_hu04_content.py`: correcto; `Verificar-*.ps1` con PowerShell 7 y `verify_hu04_pantalla.mjs` (10/10) correctos sobre una base armada desde cero.
 
 ## Evidencia anterior (2026-10-07, Fedora)
 

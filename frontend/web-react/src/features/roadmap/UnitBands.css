@@ -97,4 +97,9 @@
     width: 100%;
     padding: 8px 12px;
   }
+
+  /* El conector punteado no debe seguir hasta la banda: la banda abre otro tramo */
+  .trail-stop:has(+ .unit-band)::before {
+    display: none;
+  }
 }

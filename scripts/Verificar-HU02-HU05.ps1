@@ -1,12 +1,15 @@
 # Integration checks for HU-02, HU-03, HU-04 and HU-05
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot
-if (Test-Path "$root\.local\env.ps1") {
-    . "$root\.local\env.ps1"
+$envFile = Join-Path (Join-Path $root '.local') 'env.ps1'
+if (Test-Path $envFile) {
+    . $envFile
 }
-$mysql = "$root\.local\mysql-8.4.11-winx64\bin\mysql.exe"
+$mysqlDir = Get-ChildItem -LiteralPath (Join-Path $root '.local') -Directory -Filter 'mysql-8.4*' -ErrorAction SilentlyContinue | Select-Object -First 1
+$mysqlExe = if ($PSVersionTable.PSVersion.Major -lt 6 -or $IsWindows) { 'mysql.exe' } else { 'mysql' }
+$mysql = if ($mysqlDir) { Join-Path (Join-Path $mysqlDir.FullName 'bin') $mysqlExe } else { $null }
 function Sql([string]$query) {
-    if (Test-Path $mysql) {
+    if ($mysql -and (Test-Path $mysql)) {
         $query | & $mysql "--defaults-file=$root/.local/root.cnf" --database=rupi --batch
         if ($LASTEXITCODE -ne 0) { throw 'SQL verification failed' }
     }
@@ -18,19 +21,22 @@ function Request([string]$path, [int]$expected, [string]$method = 'GET', [hashta
     try {
         $response = Invoke-WebRequest -Uri $url -Method $method -Headers $headers -UseBasicParsing
         $actualStatus = [int]$response.StatusCode
-    } catch [System.Net.WebException] {
+    } catch {
         if ($_.Exception.Response) {
-            $webResp = [System.Net.HttpWebResponse]$_.Exception.Response
+            $webResp = $_.Exception.Response
             $actualStatus = [int]$webResp.StatusCode
             $content = $null
-            $stream = $webResp.GetResponseStream()
-            if ($stream) {
-                $reader = New-Object System.IO.StreamReader($stream)
-                $content = $reader.ReadToEnd()
-            }
             $respHeaders = @{}
-            foreach ($k in $webResp.Headers.AllKeys) {
-                $respHeaders[$k] = $webResp.Headers[$k]
+            if ($PSVersionTable.PSVersion.Major -ge 6) {
+                $content = $_.ErrorDetails.Message
+                foreach ($h in $webResp.Headers) { $respHeaders[$h.Key] = ($h.Value -join ', ') }
+            } else {
+                $stream = $webResp.GetResponseStream()
+                if ($stream) {
+                    $reader = New-Object System.IO.StreamReader($stream)
+                    $content = $reader.ReadToEnd()
+                }
+                foreach ($k in $webResp.Headers.AllKeys) { $respHeaders[$k] = $webResp.Headers[$k] }
             }
             $response = [PSCustomObject]@{
                 StatusCode = $actualStatus
@@ -58,7 +64,7 @@ $auth = @{Authorization="Bearer $token"}
 
 try {
     # 1. Crear usuario de prueba temporal con sesión activa
-    Sql "INSERT INTO identidad_cuenta_usuario (id,nombre_usuario,hash_clave,estado) VALUES ('$student','test-$student','not-a-login','ACTIVO'); INSERT INTO identidad_sesion_usuario (id,usuario_id,token_hash,cliente,expira_en) VALUES ('$session','$student',UNHEX(SHA2('$token',256)),'WEB_USUARIO',UTC_TIMESTAMP(6)+INTERVAL 1 HOUR); INSERT INTO aprendizaje_inscripcion_ruta (id,version_ruta_id,estudiante_id,estado) VALUES ('$enrollment','$route','$student','ACTIVO'); INSERT INTO aprendizaje_progreso_nodo (inscripcion_id,version_ruta_id,nodo_ruta_id,estado) VALUES ('$enrollment','$route','$node1','DISPONIBLE'), ('$enrollment','$route','$node2','BLOQUEADO'), ('$enrollment','$route','$node3','BLOQUEADO');"
+    Sql "INSERT INTO identidad_cuenta_usuario (id,nombre_usuario,hash_clave,estado) VALUES ('$student','test-$student','not-a-login','ACTIVO'); INSERT INTO identidad_sesion_usuario (id,usuario_id,token_hash,cliente,expira_en) VALUES ('$session','$student',UNHEX(SHA2('$token',256)),'WEB_USUARIO',UTC_TIMESTAMP(6)+INTERVAL 1 HOUR); INSERT INTO aprendizaje_inscripcion_ruta (id,version_ruta_id,estudiante_id,estado) VALUES ('$enrollment','$route','$student','ACTIVO'); INSERT INTO aprendizaje_progreso_nodo (inscripcion_id,version_ruta_id,nodo_ruta_id,estado,desbloqueado_en) VALUES ('$enrollment','$route','$node1','DISPONIBLE',UTC_TIMESTAMP(6)), ('$enrollment','$route','$node2','BLOQUEADO',NULL), ('$enrollment','$route','$node3','BLOQUEADO',NULL); INSERT INTO aprendizaje_progreso_nodo (inscripcion_id,version_ruta_id,nodo_ruta_id,estado) SELECT '$enrollment',version_ruta_id,id,'BLOQUEADO' FROM aprendizaje_nodo_ruta WHERE version_ruta_id='$route' AND id NOT IN ('$node1','$node2','$node3');"
 
     # HU-02: Iniciar actividad disponible (cambia a EN_CURSO y actualiza ultimo_nodo_visitado_id)
     $startResp = Request "student/learning-routes/$route/nodes/$node1/start" 200 'POST' $auth
@@ -97,5 +103,5 @@ try {
 
     Write-Host "All HU-02 to HU-05 integration checks passed successfully!"
 } finally {
-    Sql "DELETE FROM gamificacion_movimiento_experiencia WHERE usuario_id='$student'; DELETE FROM aprendizaje_progreso_nodo WHERE inscripcion_id='$enrollment'; DELETE FROM aprendizaje_inscripcion_ruta WHERE id='$enrollment'; DELETE FROM identidad_sesion_usuario WHERE id='$session'; DELETE FROM identidad_cuenta_usuario WHERE id='$student';"
+    Sql "DELETE FROM gamificacion_insignia_usuario WHERE usuario_id='$student'; DELETE FROM gamificacion_movimiento_experiencia WHERE usuario_id='$student'; DELETE FROM aprendizaje_progreso_nodo WHERE inscripcion_id='$enrollment'; DELETE FROM aprendizaje_inscripcion_ruta WHERE id='$enrollment'; DELETE FROM identidad_sesion_usuario WHERE id='$session'; DELETE FROM identidad_cuenta_usuario WHERE id='$student';"
 }

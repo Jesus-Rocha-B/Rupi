@@ -2,6 +2,20 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-12 · Segunda pasada: verificación en Fedora con PowerShell 7 y Playwright
+
+Se instaló PowerShell 7 sin `sudo` y se corrieron todos los `Verificar-*.ps1`, `verify_*.py` y `verify_hu04_pantalla.mjs`. Hallazgos corregidos:
+
+- **IDs que no eran UUID:** V09 y V10 usaban `u0000000-…`, `cp000000-…`, `q0000000-…`, `op000000-…` y ids con último grupo de 8 dígitos. La API los parsea como UUID: las rutas de V09 respondían 500 y las de V10 no coincidían con lo guardado. Ahora son UUID canónicos (`d2…` unidades, `c2…` competencias, `e2…` preguntas, `f2…` opciones; último grupo de 12 dígitos).
+- **V07:** una base armada desde cero dejaba las unidades `u0000000-…001/002` de `seed-hu01.sql` enlazadas a la ruta 001 y la API respondía 500. V07 ahora las reasigna a las unidades DEMO y las retira.
+- **HU-08:** el diploma devolvía 503 (la consulta leía `total`/`completed` en vez de `total_nodes`/`completed_nodes`).
+- **Inscripción:** `GET /student/learning-routes/{id}` inscribía al estudiante por sí solo (escritura en un GET y salto de la inscripción). Ahora responde 404 sin inscripción; el frontend inscribe de forma explícita con `POST /enroll` al abrir una ruta del catálogo. Queda abierto decidir qué rutas son públicas cuando existan rutas privadas del docente.
+- **HU-04 en pantalla:** la banda de unidad tapaba la primera parada de la unidad (posición `posY - 68`, `Fragment` cambiado por `div` y regla móvil `:has(+ .unit-band)` eliminada). Restaurados.
+- **API:** `ApiExceptionHandler` registra ahora el error de acceso a datos (antes devolvía 503 sin dejar rastro).
+- **Scripts PowerShell (Windows PowerShell 5.1 y 7+, Windows y Linux):** rutas con `\`, ruta de `mysql.exe` solo de Windows, captura de errores HTTP solo de 5.1, cabecera `Set-Cookie` como arreglo, `Origin` ausente en el login, `Cache-Control` comparado como valor único, y fixtures de `Verificar-HU02-HU05` y `Verificar-HU08` que no respetaban el esquema real (tablas inexistentes, `CHECK` de `desbloqueado_en`, limpieza de insignias).
+
+Resultado en una base armada desde cero con el orden documentado: `Verificar-Auth`, `HU01`, `HU02-HU05`, `HU08`, `HU09`, `HU10`, `HU11` y `Verificar-Rendimiento-HU09` correctos con PowerShell 7.6; `verify_hu04_pantalla.mjs` 10 de 10 en Firefox (1280 y 375 px); 51 pruebas Java y 12 de Node.
+
 ## 2026-10-12 · Revisión del Sprint Backlog: correcciones para que HU-01 a HU-04 y HU-09 a HU-11 funcionen
 
 Se aplicaron las migraciones V08–V11 y se corrieron las verificaciones contra MySQL y la API reales. Hallazgos corregidos:

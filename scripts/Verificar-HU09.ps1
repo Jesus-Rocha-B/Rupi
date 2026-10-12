@@ -2,8 +2,9 @@
 # Compatible con Windows PowerShell 5.1 y PowerShell 7+
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot
-if (Test-Path "$root\.local\env.ps1") {
-    . "$root\.local\env.ps1"
+$envFile = Join-Path (Join-Path $root '.local') 'env.ps1'
+if (Test-Path $envFile) {
+    . $envFile
 }
 
 function Request([string]$path, [int]$expected, [string]$method = 'GET', [hashtable]$headers = @{}) {
@@ -13,19 +14,22 @@ function Request([string]$path, [int]$expected, [string]$method = 'GET', [hashta
     try {
         $response = Invoke-WebRequest -Uri $url -Method $method -Headers $headers -UseBasicParsing
         $actualStatus = [int]$response.StatusCode
-    } catch [System.Net.WebException] {
+    } catch {
         if ($_.Exception.Response) {
-            $webResp = [System.Net.HttpWebResponse]$_.Exception.Response
+            $webResp = $_.Exception.Response
             $actualStatus = [int]$webResp.StatusCode
             $content = $null
-            $stream = $webResp.GetResponseStream()
-            if ($stream) {
-                $reader = New-Object System.IO.StreamReader($stream)
-                $content = $reader.ReadToEnd()
-            }
             $respHeaders = @{}
-            foreach ($k in $webResp.Headers.AllKeys) {
-                $respHeaders[$k] = $webResp.Headers[$k]
+            if ($PSVersionTable.PSVersion.Major -ge 6) {
+                $content = $_.ErrorDetails.Message
+                foreach ($h in $webResp.Headers) { $respHeaders[$h.Key] = ($h.Value -join ', ') }
+            } else {
+                $stream = $webResp.GetResponseStream()
+                if ($stream) {
+                    $reader = New-Object System.IO.StreamReader($stream)
+                    $content = $reader.ReadToEnd()
+                }
+                foreach ($k in $webResp.Headers.AllKeys) { $respHeaders[$k] = $webResp.Headers[$k] }
             }
             $response = [PSCustomObject]@{
                 StatusCode = $actualStatus
@@ -53,9 +57,9 @@ try {
     Write-Host "`n2. Autenticando estudiante demo..."
     $loginBody = '{"username":"estudiante.demo","password":"123456"}'
     $loginResp = Invoke-WebRequest -Uri "http://127.0.0.1:8081/api/v1/auth/login" -Method POST `
-        -Headers @{"Content-Type"="application/json"} -Body $loginBody -UseBasicParsing
+        -Headers @{"Content-Type"="application/json"; "Origin"="http://127.0.0.1:8081"} -Body $loginBody -UseBasicParsing
 
-    $cookieHeader = $loginResp.Headers["Set-Cookie"]
+    $cookieHeader = $loginResp.Headers["Set-Cookie"] -join "; "
     $sessionCookie = ""
     if ($cookieHeader -match "rupi_session=([^;]+)") {
         $sessionCookie = $matches[1]

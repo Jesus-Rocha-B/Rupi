@@ -1,12 +1,15 @@
 # Integration checks against the isolated local development database.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot
-if (Test-Path "$root\.local\env.ps1") {
-    . "$root\.local\env.ps1"
+$envFile = Join-Path (Join-Path $root '.local') 'env.ps1'
+if (Test-Path $envFile) {
+    . $envFile
 }
-$mysql = "$root\.local\mysql-8.4.11-winx64\bin\mysql.exe"
+$mysqlDir = Get-ChildItem -LiteralPath (Join-Path $root '.local') -Directory -Filter 'mysql-8.4*' -ErrorAction SilentlyContinue | Select-Object -First 1
+$mysqlExe = if ($PSVersionTable.PSVersion.Major -lt 6 -or $IsWindows) { 'mysql.exe' } else { 'mysql' }
+$mysql = if ($mysqlDir) { Join-Path (Join-Path $mysqlDir.FullName 'bin') $mysqlExe } else { $null }
 function Sql([string]$query) {
-    if (Test-Path $mysql) {
+    if ($mysql -and (Test-Path $mysql)) {
         $query | & $mysql "--defaults-file=$root/.local/root.cnf" --database=rupi --batch
         if ($LASTEXITCODE -ne 0) { throw 'SQL verification failed' }
     }
@@ -18,19 +21,22 @@ function Request([string]$path, [int]$expected, [hashtable]$headers = @{}) {
     try {
         $response = Invoke-WebRequest -Uri $url -Headers $headers -UseBasicParsing
         $actualStatus = [int]$response.StatusCode
-    } catch [System.Net.WebException] {
+    } catch {
         if ($_.Exception.Response) {
-            $webResp = [System.Net.HttpWebResponse]$_.Exception.Response
+            $webResp = $_.Exception.Response
             $actualStatus = [int]$webResp.StatusCode
             $content = $null
-            $stream = $webResp.GetResponseStream()
-            if ($stream) {
-                $reader = New-Object System.IO.StreamReader($stream)
-                $content = $reader.ReadToEnd()
-            }
             $respHeaders = @{}
-            foreach ($k in $webResp.Headers.AllKeys) {
-                $respHeaders[$k] = $webResp.Headers[$k]
+            if ($PSVersionTable.PSVersion.Major -ge 6) {
+                $content = $_.ErrorDetails.Message
+                foreach ($h in $webResp.Headers) { $respHeaders[$h.Key] = ($h.Value -join ', ') }
+            } else {
+                $stream = $webResp.GetResponseStream()
+                if ($stream) {
+                    $reader = New-Object System.IO.StreamReader($stream)
+                    $content = $reader.ReadToEnd()
+                }
+                foreach ($k in $webResp.Headers.AllKeys) { $respHeaders[$k] = $webResp.Headers[$k] }
             }
             $response = [PSCustomObject]@{
                 StatusCode = $actualStatus
@@ -65,7 +71,7 @@ try {
     $response = Request "student/learning-routes/$route" 200 $auth
     $detail = $response.Content | ConvertFrom-Json
     if ($detail.nodes.Count -ne 10 -or $detail.progress.completedNodes -ne 0) { throw 'Progress leaked from another student' }
-    if ($response.Headers['Cache-Control'] -notcontains 'no-store') { throw 'Private response must not be cached' }
+    if ((@($response.Headers['Cache-Control']) -join ', ') -notmatch 'no-store') { throw 'Private response must not be cached' }
     Sql "UPDATE aprendizaje_inscripcion_ruta SET estado='SUSPENDIDO' WHERE id='$enrollment';"
     $null = Request "student/learning-routes/$route" 404 $auth
     Sql "UPDATE identidad_sesion_usuario SET creada_en=UTC_TIMESTAMP(6)-INTERVAL 2 HOUR, expira_en=UTC_TIMESTAMP(6)-INTERVAL 1 HOUR WHERE id='$session';"

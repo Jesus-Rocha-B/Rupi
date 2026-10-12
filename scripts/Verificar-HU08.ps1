@@ -2,12 +2,15 @@
 # Compatible con Windows PowerShell 5.1 y PowerShell 7+
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot
-if (Test-Path "$root\.local\env.ps1") {
-    . "$root\.local\env.ps1"
+$envFile = Join-Path (Join-Path $root '.local') 'env.ps1'
+if (Test-Path $envFile) {
+    . $envFile
 }
-$mysql = "$root\.local\mysql-8.4.11-winx64\bin\mysql.exe"
+$mysqlDir = Get-ChildItem -LiteralPath (Join-Path $root '.local') -Directory -Filter 'mysql-8.4*' -ErrorAction SilentlyContinue | Select-Object -First 1
+$mysqlExe = if ($PSVersionTable.PSVersion.Major -lt 6 -or $IsWindows) { 'mysql.exe' } else { 'mysql' }
+$mysql = if ($mysqlDir) { Join-Path (Join-Path $mysqlDir.FullName 'bin') $mysqlExe } else { $null }
 function Sql([string]$query) {
-    if (Test-Path $mysql) {
+    if ($mysql -and (Test-Path $mysql)) {
         $query | & $mysql "--defaults-file=$root/.local/root.cnf" --database=rupi --batch
         if ($LASTEXITCODE -ne 0) { throw 'SQL verification failed' }
     }
@@ -19,19 +22,22 @@ function Request([string]$path, [int]$expected, [string]$method = 'GET', [hashta
     try {
         $response = Invoke-WebRequest -Uri $url -Method $method -Headers $headers -UseBasicParsing
         $actualStatus = [int]$response.StatusCode
-    } catch [System.Net.WebException] {
+    } catch {
         if ($_.Exception.Response) {
-            $webResp = [System.Net.HttpWebResponse]$_.Exception.Response
+            $webResp = $_.Exception.Response
             $actualStatus = [int]$webResp.StatusCode
             $content = $null
-            $stream = $webResp.GetResponseStream()
-            if ($stream) {
-                $reader = New-Object System.IO.StreamReader($stream)
-                $content = $reader.ReadToEnd()
-            }
             $respHeaders = @{}
-            foreach ($k in $webResp.Headers.AllKeys) {
-                $respHeaders[$k] = $webResp.Headers[$k]
+            if ($PSVersionTable.PSVersion.Major -ge 6) {
+                $content = $_.ErrorDetails.Message
+                foreach ($h in $webResp.Headers) { $respHeaders[$h.Key] = ($h.Value -join ', ') }
+            } else {
+                $stream = $webResp.GetResponseStream()
+                if ($stream) {
+                    $reader = New-Object System.IO.StreamReader($stream)
+                    $content = $reader.ReadToEnd()
+                }
+                foreach ($k in $webResp.Headers.AllKeys) { $respHeaders[$k] = $webResp.Headers[$k] }
             }
             $response = [PSCustomObject]@{
                 StatusCode = $actualStatus
@@ -58,21 +64,21 @@ $auth = @{Authorization="Bearer $token"}
 Write-Host "== Instando verificación HU-08: Diploma y Graduación Tunqui =="
 try {
     # 1. Crear estudiante de prueba y su sesión
-    Sql "INSERT INTO identidad_usuario (id, tipo_usuario, nombre_completo, estado, creado_en, actualizado_en) VALUES ('$student', 'ESTUDIANTE', 'Killa Quispe', 'ACTIVO', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6));"
-    Sql "INSERT INTO identidad_estudiante (usuario_id, codigo_estudiante, fecha_nacimiento, nivel_educativo, grado, seccion) VALUES ('$student', 'STU-HU08', '2017-05-12', 'PRIMARIA', 2, 'B');"
-    Sql "INSERT INTO identidad_sesion (id, usuario_id, token_hash, creado_en, expira_en) VALUES ('$session', '$student', SHA2('$token', 256), UTC_TIMESTAMP(6), DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 2 HOUR));"
+    Sql "INSERT INTO identidad_cuenta_usuario (id,nombre_usuario,hash_clave,estado) VALUES ('$student','test-$student','not-a-login','ACTIVO'); INSERT INTO identidad_perfil_usuario (usuario_id,nombre,apellido) VALUES ('$student','Killa','Quispe');"
+    # (El perfil con nombre y apellido ya se creó arriba; el diploma lo toma de identidad_perfil_usuario.)
+    Sql "INSERT INTO identidad_sesion_usuario (id,usuario_id,token_hash,cliente,expira_en) VALUES ('$session','$student',UNHEX(SHA2('$token',256)),'WEB_USUARIO',UTC_TIMESTAMP(6)+INTERVAL 2 HOUR);"
 
     # 2. Inscribir al estudiante en la ruta oficial de Ayacucho
-    Sql "INSERT INTO aprendizaje_inscripcion_ruta (id, estudiante_id, version_ruta_id, estado, iniciado_en) VALUES ('$enrollment', '$student', '$route', 'ACTIVO', UTC_TIMESTAMP(6));"
+    Sql "INSERT INTO aprendizaje_inscripcion_ruta (id,version_ruta_id,estudiante_id,estado) VALUES ('$enrollment','$route','$student','ACTIVO');"
 
     # 3. Marcar nodos 1 al 9 como completados
     for ($i = 1; $i -le 9; $i++) {
         $seqStr = "{0:D2}" -f $i
         $nodeId = "ca000000-0000-4000-8000-0000000000$seqStr"
-        Sql "INSERT INTO aprendizaje_progreso_nodo (id, inscripcion_id, version_ruta_id, nodo_ruta_id, estado, completado_en) VALUES (UUID(), '$enrollment', '$route', '$nodeId', 'COMPLETADO', UTC_TIMESTAMP(6));"
+        Sql "INSERT INTO aprendizaje_progreso_nodo (inscripcion_id,version_ruta_id,nodo_ruta_id,estado,desbloqueado_en,primer_acceso_en,completado_en) VALUES ('$enrollment','$route','$nodeId','COMPLETADO',UTC_TIMESTAMP(6),UTC_TIMESTAMP(6),UTC_TIMESTAMP(6));"
     }
     # Y nodo 10 como DISPONIBLE
-    Sql "INSERT INTO aprendizaje_progreso_nodo (id, inscripcion_id, version_ruta_id, nodo_ruta_id, estado, primer_acceso_en) VALUES (UUID(), '$enrollment', '$route', '$node10', 'DISPONIBLE', UTC_TIMESTAMP(6));"
+    Sql "INSERT INTO aprendizaje_progreso_nodo (inscripcion_id,version_ruta_id,nodo_ruta_id,estado,desbloqueado_en) VALUES ('$enrollment','$route','$node10','DISPONIBLE',UTC_TIMESTAMP(6));"
 
     # 4. Iniciar y completar la última parada (Nodo 10)
     $startResp = Request "student/learning-routes/$route/nodes/$node10/start" 200 'POST' $auth
@@ -118,7 +124,7 @@ try {
     Sql "DELETE FROM gamificacion_movimiento_experiencia WHERE usuario_id = '$student';"
     Sql "DELETE FROM aprendizaje_progreso_nodo WHERE inscripcion_id = '$enrollment';"
     Sql "DELETE FROM aprendizaje_inscripcion_ruta WHERE id = '$enrollment';"
-    Sql "DELETE FROM identidad_sesion WHERE usuario_id = '$student';"
-    Sql "DELETE FROM identidad_estudiante WHERE usuario_id = '$student';"
-    Sql "DELETE FROM identidad_usuario WHERE id = '$student';"
+    Sql "DELETE FROM identidad_sesion_usuario WHERE usuario_id = '$student';"
+    Sql "DELETE FROM identidad_perfil_usuario WHERE usuario_id = '$student';"
+    Sql "DELETE FROM identidad_cuenta_usuario WHERE id = '$student';"
 }

@@ -21,7 +21,7 @@ Probado únicamente en **Fedora 44** (x86_64). Los scripts no usan nada propio d
 | MySQL portable | `.local/mysql-8.4.11-winx64` (`mysqld.exe`) | `.local/mysql-8.4.11-linux-glibc2.28-x86_64` (`mysqld`) |
 | Java 21 | Instalado en el sistema y en PATH | Temurin 21 en `~/jdks/`, fijado por `.local/env.sh` |
 | Comandos Node/Maven | `npm.cmd`, `mvn.cmd` | `npm`, `mvn` |
-| Verificación HU-01 | `scripts/Verificar-HU01.ps1` | Mismo script con `pwsh` (PowerShell 7) |
+| Verificación HU-01, 02–05, 08–11 y Auth | `scripts/Verificar-*.ps1` | Los mismos scripts con `pwsh` (PowerShell 7); ver «PowerShell 7 sin sudo» |
 | Verificación HU-02/03 | `python scripts/verify_learning_flow.py` | `python3 -I scripts/verify_learning_flow.py` |
 
 El código de la API, el frontend y el SQL son los mismos en ambos sistemas.
@@ -120,3 +120,17 @@ Compilación de la API con Java 21 y sus pruebas, `npm install` sin vulnerabilid
 - **Codificación:** usa UTF-8 en editores, `utf8mb4` en MySQL y archivos UTF-8 con BOM para PowerShell 5.1.
 - **Permisos:** los scripts `.sh` necesitan el bit de ejecución (`chmod +x`).
 - **PowerShell:** AGENTS.md exige compatibilidad con PowerShell 5.1 y 7+. Los `.ps1` del repositorio no se modifican para Linux.
+
+## PowerShell 7 sin sudo (para los `Verificar-*.ps1`)
+
+Descarga `powershell-<versión>-linux-x64.tar.gz` de `https://github.com/PowerShell/PowerShell/releases`, comprueba su SHA-256 con el publicado en la página de la versión y descomprímelo en una carpeta propia (por ejemplo `~/pwsh-7`). Después, desde la raíz del repo y con Rupi levantado:
+
+```bash
+~/pwsh-7/pwsh -NoProfile -File scripts/Verificar-HU01.ps1
+```
+
+Los scripts localizan solos el MySQL portable de `.local/` y usan `.local/root.cnf`. Probado con PowerShell 7.6 en Fedora 44.
+
+## Verificación de pantalla (Playwright)
+
+`scripts/verify_hu04_pantalla.mjs` necesita Playwright fuera del repo (instrucciones en el encabezado del archivo): `mkdir -p ~/pw-tmp && cd ~/pw-tmp && npm init -y && npm i playwright && npx playwright install firefox`, y luego `PLAYWRIGHT_DIR=~/pw-tmp node scripts/verify_hu04_pantalla.mjs`.

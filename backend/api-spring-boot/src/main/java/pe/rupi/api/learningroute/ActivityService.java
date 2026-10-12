@@ -387,7 +387,7 @@ public class ActivityService {
         var counts = jdbc.queryForObject(sqlCounts, new MapSqlParameterSource()
                 .addValue("studentId", studentId.toString())
                 .addValue("versionRouteId", versionRouteId.toString()),
-                (rs, rowNum) -> new NodeCounts(rs.getInt("total"), rs.getInt("completed")));
+                (rs, rowNum) -> new NodeCounts(rs.getInt("total_nodes"), rs.getInt("completed_nodes")));
 
         int totalNodes = counts != null ? counts.total() : 10;
         int completedNodes = counts != null ? counts.completed() : 0;

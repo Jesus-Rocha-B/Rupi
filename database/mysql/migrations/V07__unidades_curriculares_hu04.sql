@@ -169,3 +169,23 @@ UPDATE aprendizaje_bloque_contenido SET texto_cuerpo = 'Camina del banco a la fu
 WHERE version_actividad_id = 'fa000000-0000-4000-8000-000000000009' AND numero_secuencia = 1;
 UPDATE aprendizaje_bloque_contenido SET texto_cuerpo = 'En la cosecha hay 12 papas en una canasta. Si se llevan 5, ¿cuántas quedan? Si luego agregas 3, ¿cuántas hay? Explica a tu docente cómo lo pensaste y compara tu respuesta con la de un amigo.'
 WHERE version_actividad_id = 'fa000000-0000-4000-8000-000000000010' AND numero_secuencia = 1;
+
+-- Retira las dos unidades provisionales de seed-hu01.sql (ids u0000000-…001 y …002, que no son UUID válidos).
+-- Los nodos y actividades de la ruta ya apuntan a las unidades DEMO de arriba.
+UPDATE aprendizaje_nodo_ruta
+SET unidad_id = CASE
+      WHEN numero_secuencia BETWEEN 1 AND 4 THEN 'd1000000-0000-4000-8000-000000000001'
+      WHEN numero_secuencia BETWEEN 5 AND 7 THEN 'd1000000-0000-4000-8000-000000000002'
+      ELSE 'd1000000-0000-4000-8000-000000000003'
+    END
+WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000001'
+  AND unidad_id IN ('u0000000-0000-4000-8000-000000000001', 'u0000000-0000-4000-8000-000000000002');
+INSERT IGNORE INTO aprendizaje_actividad_unidad (version_actividad_id, unidad_id)
+SELECT n.version_actividad_id, n.unidad_id FROM aprendizaje_nodo_ruta n
+WHERE n.version_ruta_id = 'b0000000-0000-4000-8000-000000000001' AND n.unidad_id IS NOT NULL;
+DELETE FROM aprendizaje_actividad_unidad WHERE unidad_id IN ('u0000000-0000-4000-8000-000000000001', 'u0000000-0000-4000-8000-000000000002');
+DELETE FROM curriculo_unidad_competencia WHERE unidad_id IN ('u0000000-0000-4000-8000-000000000001', 'u0000000-0000-4000-8000-000000000002');
+DELETE FROM curriculo_unidad_estandar WHERE unidad_id IN ('u0000000-0000-4000-8000-000000000001', 'u0000000-0000-4000-8000-000000000002');
+DELETE FROM curriculo_unidad_meta WHERE unidad_id IN ('u0000000-0000-4000-8000-000000000001', 'u0000000-0000-4000-8000-000000000002');
+DELETE FROM curriculo_unidad WHERE id IN ('u0000000-0000-4000-8000-000000000001', 'u0000000-0000-4000-8000-000000000002')
+  AND NOT EXISTS (SELECT 1 FROM aprendizaje_nodo_ruta n WHERE n.unidad_id = curriculo_unidad.id);

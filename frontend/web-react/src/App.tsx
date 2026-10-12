@@ -26,6 +26,7 @@ import { RoadmapSkeleton } from './features/roadmap/RoadmapSkeleton'
 import {
   ApiError,
   fetchRouteDetail,
+  enrollInRoute,
   fetchStudentRoutes,
   fetchStudentBadges,
   fetchRouteDiploma,
@@ -259,7 +260,15 @@ function App() {
           setLoading(false)
           return
         }
-        const detail = await fetchRouteDetail(id, signal)
+        let detail: RouteDetail
+        try {
+          detail = await fetchRouteDetail(id, signal)
+        } catch (error) {
+          // Ruta publicada del catálogo en la que aún no está inscrito: la inscripción es una acción explícita.
+          const notEnrolled = error instanceof ApiError && error.status === 404 && !list.some(r => r.versionRouteId === id)
+          if (!notEnrolled) throw error
+          detail = await enrollInRoute(id, signal)
+        }
         if (signal.aborted) return
         setSelectedRoute(detail)
         // Si la ruta obtenida fue auto-inscrita y no estaba en la lista previa, agregarla al estado
