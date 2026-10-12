@@ -149,6 +149,23 @@ public final class LearningRouteDtos {
             String icon
     ) {}
 
+    public record RouteDiplomaResponse(
+            UUID versionRouteId,
+            String routeTitle,
+            String studentName,
+            String schoolName,
+            int gradeNumber,
+            String gradeName,
+            String areaName,
+            int totalCompletedNodes,
+            int totalNodes,
+            int totalExperienceEarned,
+            String completedAt,
+            BadgeDto graduationBadge,
+            List<Competency> competencies,
+            String rupiHonorMessage
+    ) {}
+
     public record ActivityCompleteResponse(
             UUID nodeId,
             String state,
@@ -156,8 +173,22 @@ public final class LearningRouteDtos {
             int totalExperience,
             NextUnlockedNode nextUnlockedNode,
             String rupiMessage,
-            BadgeDto badgeEarned
+            BadgeDto badgeEarned,
+            boolean isRouteCompleted,
+            int routeBonusExperience
     ) {
+        public ActivityCompleteResponse(
+                UUID nodeId,
+                String state,
+                int experienceEarned,
+                int totalExperience,
+                NextUnlockedNode nextUnlockedNode,
+                String rupiMessage,
+                BadgeDto badgeEarned
+        ) {
+            this(nodeId, state, experienceEarned, totalExperience, nextUnlockedNode, rupiMessage, badgeEarned, false, 0);
+        }
+
         public ActivityCompleteResponse(
                 UUID nodeId,
                 String state,
@@ -166,7 +197,7 @@ public final class LearningRouteDtos {
                 NextUnlockedNode nextUnlockedNode,
                 String rupiMessage
         ) {
-            this(nodeId, state, experienceEarned, totalExperience, nextUnlockedNode, rupiMessage, null);
+            this(nodeId, state, experienceEarned, totalExperience, nextUnlockedNode, rupiMessage, null, false, 0);
         }
     }
 }

@@ -33,7 +33,7 @@ public class GamificationController {
                 ORDER BY u.obtenida_en DESC
                 """;
         return jdbc.query(sql, new MapSqlParameterSource("userId", studentId.toString()),
-                (rs, _) -> new BadgeDto(
+                (rs, rowNum) -> new BadgeDto(
                         rs.getString("codigo"),
                         rs.getString("nombre"),
                         rs.getString("descripcion"),

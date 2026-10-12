@@ -25,14 +25,6 @@
 }
 
 .unit-band-title {
-<<<<<<< HEAD
-  font: 900 15px/1.25 var(--display-font);
-}
-
-.unit-band-competencies {
-  font: 700 13px/1.3 var(--body-font);
-  color: #173e30;
-=======
   font-family: var(--display-font, 'Nunito', sans-serif);
   font-weight: 900;
   font-size: 15px;
@@ -46,7 +38,6 @@
   line-height: 1.3;
   color: #173e30;
   opacity: 0.9;
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
 }
 
 .unit-band-progress {
@@ -54,9 +45,13 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: #173e30;
-<<<<<<< HEAD
   color: #fffefa;
-  font: 800 13px/1.2 var(--display-font);
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 800;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .curriculum-note {
@@ -66,41 +61,15 @@
   border-radius: 12px;
   background: #fffefa;
   color: #173e30;
-  font: 700 14px/1.4 var(--body-font);
+  font-family: var(--body-font, 'Nunito', sans-serif);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .curriculum-note.incoherente,
 .curriculum-note.no_vigente {
   border-color: #cc3a1d;
-}
-
-/* En pantallas angostas el mapa pasa a columna (App.css): la banda entra en el flujo */
-@media (max-width: 640px) {
-  .unit-band {
-    position: relative;
-    z-index: 1;
-    top: auto !important;
-    left: auto;
-    right: auto;
-    width: 100%;
-    padding: 8px 12px;
-  }
-
-  .unit-band-title {
-    font-size: 14px;
-  }
-
-  /* El conector punteado no debe seguir hasta la banda: la banda abre otro tramo */
-  .trail-stop:has(+ .unit-band)::before {
-    display: none;
-=======
-  color: #fff;
-  font-family: var(--display-font, 'Nunito', sans-serif);
-  font-weight: 800;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 @media (max-width: 768px) {
@@ -115,6 +84,17 @@
   }
   .unit-band-competencies {
     font-size: 11px;
->>>>>>> 656170f (Se implementó el flujo completo de inicio y finalización de lecciones escolares con otorgamiento idempotente de 50 puntos de experiencia y desbloqueo automático de la siguiente parada para cumplir con HU-02 y HU-05, además se configuró el desplazamiento suave y centrado accesible del mapa en el último nodo visitado junto con el acceso directo desde el botón de bienvenida para cumplir con HU-03, también se corrigieron las discrepancias de columnas de catálogo en el repositorio de Spring Boot para enlazar las unidades y competencias curriculares oficiales del MINEDU con sus respectivas bandas visuales en el roadmap para cumplir con HU-04, asimismo se diseñó el modal didáctico de actividades con estados de carga interactivos, contenido explicativo de respaldo y pantalla de celebración con Rupi festejando y audio de felicitación, y finalmente se agregaron las pruebas unitarias en JUnit, el script de integración para PowerShell y la documentación técnica detallada de las cuatro historias en la carpeta de implementación)
+  }
+}
+
+@media (max-width: 640px) {
+  .unit-band {
+    position: relative;
+    z-index: 1;
+    top: auto !important;
+    left: auto;
+    right: auto;
+    width: 100%;
+    padding: 8px 12px;
   }
 }

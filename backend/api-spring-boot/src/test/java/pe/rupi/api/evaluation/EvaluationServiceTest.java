@@ -42,7 +42,7 @@ class EvaluationServiceTest {
         // Mock 1: Pregunta existe
         doAnswer(call -> {
             String sql = call.getArgument(0);
-            if (sql.contains("FROM evaluacion_pregunta WHERE id = :qId")) {
+            if (sql.contains("FROM evaluacion_pregunta") && sql.contains(":qId")) {
                 var rs = mock(java.sql.ResultSet.class);
                 when(rs.getString("enunciado")).thenReturn("¿Cuánto es 5 + 4?");
                 when(rs.getString("explicacion")).thenReturn("5 + 4 = 9");
@@ -77,7 +77,7 @@ class EvaluationServiceTest {
         assertTrue(feedback.isCorrect());
         assertEquals(questionId, feedback.questionId());
         assertEquals(correctOptionId, feedback.correctOptionId());
-        assertTrue(feedback.rupiFeedback().contains("Excelente"));
+        assertTrue(feedback.feedbackMessage().contains("Excelente"));
     }
 
     @Test
@@ -86,7 +86,7 @@ class EvaluationServiceTest {
 
         doAnswer(call -> {
             String sql = call.getArgument(0);
-            if (sql.contains("FROM evaluacion_pregunta WHERE id = :qId")) {
+            if (sql.contains("FROM evaluacion_pregunta") && sql.contains(":qId")) {
                 var rs = mock(java.sql.ResultSet.class);
                 when(rs.getString("enunciado")).thenReturn("¿Cuánto es 10 - 3?");
                 when(rs.getString("explicacion")).thenReturn("Restamos 10 - 3 = 7");
@@ -120,7 +120,7 @@ class EvaluationServiceTest {
         assertNotNull(feedback);
         assertFalse(feedback.isCorrect());
         assertEquals(correctOptionId, feedback.correctOptionId());
-        assertTrue(feedback.rupiFeedback().contains("Buen intento"));
-        assertTrue(feedback.rupiFeedback().contains("Restamos 10 - 3 = 7"));
+        assertTrue(feedback.feedbackMessage().contains("Buen intento"));
+        assertTrue(feedback.explanation().contains("Restamos 10 - 3 = 7"));
     }
 }

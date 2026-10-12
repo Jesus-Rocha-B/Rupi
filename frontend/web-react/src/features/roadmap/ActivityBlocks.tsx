@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Award,
   CheckCircle2,
+  Feather,
   HelpCircle,
   Sparkles,
   Volume2,
@@ -37,9 +38,10 @@ type Props = {
   routeId: string
   onComplete?: (result: ActivityCompleteResult) => void
   onClose: () => void
+  onOpenDiploma?: () => void
 }
 
-export function ActivityBlocks({ activity, routeId, onComplete, onClose }: Props) {
+export function ActivityBlocks({ activity, routeId, onComplete, onClose, onOpenDiploma }: Props) {
   const [busy, setBusy] = useState(false)
   const [completionResult, setCompletionResult] = useState<ActivityCompleteResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -92,7 +94,9 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose }: Props
     try {
       const res = await completeActivity(routeId, activity.nodeId)
       setCompletionResult(res)
-      const speech = res.badgeEarned
+      const speech = res.isRouteCompleted
+        ? `¡Misión Cumplida! Has completado todas las paradas de la ruta. Obtuviste la insignia de graduación ${res.badgeEarned?.name || 'Gran Gallito de Oro'}, cien puntos de experiencia de bono y tu diploma escolar está listo.`
+        : res.badgeEarned
         ? `¡Felicitaciones! Has obtenido la insignia ${res.badgeEarned.name}. ${res.rupiMessage}`
         : res.rupiMessage
       speakText(speech)
@@ -128,17 +132,32 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose }: Props
           <span>+{completionResult.experienceEarned} XP</span>
         </div>
 
-        <h3 className="celebration-title">¡Misión Cumplida!</h3>
+        {completionResult.routeBonusExperience ? (
+          <div className="celebration-xp-pill" style={{ background: '#ffd26a', color: '#7a4e05', border: '1.5px solid #dca331' }}>
+            <Sparkles size={18} aria-hidden="true" />
+            <span>+{completionResult.routeBonusExperience} XP Bono de Graduación</span>
+          </div>
+        ) : null}
+
+        <h3 className="celebration-title">
+          {completionResult.isRouteCompleted ? '¡Ruta Escolar Culminada!' : '¡Misión Cumplida!'}
+        </h3>
         <p className="celebration-message">{completionResult.rupiMessage}</p>
 
-        {/* Insignia ganada (HU-07) */}
+        {/* Insignia ganada (HU-07 / HU-08) */}
         {completionResult.badgeEarned && (
           <div className="celebration-badge-card" role="region" aria-label="Insignia ganada">
             <div className="badge-icon-disc">
-              <Award size={34} className="badge-gold-icon" aria-hidden="true" />
+              {completionResult.badgeEarned.icon === 'feather' ? (
+                <Feather size={34} className="badge-gold-icon" aria-hidden="true" />
+              ) : (
+                <Award size={34} className="badge-gold-icon" aria-hidden="true" />
+              )}
             </div>
             <div className="badge-text-group">
-              <span className="badge-tag">¡NUEVA INSIGNIA ESCOLAR!</span>
+              <span className="badge-tag">
+                {completionResult.isRouteCompleted ? '¡INSIGNIA DE GRADUACIÓN!' : '¡NUEVA INSIGNIA ESCOLAR!'}
+              </span>
               <h4 className="badge-name">{completionResult.badgeEarned.name}</h4>
               <p className="badge-desc">{completionResult.badgeEarned.description}</p>
             </div>
@@ -155,11 +174,26 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose }: Props
         )}
 
         <div className="celebration-actions">
+          {completionResult.isRouteCompleted && onOpenDiploma && (
+            <button
+              type="button"
+              className="celebration-diploma-btn"
+              onClick={() => {
+                onClose()
+                onOpenDiploma()
+              }}
+              autoFocus
+            >
+              <Award size={20} aria-hidden="true" />
+              <span>Ver mi Diploma de Logro Escolar</span>
+            </button>
+          )}
+
           <button
             type="button"
             className="celebration-continue-btn"
             onClick={onClose}
-            autoFocus
+            autoFocus={!completionResult.isRouteCompleted}
           >
             <span>Continuar mi aventura</span>
             <ArrowRight size={18} aria-hidden="true" />
@@ -170,7 +204,9 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose }: Props
             className="celebration-speech-btn"
             onClick={() =>
               speakText(
-                completionResult.badgeEarned
+                completionResult.isRouteCompleted
+                  ? `¡Misión Cumplida! Has completado todas las paradas de la ruta. Obtuviste la insignia de graduación ${completionResult.badgeEarned?.name || 'Gran Gallito de Oro'}, cien puntos de experiencia de bono y tu diploma escolar está listo.`
+                  : completionResult.badgeEarned
                   ? `¡Felicitaciones! Has obtenido la insignia ${completionResult.badgeEarned.name}. ${completionResult.rupiMessage}`
                   : completionResult.rupiMessage
               )

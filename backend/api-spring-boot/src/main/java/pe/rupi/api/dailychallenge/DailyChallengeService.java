@@ -38,7 +38,7 @@ public class DailyChallengeService {
                 LIMIT 1
                 """;
         List<String> grades = jdbc.query(sqlGrade, new MapSqlParameterSource("studentId", studentId.toString()),
-                (rs, _) -> rs.getString("grado_id"));
+                (rs, rowNum) -> rs.getString("grado_id"));
         String gradeId = grades.isEmpty() ? DEFAULT_GRADE_ID : grades.getFirst();
 
         // 2. Buscar reto diario vigente para ese grado
@@ -53,7 +53,7 @@ public class DailyChallengeService {
         var params = new MapSqlParameterSource("gradeId", gradeId);
 
         record ChallengeRaw(UUID id, String date, UUID activityVersionId, String title, String instructions, Integer minutes) {}
-        var challengeOpt = jdbc.query(sqlChallenge, params, (rs, _) -> new ChallengeRaw(
+        var challengeOpt = jdbc.query(sqlChallenge, params, (rs, rowNum) -> new ChallengeRaw(
                 UUID.fromString(rs.getString("id")),
                 rs.getString("fecha"),
                 UUID.fromString(rs.getString("version_actividad_id")),
@@ -109,7 +109,7 @@ public class DailyChallengeService {
                 """;
         record ChallengeInfo(UUID id, UUID activityVersionId, String title) {}
         var challenge = jdbc.query(sqlChallenge, new MapSqlParameterSource("challengeId", challengeId.toString()),
-                (rs, _) -> new ChallengeInfo(
+                (rs, rowNum) -> new ChallengeInfo(
                         UUID.fromString(rs.getString("id")),
                         UUID.fromString(rs.getString("version_actividad_id")),
                         rs.getString("titulo")

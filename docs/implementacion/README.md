@@ -1,10 +1,10 @@
-# Plan de implementación · primeras cuatro historias
+# Plan de implementación · primeras ocho historias
 
 ## Propósito y alcance
 
-Este plan organiza la primera entrega funcional de RUPI para estudiantes web. Implementaremos cuatro historias en orden, partiendo de la ruta y el mapa que ya aparecen en el prototipo.
+Este plan organiza la primera entrega funcional de RUPI para estudiantes web. Implementaremos ocho historias en orden, partiendo de la ruta y el mapa que ya aparecen en el prototipo.
 
-El modelo MySQL contempla las 60 historias del backlog general; esta entrega cubre solo HU-01 a HU-04. Kotlin y el administrador Django tienen carpetas propias y se incorporarán cuando las historias requieran funciones móviles o administrativas.
+El modelo MySQL contempla las 60 historias del backlog general; esta entrega cubre las historias HU-01 a HU-08. Kotlin y el administrador Django tienen carpetas propias y se incorporarán cuando las historias requieran funciones móviles o administrativas.
 
 ## Arquitectura de estas historias
 
@@ -31,6 +31,7 @@ React no recibe `estudianteId` desde el navegador ni accede a MySQL directamente
 | 5 | HU-05 · Completar lección y gamificación | Finalizar parada, ganar +50 XP y desbloquear siguiente nivel. | HU-02 y HU-03 con libro de movimientos XP. | Completada. |
 | 6 | HU-06 · Preguntas interactivas y retroalimentación formativa | Responder preguntas didácticas táctiles con feedback formativo de Rupi. | HU-02 y HU-05 con modelo de evaluación. | Completada. |
 | 7 | HU-07 · Insignias escolares y resumen formativo | Resumen de aciertos, desbloqueo de insignia y vitrina de medallas. | HU-05 y HU-06 con persistencia de insignias. | Completada. |
+| 8 | HU-08 · Culminación de ruta y diploma de honor | Celebrar finalización de ruta, Gran Gallito de Oro y diploma imprimible. | HU-05 a HU-07 con culminación de todas las paradas. | Completada. |
 
 La historia HU-03 depende de que HU-02 registre la visita. HU-04 depende de datos oficiales/versionados; no se cumple con texto decorativo ni ordenado solo en React.
 
@@ -218,6 +219,15 @@ La calificación de respuestas, finalización y entrega de XP quedan fuera de es
 - [x] Endpoint de consulta de insignias del estudiante (`GET /api/v1/student/badges`).
 - [x] Exhibición de la bandeja de insignias ganadas en el Hero del roadmap.
 
+### HU-08 · Culminación de ruta y diploma de honor
+
+- [x] Detección atómica de completado de todas las paradas de la ruta.
+- [x] Siembra y otorgamiento idempotente de la Gran Insignia `GRAN_TUNQUI_ORO`.
+- [x] Bonificación de culminación de ruta (+100 XP) en el libro de movimientos.
+- [x] Endpoint de diploma escolar (`GET /api/v1/student/learning-routes/{versionRouteId}/diploma`).
+- [x] Componente React `RouteDiplomaModal` con soporte de impresión y síntesis de voz.
+- [x] Celebración ampliada de fin de ruta y botón permanente de diploma en el Hero.
+
 ## Definición de terminado
 
 Cada historia se marca terminada cuando sus criterios pueden demostrarse en la web, la API aplica autenticación y autorización, MySQL conserva los cambios tras recargar, no se presentan datos de demostración como reales y se ha comprobado el comportamiento con MySQL de desarrollo. Los requisitos de privacidad y acceso para menores se resuelven antes de publicar.
@@ -231,6 +241,7 @@ Cada historia se marca terminada cuando sus criterios pueden demostrarse en la w
 - [HU-05: completar lección y gamificación XP](HU-05-completar-actividad-gamificacion.md)
 - [HU-06: preguntas interactivas y retroalimentación formativa](HU-06-preguntas-retroalimentacion-leccion.md)
 - [HU-07: insignias escolares y resumen formativo](HU-07-insignias-resumen-formativo.md)
+- [HU-08: culminación de ruta y diploma de honor](HU-08-culminacion-ruta-diploma.md)
 - [README de MySQL](../../database/mysql/README.md)
 - [DDL MySQL](../../database/mysql/schema.sql)
 - [Diagrama ER](../../database/mysql/rupi.dbml)

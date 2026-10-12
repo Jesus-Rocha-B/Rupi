@@ -116,16 +116,17 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
   const trailPath = useMemo(() => createTrailPath(points), [points])
 
   // Identificar el nodo activo (priorizando el último visitado guardado en BD, HU-03)
+  const lastVisitedNodeId = route.enrollment?.lastVisitedNodeId
   const activeIndex = useMemo(() => {
-    if (route.enrollment?.lastVisitedNodeId) {
-      const lastIdx = route.nodes.findIndex((n) => n.id === route.enrollment.lastVisitedNodeId)
+    if (lastVisitedNodeId) {
+      const lastIdx = route.nodes.findIndex((n) => n.id === lastVisitedNodeId)
       if (lastIdx !== -1) return lastIdx
     }
     const idx = route.nodes.findIndex((n) => n.state === 'EN_CURSO')
     if (idx !== -1) return idx
     const availIdx = route.nodes.findIndex((n) => n.state === 'DISPONIBLE')
     return availIdx !== -1 ? availIdx : 0
-  }, [route.nodes, route.enrollment?.lastVisitedNodeId])
+  }, [route.nodes, lastVisitedNodeId])
 
   // Desplazar suavemente el mapa al nodo activo al cargar la ruta (HU-03)
   useEffect(() => {
@@ -238,9 +239,9 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                 {/* Destellos de celebración en paradas completadas */}
                 {node.state === 'COMPLETADO' && (
                   <div className="completion-burst" aria-hidden="true">
-                    <span className="burst-star star-1">✦</span>
-                    <span className="burst-star star-2">✦</span>
-                    <span className="burst-star star-3">✦</span>
+                    <Sparkles size={12} className="burst-star star-1" />
+                    <Sparkles size={10} className="burst-star star-2" />
+                    <Sparkles size={14} className="burst-star star-3" />
                   </div>
                 )}
 
@@ -328,7 +329,6 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                 )}
               </div>
             </div>
-            </Fragment>
           )
         })}
 

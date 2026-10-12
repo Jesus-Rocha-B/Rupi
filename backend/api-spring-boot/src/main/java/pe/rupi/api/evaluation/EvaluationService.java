@@ -38,7 +38,7 @@ public class EvaluationService {
         var params = new MapSqlParameterSource("actId", activityVersionId.toString());
 
         record QuestionRaw(UUID id, int sequence, String type, String statement, String explanation, BigDecimal points) {}
-        List<QuestionRaw> questionsRaw = jdbc.query(sqlQuestions, params, (rs, _) -> new QuestionRaw(
+        List<QuestionRaw> questionsRaw = jdbc.query(sqlQuestions, params, (rs, rowNum) -> new QuestionRaw(
                 UUID.fromString(rs.getString("id")),
                 rs.getInt("numero_secuencia"),
                 rs.getString("tipo"),
@@ -49,7 +49,7 @@ public class EvaluationService {
 
         if (questionsRaw.isEmpty()) {
             seedDefaultQuestions(activityVersionId);
-            questionsRaw = jdbc.query(sqlQuestions, params, (rs, _) -> new QuestionRaw(
+            questionsRaw = jdbc.query(sqlQuestions, params, (rs, rowNum) -> new QuestionRaw(
                     UUID.fromString(rs.getString("id")),
                     rs.getInt("numero_secuencia"),
                     rs.getString("tipo"),
@@ -71,14 +71,14 @@ public class EvaluationService {
                 """;
 
         Map<UUID, List<OptionDto>> optionsByQuestion = new HashMap<>();
-        jdbc.query(sqlOptions, params, (rs, _) -> {
+        jdbc.query(sqlOptions, params, (rs, rowNum) -> {
             UUID qId = UUID.fromString(rs.getString("pregunta_id"));
             OptionDto opt = new OptionDto(
                     UUID.fromString(rs.getString("id")),
                     rs.getInt("numero_secuencia"),
                     rs.getString("texto")
             );
-            optionsByQuestion.computeIfAbsent(qId, _ -> new ArrayList<>()).add(opt);
+            optionsByQuestion.computeIfAbsent(qId, k -> new ArrayList<>()).add(opt);
             return null;
         });
 
@@ -118,7 +118,7 @@ public class EvaluationService {
                 .addValue("actId", activityVersionId.toString());
 
         record QuestionInfo(String statement, String explanation, BigDecimal points) {}
-        var qInfo = jdbc.query(sqlQuestion, qParams, (rs, _) -> new QuestionInfo(
+        var qInfo = jdbc.query(sqlQuestion, qParams, (rs, rowNum) -> new QuestionInfo(
                 rs.getString("enunciado"),
                 rs.getString("explicacion"),
                 rs.getBigDecimal("puntos")
@@ -136,7 +136,7 @@ public class EvaluationService {
                 LIMIT 1
                 """;
         var correctList = jdbc.query(sqlCorrectOpt, new MapSqlParameterSource("qId", request.questionId().toString()),
-                (rs, _) -> UUID.fromString(rs.getString("id")));
+                (rs, rowNum) -> UUID.fromString(rs.getString("id")));
         if (!correctList.isEmpty()) {
             correctOptionId = correctList.getFirst();
         }
@@ -150,7 +150,7 @@ public class EvaluationService {
                     .addValue("optId", request.selectedOptionId().toString())
                     .addValue("qId", request.questionId().toString());
 
-            var selectedCorrect = jdbc.query(sqlCheck, checkParams, (rs, _) -> rs.getBoolean("es_correcta"));
+            var selectedCorrect = jdbc.query(sqlCheck, checkParams, (rs, rowNum) -> rs.getBoolean("es_correcta"));
             if (!selectedCorrect.isEmpty() && Boolean.TRUE.equals(selectedCorrect.getFirst())) {
                 isCorrect = true;
             }
@@ -166,7 +166,7 @@ public class EvaluationService {
                 .addValue("studentId", studentId.toString())
                 .addValue("actId", activityVersionId.toString());
 
-        List<String> attempts = jdbc.query(sqlFindAttempt, attParams, (rs, _) -> rs.getString("id"));
+        List<String> attempts = jdbc.query(sqlFindAttempt, attParams, (rs, rowNum) -> rs.getString("id"));
         String attemptId;
         if (attempts.isEmpty()) {
             attemptId = UUID.randomUUID().toString();
@@ -306,7 +306,7 @@ public class EvaluationService {
                 .addValue("actId", activityVersionId.toString());
 
         record RawSummary(int totalAnswered, int correctCount, BigDecimal totalScore) {}
-        var raw = jdbc.query(sql, params, (rs, _) -> new RawSummary(
+        var raw = jdbc.query(sql, params, (rs, rowNum) -> new RawSummary(
                 rs.getInt("total_answered"),
                 rs.getInt("correct_count"),
                 rs.getBigDecimal("total_score")

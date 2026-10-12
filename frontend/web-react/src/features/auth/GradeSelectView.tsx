@@ -113,7 +113,6 @@ const BASE_COURSES: CourseOption[] = [
 
 export function GradeSelectView({
   student,
-  routes: _routes,
   initialGrade = null,
   onSelectGradeAndCourse,
   onLogout,

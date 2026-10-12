@@ -51,7 +51,7 @@ class ActivityServiceTest {
         assertEquals("EN_CURSO", service.start(student, route, node).state());
     }
 
-    @Test void completingActiveActivityAwards50XpAndBadge() {
+    @Test void completingActiveActivityAwards50XpAndNextNode() {
         doAnswer(call -> {
             String sql = call.getArgument(0);
             if (sql.contains("FOR UPDATE")) {
@@ -64,21 +64,62 @@ class ActivityServiceTest {
                 return List.of(mapper.mapRow(rs, 0));
             }
             if (sql.contains("WHERE n.version_ruta_id = :route")) {
-                return List.of();
+                var rs = mock(java.sql.ResultSet.class);
+                when(rs.getString("id")).thenReturn(UUID.randomUUID().toString());
+                when(rs.getInt("numero_secuencia")).thenReturn(2);
+                when(rs.getString("titulo")).thenReturn("Segunda Parada");
+                when(rs.getString("estado")).thenReturn("BLOQUEADO");
+                RowMapper<?> mapper = call.getArgument(2);
+                return List.of(mapper.mapRow(rs, 0));
             }
             return List.of();
         }).when(jdbc).query(anyString(), any(SqlParameterSource.class), any(RowMapper.class));
 
         when(jdbc.queryForObject(anyString(), any(SqlParameterSource.class), eq(Integer.class)))
-                .thenReturn(150);
+                .thenReturn(50);
         when(jdbc.update(anyString(), any(SqlParameterSource.class))).thenReturn(1);
 
         var result = service.complete(student, route, node);
 
         assertEquals("COMPLETADO", result.state());
         assertEquals(50, result.experienceEarned());
-        assertEquals(150, result.totalExperience());
+        assertFalse(result.isRouteCompleted());
+        assertNotNull(result.nextUnlockedNode());
         assertNotNull(result.badgeEarned());
         assertEquals("EXPLORADOR_AYACUCHO", result.badgeEarned().code());
+    }
+
+    @Test void completingFinalNodeAwardsGranTunquiOroAndRouteBonus() {
+        doAnswer(call -> {
+            String sql = call.getArgument(0);
+            if (sql.contains("FOR UPDATE")) {
+                var rs = mock(java.sql.ResultSet.class);
+                when(rs.getString("enrollment_id")).thenReturn("enrollment-1");
+                when(rs.getString("version_actividad_id")).thenReturn("activity-10");
+                when(rs.getInt("numero_secuencia")).thenReturn(10);
+                when(rs.getString("estado")).thenReturn("EN_CURSO");
+                RowMapper<?> mapper = call.getArgument(2);
+                return List.of(mapper.mapRow(rs, 0));
+            }
+            if (sql.contains("WHERE n.version_ruta_id = :route")) {
+                return List.of(); // Sin nodos posteriores -> fin de ruta
+            }
+            return List.of();
+        }).when(jdbc).query(anyString(), any(SqlParameterSource.class), any(RowMapper.class));
+
+        when(jdbc.queryForObject(anyString(), any(SqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(650);
+        when(jdbc.update(anyString(), any(SqlParameterSource.class))).thenReturn(1);
+
+        var result = service.complete(student, route, node);
+
+        assertEquals("COMPLETADO", result.state());
+        assertEquals(50, result.experienceEarned());
+        assertTrue(result.isRouteCompleted());
+        assertEquals(100, result.routeBonusExperience());
+        assertNull(result.nextUnlockedNode());
+        assertNotNull(result.badgeEarned());
+        assertEquals("GRAN_TUNQUI_ORO", result.badgeEarned().code());
+        assertEquals("Gran Gallito de Oro", result.badgeEarned().name());
     }
 }

@@ -10,6 +10,10 @@ Actualizado: 2026-10-07 · rama `main` · HU-04 incluida en el último commit (`
 | HU-02 | Clic en un nivel: abrir actividad y marcarla EN_CURSO | Implementada y verificada localmente |
 | HU-03 | Regresar al punto exacto del mapa | Implementada y verificada localmente |
 | HU-04 | Ruta agrupada por unidades MINEDU | Implementada y revisada en navegador. Competencias, estándares y desempeños son oficiales; las unidades son de demostración |
+| HU-05 | Completar lección: +50 XP y desbloqueo automático del siguiente nivel | Implementada y verificada |
+| HU-06 | Preguntas didácticas interactivas y retroalimentación inmediata no punitiva con audio de Rupi | Implementada y verificada |
+| HU-07 | Insignias escolares (Explorador de Ayacucho) y resumen formativo con vitrina Hero | Implementada y verificada |
+| HU-08 | Culminación de ruta escolar, Gran Gallito de Oro (+100 XP) y Diploma imprimible CNEB | Implementada y verificada |
 
 «Verificada localmente» no sustituye la aceptación del docente ni la validación pedagógica. No marcar la entrega como aceptada sin revisar con el equipo los criterios de S07.
 

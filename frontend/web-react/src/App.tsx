@@ -27,6 +27,7 @@ import {
   fetchRouteDetail,
   fetchStudentRoutes,
   fetchStudentBadges,
+  fetchRouteDiploma,
   fetchSession,
   fetchSessionOptions,
   login,
@@ -36,6 +37,7 @@ import {
   type ActivityCompleteResult,
   type ActivityContent,
   type BadgeDto,
+  type RouteDiplomaResponse,
   type RouteDetail,
   type RouteNode,
   type RouteSummary,
@@ -48,6 +50,7 @@ import { LoginView } from './features/auth/LoginView'
 import { GradeSelectView } from './features/auth/GradeSelectView'
 import { RupiCharacter } from './components/RupiCharacter'
 import { ActivityBlocks } from './features/roadmap/ActivityBlocks'
+import { RouteDiplomaModal } from './components/RouteDiplomaModal'
 import { speakText } from './utils/speech'
 import './App.css'
 
@@ -76,6 +79,8 @@ function App() {
   const [activity, setActivity] = useState<ActivityContent | null>(null)
   const [activityLoading, setActivityLoading] = useState(false)
   const [activityError, setActivityError] = useState<string | null>(null)
+  const [diplomaOpen, setDiplomaOpen] = useState(false)
+  const [diplomaData, setDiplomaData] = useState<RouteDiplomaResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [errorType, setErrorType] = useState<Failure>(null)
   const [guideIndex, setGuideIndex] = useState(0)
@@ -89,6 +94,17 @@ function App() {
     return localStorage.getItem('rupi_selected_course') || 'MATEMATICA'
   })
   const dialog = useRef<HTMLDialogElement>(null)
+
+  async function handleOpenDiploma() {
+    if (!selectedRoute) return
+    try {
+      const data = await fetchRouteDiploma(selectedRoute.versionRouteId)
+      setDiplomaData(data)
+      setDiplomaOpen(true)
+    } catch {
+      // Si falla la red, no interrumpe la navegación
+    }
+  }
 
   useEffect(() => {
     if (!selectedNode || !dialog.current) return
@@ -153,10 +169,10 @@ function App() {
           ...prev.curriculum,
           units: prev.curriculum.units.map(unit => ({
             ...unit,
-            completedNodes: unit.nodes.filter(un =>
+            completedNodes: (unit.nodes || []).filter(un =>
               un.id === result.nodeId ? true : updatedNodes.find(n => n.id === un.id)?.state === 'COMPLETADO'
             ).length,
-            nodes: unit.nodes.map(un => {
+            nodes: (unit.nodes || []).map(un => {
               const matching = updatedNodes.find(n => n.id === un.id)
               return matching ? { ...un, state: matching.state } : un
             })
@@ -171,6 +187,9 @@ function App() {
           : r
       )
     )
+    if (result.isRouteCompleted) {
+      void fetchStudentBadges().then(setBadges).catch(() => {})
+    }
   }
 
   useEffect(() => {
@@ -535,6 +554,7 @@ function App() {
                 name={student.name}
                 badges={badges}
                 onSelect={handleOpenNode}
+                onOpenDiploma={handleOpenDiploma}
               />
             )}
 
@@ -703,7 +723,7 @@ function App() {
           {activityLoading ? (
             <div className="activity-loading-state" role="status" aria-live="polite">
               <div className="activity-loading-mascot" aria-hidden="true">
-                <RupiCharacter mood="talking" className="loading-rupi-svg" />
+                <RupiCharacter mood="thinking" className="loading-rupi-svg" />
               </div>
               <p className="activity-loading-text">Preparando tu lección... ¡Ya casi estamos listos!</p>
             </div>
@@ -745,6 +765,7 @@ function App() {
               routeId={selectedRoute?.versionRouteId ?? ''}
               onComplete={handleActivityCompleted}
               onClose={() => setSelectedNode(null)}
+              onOpenDiploma={handleOpenDiploma}
             />
           ) : (
             <>
@@ -795,6 +816,13 @@ function App() {
             </>
           )}
         </dialog>
+      )}
+
+      {diplomaOpen && diplomaData && (
+        <RouteDiplomaModal
+          diploma={diplomaData}
+          onClose={() => setDiplomaOpen(false)}
+        />
       )}
     </div>
   )

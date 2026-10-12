@@ -2,6 +2,27 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-11 · HU-08: Culminación de ruta escolar, Gran Gallito de Oro y Diploma imprimible CNEB
+
+Detalle y especificación técnica en `docs/implementacion/HU-08-culminacion-ruta-diploma.md`.
+
+**Backend (Spring Boot & MySQL)**
+- Transacción atómica de graduación en `ActivityService.java`: al completar la última parada de la ruta (secuencia máxima / nodo 10), se marca la inscripción como `COMPLETADO`.
+- Siembra y asignación idempotente de la Gran Insignia de Graduación `GRAN_TUNQUI_ORO` (*«Gran Gallito de Oro»*, icono `feather`), respetando el principio de escritor único.
+- Otorgamiento de bono de graduación de `+100 XP` en `gamificacion_movimiento_experiencia` con motivo `GRADUACION` y llave de idempotencia SHA/UUID única.
+- Endpoint institucional oficial `GET /api/v1/student/learning-routes/{versionRouteId}/diploma` en `LearningRouteController.java`: retorna datos del estudiante, I.E. escolar, grado, área, total de paradas logradas (10/10), XP total acumulado, lista de competencias oficiales CNEB y mensaje de aliento de Rupi.
+- Pruebas unitarias en `ActivityServiceTest` y corrección de matching en `EvaluationServiceTest` (37 pruebas en total, 100% aprobadas).
+
+**Frontend (React & CSS Artesanal)**
+- Componente `RouteDiplomaModal.tsx`: diseño inspirado en el retablo ayacuchano y los materiales escolares peruanos, con orlas andinas, medalla física 3D del Gallito de las Rocas, síntesis de voz accesible en español peruano (`speakText`) y estilos `@media print` para exportar o imprimir en formato horizontal A4/Letter.
+- Integración en `RouteOverview.tsx`: CTA dinámico que transmuta a `Ver mi Diploma de Logro Escolar` al alcanzar el 100% de la aventura.
+- Integración en `ActivityBlocks.tsx`: pantalla de celebración ampliada con mención de graduación, bono de 100 XP, insignia dorada y botón directo para abrir el diploma.
+- Integración central en `App.tsx` y cliente API en `learningRoutesApi.ts`.
+- Pruebas de compilación TypeScript (`tsc -b && vite build`) y reglas estrictas de linter (`eslint .`) limpias sin advertencias.
+
+**Scripts y Verificación**
+- Script `scripts/Verificar-HU08.ps1` compatible con Windows PowerShell 5.1 y PowerShell 7+ para validación integral de la API y persistencia en base de datos.
+
 ## 2026-10-07 · HU-04: contenido de las paradas 6 a 10 alineado
 
 - V07 y `seed-hu02.sql`: los textos de las paradas 6 a 10 no coincidían con su título (p. ej. «Formas en la piedra» hablaba de decenas). Se reescribieron sobre longitud, formas, días de la semana, medir con pasos y un reto de la cosecha, ligados a desempeños oficiales de 2.°. Demostración, sin validar con un docente.

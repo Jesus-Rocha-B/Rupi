@@ -35,7 +35,6 @@ export interface RouteSummary {
   enrollmentState: string
   completedNodes: number
   totalNodes: number
-  lastVisitedAt?: string | null
 }
 
 export interface CulturalFact {
@@ -186,6 +185,25 @@ export interface ActivityCompleteResult {
   nextUnlockedNode: NextUnlockedNode | null
   rupiMessage: string
   badgeEarned?: BadgeDto | null
+  isRouteCompleted?: boolean
+  routeBonusExperience?: number
+}
+
+export interface RouteDiplomaResponse {
+  versionRouteId: string
+  routeTitle: string
+  studentName: string
+  schoolName: string
+  gradeNumber: number
+  gradeName: string
+  areaName: string
+  totalCompletedNodes: number
+  totalNodes: number
+  totalExperienceEarned: number
+  completedAt: string
+  graduationBadge: BadgeDto
+  competencies: Competency[]
+  rupiHonorMessage: string
 }
 
 export class ApiError extends Error {
@@ -270,3 +288,9 @@ export const fetchEvaluationSummary = (activityId: string, signal?: AbortSignal)
 
 export const fetchStudentBadges = (signal?: AbortSignal) =>
   request<BadgeDto[]>('student/badges', { signal })
+
+export const fetchRouteDiploma = (routeId: string, signal?: AbortSignal) =>
+  request<RouteDiplomaResponse>(
+    `student/learning-routes/${encodeURIComponent(routeId)}/diploma`,
+    { signal }
+  )

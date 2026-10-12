@@ -18,9 +18,11 @@ import pe.rupi.api.learningroute.LearningRouteDtos.RouteListResponse;
 @RequestMapping("/api/v1/student/learning-routes")
 public class LearningRouteController {
     private final LearningRouteService service;
+    private final ActivityService activityService;
 
-    public LearningRouteController(LearningRouteService service) {
+    public LearningRouteController(LearningRouteService service, ActivityService activityService) {
         this.service = service;
+        this.activityService = activityService;
     }
 
     @GetMapping
@@ -33,6 +35,12 @@ public class LearningRouteController {
     public RouteDetailResponse get(@PathVariable UUID versionRouteId, Principal principal) {
         UUID studentId = studentIdFrom(principal);
         return service.getForStudent(studentId, versionRouteId);
+    }
+
+    @GetMapping("/{versionRouteId}/diploma")
+    public LearningRouteDtos.RouteDiplomaResponse getDiploma(@PathVariable UUID versionRouteId, Principal principal) {
+        UUID studentId = studentIdFrom(principal);
+        return activityService.getRouteDiploma(studentId, versionRouteId);
     }
 
     private static UUID studentIdFrom(Principal principal) {

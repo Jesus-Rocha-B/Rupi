@@ -3386,3 +3386,509 @@ body, button, input, select, textarea {
   transform: translateY(2px);
   box-shadow: 0 1px 0 #cbd8c3;
 }
+
+/* ==========================================================================
+   HU-08: Diploma de Logro Escolar y Graduación Gallito de las Rocas
+   ========================================================================== */
+
+.diploma-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(23, 62, 48, 0.78);
+  backdrop-filter: blur(8px);
+  overflow-y: auto;
+}
+
+.diploma-modal-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 960px;
+  margin: auto;
+}
+
+.diploma-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 2px solid #dce7d5;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(23, 62, 48, 0.12);
+}
+
+.diploma-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 2px solid #dce7d5;
+  background: #f7f9f6;
+  color: #173e30;
+  font-family: var(--display-font);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #cbd8c3;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+
+.diploma-action-btn:hover {
+  background: #edf3eb;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #cbd8c3;
+}
+
+.diploma-action-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #cbd8c3;
+}
+
+.diploma-action-btn.primary {
+  background: #f95738;
+  color: #ffffff;
+  border-color: #d13d1f;
+  box-shadow: 0 3px 0 #a42c14;
+}
+
+.diploma-action-btn.primary:hover {
+  background: #ff6a4d;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #a42c14;
+}
+
+.diploma-action-btn.primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #a42c14;
+}
+
+.diploma-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 2px solid #dce7d5;
+  background: #fdf6f4;
+  color: #f95738;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #f0d5ce;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+
+.diploma-close-btn:hover {
+  background: #fbeee9;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #f0d5ce;
+}
+
+.diploma-close-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #f0d5ce;
+}
+
+/* Hoja de Diploma (Estilo Retablo / Pergamino Peruano) */
+.diploma-sheet {
+  width: 100%;
+  background: #fffdf7;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 36px rgba(23, 62, 48, 0.28), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.diploma-border-outer {
+  border: 6px double #31724b;
+  border-radius: 14px;
+  padding: 12px;
+  background: #fffefb;
+}
+
+.diploma-border-inner {
+  position: relative;
+  border: 2px solid #ffd26a;
+  border-radius: 8px;
+  padding: 28px 36px;
+  background: radial-gradient(circle at 50% 30%, #ffffff 0%, #fffdf5 80%, #faf5e6 100%);
+  text-align: center;
+}
+
+.diploma-corner {
+  position: absolute;
+  color: #f95738;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.diploma-corner.top-left { top: 6px; left: 8px; }
+.diploma-corner.top-right { top: 6px; right: 8px; }
+.diploma-corner.bottom-left { bottom: 6px; left: 8px; }
+.diploma-corner.bottom-right { bottom: 6px; right: 8px; }
+
+/* Encabezado */
+.diploma-header {
+  margin-bottom: 20px;
+}
+
+.diploma-republica {
+  font-family: var(--display-font);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2.2px;
+  color: #173e30;
+}
+
+.diploma-dot {
+  margin: 0 8px;
+  color: #f95738;
+}
+
+.diploma-subhead {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #31724b;
+  margin-top: 4px;
+}
+
+.diploma-main-title {
+  margin: 12px 0 6px;
+  font-family: var(--display-font);
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 900;
+  color: #173e30;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0 #ffd26a;
+}
+
+.diploma-badge-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: #fff4d9;
+  border: 1.5px solid #ffd26a;
+  color: #8c5b05;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 2px 0 #ffd26a;
+}
+
+.tunqui-feather-icon {
+  color: #f95738;
+}
+
+/* Cuerpo */
+.diploma-body {
+  margin: 20px 0;
+}
+
+.diploma-confer-text {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #4a6356;
+  font-style: italic;
+}
+
+.diploma-student-name {
+  margin: 4px 0 8px;
+  font-family: var(--display-font);
+  font-size: clamp(28px, 4.5vw, 40px);
+  font-weight: 900;
+  color: #f95738;
+  letter-spacing: -0.5px;
+  border-bottom: 2px dashed #ffd26a;
+  display: inline-block;
+  padding: 0 18px 4px;
+}
+
+.diploma-student-meta {
+  margin: 8px 0 18px;
+  font-size: 15px;
+  color: #173e30;
+}
+
+.diploma-achievement-paragraph {
+  max-width: 720px;
+  margin: 0 auto 18px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #274737;
+}
+
+.diploma-competencies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+  max-width: 720px;
+  margin: 0 auto 20px;
+  text-align: left;
+}
+
+.diploma-competency-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f6faf3;
+  border: 1.5px solid #d4e7cc;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #173e30;
+  line-height: 1.4;
+}
+
+.competency-check {
+  color: #31724b;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.diploma-rupi-quote {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 680px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: #fbf5e7;
+  border: 1px solid #fae1a2;
+  color: #6d4b0f;
+  font-size: 14px;
+  font-weight: 700;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.rupi-sparkle-icon {
+  color: #f95738;
+  flex-shrink: 0;
+}
+
+/* Pie: Firmas y Medalla */
+.diploma-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  margin-top: 28px;
+  padding-top: 16px;
+  gap: 16px;
+}
+
+.diploma-signature-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 180px;
+}
+
+.diploma-signature-line {
+  width: 160px;
+  height: 2px;
+  background: #31724b;
+  margin-bottom: 6px;
+}
+
+.signature-role {
+  font-family: var(--display-font);
+  font-size: 13px;
+  font-weight: 800;
+  color: #173e30;
+}
+
+.signature-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4a6356;
+}
+
+.diploma-rupi-signature {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.diploma-rupi-stamp {
+  width: 44px;
+  height: 44px;
+}
+
+.rupi-signature-text {
+  font-family: cursive, var(--display-font);
+  font-size: 20px;
+  font-weight: 900;
+  color: #f95738;
+  letter-spacing: -0.5px;
+}
+
+/* Medalla Gallito de Oro */
+.diploma-seal-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.diploma-gold-medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.medal-ring {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffeaa7 0%, #ffd26a 60%, #e6a827 100%);
+  border: 4px solid #caa028;
+  box-shadow: 0 4px 10px rgba(184, 134, 11, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.7);
+}
+
+.medal-tunqui-award {
+  color: #8c5b05;
+}
+
+.medal-ribbon-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: #f95738;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  box-shadow: 0 2px 0 #b33219;
+}
+
+.medal-xp-tag {
+  font-size: 11px;
+  font-weight: 800;
+  color: #31724b;
+}
+
+.diploma-bottom-meta {
+  margin-top: 24px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #648170;
+  letter-spacing: 0.5px;
+}
+
+/* CTA Hero y Celebración */
+.diploma-hero-btn {
+  background: #31724b !important;
+  border-color: #245738 !important;
+  box-shadow: 0 4px 0 #183e26 !important;
+  color: #ffffff !important;
+}
+
+.diploma-hero-btn:hover {
+  background: #3b8759 !important;
+  box-shadow: 0 6px 0 #183e26 !important;
+}
+
+.diploma-hero-btn:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 2px 0 #183e26 !important;
+}
+
+.cta-icon-box.gold {
+  background: #ffd26a;
+  color: #8c5b05;
+}
+
+.celebration-diploma-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 12px 24px;
+  border-radius: 16px;
+  border: 2px solid #ffd26a;
+  background: #31724b;
+  color: #ffffff;
+  font-family: var(--display-font);
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #1b4d30, 0 8px 18px rgba(49, 114, 75, 0.35);
+  transition: transform 0.08s ease, background 0.12s ease;
+  margin-top: 8px;
+}
+
+.celebration-diploma-btn:hover {
+  background: #3b8759;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #1b4d30, 0 10px 22px rgba(49, 114, 75, 0.4);
+}
+
+.celebration-diploma-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #1b4d30;
+}
+
+/* Impresión */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .diploma-overlay,
+  #printable-diploma,
+  #printable-diploma * {
+    visibility: visible;
+  }
+
+  .diploma-overlay {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+
+  .diploma-modal-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    gap: 0 !important;
+  }
+
+  .diploma-toolbar {
+    display: none !important;
+  }
+
+  .diploma-sheet {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    width: 100% !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: landscape;
+    margin: 1cm;
+  }
+}

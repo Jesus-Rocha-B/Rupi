@@ -1,4 +1,4 @@
-import { ArrowRight, Award, Play, Sparkles, Star, Volume2 } from 'lucide-react'
+import { ArrowRight, Award, Feather, Play, Sparkles, Star, Volume2 } from 'lucide-react'
 import { RupiCharacter } from './RupiCharacter'
 import { speakText } from '../utils/speech'
 import type { BadgeDto, RouteDetail, RouteNode } from '../services/learningRoutesApi'
@@ -8,9 +8,10 @@ type Props = {
   name: string
   badges?: BadgeDto[]
   onSelect?: (node: RouteNode) => void
+  onOpenDiploma?: () => void
 }
 
-export function RouteOverview({ route, name, badges = [], onSelect }: Props) {
+export function RouteOverview({ route, name, badges = [], onSelect, onOpenDiploma }: Props) {
   const completed = route.progress.completedNodes
   const total = route.progress.totalNodes || 10
   const lastVisited = route.enrollment?.lastVisitedNodeId
@@ -58,8 +59,26 @@ export function RouteOverview({ route, name, badges = [], onSelect }: Props) {
 
           <p className="welcome-phrase">{progressPhrase}</p>
 
-          {/* Botón táctil principal: Tu siguiente paso visible de inmediato */}
-          {nextNode && (
+          {/* Botón táctil principal: Ver Diploma si la ruta está completa, o continuar la siguiente parada */}
+          {completed === total && onOpenDiploma ? (
+            <div className="hero-cta-wrapper">
+              <button
+                type="button"
+                className="hero-next-button diploma-hero-btn"
+                onClick={onOpenDiploma}
+                aria-label="Ver y descargar mi Diploma de Logro Escolar"
+              >
+                <span className="cta-icon-box gold">
+                  <Award size={20} fill="currentColor" aria-hidden="true" />
+                </span>
+                <span className="cta-label-group">
+                  <small className="cta-kicker">¡Ruta Escolar Culminada!</small>
+                  <strong className="cta-title">Ver mi Diploma de Logro Escolar</strong>
+                </span>
+                <ArrowRight size={20} className="cta-arrow" aria-hidden="true" />
+              </button>
+            </div>
+          ) : nextNode ? (
             <div className="hero-cta-wrapper">
               <button
                 type="button"
@@ -77,7 +96,7 @@ export function RouteOverview({ route, name, badges = [], onSelect }: Props) {
                 <ArrowRight size={20} className="cta-arrow" aria-hidden="true" />
               </button>
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Columna derecha: Progreso visual con estrellas ganadas y Rupi */}
@@ -137,7 +156,11 @@ export function RouteOverview({ route, name, badges = [], onSelect }: Props) {
                       title={`${b.name}: ${b.description}`}
                       onClick={() => speakText(`Insignia obtenida: ${b.name}. ${b.description}`)}
                     >
-                      <Award size={14} className="badge-chip-icon" aria-hidden="true" />
+                      {b.icon === 'feather' ? (
+                        <Feather size={14} className="badge-chip-icon" aria-hidden="true" />
+                      ) : (
+                        <Award size={14} className="badge-chip-icon" aria-hidden="true" />
+                      )}
                       <span>{b.name}</span>
                     </button>
                   ))}
