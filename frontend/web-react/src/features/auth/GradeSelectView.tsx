@@ -9,6 +9,7 @@ import {
   FlaskConical,
   GraduationCap,
   Info,
+  KeyRound,
   LogOut,
   Sparkles,
   Volume2,
@@ -23,7 +24,9 @@ type Props = {
   initialGrade?: number | null
   onSelectGradeAndCourse: (gradeNumber: number, courseCode: string) => void
   onLogout: () => void
+  onOpenJoinModal?: () => void
 }
+
 
 interface PrimaryGradeOption {
   number: number
@@ -115,7 +118,9 @@ export function GradeSelectView({
   initialGrade = null,
   onSelectGradeAndCourse,
   onLogout,
+  onOpenJoinModal,
 }: Props) {
+
   const [selectedGradeNumber, setSelectedGradeNumber] = useState<number | null>(initialGrade)
   const [notice, setNotice] = useState<string | null>(null)
 
@@ -169,17 +174,33 @@ export function GradeSelectView({
               )}
             </div>
 
-            <button
-              type="button"
-              className="grade-logout-btn"
-              onClick={onLogout}
-              aria-label="Cerrar sesión y cambiar de estudiante"
-              title="Cerrar sesión"
-            >
-              <LogOut size={16} aria-hidden="true" />
-              <span>Salir</span>
-            </button>
+            <div className="grade-top-actions">
+              {onOpenJoinModal && (
+                <button
+                  type="button"
+                  className="grade-join-code-btn"
+                  onClick={onOpenJoinModal}
+                  title="Unirme con código alfanumérico proporcionado por mi profesor"
+                  aria-label="Unirme con código de clase docente"
+                >
+                  <KeyRound size={16} aria-hidden="true" />
+                  <span>Código de clase</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="grade-logout-btn"
+                onClick={onLogout}
+                aria-label="Cerrar sesión y cambiar de estudiante"
+                title="Cerrar sesión"
+              >
+                <LogOut size={16} aria-hidden="true" />
+                <span>Salir</span>
+              </button>
+            </div>
           </div>
+
 
           <div className="grade-hero-row">
             <div className="grade-rupi-holder" aria-hidden="true">

@@ -3927,3 +3927,71 @@ body, button, input, select, textarea {
     margin: 1cm;
   }
 }
+
+/* ====================================================
+   HU-11: CÓDIGO DE CLASE Y BADGE DE GRADO ACTIVO
+   ==================================================== */
+.current-grade-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.92rem;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+.change-grade-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #173e30;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #cbd5e1;
+  transition: transform 0.08s ease, background 0.12s, border-color 0.12s;
+}
+
+.change-grade-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.change-grade-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #cbd5e1;
+}
+
+.change-grade-btn:focus-visible {
+  outline: 3px solid #246a91;
+  outline-offset: 2px;
+}
+
+.join-code-btn {
+  background-color: #ffd26a;
+  border-color: #173e30;
+  color: #173e30;
+  box-shadow: 0 2px 0 #173e30;
+}
+
+.join-code-btn:hover {
+  background-color: #ffc740;
+  border-color: #173e30;
+}
+
+.join-code-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #173e30;
+}
+
+.join-code-btn:focus-visible {
+  outline: 3px solid #f95738;
+  outline-offset: 2px;
+}
+

@@ -16,6 +16,7 @@ Actualizado: 2026-10-07 · rama `main` · HU-04 incluida en el último commit (`
 | HU-08 | Culminación de ruta escolar, Gran Gallito de Oro (+100 XP) y Diploma imprimible CNEB | Implementada y verificada |
 | HU-09 | Barra de búsqueda rápida de roadmaps alternativos por materia con autocompletado y FTS | Implementada y verificada |
 | HU-10 | Filtros avanzados por grado escolar y materia con sincronización URL y checkboxes táctiles | Implementada y verificada |
+| HU-11 | Unirse a un roadmap con código alfanumérico de clase docente con validación segura | Implementada y verificada |
 
 «Verificada localmente» no sustituye la aceptación del docente ni la validación pedagógica. No marcar la entrega como aceptada sin revisar con el equipo los criterios de S07.
 

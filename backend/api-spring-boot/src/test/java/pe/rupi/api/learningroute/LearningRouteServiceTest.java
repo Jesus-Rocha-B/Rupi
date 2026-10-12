@@ -116,4 +116,98 @@ class LearningRouteServiceTest {
         assertEquals(List.of("Matemática"), suggestions);
         verify(repository).findSubjectSuggestions("mate", 5);
     }
+
+    @Test void joinByCodeSuccessNewEnrollment() {
+        var codeId = UUID.randomUUID();
+        var routeVersionId = UUID.randomUUID();
+        var details = new LearningRouteRepository.AccessCodeDetails(
+                codeId, routeVersionId, "Matemática 3.°", new Grade(3, "3.° de primaria"),
+                new Area("MAT", "Matemática"), java.time.Instant.now().minusSeconds(3600),
+                java.time.Instant.now().plusSeconds(3600), 100, null, true, false, 5
+        );
+        when(repository.findAccessCode("WARI2026")).thenReturn(Optional.of(details));
+        when(repository.isStudentEnrolled(student, routeVersionId)).thenReturn(false);
+
+        var response = service.joinByCode(student, "  wari2026  ");
+
+        assertNotNull(response);
+        assertEquals(routeVersionId, response.versionRouteId());
+        assertEquals("Matemática 3.°", response.routeTitle());
+        assertFalse(response.alreadyEnrolled());
+        assertTrue(response.message().contains("exitosamente"));
+        verify(repository).enrollStudentWithAccessCode(student, routeVersionId, codeId);
+    }
+
+    @Test void joinByCodeSuccessAlreadyEnrolled() {
+        var codeId = UUID.randomUUID();
+        var routeVersionId = UUID.randomUUID();
+        var details = new LearningRouteRepository.AccessCodeDetails(
+                codeId, routeVersionId, "Matemática 3.°", new Grade(3, "3.° de primaria"),
+                new Area("MAT", "Matemática"), null, null, null, null, true, false, 0
+        );
+        when(repository.findAccessCode("WARI2026")).thenReturn(Optional.of(details));
+        when(repository.isStudentEnrolled(student, routeVersionId)).thenReturn(true);
+
+        var response = service.joinByCode(student, "WARI2026");
+
+        assertNotNull(response);
+        assertTrue(response.alreadyEnrolled());
+        assertTrue(response.message().contains("Ya formas parte"));
+        verify(repository).linkAccessCodeToEnrollment(student, routeVersionId, codeId);
+        verify(repository, never()).enrollStudentWithAccessCode(any(), any(), any());
+    }
+
+    @Test void joinByCodeInvalidFormatThrowsBadRequest() {
+        var ex1 = assertThrows(ResponseStatusException.class, () -> service.joinByCode(student, null));
+        assertEquals(400, ex1.getStatusCode().value());
+
+        var ex2 = assertThrows(ResponseStatusException.class, () -> service.joinByCode(student, "ab"));
+        assertEquals(400, ex2.getStatusCode().value());
+
+        var ex3 = assertThrows(ResponseStatusException.class, () -> service.joinByCode(student, "codigo!invalido"));
+        assertEquals(400, ex3.getStatusCode().value());
+    }
+
+    @Test void joinByCodeNotFoundThrowsNotFound() {
+        when(repository.findAccessCode("NOEXISTE123")).thenReturn(Optional.empty());
+        var ex = assertThrows(ResponseStatusException.class, () -> service.joinByCode(student, "NOEXISTE123"));
+        assertEquals(404, ex.getStatusCode().value());
+        assertTrue(ex.getReason().contains("no existe"));
+    }
+
+    @Test void joinByCodeExpiredThrowsBadRequest() {
+        var details = new LearningRouteRepository.AccessCodeDetails(
+                UUID.randomUUID(), UUID.randomUUID(), "Ruta", new Grade(2, "2.°"),
+                new Area("MAT", "Mat"), null, java.time.Instant.now().minusSeconds(3600),
+                null, null, true, false, 0
+        );
+        when(repository.findAccessCode("EXPIRADO")).thenReturn(Optional.of(details));
+        var ex = assertThrows(ResponseStatusException.class, () -> service.joinByCode(student, "EXPIRADO"));
+        assertEquals(400, ex.getStatusCode().value());
+        assertTrue(ex.getReason().contains("ya venció"));
+    }
+
+    @Test void joinByCodeRevokedThrowsBadRequest() {
+        var details = new LearningRouteRepository.AccessCodeDetails(
+                UUID.randomUUID(), UUID.randomUUID(), "Ruta", new Grade(2, "2.°"),
+                new Area("MAT", "Mat"), null, null, null, java.time.Instant.now().minusSeconds(60),
+                true, false, 0
+        );
+        when(repository.findAccessCode("REVOCADO")).thenReturn(Optional.of(details));
+        var ex = assertThrows(ResponseStatusException.class, () -> service.joinByCode(student, "REVOCADO"));
+        assertEquals(400, ex.getStatusCode().value());
+        assertTrue(ex.getReason().contains("revocado"));
+    }
+
+    @Test void joinByCodeMaxUsesReachedThrowsBadRequest() {
+        var details = new LearningRouteRepository.AccessCodeDetails(
+                UUID.randomUUID(), UUID.randomUUID(), "Ruta", new Grade(2, "2.°"),
+                new Area("MAT", "Mat"), null, null, 10, null, true, false, 10
+        );
+        when(repository.findAccessCode("LLENO10")).thenReturn(Optional.of(details));
+        var ex = assertThrows(ResponseStatusException.class, () -> service.joinByCode(student, "LLENO10"));
+        assertEquals(400, ex.getStatusCode().value());
+        assertTrue(ex.getReason().contains("límite máximo"));
+    }
 }
+

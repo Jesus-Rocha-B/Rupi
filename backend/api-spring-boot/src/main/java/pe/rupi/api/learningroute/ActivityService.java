@@ -26,10 +26,12 @@ public class ActivityService {
         this(jdbc, new EvaluationService(jdbc));
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
     public ActivityService(NamedParameterJdbcTemplate jdbc, EvaluationService evaluationService) {
         this.jdbc = jdbc;
         this.evaluationService = evaluationService;
     }
+
 
     public record Block(String id, String type, String text, String url, String accessibleText) {}
     public record Activity(

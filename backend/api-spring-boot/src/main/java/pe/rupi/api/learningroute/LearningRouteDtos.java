@@ -226,4 +226,17 @@ public final class LearningRouteDtos {
             this(query, suggestedSubjects, routes, List.of(), List.of(), routes != null ? routes.size() : 0);
         }
     }
+
+    public record JoinByCodeRequest(
+            String code
+    ) {}
+
+    public record JoinByCodeResponse(
+            UUID versionRouteId,
+            String routeTitle,
+            Grade grade,
+            Area area,
+            boolean alreadyEnrolled,
+            String message
+    ) {}
 }

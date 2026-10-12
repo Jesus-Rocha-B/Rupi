@@ -2272,6 +2272,44 @@
   color: var(--ink, #173e30);
 }
 
+.grade-top-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.grade-join-code-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffd26a;
+  border: 2px solid #173e30;
+  border-radius: 12px;
+  padding: 8px 16px;
+  min-height: 48px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #173e30;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #173e30;
+  transition: transform 0.08s ease, background-color 0.12s, box-shadow 0.08s ease;
+}
+
+.grade-join-code-btn:hover {
+  background-color: #ffc740;
+}
+
+.grade-join-code-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+.grade-join-code-btn:focus-visible {
+  outline: 3px solid #f95738;
+  outline-offset: 2px;
+}
+
+
 /* --------------------------------------------------------------------------
    7. Estados de Tarjetas de Grados y Cursos (Primaria / Roadmap Activo)
    -------------------------------------------------------------------------- */

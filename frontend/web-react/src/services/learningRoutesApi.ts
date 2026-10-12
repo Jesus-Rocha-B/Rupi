@@ -232,7 +232,19 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       ? AbortSignal.any([options.signal, AbortSignal.timeout(15000)])
       : AbortSignal.timeout(15000),
   })
-  if (!response.ok) throw new ApiError(response.status, `No se pudo consultar la información (${response.status})`)
+  if (!response.ok) {
+    let msg = `No se pudo consultar la información (${response.status})`
+    try {
+      const errData = await response.json()
+      if (errData?.message) msg = errData.message
+      else if (errData?.detail) msg = errData.detail
+      else if (errData?.error) msg = errData.error
+      else if (errData?.title) msg = errData.title
+    } catch {
+      // Ignora error de parseo si no es JSON
+    }
+    throw new ApiError(response.status, msg)
+  }
   if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }
@@ -370,3 +382,21 @@ export const enrollInRoute = (versionRouteId: string, signal?: AbortSignal) =>
     method: 'POST',
     signal,
   })
+
+export interface JoinByCodeResult {
+  versionRouteId: string
+  routeTitle: string
+  grade: Grade
+  area: Area
+  alreadyEnrolled: boolean
+  message: string
+}
+
+export const joinRouteByCode = (code: string, signal?: AbortSignal) =>
+  request<JoinByCodeResult>('student/learning-routes/join-by-code', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: code.trim().toUpperCase() }),
+    signal,
+  })
+

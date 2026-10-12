@@ -2,6 +2,40 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-12 · HU-11: Unirse a un roadmap con código alfanumérico de clase docente
+
+Detalle y especificación técnica en `docs/implementacion/HU-11-unirse-roadmap-codigo-clase.md`.
+
+**Base de Datos (MySQL 8.4)**
+- Migración `V11__codigos_acceso_clase_hu11.sql`:
+  - Asegura la tabla `aprendizaje_codigo_acceso_ruta` con claves foráneas, restricciones de vigencia y cupos máximos.
+  - Almacena códigos de acceso mediante hash binario SHA-256 (`BINARY(32)`).
+  - Siembra códigos activos de clase docente: `AYACUCHO2026`, `WARI2026`, `PALABRAS2026`, `CIENCIA2026`, `PRIMERO2026`, `CUARTO2026`, `QUINTO2026`, `SEXTO2026`.
+  - Siembra códigos de prueba pedagógicos y de seguridad: `EXPIRADO2025` (vencido), `REVOCADO2026` (revocado) y `FUTURO2099` (inactivo).
+
+**Backend (Spring Boot & Java 21)**
+- Endpoint `POST /api/v1/student/learning-routes/join-by-code`:
+  - Autenticación estricta con sesión de estudiante (`rupi_session`) y validación de origen CSRF.
+  - DTOs `JoinByCodeRequest` y `JoinByCodeResponse` en `LearningRouteDtos.java`.
+  - Normalización alfanumérica y validación defensiva con regex `^[A-Za-z0-9_-]{3,30}$`.
+  - Verificación de existencia, vigencia temporal (`valido_desde`, `valido_hasta`), revocación, cupos y estado publicado.
+  - Vinculación transaccional idempotente en `LearningRouteRepository.java` (si ya está inscrito retorna `alreadyEnrolled: true`; si es nuevo crea la matrícula y desbloquea el primer nodo).
+  - Manejo de excepciones formativas RFC-7807 (`ProblemDetail`) en `ApiExceptionHandler.java`.
+  - 47 de 47 pruebas JUnit aprobadas en `mvn test` (7 pruebas nuevas en `LearningRouteServiceTest.java`).
+
+**Frontend (React 19 & TypeScript)**
+- Componente `JoinClassModal.tsx` y estilos artesanales `JoinClassModal.css`:
+  - Interfaz táctil escolar (≥48px), paleta oficial andina y botones con volumen físico.
+  - Auto-conversión a mayúsculas, chips rápidos con códigos activos y validación en vivo.
+  - Locución accesible con síntesis de voz de la mascota Rupi (`speakText`).
+  - Redirección automática y reactiva al mapa interactivo de la clase asignada.
+- Integración en cabecera global (`App.tsx`) y en la vista de bienvenida (`GradeSelectView.tsx`).
+- Pruebas unitarias de frontend en `frontend/web-react/tests/joinCode.test.ts` (12 de 12 pruebas aprobadas).
+- Compilación de producción (`npm run build`) y ESLint (`npm run lint`) limpios sin advertencias.
+
+**Scripts y Calidad**
+- `scripts/Verificar-HU11.ps1`: script de integración para PowerShell que valida 10 escenarios de seguridad, códigos inválidos/expirados/revocados, vinculación exitosa, idempotencia y redirección al mapa.
+
 ## 2026-10-12 · HU-10: Filtros avanzados por grado escolar y materia curricular con sincronización URL
 
 Detalle y especificación técnica en `docs/implementacion/HU-10-filtros-avanzados-grados-materias.md`.

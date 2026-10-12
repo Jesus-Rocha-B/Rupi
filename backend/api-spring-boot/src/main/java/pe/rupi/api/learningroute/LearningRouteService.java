@@ -87,4 +87,63 @@ public class LearningRouteService {
     public List<String> getSubjectSuggestions(String query, int limit) {
         return repository.findSubjectSuggestions(query == null ? "" : query.trim(), limit);
     }
+
+    @Transactional
+    public LearningRouteDtos.JoinByCodeResponse joinByCode(UUID studentId, String rawCode) {
+        if (rawCode == null || rawCode.trim().length() < 3 || rawCode.trim().length() > 30) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El código debe tener entre 3 y 30 caracteres alfanuméricos.");
+        }
+        String normalizedCode = rawCode.trim().toUpperCase(java.util.Locale.ROOT);
+        if (!normalizedCode.matches("^[A-Z0-9_-]+$")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El código solo puede contener letras, números y guiones.");
+        }
+
+        var codeOpt = repository.findAccessCode(normalizedCode);
+        if (codeOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El código de clase no existe. Revisa las letras o consulta con tu profesor.");
+        }
+
+        var code = codeOpt.get();
+        java.time.Instant now = java.time.Instant.now();
+
+        if (code.revokedAt() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este código de clase fue revocado por el profesor.");
+        }
+        if (code.validFrom() != null && code.validFrom().isAfter(now)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este código de clase aún no está habilitado.");
+        }
+        if (code.validUntil() != null && code.validUntil().isBefore(now)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este código de clase ya venció. Pide uno nuevo a tu profesor.");
+        }
+        if (code.maxUses() != null && code.currentUses() >= code.maxUses()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este código de clase ya alcanzó el límite máximo de estudiantes.");
+        }
+        if (!code.routePublished() || code.routeArchived()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La ruta de estudio asociada a este código no se encuentra disponible.");
+        }
+
+        boolean alreadyEnrolled = repository.isStudentEnrolled(studentId, code.versionRouteId());
+        if (alreadyEnrolled) {
+            repository.linkAccessCodeToEnrollment(studentId, code.versionRouteId(), code.id());
+            return new LearningRouteDtos.JoinByCodeResponse(
+                    code.versionRouteId(),
+                    code.routeTitle(),
+                    code.grade(),
+                    code.area(),
+                    true,
+                    "¡Ya formas parte de esta clase! Te llevamos a tu ruta escolar."
+            );
+        }
+
+        repository.enrollStudentWithAccessCode(studentId, code.versionRouteId(), code.id());
+        return new LearningRouteDtos.JoinByCodeResponse(
+                code.versionRouteId(),
+                code.routeTitle(),
+                code.grade(),
+                code.area(),
+                false,
+                "¡Bienvenido a tu clase! Te has unido exitosamente al roadmap."
+        );
+    }
 }
+

@@ -34,6 +34,7 @@ React no recibe `estudianteId` desde el navegador ni accede a MySQL directamente
 | 8 | HU-08 · Culminación de ruta y diploma de honor | Celebrar finalización de ruta, Gran Gallito de Oro y diploma imprimible. | HU-05 a HU-07 con culminación de todas las paradas. | Completada. |
 | 9 | HU-09 · Búsqueda de roadmaps alternativos | Búsqueda por materia con autocompletado y FTS para explorar nuevos contenidos. | HU-01 a HU-04 y catálogo de áreas y rutas publicadas. | Completada. |
 | 10 | HU-10 · Filtros por grado y materia | Filtros laterales con checkboxes táctiles, soporte multi-parámetro backend y sincronización URL. | HU-01 a HU-09 y catálogo multiarea de 1.° a 6.°. | Completada. |
+| 11 | HU-11 · Unirse a roadmap con código de clase | Formulario de código docente, validación de vigencia backend, vinculación transaccional y redirección. | HU-01 a HU-10 y tabla de códigos de acceso. | Completada. |
 
 La historia HU-03 depende de que HU-02 registre la visita. HU-04 depende de datos oficiales/versionados; no se cumple con texto decorativo ni ordenado solo en React.
 

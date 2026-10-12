@@ -3,6 +3,8 @@ package pe.rupi.api.learningroute;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -500,17 +502,93 @@ public class LearningRouteRepository {
         return count != null && count > 0;
     }
 
+    public Optional<AccessCodeDetails> findAccessCode(String normalizedCode) {
+        String sql = """
+                SELECT c.id AS code_id,
+                       c.version_ruta_id,
+                       c.valido_desde,
+                       c.valido_hasta,
+                       c.maximo_usos,
+                       c.revocado_en,
+                       r.titulo AS route_title,
+                       r.archivado_en,
+                       vr.estado AS route_state,
+                       g.numero_grado,
+                       g.nombre AS grade_name,
+                       a.codigo AS area_code,
+                       a.nombre AS area_name,
+                       (SELECT COUNT(*) FROM aprendizaje_inscripcion_ruta i WHERE i.codigo_acceso_id = c.id) AS current_uses
+                FROM aprendizaje_codigo_acceso_ruta c
+                JOIN aprendizaje_version_ruta vr ON vr.id = c.version_ruta_id
+                JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
+                JOIN curriculo_grado g ON g.id = vr.grado_id
+                JOIN curriculo_area a ON a.id = vr.area_id
+                WHERE c.hash_codigo = UNHEX(SHA2(:code, 256))
+                """;
+        var params = new MapSqlParameterSource("code", normalizedCode);
+        return jdbc.query(sql, params, rs -> {
+            if (!rs.next()) return Optional.empty();
+            Timestamp fromTs = rs.getTimestamp("valido_desde");
+            Timestamp untilTs = rs.getTimestamp("valido_hasta");
+            Timestamp revokedTs = rs.getTimestamp("revocado_en");
+            Timestamp archivedTs = rs.getTimestamp("archivado_en");
+            return Optional.of(new AccessCodeDetails(
+                    uuid(rs, "code_id"),
+                    uuid(rs, "version_ruta_id"),
+                    rs.getString("route_title"),
+                    new Grade(rs.getInt("numero_grado"), rs.getString("grade_name")),
+                    new Area(rs.getString("area_code"), rs.getString("area_name")),
+                    fromTs != null ? fromTs.toInstant() : null,
+                    untilTs != null ? untilTs.toInstant() : null,
+                    rs.getObject("maximo_usos") != null ? rs.getInt("maximo_usos") : null,
+                    revokedTs != null ? revokedTs.toInstant() : null,
+                    "PUBLICADO".equalsIgnoreCase(rs.getString("route_state")),
+                    archivedTs != null,
+                    rs.getLong("current_uses")
+            ));
+        });
+    }
+
+    public boolean isStudentEnrolled(UUID studentId, UUID versionRouteId) {
+        String sql = """
+                SELECT COUNT(*) FROM aprendizaje_inscripcion_ruta
+                WHERE estudiante_id = :studentId AND version_ruta_id = :versionRouteId
+                  AND estado IN ('ACTIVO', 'COMPLETADO')
+                """;
+        Integer count = jdbc.queryForObject(sql, new MapSqlParameterSource()
+                .addValue("studentId", studentId.toString())
+                .addValue("versionRouteId", versionRouteId.toString()), Integer.class);
+        return count != null && count > 0;
+    }
+
+    public void linkAccessCodeToEnrollment(UUID studentId, UUID versionRouteId, UUID accessCodeId) {
+        String sql = """
+                UPDATE aprendizaje_inscripcion_ruta
+                SET codigo_acceso_id = COALESCE(codigo_acceso_id, :accessCodeId)
+                WHERE estudiante_id = :studentId AND version_ruta_id = :versionRouteId
+                """;
+        jdbc.update(sql, new MapSqlParameterSource()
+                .addValue("studentId", studentId.toString())
+                .addValue("versionRouteId", versionRouteId.toString())
+                .addValue("accessCodeId", accessCodeId != null ? accessCodeId.toString() : null));
+    }
+
     public void enrollStudentInRoute(UUID studentId, UUID versionRouteId) {
+        enrollStudentWithAccessCode(studentId, versionRouteId, null);
+    }
+
+    public void enrollStudentWithAccessCode(UUID studentId, UUID versionRouteId, UUID accessCodeId) {
         UUID enrollmentId = UUID.randomUUID();
         String sqlEnroll = """
                 INSERT IGNORE INTO aprendizaje_inscripcion_ruta
-                (id, version_ruta_id, estudiante_id, estado, inscrito_en, ultima_visita_en)
-                VALUES (:id, :versionRouteId, :studentId, 'ACTIVO', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+                (id, version_ruta_id, estudiante_id, codigo_acceso_id, estado, inscrito_en, ultima_visita_en)
+                VALUES (:id, :versionRouteId, :studentId, :accessCodeId, 'ACTIVO', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
                 """;
         jdbc.update(sqlEnroll, new MapSqlParameterSource()
                 .addValue("id", enrollmentId.toString())
                 .addValue("versionRouteId", versionRouteId.toString())
-                .addValue("studentId", studentId.toString()));
+                .addValue("studentId", studentId.toString())
+                .addValue("accessCodeId", accessCodeId != null ? accessCodeId.toString() : null));
 
         String sqlGetEnrollment = """
                 SELECT id FROM aprendizaje_inscripcion_ruta
@@ -523,6 +601,16 @@ public class LearningRouteRepository {
             return;
         }
         String realEnrollmentId = enrollments.getFirst();
+
+        if (accessCodeId != null) {
+            jdbc.update("""
+                    UPDATE aprendizaje_inscripcion_ruta
+                    SET codigo_acceso_id = COALESCE(codigo_acceso_id, :accessCodeId)
+                    WHERE id = :enrollmentId
+                    """, new MapSqlParameterSource()
+                    .addValue("accessCodeId", accessCodeId.toString())
+                    .addValue("enrollmentId", realEnrollmentId));
+        }
 
         record NodeSeq(String id, int sequence) {}
         String sqlNodes = """
@@ -558,6 +646,22 @@ public class LearningRouteRepository {
                     .addValue("enrollmentId", realEnrollmentId));
         }
     }
+
+    public record AccessCodeDetails(
+            UUID id,
+            UUID versionRouteId,
+            String routeTitle,
+            Grade grade,
+            Area area,
+            Instant validFrom,
+            Instant validUntil,
+            Integer maxUses,
+            Instant revokedAt,
+            boolean routePublished,
+            boolean routeArchived,
+            long currentUses
+    ) {}
+
 
     public record RouteHeader(
             UUID versionRouteId,

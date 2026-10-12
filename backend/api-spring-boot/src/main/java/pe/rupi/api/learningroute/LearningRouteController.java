@@ -89,6 +89,19 @@ public class LearningRouteController {
         return service.getSubjectSuggestions(query, limit);
     }
 
+    @org.springframework.web.bind.annotation.PostMapping("/join-by-code")
+    public LearningRouteDtos.JoinByCodeResponse joinByCode(
+            @org.springframework.web.bind.annotation.RequestBody(required = false) LearningRouteDtos.JoinByCodeRequest request,
+            Principal principal
+    ) {
+        UUID studentId = studentIdFrom(principal);
+        if (request == null || request.code() == null || request.code().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes ingresar un código de clase.");
+        }
+        return service.joinByCode(studentId, request.code());
+    }
+
+
     private static UUID studentIdFrom(Principal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);

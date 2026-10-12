@@ -12,6 +12,7 @@ import {
   Heart,
   House,
   Inbox,
+  KeyRound,
   Lock,
   LogOut,
   RefreshCw,
@@ -37,6 +38,7 @@ import {
   type ActivityCompleteResult,
   type ActivityContent,
   type BadgeDto,
+  type JoinByCodeResult,
   type RouteDiplomaResponse,
   type RouteDetail,
   type RouteNode,
@@ -53,8 +55,10 @@ import { ActivityBlocks } from './features/roadmap/ActivityBlocks'
 import { RouteDiplomaModal } from './components/RouteDiplomaModal'
 import { RoadmapSearchBar } from './components/RoadmapSearchBar'
 import { RoadmapFilterSidebar } from './components/RoadmapFilterSidebar'
+import { JoinClassModal } from './components/JoinClassModal'
 import { speakText } from './utils/speech'
 import './App.css'
+
 
 const guideMessages = [
   'Cada parada muestra el avance que has guardado en tu ruta.',
@@ -83,7 +87,9 @@ function App() {
   const [activityError, setActivityError] = useState<string | null>(null)
   const [diplomaOpen, setDiplomaOpen] = useState(false)
   const [diplomaData, setDiplomaData] = useState<RouteDiplomaResponse | null>(null)
+  const [joinModalOpen, setJoinModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+
   const [errorType, setErrorType] = useState<Failure>(null)
   const [guideIndex, setGuideIndex] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
@@ -345,7 +351,21 @@ function App() {
     }
   }
 
+  function handleJoinedClass(result: JoinByCodeResult) {
+    const areaUpper = result.area.code.toUpperCase()
+    let courseCode = 'MATEMATICA'
+    if (areaUpper.includes('COM')) {
+      courseCode = 'COMUNICACION'
+    } else if (areaUpper.includes('CYT')) {
+      courseCode = 'CYT'
+    }
+    handleSelectGradeAndCourse(result.grade.number, courseCode)
+    setRouteId(result.versionRouteId)
+    setReloadKey(value => value + 1)
+  }
+
   async function handleLogout() {
+
     setSessionBusy(true)
     resetView()
     try {
@@ -426,15 +446,24 @@ function App() {
   // 2. Pantalla de selección de grado y materias de Primaria: aislada y enfocada
   if (selectedGrade === null || selectedCourse === null) {
     return (
-      <GradeSelectView
-        student={student}
-        routes={routes}
-        initialGrade={selectedGrade}
-        onSelectGradeAndCourse={(grade, course) => handleSelectGradeAndCourse(grade, course)}
-        onLogout={handleLogout}
-      />
+      <>
+        <GradeSelectView
+          student={student}
+          routes={routes}
+          initialGrade={selectedGrade}
+          onSelectGradeAndCourse={(grade, course) => handleSelectGradeAndCourse(grade, course)}
+          onLogout={handleLogout}
+          onOpenJoinModal={() => setJoinModalOpen(true)}
+        />
+        <JoinClassModal
+          isOpen={joinModalOpen}
+          onClose={() => setJoinModalOpen(false)}
+          onJoined={handleJoinedClass}
+        />
+      </>
     )
   }
+
 
   // 3. Aula escolar con barra de navegación y control de acceso a roadmaps
   return (
@@ -532,8 +561,19 @@ function App() {
                 >
                   Cambiar grado
                 </button>
+                <button
+                  type="button"
+                  className="change-grade-btn join-code-btn"
+                  onClick={() => setJoinModalOpen(true)}
+                  title="Unirme a un roadmap con código de clase docente"
+                  aria-label="Ingresar código de clase docente"
+                >
+                  <KeyRound size={15} aria-hidden="true" />
+                  <span>Código de clase</span>
+                </button>
               </span>
             </h1>
+
             <p>Un mundo por aprender. A tu propio ritmo.</p>
           </div>
         </section>
@@ -945,7 +985,14 @@ function App() {
           onClose={() => setDiplomaOpen(false)}
         />
       )}
+
+      <JoinClassModal
+        isOpen={joinModalOpen}
+        onClose={() => setJoinModalOpen(false)}
+        onJoined={handleJoinedClass}
+      />
     </div>
+
   )
 }
 

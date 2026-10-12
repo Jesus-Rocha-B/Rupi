@@ -49,7 +49,7 @@ Recursos: `public/images/` (fondo de Ayacucho con su atribución). Pruebas en `t
 ## Base de datos · `database/mysql/`
 
 - `schema.sql`: DDL de 77 tablas más los grados. `rupi.dbml`: diagrama. `modelo.md`: normalización e invariantes.
-- `migrations/`: `V04` contexto cultural, `V05` última visita, `V06` reparar hash demo, `V07` unidades y competencias de prueba de HU-04, `V08` índices FTS en áreas/rutas y roadmaps alternativos de HU-09, `V09` catálogo integral de múltiples roadmaps escolares CNEB (COM 2.°, CYT 2.°, SOC 2.°, ART 2.°, MAT 3.°), `V10` catálogo completo de roadmaps escolares CNEB para todos los grados de primaria (1.° a 6.°).
+- `migrations/`: `V04` contexto cultural, `V05` última visita, `V06` reparar hash demo, `V07` unidades y competencias de prueba de HU-04, `V08` índices FTS en áreas/rutas y roadmaps alternativos de HU-09, `V09` catálogo integral de múltiples roadmaps escolares CNEB (COM 2.°, CYT 2.°, SOC 2.°, ART 2.°, MAT 3.°), `V10` catálogo completo de roadmaps escolares CNEB para todos los grados de primaria (1.° a 6.°), `V11` códigos alfanuméricos de acceso de clase docente (HU-11).
 - `seed-hu01.sql` (ruta, 10 nodos, inscripción y progreso demo; **no repetir sobre datos reales**) y `seed-hu02.sql` (contenido de actividades).
 
 ## Django · `backend/admin-django/`
@@ -63,6 +63,7 @@ Solo `curriculo/models.py` y `curriculo/admin.py`, como esqueleto. Sin app funci
 - HU-04: `scripts/verify_hu04_content.py`, `scripts/verify_hu04_pantalla.mjs` y `scripts/fixtures/hu04-orden-esperado.json`.
 - HU-09: `scripts/Verificar-HU09.ps1` (6 escenarios de búsqueda y autocompletado) y `scripts/Verificar-Rendimiento-HU09.ps1` (benchmark FTS).
 - HU-10: `scripts/Verificar-HU10.ps1` (8 escenarios de filtros combinados de grado y materia con precisión).
+- HU-11: `scripts/Verificar-HU11.ps1` (10 escenarios de unirse a clase con código alfanumérico, expiración, revocación e idempotencia).
 - `.local/` (ignorado): `env.sh`, `my.cnf`, `root.cnf`, `mysql-data`, logs y pids.
 
 ## Skills de diseño

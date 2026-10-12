@@ -16,4 +16,16 @@ public class ApiExceptionHandler {
         problem.setDetail("No se pudo consultar la información. Inténtalo nuevamente.");
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem);
     }
+
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ProblemDetail> handleResponseStatus(org.springframework.web.server.ResponseStatusException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(ex.getStatusCode());
+        String reason = ex.getReason() != null ? ex.getReason() : ex.getStatusCode().toString();
+        problem.setTitle(reason);
+        problem.setDetail(reason);
+        problem.setProperty("message", reason);
+        problem.setProperty("error", reason);
+        return ResponseEntity.status(ex.getStatusCode()).body(problem);
+    }
 }
+
