@@ -72,7 +72,7 @@ try:
     cur = ruta['curriculum']
     check('la API responde COMPLETA', cur['status'] == 'COMPLETA')
     check('orden de unidades y paradas en la API = orden esperado',
-          [(u['title'], [titulo[i] for i in u['nodeIds']]) for u in cur['units']] == esperado)
+          [(u['title'], [titulo[i] for i in (u.get('nodeIds') or [n['id'] for n in u['nodes']])]) for u in cur['units']] == esperado)
     check('competencias por unidad en la API = esperadas',
           [[x['code'] for x in u['competencies']] for u in cur['units']] == [u['competencias'] for u in fx['unidades']])
 except (urllib.error.URLError, KeyError) as e:

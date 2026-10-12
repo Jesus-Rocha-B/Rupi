@@ -582,7 +582,7 @@ public class LearningRouteRepository {
         String sqlEnroll = """
                 INSERT IGNORE INTO aprendizaje_inscripcion_ruta
                 (id, version_ruta_id, estudiante_id, codigo_acceso_id, estado, inscrito_en, ultima_visita_en)
-                VALUES (:id, :versionRouteId, :studentId, :accessCodeId, 'ACTIVO', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+                VALUES (:id, :versionRouteId, :studentId, :accessCodeId, 'ACTIVO', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
                 """;
         jdbc.update(sqlEnroll, new MapSqlParameterSource()
                 .addValue("id", enrollmentId.toString())
@@ -628,7 +628,7 @@ public class LearningRouteRepository {
                     INSERT IGNORE INTO aprendizaje_progreso_nodo
                     (inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en)
                     VALUES (:enrollmentId, :versionRouteId, :nodeId, :state,
-                            CASE WHEN :state = 'DISPONIBLE' THEN CURRENT_TIMESTAMP(6) ELSE NULL END)
+                            CASE WHEN :state = 'DISPONIBLE' THEN UTC_TIMESTAMP(6) ELSE NULL END)
                     """;
             jdbc.update(sqlProgress, new MapSqlParameterSource()
                     .addValue("enrollmentId", realEnrollmentId)

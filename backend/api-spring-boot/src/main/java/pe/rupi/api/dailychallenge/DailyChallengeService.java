@@ -140,7 +140,7 @@ public class DailyChallengeService {
             jdbc.update("""
                     INSERT IGNORE INTO gamificacion_movimiento_experiencia
                     (id, usuario_id, cantidad, motivo, referencia_tipo, referencia_id, evento_idempotencia, ocurrido_en)
-                    VALUES (:id, :studentId, :amount, 'RETO', 'RETO', :actId, :idempotency, CURRENT_TIMESTAMP(6))
+                    VALUES (:id, :studentId, :amount, 'RETO', 'RETO', :actId, :idempotency, UTC_TIMESTAMP(6))
                     """, new MapSqlParameterSource()
                     .addValue("id", UUID.randomUUID().toString())
                     .addValue("studentId", studentId.toString())

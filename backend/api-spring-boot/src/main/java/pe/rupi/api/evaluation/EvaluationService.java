@@ -174,7 +174,7 @@ public class EvaluationService {
             jdbc.update("""
                     INSERT INTO evaluacion_intento
                     (id, estudiante_id, version_actividad_id, numero_intento, estado, cliente_evento_id, iniciado_en)
-                    VALUES (:id, :studentId, :actId, 1, 'EN_CURSO', :clientEventId, CURRENT_TIMESTAMP(6))
+                    VALUES (:id, :studentId, :actId, 1, 'EN_CURSO', :clientEventId, UTC_TIMESTAMP(6))
                     """, new MapSqlParameterSource()
                     .addValue("id", attemptId)
                     .addValue("studentId", studentId.toString())
@@ -191,12 +191,12 @@ public class EvaluationService {
         jdbc.update("""
                 INSERT INTO evaluacion_respuesta
                 (id, intento_id, pregunta_id, texto_respuesta, es_correcta, puntaje_obtenido, respondida_en)
-                VALUES (:id, :intentoId, :qId, :textAns, :isCorrect, :score, CURRENT_TIMESTAMP(6))
+                VALUES (:id, :intentoId, :qId, :textAns, :isCorrect, :score, UTC_TIMESTAMP(6))
                 ON DUPLICATE KEY UPDATE
                     texto_respuesta = VALUES(texto_respuesta),
                     es_correcta = VALUES(es_correcta),
                     puntaje_obtenido = VALUES(puntaje_obtenido),
-                    respondida_en = CURRENT_TIMESTAMP(6)
+                    respondida_en = UTC_TIMESTAMP(6)
                 """, new MapSqlParameterSource()
                 .addValue("id", responseId)
                 .addValue("intentoId", attemptId)

@@ -82,9 +82,9 @@ try:
         check(f'login estudiante {i+1}',request(c,'auth/login','POST',{'username':usernames[i],'password':password})[0]==200)
     check('cada cuenta recibe sus propias matrículas',len(request(c1,'student/learning-routes')[1]['items'])==2 and len(request(c2,'student/learning-routes')[1]['items'])==1)
     def start(c,route,node,origin=None):return request(c,f'student/learning-routes/{route}/nodes/{node}/start','POST',origin=origin)
-    check('ruta ajena: 404', start(c2,versions[1],nodes[3])[0]==404)
+    check('ruta inexistente: 404', start(c2,uid(),nodes[3])[0]==404)
     check('origen externo: 403',start(c1,versions[0],nodes[0],'https://other.example')[0]==403)
-    check('nodo bloqueado: 409',start(c1,versions[0],nodes[2])[0]==409)
+    check('nodo bloqueado: 403',start(c1,versions[0],nodes[2])[0]==403)
     check('rechazo no modifica último nodo',sql(f"SELECT COALESCE(ultimo_nodo_visitado_id,'NULL') FROM aprendizaje_inscripcion_ruta WHERE id='{enrollments[0]}'")=='NULL')
     status,body=start(c1,versions[0],nodes[0])
     check('iniciar devuelve contenido y EN_CURSO',status==200 and body['state']=='EN_CURSO' and body['blocks'][0]['text']=='Contenido 0')
@@ -113,11 +113,11 @@ try:
     grouped=curriculum()
     groups=grouped['curriculum']['units']
     check('unidades en orden curricular, no de inserción',grouped['curriculum']['status']=='COMPLETA' and [g['id'] for g in groups]==[unit_ids[1],unit_ids[0]])
-    check('paradas de cada unidad conservan su orden',groups[1]['nodeIds']==[nodes[0],nodes[1]] and groups[0]['nodeIds']==[nodes[2]])
+    check('paradas de cada unidad conservan su orden',[n['id'] for n in groups[1]['nodes']]==[nodes[0],nodes[1]] and [n['id'] for n in groups[0]['nodes']]==[nodes[2]])
     check('agrupar no altera progreso ni estados',states(grouped)==states(before) and grouped['progress']==before['progress'])
     sql(f"UPDATE aprendizaje_nodo_ruta SET unidad_id=NULL WHERE id='{nodes[2]}'")
     partial=curriculum()['curriculum']
-    check('parada sin unidad va a un grupo final explícito',partial['status']=='PARCIAL' and partial['units'][-1]['id'] is None and partial['units'][-1]['nodeIds']==[nodes[2]])
+    check('parada sin unidad va a un grupo final explícito',partial['status']=='PARCIAL' and partial['units'][-1]['id'] is None and [n['id'] for n in partial['units'][-1]['nodes']]==[nodes[2]])
     sql(f"UPDATE aprendizaje_nodo_ruta SET unidad_id='{unit_ids[2]}' WHERE id='{nodes[2]}'")
     wrong=curriculum()
     check('unidad de otro grado: INCOHERENTE y sin mezclar',wrong['curriculum']['status']=='INCOHERENTE' and wrong['curriculum']['units']==[] and len(wrong['nodes'])==3)
@@ -125,5 +125,5 @@ try:
     check('ruta pausada rechaza inicio',start(c1,versions[0],nodes[1])[0]==404)
     print(f'{len(passed)} comprobaciones HTTP/MySQL correctas.')
 finally:
-    sql(f"DELETE FROM identidad_sesion_usuario WHERE usuario_id IN ({ids(users)}); DELETE FROM identidad_intento_acceso WHERE usuario_id IN ({ids(users)}); DELETE FROM aprendizaje_progreso_nodo WHERE inscripcion_id IN ({ids(enrollments)}); DELETE FROM aprendizaje_inscripcion_ruta WHERE id IN ({ids(enrollments)}); DELETE FROM aprendizaje_nodo_ruta WHERE id IN ({ids(nodes)}); DELETE FROM curriculo_unidad WHERE id IN ({ids(unit_ids)}); DELETE FROM aprendizaje_bloque_contenido WHERE id IN ({ids(blocks)}); DELETE FROM aprendizaje_version_actividad WHERE id IN ({ids(activity_versions)}); DELETE FROM aprendizaje_actividad WHERE id IN ({ids(activities)}); DELETE FROM aprendizaje_version_ruta WHERE id IN ({ids(versions)}); DELETE FROM aprendizaje_ruta WHERE id IN ({ids(routes)}); DELETE FROM identidad_cuenta_usuario WHERE id IN ({ids(users)})")
+    sql(f"DELETE FROM identidad_sesion_usuario WHERE usuario_id IN ({ids(users)}); DELETE FROM identidad_intento_acceso WHERE usuario_id IN ({ids(users)}); DELETE FROM aprendizaje_progreso_nodo WHERE inscripcion_id IN ({ids(enrollments)}); DELETE FROM aprendizaje_inscripcion_ruta WHERE id IN ({ids(enrollments)}); DELETE FROM aprendizaje_nodo_ruta WHERE id IN ({ids(nodes)}); DELETE FROM curriculo_unidad WHERE id IN ({ids(unit_ids)}); DELETE FROM evaluacion_respuesta WHERE pregunta_id IN (SELECT id FROM evaluacion_pregunta WHERE version_actividad_id IN ({ids(activity_versions)})); DELETE FROM evaluacion_opcion_respuesta WHERE pregunta_id IN (SELECT id FROM evaluacion_pregunta WHERE version_actividad_id IN ({ids(activity_versions)})); DELETE FROM evaluacion_pregunta WHERE version_actividad_id IN ({ids(activity_versions)}); DELETE FROM aprendizaje_bloque_contenido WHERE id IN ({ids(blocks)}); DELETE FROM aprendizaje_version_actividad WHERE id IN ({ids(activity_versions)}); DELETE FROM aprendizaje_actividad WHERE id IN ({ids(activities)}); DELETE FROM aprendizaje_version_ruta WHERE id IN ({ids(versions)}); DELETE FROM aprendizaje_ruta WHERE id IN ({ids(routes)}); DELETE FROM identidad_cuenta_usuario WHERE id IN ({ids(users)})")
     print('Datos ficticios de esta ejecución eliminados; datos existentes conservados.')

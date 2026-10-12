@@ -2,6 +2,20 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-12 · Revisión del Sprint Backlog: correcciones para que HU-01 a HU-04 y HU-09 a HU-11 funcionen
+
+Se aplicaron las migraciones V08–V11 y se corrieron las verificaciones contra MySQL y la API reales. Hallazgos corregidos:
+
+- **V09 y V10 no se aplicaban:** usaban columnas inexistentes (`ubicacion_x/y` en vez de `mapa_x/y`; `version_catalogo_id` en `curriculo_competencia`) y V09 enlazaba el progreso de 3 rutas a ids de nodo que no existían. Además sus `DELETE` de nodos fallaban o borraban progreso al repetirse. Ahora usan `ON DUPLICATE KEY UPDATE` y V09 retira solo los nodos provisionales de V08. V08–V11 se aplican limpias y dos veces seguidas.
+- **API devolvía 503 al iniciar una parada:** el usuario MySQL de la API solo tenía permisos de HU-02. Nuevo `database/mysql/grants-spring-boot.sql` (escritor único: Spring escribe `escuela_*`, `aprendizaje_*`, `evaluacion_*`, `gamificacion_*`).
+- **HU-03:** `start` dejó de actualizar `ultima_visita_en`; restaurado.
+- **HU-02:** `start` y `complete` aceptaban actividades no `PUBLICADO`; restaurado el filtro.
+- **HU-04:** `RouteCurriculum.build` había perdido `SIN_UNIDADES`, `INCOHERENTE` y el grupo «Otras paradas», y listaba unidades que la ruta no usa. Restauradas las reglas y las 8 pruebas originales; se conserva la forma nueva (`nodes`, `totalNodes`, `completedNodes`).
+- **Fechas en UTC:** el servidor corre en UTC−5 y `CURRENT_TIMESTAMP` guardaba hora local; el backend y los datos de V08–V10 usan `UTC_TIMESTAMP(6)`.
+- **Scripts:** `verify_learning_flow.py` y `verify_hu04_content.py` esperaban respuestas anteriores (`409`, `nodeIds`); el primero ahora también limpia las tablas `evaluacion_*`.
+
+Resultado: 51 pruebas Java, 12 de Node, 29 comprobaciones de `verify_learning_flow.py` y `verify_hu04_content.py` correctas. Sin probar aquí: `Verificar-HU*.ps1` (no hay `pwsh`) y `verify_hu04_pantalla.mjs` (falta Playwright).
+
 ## 2026-10-12 · HU-11: Unirse a un roadmap con código alfanumérico de clase docente
 
 Detalle y especificación técnica en `docs/implementacion/HU-11-unirse-roadmap-codigo-clase.md`.

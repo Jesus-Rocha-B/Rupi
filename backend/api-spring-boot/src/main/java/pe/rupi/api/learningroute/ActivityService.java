@@ -67,6 +67,7 @@ public class ActivityService {
                   AND i.version_ruta_id = :route
                   AND i.estado IN ('ACTIVO', 'COMPLETADO')
                   AND vr.estado = 'PUBLICADO'
+                  AND va.estado = 'PUBLICADO'
                 FOR UPDATE
                 """, params, (rs, rowNum) -> new Access(
                 rs.getString("enrollment_id"),
@@ -101,7 +102,7 @@ public class ActivityService {
             jdbc.update("""
                     UPDATE aprendizaje_progreso_nodo
                     SET estado = 'EN_CURSO',
-                        primer_acceso_en = COALESCE(primer_acceso_en, CURRENT_TIMESTAMP(6))
+                        primer_acceso_en = COALESCE(primer_acceso_en, UTC_TIMESTAMP(6))
                     WHERE inscripcion_id = :enrollment AND nodo_ruta_id = :node
                     """, new MapSqlParameterSource("enrollment", access.enrollmentId())
                     .addValue("node", nodeId.toString()));
@@ -109,7 +110,7 @@ public class ActivityService {
 
         jdbc.update("""
                 UPDATE aprendizaje_inscripcion_ruta
-                SET ultimo_nodo_visitado_id = :node
+                SET ultimo_nodo_visitado_id = :node, ultima_visita_en = UTC_TIMESTAMP(6)
                 WHERE id = :enrollment
                 """, new MapSqlParameterSource("enrollment", access.enrollmentId())
                 .addValue("node", nodeId.toString()));
@@ -138,6 +139,7 @@ public class ActivityService {
                 FROM aprendizaje_inscripcion_ruta i
                 JOIN aprendizaje_version_ruta vr ON vr.id = i.version_ruta_id
                 JOIN aprendizaje_nodo_ruta n ON n.id = :node AND n.version_ruta_id = vr.id
+                JOIN aprendizaje_version_actividad va ON va.id = n.version_actividad_id AND va.estado = 'PUBLICADO'
                 LEFT JOIN aprendizaje_progreso_nodo p
                        ON p.inscripcion_id = i.id
                       AND p.version_ruta_id = vr.id
@@ -166,7 +168,7 @@ public class ActivityService {
             jdbc.update("""
                     UPDATE aprendizaje_progreso_nodo
                     SET estado = 'COMPLETADO',
-                        completado_en = CURRENT_TIMESTAMP(6)
+                        completado_en = UTC_TIMESTAMP(6)
                     WHERE inscripcion_id = :enrollment AND nodo_ruta_id = :node
                     """, new MapSqlParameterSource("enrollment", nodeAccess.enrollmentId())
                     .addValue("node", nodeId.toString()));
@@ -179,7 +181,7 @@ public class ActivityService {
             jdbc.update("""
                     INSERT IGNORE INTO gamificacion_movimiento_experiencia
                     (id, usuario_id, cantidad, motivo, referencia_tipo, referencia_id, evento_idempotencia, ocurrido_en)
-                    VALUES (:id, :userId, :amount, 'ACTIVIDAD', 'ACTIVIDAD', :refId, :idempotency, CURRENT_TIMESTAMP(6))
+                    VALUES (:id, :userId, :amount, 'ACTIVIDAD', 'ACTIVIDAD', :refId, :idempotency, UTC_TIMESTAMP(6))
                     """, new MapSqlParameterSource()
                     .addValue("id", UUID.randomUUID().toString())
                     .addValue("userId", studentId.toString())
@@ -222,7 +224,7 @@ public class ActivityService {
                 jdbc.update("""
                         UPDATE aprendizaje_progreso_nodo
                         SET estado = 'DISPONIBLE',
-                            desbloqueado_en = CURRENT_TIMESTAMP(6)
+                            desbloqueado_en = UTC_TIMESTAMP(6)
                         WHERE inscripcion_id = :enrollment AND nodo_ruta_id = :nodeId
                         """, new MapSqlParameterSource("enrollment", nodeAccess.enrollmentId())
                         .addValue("nodeId", next.id().toString()));
@@ -233,7 +235,7 @@ public class ActivityService {
             jdbc.update("""
                     UPDATE aprendizaje_inscripcion_ruta
                     SET estado = 'COMPLETADO',
-                        completado_en = CURRENT_TIMESTAMP(6)
+                        completado_en = UTC_TIMESTAMP(6)
                     WHERE id = :enrollment
                     """, new MapSqlParameterSource("enrollment", nodeAccess.enrollmentId()));
 
@@ -247,7 +249,7 @@ public class ActivityService {
                 jdbc.update("""
                         INSERT IGNORE INTO gamificacion_movimiento_experiencia
                         (id, usuario_id, cantidad, motivo, referencia_tipo, referencia_id, evento_idempotencia, ocurrido_en)
-                        VALUES (:id, :userId, :amount, 'GRADUACION', 'RUTA', :refId, :idempotency, CURRENT_TIMESTAMP(6))
+                        VALUES (:id, :userId, :amount, 'GRADUACION', 'RUTA', :refId, :idempotency, UTC_TIMESTAMP(6))
                         """, new MapSqlParameterSource()
                         .addValue("id", UUID.randomUUID().toString())
                         .addValue("userId", studentId.toString())
@@ -278,7 +280,7 @@ public class ActivityService {
 
                 jdbc.update("""
                         INSERT IGNORE INTO gamificacion_insignia_usuario (usuario_id, insignia_id, obtenida_en)
-                        VALUES (:userId, :badgeId, CURRENT_TIMESTAMP(6))
+                        VALUES (:userId, :badgeId, UTC_TIMESTAMP(6))
                         """, new MapSqlParameterSource("userId", studentId.toString()).addValue("badgeId", grandBadgeId));
 
                 badgeEarned = new BadgeDto(
@@ -298,7 +300,7 @@ public class ActivityService {
 
                 int inserted = jdbc.update("""
                         INSERT IGNORE INTO gamificacion_insignia_usuario (usuario_id, insignia_id, obtenida_en)
-                        VALUES (:userId, :badgeId, CURRENT_TIMESTAMP(6))
+                        VALUES (:userId, :badgeId, UTC_TIMESTAMP(6))
                         """, new MapSqlParameterSource("userId", studentId.toString()).addValue("badgeId", badgeId));
 
                 if (inserted > 0) {

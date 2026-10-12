@@ -50,6 +50,7 @@ Recursos: `public/images/` (fondo de Ayacucho con su atribución). Pruebas en `t
 
 - `schema.sql`: DDL de 77 tablas más los grados. `rupi.dbml`: diagrama. `modelo.md`: normalización e invariantes.
 - `migrations/`: `V04` contexto cultural, `V05` última visita, `V06` reparar hash demo, `V07` unidades y competencias de prueba de HU-04, `V08` índices FTS en áreas/rutas y roadmaps alternativos de HU-09, `V09` catálogo integral de múltiples roadmaps escolares CNEB (COM 2.°, CYT 2.°, SOC 2.°, ART 2.°, MAT 3.°), `V10` catálogo completo de roadmaps escolares CNEB para todos los grados de primaria (1.° a 6.°), `V11` códigos alfanuméricos de acceso de clase docente (HU-11).
+- `grants-spring-boot.sql`: permisos del usuario MySQL de la API (escritor único); se aplica como root tras las migraciones.
 - `seed-hu01.sql` (ruta, 10 nodos, inscripción y progreso demo; **no repetir sobre datos reales**) y `seed-hu02.sql` (contenido de actividades).
 
 ## Django · `backend/admin-django/`

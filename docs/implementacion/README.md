@@ -1,10 +1,10 @@
-# Plan de implementación · primeras ocho historias
+# Plan de implementación · historias HU-01 a HU-11
 
 ## Propósito y alcance
 
 Este plan organiza la primera entrega funcional de RUPI para estudiantes web. Implementaremos ocho historias en orden, partiendo de la ruta y el mapa que ya aparecen en el prototipo.
 
-El modelo MySQL contempla las 60 historias del backlog general; esta entrega cubre las historias HU-01 a HU-08. Kotlin y el administrador Django tienen carpetas propias y se incorporarán cuando las historias requieran funciones móviles o administrativas.
+El modelo MySQL contempla las 60 historias del backlog general; esta entrega cubre HU-01 a HU-11 del repo. Solo HU-01 a HU-04 y HU-09 a HU-11 corresponden a las mismas historias del backlog; HU-05 a HU-08 del repo son mejoras de gamificación web (ver `docs/registro/ESTADO.md`). Kotlin y el administrador Django tienen carpetas propias y se incorporarán cuando las historias requieran funciones móviles o administrativas.
 
 ## Arquitectura de estas historias
 
@@ -239,6 +239,22 @@ La calificación de respuestas, finalización y entrega de XP quedan fuera de es
 - [x] Barra de búsqueda física y accesible en React (`RoadmapSearchBar.tsx`) con atajo de teclado (`/`, `Ctrl+K`), autocompletado y voz de Rupi.
 - [x] Pruebas automatizadas de rendimiento (`Verificar-Rendimiento-HU09.ps1`) y suite de integración (`Verificar-HU09.ps1`).
 
+### HU-10 · Filtros por grado y materia
+
+- [x] Filtros laterales con checkboxes, varios parámetros en el backend y sincronización con la URL.
+- [x] Probado contra la API (grados 3 y 4: 6 rutas; Comunicación 2.°: 1 ruta).
+
+### HU-11 · Unirse con código de clase
+
+- [x] Formulario, validación de vigencia/revocación/formato, inscripción idempotente y redirección al mapa.
+- [x] Pruebas de errores (vencido, revocado, inactivo, inexistente) contra la API.
+- [ ] Probar con un estudiante sin inscripción previa y decidir si la inscripción abierta a rutas publicadas es intencional.
+
+### Revisión 2026-10-12
+
+- [x] V08–V11 aplicables y repetibles; permisos MySQL de la API en `database/mysql/grants-spring-boot.sql`.
+- [x] HU-02/03/04 restauradas donde un cambio posterior las había roto (ver `docs/registro/CHANGELOG.md`).
+
 ## Definición de terminado
 
 Cada historia se marca terminada cuando sus criterios pueden demostrarse en la web, la API aplica autenticación y autorización, MySQL conserva los cambios tras recargar, no se presentan datos de demostración como reales y se ha comprobado el comportamiento con MySQL de desarrollo. Los requisitos de privacidad y acceso para menores se resuelven antes de publicar.
@@ -255,6 +271,7 @@ Cada historia se marca terminada cuando sus criterios pueden demostrarse en la w
 - [HU-08: culminación de ruta y diploma de honor](HU-08-culminacion-ruta-diploma.md)
 - [HU-09: búsqueda de roadmaps alternativos por materia](HU-09-busqueda-roadmaps-alternativos.md)
 - [HU-10: filtros avanzados por grado escolar y materia](HU-10-filtros-avanzados-grados-materias.md)
+- [HU-11: unirse a un roadmap con código de clase](HU-11-unirse-roadmap-codigo-clase.md)
 - [README de MySQL](../../database/mysql/README.md)
 - [DDL MySQL](../../database/mysql/schema.sql)
 - [Diagrama ER](../../database/mysql/rupi.dbml)

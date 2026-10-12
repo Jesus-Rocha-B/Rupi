@@ -1,6 +1,10 @@
 # Estado actual · RUPI
 
-Actualizado: 2026-10-07 · rama `main` · HU-04 incluida en el último commit (`git log -1`).
+Actualizado: 2026-10-12 · rama `main` · revisión del Sprint Backlog aplicada en el último commit (`git log -1`).
+
+## Alineación con el backlog
+
+La numeración HU-xx del repo coincide con el backlog de 60 historias solo en **HU-01 a HU-04** (Sprint 1) y **HU-09 a HU-11**. HU-05 a HU-08 del repo (completar lección con XP, preguntas, insignias, diploma) son mejoras de gamificación web que el backlog no lista con ese número; en el backlog, las historias 5 a 8 son de autoría docente y siguen pendientes, igual que la 12 (descarga sin conexión) y todo lo de docente, móvil, IA y administración.
 
 ## Historias de usuario
 
@@ -22,7 +26,7 @@ Actualizado: 2026-10-07 · rama `main` · HU-04 incluida en el último commit (`
 
 ## Trabajo sin commitear
 
-Ninguno al cerrar HU-04. Detalle de lo que cambió en `docs/registro/CHANGELOG.md`.
+Ninguno al cerrar la revisión del 2026-10-12. Detalle en `docs/registro/CHANGELOG.md`.
 
 ## Pendiente
 
@@ -45,7 +49,17 @@ Ninguno al cerrar HU-04. Detalle de lo que cambió en `docs/registro/CHANGELOG.m
 - Las hojas de estilo son muy grandes (`App.css` y `AuthViews.css`, unas 2300 líneas cada una) y podrían dividirse.
 - `frontend/web-react/src/features/roadmap/lessons.ts` es un resto del origen estático anterior; comprobar si aún se usa.
 
-## Última evidencia de pruebas (2026-10-07, Fedora)
+## Revisión del 2026-10-12
+
+Se aplicaron V08–V11 y se corrieron las verificaciones contra la API y MySQL reales. Se corrigieron migraciones V09/V10 que no se aplicaban, permisos MySQL de la API (`grants-spring-boot.sql`), la última visita de HU-03, el filtro de actividades publicadas de HU-02, las reglas de unidades de HU-04 y las fechas en UTC. Detalle en `CHANGELOG.md`.
+
+Pendiente de esta revisión: borrar datos de prueba residuales (usuarios `qa_*`, rutas `QA-*`), decidir si la inscripción abierta a rutas publicadas es intencional frente a los códigos de clase de HU-11, y ejecutar `Verificar-HU*.ps1` (sin `pwsh` aquí) y `verify_hu04_pantalla.mjs` (sin Playwright).
+
+## Última evidencia de pruebas (2026-10-12, Fedora)
+
+51 pruebas Java y 12 de Node aprobadas; lint y build verificados. `verify_learning_flow.py`: 29 comprobaciones; `verify_hu04_content.py`: correcto.
+
+## Evidencia anterior (2026-10-07, Fedora)
 
 36 pruebas Java y 5 de Node aprobadas. Build de producción y ESLint verificados. `scripts/verify_learning_flow.py`: 29 comprobaciones HTTP/MySQL. `scripts/verify_hu04_content.py`: 11 y `scripts/verify_hu04_pantalla.mjs`: 10 (Firefox, 1280 y 375 px). Detalle en `docs/implementacion/HU-04-ruta-por-unidades.md`.
 

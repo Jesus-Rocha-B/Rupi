@@ -19,7 +19,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000101', 'd0000000-0000-4000-8000-000000000101', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -35,7 +35,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000102', 'd0000000-0000-4000-8000-000000000102', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -51,7 +51,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000103', 'd0000000-0000-4000-8000-000000000103', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -67,7 +67,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000302', 'd0000000-0000-4000-8000-000000000302', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -83,7 +83,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000303', 'd0000000-0000-4000-8000-000000000303', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -99,7 +99,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000401', 'd0000000-0000-4000-8000-000000000401', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -115,7 +115,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000402', 'd0000000-0000-4000-8000-000000000402', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -131,7 +131,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000403', 'd0000000-0000-4000-8000-000000000403', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -147,7 +147,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000501', 'd0000000-0000-4000-8000-000000000501', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000001', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000001', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -163,7 +163,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000502', 'd0000000-0000-4000-8000-000000000502', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -179,7 +179,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000503', 'd0000000-0000-4000-8000-000000000503', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -195,7 +195,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000601', 'd0000000-0000-4000-8000-000000000601', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000001', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000001', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -211,7 +211,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000602', 'd0000000-0000-4000-8000-000000000602', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000002', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -227,7 +227,7 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcio
 
 INSERT INTO aprendizaje_version_ruta (id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en) VALUES
   ('b0000000-0000-4000-8000-000000000603', 'd0000000-0000-4000-8000-000000000603', 'c0000000-0000-4000-8000-000000000001',
-   '00000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', CURRENT_TIMESTAMP(6))
+   '00000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000003', 1, 'PUBLICADO', UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'PUBLICADO';
 
 INSERT INTO curriculo_unidad (id, version_catalogo_id, grado_id, area_id, codigo, numero_secuencia, titulo) VALUES
@@ -417,14 +417,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-01010006', 'ac000000-0000-4000-8000-01010006', 1, 'El gran reto del conteo en la huerta', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000101';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-01010001', 'b0000000-0000-4000-8000-000000000101', 'fa000000-0000-4000-8000-01010001', 'u0000000-0000-4000-8000-000000000101', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-01010002', 'b0000000-0000-4000-8000-000000000101', 'fa000000-0000-4000-8000-01010002', 'u0000000-0000-4000-8000-000000000101', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-01010003', 'b0000000-0000-4000-8000-000000000101', 'fa000000-0000-4000-8000-01010003', 'u0000000-0000-4000-8000-000000000101', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-01010004', 'b0000000-0000-4000-8000-000000000101', 'fa000000-0000-4000-8000-01010004', 'u0000000-0000-4000-8000-000000000101', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-01010005', 'b0000000-0000-4000-8000-000000000101', 'fa000000-0000-4000-8000-01010005', 'u0000000-0000-4000-8000-000000000101', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-01010006', 'b0000000-0000-4000-8000-000000000101', 'fa000000-0000-4000-8000-01010006', 'u0000000-0000-4000-8000-000000000101', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-01010006', 'b0000000-0000-4000-8000-000000000101', 'fa000000-0000-4000-8000-01010006', 'u0000000-0000-4000-8000-000000000101', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-01010001', 'fa000000-0000-4000-8000-01010001', 1, 'TEXTO', 'En una manta tendida hay 1 choclo, 2 papas amarillas y 3 manzanas. Cuenta señalando con tu dedito cada alimento.'),
@@ -486,14 +486,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-01020006', 'ac000000-0000-4000-8000-01020006', 1, 'Mi primer pregón escolar rimado', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000102';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-01020001', 'b0000000-0000-4000-8000-000000000102', 'fa000000-0000-4000-8000-01020001', 'u0000000-0000-4000-8000-000000000102', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-01020002', 'b0000000-0000-4000-8000-000000000102', 'fa000000-0000-4000-8000-01020002', 'u0000000-0000-4000-8000-000000000102', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-01020003', 'b0000000-0000-4000-8000-000000000102', 'fa000000-0000-4000-8000-01020003', 'u0000000-0000-4000-8000-000000000102', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-01020004', 'b0000000-0000-4000-8000-000000000102', 'fa000000-0000-4000-8000-01020004', 'u0000000-0000-4000-8000-000000000102', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-01020005', 'b0000000-0000-4000-8000-000000000102', 'fa000000-0000-4000-8000-01020005', 'u0000000-0000-4000-8000-000000000102', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-01020006', 'b0000000-0000-4000-8000-000000000102', 'fa000000-0000-4000-8000-01020006', 'u0000000-0000-4000-8000-000000000102', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-01020006', 'b0000000-0000-4000-8000-000000000102', 'fa000000-0000-4000-8000-01020006', 'u0000000-0000-4000-8000-000000000102', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-01020001', 'fa000000-0000-4000-8000-01020001', 1, 'TEXTO', 'Abre bien la boca para pronunciar la A. La palabra Árbol, Alita y Ayacucho empiezan con la hermosa letra A.'),
@@ -555,14 +555,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-01030006', 'ac000000-0000-4000-8000-01030006', 1, 'Pequeño detective del ambiente escolar', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000103';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-01030001', 'b0000000-0000-4000-8000-000000000103', 'fa000000-0000-4000-8000-01030001', 'u0000000-0000-4000-8000-000000000103', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-01030002', 'b0000000-0000-4000-8000-000000000103', 'fa000000-0000-4000-8000-01030002', 'u0000000-0000-4000-8000-000000000103', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-01030003', 'b0000000-0000-4000-8000-000000000103', 'fa000000-0000-4000-8000-01030003', 'u0000000-0000-4000-8000-000000000103', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-01030004', 'b0000000-0000-4000-8000-000000000103', 'fa000000-0000-4000-8000-01030004', 'u0000000-0000-4000-8000-000000000103', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-01030005', 'b0000000-0000-4000-8000-000000000103', 'fa000000-0000-4000-8000-01030005', 'u0000000-0000-4000-8000-000000000103', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-01030006', 'b0000000-0000-4000-8000-000000000103', 'fa000000-0000-4000-8000-01030006', 'u0000000-0000-4000-8000-000000000103', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-01030006', 'b0000000-0000-4000-8000-000000000103', 'fa000000-0000-4000-8000-01030006', 'u0000000-0000-4000-8000-000000000103', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-01030001', 'fa000000-0000-4000-8000-01030001', 1, 'TEXTO', 'Con nuestros ojos podemos ver el cielo azul, las plumas rojas de Rupi y el camino hacia la escuela.'),
@@ -624,14 +624,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-03020006', 'ac000000-0000-4000-8000-03020006', 1, 'Redactando una fábula con moraleja comunitaria', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000302';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-03020001', 'b0000000-0000-4000-8000-000000000302', 'fa000000-0000-4000-8000-03020001', 'u0000000-0000-4000-8000-000000000302', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-03020002', 'b0000000-0000-4000-8000-000000000302', 'fa000000-0000-4000-8000-03020002', 'u0000000-0000-4000-8000-000000000302', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-03020003', 'b0000000-0000-4000-8000-000000000302', 'fa000000-0000-4000-8000-03020003', 'u0000000-0000-4000-8000-000000000302', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-03020004', 'b0000000-0000-4000-8000-000000000302', 'fa000000-0000-4000-8000-03020004', 'u0000000-0000-4000-8000-000000000302', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-03020005', 'b0000000-0000-4000-8000-000000000302', 'fa000000-0000-4000-8000-03020005', 'u0000000-0000-4000-8000-000000000302', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-03020006', 'b0000000-0000-4000-8000-000000000302', 'fa000000-0000-4000-8000-03020006', 'u0000000-0000-4000-8000-000000000302', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-03020006', 'b0000000-0000-4000-8000-000000000302', 'fa000000-0000-4000-8000-03020006', 'u0000000-0000-4000-8000-000000000302', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-03020001', 'fa000000-0000-4000-8000-03020001', 1, 'TEXTO', 'Cuatro hermanos salieron del cerro Tamputoco en busca de tierras fértiles. Cada uno portaba dones especiales para fundar un pueblo próspero.'),
@@ -693,14 +693,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-03030006', 'ac000000-0000-4000-8000-03030006', 1, 'Proyecto escolar: Cocina solar con cartón y espejo', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000303';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-03030001', 'b0000000-0000-4000-8000-000000000303', 'fa000000-0000-4000-8000-03030001', 'u0000000-0000-4000-8000-000000000303', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-03030002', 'b0000000-0000-4000-8000-000000000303', 'fa000000-0000-4000-8000-03030002', 'u0000000-0000-4000-8000-000000000303', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-03030003', 'b0000000-0000-4000-8000-000000000303', 'fa000000-0000-4000-8000-03030003', 'u0000000-0000-4000-8000-000000000303', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-03030004', 'b0000000-0000-4000-8000-000000000303', 'fa000000-0000-4000-8000-03030004', 'u0000000-0000-4000-8000-000000000303', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-03030005', 'b0000000-0000-4000-8000-000000000303', 'fa000000-0000-4000-8000-03030005', 'u0000000-0000-4000-8000-000000000303', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-03030006', 'b0000000-0000-4000-8000-000000000303', 'fa000000-0000-4000-8000-03030006', 'u0000000-0000-4000-8000-000000000303', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-03030006', 'b0000000-0000-4000-8000-000000000303', 'fa000000-0000-4000-8000-03030006', 'u0000000-0000-4000-8000-000000000303', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-03030001', 'fa000000-0000-4000-8000-03030001', 1, 'TEXTO', 'En los glaciares el agua está sólida (hielo). En los arroyos fluye líquida. Con el calor del sol se evapora en gas formando nubes.'),
@@ -762,14 +762,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-04010006', 'ac000000-0000-4000-8000-04010006', 1, 'Desafío del comerciante justo en la feria de Quinua', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000401';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-04010001', 'b0000000-0000-4000-8000-000000000401', 'fa000000-0000-4000-8000-04010001', 'u0000000-0000-4000-8000-000000000401', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-04010002', 'b0000000-0000-4000-8000-000000000401', 'fa000000-0000-4000-8000-04010002', 'u0000000-0000-4000-8000-000000000401', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-04010003', 'b0000000-0000-4000-8000-000000000401', 'fa000000-0000-4000-8000-04010003', 'u0000000-0000-4000-8000-000000000401', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-04010004', 'b0000000-0000-4000-8000-000000000401', 'fa000000-0000-4000-8000-04010004', 'u0000000-0000-4000-8000-000000000401', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-04010005', 'b0000000-0000-4000-8000-000000000401', 'fa000000-0000-4000-8000-04010005', 'u0000000-0000-4000-8000-000000000401', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-04010006', 'b0000000-0000-4000-8000-000000000401', 'fa000000-0000-4000-8000-04010006', 'u0000000-0000-4000-8000-000000000401', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-04010006', 'b0000000-0000-4000-8000-000000000401', 'fa000000-0000-4000-8000-04010006', 'u0000000-0000-4000-8000-000000000401', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-04010001', 'fa000000-0000-4000-8000-04010001', 1, 'TEXTO', 'Una fracción expresa una o varias partes iguales en que se divide una unidad entera. Si divides un queso en 4 partes iguales, cada parte es 1/4.'),
@@ -831,14 +831,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-04020006', 'ac000000-0000-4000-8000-04020006', 1, 'Creación de un boletín escolar sobre nuestra comunidad', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000402';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-04020001', 'b0000000-0000-4000-8000-000000000402', 'fa000000-0000-4000-8000-04020001', 'u0000000-0000-4000-8000-000000000402', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-04020002', 'b0000000-0000-4000-8000-000000000402', 'fa000000-0000-4000-8000-04020002', 'u0000000-0000-4000-8000-000000000402', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-04020003', 'b0000000-0000-4000-8000-000000000402', 'fa000000-0000-4000-8000-04020003', 'u0000000-0000-4000-8000-000000000402', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-04020004', 'b0000000-0000-4000-8000-000000000402', 'fa000000-0000-4000-8000-04020004', 'u0000000-0000-4000-8000-000000000402', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-04020005', 'b0000000-0000-4000-8000-000000000402', 'fa000000-0000-4000-8000-04020005', 'u0000000-0000-4000-8000-000000000402', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-04020006', 'b0000000-0000-4000-8000-000000000402', 'fa000000-0000-4000-8000-04020006', 'u0000000-0000-4000-8000-000000000402', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-04020006', 'b0000000-0000-4000-8000-000000000402', 'fa000000-0000-4000-8000-04020006', 'u0000000-0000-4000-8000-000000000402', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-04020001', 'fa000000-0000-4000-8000-04020001', 1, 'TEXTO', 'Un afiche combina imagen atractiva, eslogan llamativo y texto breve para convencer o informar a la comunidad sobre una causa importante.'),
@@ -900,14 +900,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-04030006', 'ac000000-0000-4000-8000-04030006', 1, 'Misión Guardián de la Pampa: Plan de conservación', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000403';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-04030001', 'b0000000-0000-4000-8000-000000000403', 'fa000000-0000-4000-8000-04030001', 'u0000000-0000-4000-8000-000000000403', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-04030002', 'b0000000-0000-4000-8000-000000000403', 'fa000000-0000-4000-8000-04030002', 'u0000000-0000-4000-8000-000000000403', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-04030003', 'b0000000-0000-4000-8000-000000000403', 'fa000000-0000-4000-8000-04030003', 'u0000000-0000-4000-8000-000000000403', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-04030004', 'b0000000-0000-4000-8000-000000000403', 'fa000000-0000-4000-8000-04030004', 'u0000000-0000-4000-8000-000000000403', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-04030005', 'b0000000-0000-4000-8000-000000000403', 'fa000000-0000-4000-8000-04030005', 'u0000000-0000-4000-8000-000000000403', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-04030006', 'b0000000-0000-4000-8000-000000000403', 'fa000000-0000-4000-8000-04030006', 'u0000000-0000-4000-8000-000000000403', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-04030006', 'b0000000-0000-4000-8000-000000000403', 'fa000000-0000-4000-8000-04030006', 'u0000000-0000-4000-8000-000000000403', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-04030001', 'fa000000-0000-4000-8000-04030001', 1, 'TEXTO', 'Los factores bióticos tienen vida (plantas, animales, bacterias). Los factores abióticos no tienen vida pero son indispensables (suelo, aire, agua, luz).'),
@@ -969,14 +969,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-05010006', 'ac000000-0000-4000-8000-05010006', 1, 'El gran reto del presupuesto para el viaje escolar', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000501';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-05010001', 'b0000000-0000-4000-8000-000000000501', 'fa000000-0000-4000-8000-05010001', 'u0000000-0000-4000-8000-000000000501', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-05010002', 'b0000000-0000-4000-8000-000000000501', 'fa000000-0000-4000-8000-05010002', 'u0000000-0000-4000-8000-000000000501', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-05010003', 'b0000000-0000-4000-8000-000000000501', 'fa000000-0000-4000-8000-05010003', 'u0000000-0000-4000-8000-000000000501', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-05010004', 'b0000000-0000-4000-8000-000000000501', 'fa000000-0000-4000-8000-05010004', 'u0000000-0000-4000-8000-000000000501', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-05010005', 'b0000000-0000-4000-8000-000000000501', 'fa000000-0000-4000-8000-05010005', 'u0000000-0000-4000-8000-000000000501', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-05010006', 'b0000000-0000-4000-8000-000000000501', 'fa000000-0000-4000-8000-05010006', 'u0000000-0000-4000-8000-000000000501', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-05010006', 'b0000000-0000-4000-8000-000000000501', 'fa000000-0000-4000-8000-05010006', 'u0000000-0000-4000-8000-000000000501', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-05010001', 'fa000000-0000-4000-8000-05010001', 1, 'TEXTO', 'A la derecha de la coma decimal encontramos los décimos (0,1), centésimos (0,01) y milésimos (0,001). Un sol con cincuenta céntimos se escribe S/ 1,50.'),
@@ -1038,14 +1038,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-05020006', 'ac000000-0000-4000-8000-05020006', 1, 'Ensayo escolar: Cuidemos el patrimonio arqueológico', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000502';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-05020001', 'b0000000-0000-4000-8000-000000000502', 'fa000000-0000-4000-8000-05020001', 'u0000000-0000-4000-8000-000000000502', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-05020002', 'b0000000-0000-4000-8000-000000000502', 'fa000000-0000-4000-8000-05020002', 'u0000000-0000-4000-8000-000000000502', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-05020003', 'b0000000-0000-4000-8000-000000000502', 'fa000000-0000-4000-8000-05020003', 'u0000000-0000-4000-8000-000000000502', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-05020004', 'b0000000-0000-4000-8000-000000000502', 'fa000000-0000-4000-8000-05020004', 'u0000000-0000-4000-8000-000000000502', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-05020005', 'b0000000-0000-4000-8000-000000000502', 'fa000000-0000-4000-8000-05020005', 'u0000000-0000-4000-8000-000000000502', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-05020006', 'b0000000-0000-4000-8000-000000000502', 'fa000000-0000-4000-8000-05020006', 'u0000000-0000-4000-8000-000000000502', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-05020006', 'b0000000-0000-4000-8000-000000000502', 'fa000000-0000-4000-8000-05020006', 'u0000000-0000-4000-8000-000000000502', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-05020001', 'fa000000-0000-4000-8000-05020001', 1, 'TEXTO', 'La tesis es la postura o punto de vista que defendemos. Los argumentos son las razones sólidas y pruebas que la justifican.'),
@@ -1107,14 +1107,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-05030006', 'ac000000-0000-4000-8000-05030006', 1, 'Feria de la salud: Loncheras nutritivas sin octógonos', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000503';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-05030001', 'b0000000-0000-4000-8000-000000000503', 'fa000000-0000-4000-8000-05030001', 'u0000000-0000-4000-8000-000000000503', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-05030002', 'b0000000-0000-4000-8000-000000000503', 'fa000000-0000-4000-8000-05030002', 'u0000000-0000-4000-8000-000000000503', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-05030003', 'b0000000-0000-4000-8000-000000000503', 'fa000000-0000-4000-8000-05030003', 'u0000000-0000-4000-8000-000000000503', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-05030004', 'b0000000-0000-4000-8000-000000000503', 'fa000000-0000-4000-8000-05030004', 'u0000000-0000-4000-8000-000000000503', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-05030005', 'b0000000-0000-4000-8000-000000000503', 'fa000000-0000-4000-8000-05030005', 'u0000000-0000-4000-8000-000000000503', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-05030006', 'b0000000-0000-4000-8000-000000000503', 'fa000000-0000-4000-8000-05030006', 'u0000000-0000-4000-8000-000000000503', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-05030006', 'b0000000-0000-4000-8000-000000000503', 'fa000000-0000-4000-8000-05030006', 'u0000000-0000-4000-8000-000000000503', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-05030001', 'fa000000-0000-4000-8000-05030001', 1, 'TEXTO', 'La boca tritura, el estómago descompone y el intestino delgado absorbe los nutrientes que pasarán a la sangre para darnos energía.'),
@@ -1176,14 +1176,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-06010006', 'ac000000-0000-4000-8000-06010006', 1, 'Gran prueba de graduación: Retos matemáticos del Bicentenario', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000601';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-06010001', 'b0000000-0000-4000-8000-000000000601', 'fa000000-0000-4000-8000-06010001', 'u0000000-0000-4000-8000-000000000601', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-06010002', 'b0000000-0000-4000-8000-000000000601', 'fa000000-0000-4000-8000-06010002', 'u0000000-0000-4000-8000-000000000601', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-06010003', 'b0000000-0000-4000-8000-000000000601', 'fa000000-0000-4000-8000-06010003', 'u0000000-0000-4000-8000-000000000601', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-06010004', 'b0000000-0000-4000-8000-000000000601', 'fa000000-0000-4000-8000-06010004', 'u0000000-0000-4000-8000-000000000601', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-06010005', 'b0000000-0000-4000-8000-000000000601', 'fa000000-0000-4000-8000-06010005', 'u0000000-0000-4000-8000-000000000601', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-06010006', 'b0000000-0000-4000-8000-000000000601', 'fa000000-0000-4000-8000-06010006', 'u0000000-0000-4000-8000-000000000601', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-06010006', 'b0000000-0000-4000-8000-000000000601', 'fa000000-0000-4000-8000-06010006', 'u0000000-0000-4000-8000-000000000601', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-06010001', 'fa000000-0000-4000-8000-06010001', 1, 'TEXTO', 'Dos magnitudes son directamente proporcionales si al multiplicar una por un número, la otra queda multiplicada por el mismo número: si 1 telar usa 2 ovillos, 3 telares usan 6 ovillos.'),
@@ -1245,14 +1245,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-06020006', 'ac000000-0000-4000-8000-06020006', 1, 'Discurso de graduación de primaria: Nuestro legado escolar', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000602';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-06020001', 'b0000000-0000-4000-8000-000000000602', 'fa000000-0000-4000-8000-06020001', 'u0000000-0000-4000-8000-000000000602', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-06020002', 'b0000000-0000-4000-8000-000000000602', 'fa000000-0000-4000-8000-06020002', 'u0000000-0000-4000-8000-000000000602', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-06020003', 'b0000000-0000-4000-8000-000000000602', 'fa000000-0000-4000-8000-06020003', 'u0000000-0000-4000-8000-000000000602', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-06020004', 'b0000000-0000-4000-8000-000000000602', 'fa000000-0000-4000-8000-06020004', 'u0000000-0000-4000-8000-000000000602', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-06020005', 'b0000000-0000-4000-8000-000000000602', 'fa000000-0000-4000-8000-06020005', 'u0000000-0000-4000-8000-000000000602', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-06020006', 'b0000000-0000-4000-8000-000000000602', 'fa000000-0000-4000-8000-06020006', 'u0000000-0000-4000-8000-000000000602', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-06020006', 'b0000000-0000-4000-8000-000000000602', 'fa000000-0000-4000-8000-06020006', 'u0000000-0000-4000-8000-000000000602', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-06020001', 'fa000000-0000-4000-8000-06020001', 1, 'TEXTO', 'Una crónica narra acontecimientos de interés público siguiendo un orden cronológico y utilizando descripciones sensoriales vivas.'),
@@ -1314,14 +1314,14 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-06030006', 'ac000000-0000-4000-8000-06030006', 1, 'Proyecto de investigación científica escolar: Reforestación con Queñuales', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
 
-DELETE FROM aprendizaje_nodo_ruta WHERE version_ruta_id = 'b0000000-0000-4000-8000-000000000603';
-INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, ubicacion_x, ubicacion_y) VALUES
+INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-06030001', 'b0000000-0000-4000-8000-000000000603', 'fa000000-0000-4000-8000-06030001', 'u0000000-0000-4000-8000-000000000603', 1, FALSE, 50, 18),
   ('ca000000-0000-4000-8000-06030002', 'b0000000-0000-4000-8000-000000000603', 'fa000000-0000-4000-8000-06030002', 'u0000000-0000-4000-8000-000000000603', 2, FALSE, 27, 32),
   ('ca000000-0000-4000-8000-06030003', 'b0000000-0000-4000-8000-000000000603', 'fa000000-0000-4000-8000-06030003', 'u0000000-0000-4000-8000-000000000603', 3, FALSE, 73, 46),
   ('ca000000-0000-4000-8000-06030004', 'b0000000-0000-4000-8000-000000000603', 'fa000000-0000-4000-8000-06030004', 'u0000000-0000-4000-8000-000000000603', 4, FALSE, 35, 60),
   ('ca000000-0000-4000-8000-06030005', 'b0000000-0000-4000-8000-000000000603', 'fa000000-0000-4000-8000-06030005', 'u0000000-0000-4000-8000-000000000603', 5, FALSE, 68, 74),
-  ('ca000000-0000-4000-8000-06030006', 'b0000000-0000-4000-8000-000000000603', 'fa000000-0000-4000-8000-06030006', 'u0000000-0000-4000-8000-000000000603', 6, FALSE, 50, 88);
+  ('ca000000-0000-4000-8000-06030006', 'b0000000-0000-4000-8000-000000000603', 'fa000000-0000-4000-8000-06030006', 'u0000000-0000-4000-8000-000000000603', 6, FALSE, 50, 88)
+ON DUPLICATE KEY UPDATE unidad_id = VALUES(unidad_id), mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo) VALUES
   ('bb000000-0000-4000-8000-06030001', 'fa000000-0000-4000-8000-06030001', 1, 'TEXTO', 'Gases como el CO2 y el metano atrapan el calor en la atmósfera. La quema excesiva de combustibles fósiles intensifica este efecto derritiendo los glaciares.'),
@@ -1370,14 +1370,14 @@ ON DUPLICATE KEY UPDATE texto = VALUES(texto), es_correcta = VALUES(es_correcta)
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000101', 'b0000000-0000-4000-8000-000000000101', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-01010001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000101', 'b0000000-0000-4000-8000-000000000101', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-01010001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en MAT-1P-INICIO (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000101', 'b0000000-0000-4000-8000-000000000101', 'ca000000-0000-4000-8000-01010001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000101', 'b0000000-0000-4000-8000-000000000101', 'ca000000-0000-4000-8000-01010001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000101', 'b0000000-0000-4000-8000-000000000101', 'ca000000-0000-4000-8000-01010002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000101', 'b0000000-0000-4000-8000-000000000101', 'ca000000-0000-4000-8000-01010003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000101', 'b0000000-0000-4000-8000-000000000101', 'ca000000-0000-4000-8000-01010004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1389,14 +1389,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000102', 'b0000000-0000-4000-8000-000000000102', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-01020001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000102', 'b0000000-0000-4000-8000-000000000102', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-01020001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en COM-1P-LETRAS (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000102', 'b0000000-0000-4000-8000-000000000102', 'ca000000-0000-4000-8000-01020001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000102', 'b0000000-0000-4000-8000-000000000102', 'ca000000-0000-4000-8000-01020001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000102', 'b0000000-0000-4000-8000-000000000102', 'ca000000-0000-4000-8000-01020002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000102', 'b0000000-0000-4000-8000-000000000102', 'ca000000-0000-4000-8000-01020003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000102', 'b0000000-0000-4000-8000-000000000102', 'ca000000-0000-4000-8000-01020004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1408,14 +1408,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000103', 'b0000000-0000-4000-8000-000000000103', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-01030001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000103', 'b0000000-0000-4000-8000-000000000103', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-01030001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en CYT-1P-EXPLOR (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000103', 'b0000000-0000-4000-8000-000000000103', 'ca000000-0000-4000-8000-01030001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000103', 'b0000000-0000-4000-8000-000000000103', 'ca000000-0000-4000-8000-01030001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000103', 'b0000000-0000-4000-8000-000000000103', 'ca000000-0000-4000-8000-01030002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000103', 'b0000000-0000-4000-8000-000000000103', 'ca000000-0000-4000-8000-01030003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000103', 'b0000000-0000-4000-8000-000000000103', 'ca000000-0000-4000-8000-01030004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1427,14 +1427,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000302', 'b0000000-0000-4000-8000-000000000302', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-03020001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000302', 'b0000000-0000-4000-8000-000000000302', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-03020001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en COM-3P-MITOS (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000302', 'b0000000-0000-4000-8000-000000000302', 'ca000000-0000-4000-8000-03020001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000302', 'b0000000-0000-4000-8000-000000000302', 'ca000000-0000-4000-8000-03020001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000302', 'b0000000-0000-4000-8000-000000000302', 'ca000000-0000-4000-8000-03020002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000302', 'b0000000-0000-4000-8000-000000000302', 'ca000000-0000-4000-8000-03020003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000302', 'b0000000-0000-4000-8000-000000000302', 'ca000000-0000-4000-8000-03020004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1446,14 +1446,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000303', 'b0000000-0000-4000-8000-000000000303', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-03030001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000303', 'b0000000-0000-4000-8000-000000000303', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-03030001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en CYT-3P-ENERGIA (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000303', 'b0000000-0000-4000-8000-000000000303', 'ca000000-0000-4000-8000-03030001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000303', 'b0000000-0000-4000-8000-000000000303', 'ca000000-0000-4000-8000-03030001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000303', 'b0000000-0000-4000-8000-000000000303', 'ca000000-0000-4000-8000-03030002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000303', 'b0000000-0000-4000-8000-000000000303', 'ca000000-0000-4000-8000-03030003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000303', 'b0000000-0000-4000-8000-000000000303', 'ca000000-0000-4000-8000-03030004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1465,14 +1465,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000401', 'b0000000-0000-4000-8000-000000000401', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-04010001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000401', 'b0000000-0000-4000-8000-000000000401', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-04010001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en MAT-4P-FRACC (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000401', 'b0000000-0000-4000-8000-000000000401', 'ca000000-0000-4000-8000-04010001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000401', 'b0000000-0000-4000-8000-000000000401', 'ca000000-0000-4000-8000-04010001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000401', 'b0000000-0000-4000-8000-000000000401', 'ca000000-0000-4000-8000-04010002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000401', 'b0000000-0000-4000-8000-000000000401', 'ca000000-0000-4000-8000-04010003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000401', 'b0000000-0000-4000-8000-000000000401', 'ca000000-0000-4000-8000-04010004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1484,14 +1484,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000402', 'b0000000-0000-4000-8000-000000000402', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-04020001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000402', 'b0000000-0000-4000-8000-000000000402', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-04020001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en COM-4P-TEXTOS (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000402', 'b0000000-0000-4000-8000-000000000402', 'ca000000-0000-4000-8000-04020001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000402', 'b0000000-0000-4000-8000-000000000402', 'ca000000-0000-4000-8000-04020001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000402', 'b0000000-0000-4000-8000-000000000402', 'ca000000-0000-4000-8000-04020002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000402', 'b0000000-0000-4000-8000-000000000402', 'ca000000-0000-4000-8000-04020003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000402', 'b0000000-0000-4000-8000-000000000402', 'ca000000-0000-4000-8000-04020004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1503,14 +1503,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000403', 'b0000000-0000-4000-8000-000000000403', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-04030001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000403', 'b0000000-0000-4000-8000-000000000403', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-04030001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en CYT-4P-ECOSIS (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000403', 'b0000000-0000-4000-8000-000000000403', 'ca000000-0000-4000-8000-04030001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000403', 'b0000000-0000-4000-8000-000000000403', 'ca000000-0000-4000-8000-04030001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000403', 'b0000000-0000-4000-8000-000000000403', 'ca000000-0000-4000-8000-04030002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000403', 'b0000000-0000-4000-8000-000000000403', 'ca000000-0000-4000-8000-04030003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000403', 'b0000000-0000-4000-8000-000000000403', 'ca000000-0000-4000-8000-04030004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1522,14 +1522,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000501', 'b0000000-0000-4000-8000-000000000501', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-05010001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000501', 'b0000000-0000-4000-8000-000000000501', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-05010001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en MAT-5P-DECIM (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000501', 'b0000000-0000-4000-8000-000000000501', 'ca000000-0000-4000-8000-05010001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000501', 'b0000000-0000-4000-8000-000000000501', 'ca000000-0000-4000-8000-05010001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000501', 'b0000000-0000-4000-8000-000000000501', 'ca000000-0000-4000-8000-05010002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000501', 'b0000000-0000-4000-8000-000000000501', 'ca000000-0000-4000-8000-05010003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000501', 'b0000000-0000-4000-8000-000000000501', 'ca000000-0000-4000-8000-05010004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1541,14 +1541,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000502', 'b0000000-0000-4000-8000-000000000502', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-05020001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000502', 'b0000000-0000-4000-8000-000000000502', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-05020001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en COM-5P-ARGUM (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000502', 'b0000000-0000-4000-8000-000000000502', 'ca000000-0000-4000-8000-05020001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000502', 'b0000000-0000-4000-8000-000000000502', 'ca000000-0000-4000-8000-05020001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000502', 'b0000000-0000-4000-8000-000000000502', 'ca000000-0000-4000-8000-05020002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000502', 'b0000000-0000-4000-8000-000000000502', 'ca000000-0000-4000-8000-05020003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000502', 'b0000000-0000-4000-8000-000000000502', 'ca000000-0000-4000-8000-05020004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1560,14 +1560,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000503', 'b0000000-0000-4000-8000-000000000503', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-05030001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000503', 'b0000000-0000-4000-8000-000000000503', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-05030001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en CYT-5P-CUERPO (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000503', 'b0000000-0000-4000-8000-000000000503', 'ca000000-0000-4000-8000-05030001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000503', 'b0000000-0000-4000-8000-000000000503', 'ca000000-0000-4000-8000-05030001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000503', 'b0000000-0000-4000-8000-000000000503', 'ca000000-0000-4000-8000-05030002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000503', 'b0000000-0000-4000-8000-000000000503', 'ca000000-0000-4000-8000-05030003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000503', 'b0000000-0000-4000-8000-000000000503', 'ca000000-0000-4000-8000-05030004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1579,14 +1579,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000601', 'b0000000-0000-4000-8000-000000000601', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-06010001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000601', 'b0000000-0000-4000-8000-000000000601', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-06010001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en MAT-6P-PROPOR (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000601', 'b0000000-0000-4000-8000-000000000601', 'ca000000-0000-4000-8000-06010001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000601', 'b0000000-0000-4000-8000-000000000601', 'ca000000-0000-4000-8000-06010001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000601', 'b0000000-0000-4000-8000-000000000601', 'ca000000-0000-4000-8000-06010002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000601', 'b0000000-0000-4000-8000-000000000601', 'ca000000-0000-4000-8000-06010003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000601', 'b0000000-0000-4000-8000-000000000601', 'ca000000-0000-4000-8000-06010004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1598,14 +1598,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000602', 'b0000000-0000-4000-8000-000000000602', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-06020001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000602', 'b0000000-0000-4000-8000-000000000602', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-06020001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en COM-6P-CRONIC (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000602', 'b0000000-0000-4000-8000-000000000602', 'ca000000-0000-4000-8000-06020001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000602', 'b0000000-0000-4000-8000-000000000602', 'ca000000-0000-4000-8000-06020001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000602', 'b0000000-0000-4000-8000-000000000602', 'ca000000-0000-4000-8000-06020002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000602', 'b0000000-0000-4000-8000-000000000602', 'ca000000-0000-4000-8000-06020003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000602', 'b0000000-0000-4000-8000-000000000602', 'ca000000-0000-4000-8000-06020004', 'BLOQUEADO', NULL, NULL, NULL),
@@ -1617,14 +1617,14 @@ ON DUPLICATE KEY UPDATE estado = VALUES(estado);
 INSERT INTO aprendizaje_inscripcion_ruta (
   id, version_ruta_id, estudiante_id, estado, ultimo_nodo_visitado_id, ultima_visita_en, inscrito_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000603', 'b0000000-0000-4000-8000-000000000603', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-06030001', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+  ('e0000000-0000-4000-8000-000000000603', 'b0000000-0000-4000-8000-000000000603', '11111111-1111-4111-8111-111111111111', 'ACTIVO', 'ca000000-0000-4000-8000-06030001', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))
 ON DUPLICATE KEY UPDATE estado = 'ACTIVO';
 
 -- Progreso en CYT-6P-CLIMA (primer nodo DISPONIBLE, siguientes BLOQUEADO)
 INSERT INTO aprendizaje_progreso_nodo (
   inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en, primer_acceso_en, completado_en
 ) VALUES
-  ('e0000000-0000-4000-8000-000000000603', 'b0000000-0000-4000-8000-000000000603', 'ca000000-0000-4000-8000-06030001', 'DISPONIBLE', CURRENT_TIMESTAMP(6), NULL, NULL),
+  ('e0000000-0000-4000-8000-000000000603', 'b0000000-0000-4000-8000-000000000603', 'ca000000-0000-4000-8000-06030001', 'DISPONIBLE', UTC_TIMESTAMP(6), NULL, NULL),
   ('e0000000-0000-4000-8000-000000000603', 'b0000000-0000-4000-8000-000000000603', 'ca000000-0000-4000-8000-06030002', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000603', 'b0000000-0000-4000-8000-000000000603', 'ca000000-0000-4000-8000-06030003', 'BLOQUEADO', NULL, NULL, NULL),
   ('e0000000-0000-4000-8000-000000000603', 'b0000000-0000-4000-8000-000000000603', 'ca000000-0000-4000-8000-06030004', 'BLOQUEADO', NULL, NULL, NULL),
