@@ -247,10 +247,31 @@ function App() {
         if (!targetRoute && selectedGrade) {
           targetRoute = list.find(r => r.grade.number === selectedGrade)
         }
-        const id = targetRoute ? targetRoute.versionRouteId : list[0].versionRouteId
+        const id = routeId || (targetRoute ? targetRoute.versionRouteId : (list.length > 0 ? list[0].versionRouteId : ''))
+        if (!id) {
+          setErrorType('EMPTY')
+          setLoading(false)
+          return
+        }
         const detail = await fetchRouteDetail(id, signal)
         if (signal.aborted) return
         setSelectedRoute(detail)
+        // Si la ruta obtenida fue auto-inscrita y no estaba en la lista previa, agregarla al estado
+        if (!list.some(r => r.versionRouteId === detail.versionRouteId)) {
+          setRoutes(prev => [
+            ...prev,
+            {
+              versionRouteId: detail.versionRouteId,
+              title: detail.title,
+              grade: detail.grade,
+              area: detail.area,
+              enrollmentState: detail.enrollment.state,
+              completedNodes: detail.progress.completedNodes,
+              totalNodes: detail.progress.totalNodes,
+              lastVisitedAt: new Date().toISOString(),
+            }
+          ])
+        }
         setErrorType(null)
         try {
           const earnedBadges = await fetchStudentBadges(signal)

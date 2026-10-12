@@ -312,9 +312,13 @@ public class ActivityService {
 
         String message;
         if (isRouteCompleted) {
+            Integer totalRouteNodes = jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM aprendizaje_nodo_ruta WHERE version_ruta_id = :route
+                    """, new MapSqlParameterSource("route", routeId.toString()), Integer.class);
+            int totalCount = (totalRouteNodes != null && totalRouteNodes > 0) ? totalRouteNodes : nodeAccess.sequence();
             message = wasAlreadyCompleted
                     ? "¡Misión cumplida! Ya habías culminado todas las paradas de la ruta escolar. ¡Sigue repasando cuando quieras!"
-                    : "¡Misión cumplida! Completaste las 10 paradas de la ruta escolar como un auténtico Gallito de las Rocas. ¡Ganaste la Gran Insignia 'Gran Gallito de Oro' (+100 XP) y tu Diploma de Honor!";
+                    : "¡Misión cumplida! Completaste las " + totalCount + " paradas de la ruta escolar como un auténtico Gallito de las Rocas. ¡Ganaste la Gran Insignia 'Gran Gallito de Oro' (+100 XP) y tu Diploma de Honor!";
         } else {
             message = wasAlreadyCompleted
                     ? "¡Excelente repaso! Esta parada ya estaba completada en tu aventura."
@@ -430,12 +434,32 @@ public class ActivityService {
                 (rs, rowNum) -> new LearningRouteDtos.Competency(rs.getString("codigo"), rs.getString("nombre")));
 
         if (competencies.isEmpty()) {
-            competencies = List.of(
-                    new LearningRouteDtos.Competency("COM-01", "Resuelve problemas de cantidad"),
-                    new LearningRouteDtos.Competency("COM-02", "Resuelve problemas de regularidad, equivalencia y cambio"),
-                    new LearningRouteDtos.Competency("COM-03", "Resuelve problemas de forma, movimiento y localización"),
-                    new LearningRouteDtos.Competency("COM-04", "Resuelve problemas de gestión de datos e incertidumbre")
-            );
+            String areaLower = routeData.areaName() != null ? routeData.areaName().toLowerCase() : "";
+            if (areaLower.contains("comunicaci") || areaLower.contains("com")) {
+                competencies = List.of(
+                        new LearningRouteDtos.Competency("COM-01", "Se comunica oralmente en su lengua materna"),
+                        new LearningRouteDtos.Competency("COM-02", "Lee diversos tipos de textos escritos en su lengua materna"),
+                        new LearningRouteDtos.Competency("COM-03", "Escribe diversos tipos de textos en su lengua materna")
+                );
+            } else if (areaLower.contains("ciencia") || areaLower.contains("cyt") || areaLower.contains("tecnolog")) {
+                competencies = List.of(
+                        new LearningRouteDtos.Competency("CYT-01", "Indaga mediante métodos científicos para construir sus conocimientos"),
+                        new LearningRouteDtos.Competency("CYT-02", "Explica el mundo físico basándose en conocimientos sobre los seres vivos, materia y energía, biodiversidad, Tierra y universo"),
+                        new LearningRouteDtos.Competency("CYT-03", "Diseña y construye soluciones tecnológicas para resolver problemas de su entorno")
+                );
+            } else if (areaLower.contains("personal") || areaLower.contains("social") || areaLower.contains("soc")) {
+                competencies = List.of(
+                        new LearningRouteDtos.Competency("SOC-01", "Construye su identidad"),
+                        new LearningRouteDtos.Competency("SOC-02", "Convive y participa democráticamente en la búsqueda del bien común")
+                );
+            } else {
+                competencies = List.of(
+                        new LearningRouteDtos.Competency("MAT-01", "Resuelve problemas de cantidad"),
+                        new LearningRouteDtos.Competency("MAT-02", "Resuelve problemas de regularidad, equivalencia y cambio"),
+                        new LearningRouteDtos.Competency("MAT-03", "Resuelve problemas de forma, movimiento y localización"),
+                        new LearningRouteDtos.Competency("MAT-04", "Resuelve problemas de gestión de datos e incertidumbre")
+                );
+            }
         }
 
         BadgeDto graduationBadge = new BadgeDto(

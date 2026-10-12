@@ -16,9 +16,12 @@ public class ApiResponseHeadersFilter extends OncePerRequestFilter {
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
         if (request.getRequestURI().startsWith("/api/")) {
-            response.setHeader("Cache-Control", "no-store");
+            response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+            response.setHeader("Pragma", "no-cache");
             response.setHeader("X-Content-Type-Options", "nosniff");
-            response.setHeader("Referrer-Policy", "no-referrer");
+            response.setHeader("X-Frame-Options", "DENY");
+            response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+            response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
         }
         chain.doFilter(request, response);
     }

@@ -309,7 +309,14 @@ public class LearningRouteRepository {
         String cleanQuery = (query == null) ? "" : query.trim();
         int maxResults = (limit <= 0 || limit > 50) ? 20 : limit;
 
-        String ftsTerm = cleanQuery.isEmpty() ? "*" : "+" + cleanQuery.replaceAll("[+\\-*~\"<>()@]+", " ") + "*";
+        String[] rawTokens = cleanQuery.replaceAll("[^\\p{L}\\p{N}]+", " ").trim().split("\\s+");
+        List<String> validTokens = java.util.Arrays.stream(rawTokens)
+                .filter(t -> t != null && !t.isBlank())
+                .toList();
+
+        String ftsTerm = validTokens.isEmpty() ? "" : validTokens.stream()
+                .map(t -> "+" + t + "*")
+                .collect(java.util.stream.Collectors.joining(" "));
         String likeTerm = "%" + cleanQuery.toLowerCase() + "%";
         String prefixTerm = cleanQuery.toLowerCase() + "%";
 
@@ -339,11 +346,14 @@ public class LearningRouteRepository {
 
         var params = new MapSqlParameterSource()
                 .addValue("studentId", studentId.toString())
-                .addValue("ftsTerm", ftsTerm)
                 .addValue("likeTerm", likeTerm)
                 .addValue("prefixTerm", prefixTerm)
                 .addValue("limit", maxResults)
                 .addValue("cleanQuery", cleanQuery);
+
+        if (!ftsTerm.isEmpty()) {
+            params.addValue("ftsTerm", ftsTerm);
+        }
 
         if (gradeNumbers != null && !gradeNumbers.isEmpty()) {
             sql.append(" AND g.numero_grado IN (:gradeNumbers) ");
@@ -373,16 +383,27 @@ public class LearningRouteRepository {
         }
 
         if (!cleanQuery.isEmpty()) {
-            sql.append("""
-                  AND (
-                    LOWER(a.nombre) LIKE :likeTerm
-                    OR LOWER(a.codigo) LIKE :likeTerm
-                    OR LOWER(r.titulo) LIKE :likeTerm
-                    OR LOWER(COALESCE(r.descripcion, '')) LIKE :likeTerm
-                    OR MATCH(a.nombre) AGAINST(:ftsTerm IN BOOLEAN MODE)
-                    OR MATCH(r.titulo, r.descripcion) AGAINST(:ftsTerm IN BOOLEAN MODE)
-                  )
-                """);
+            if (!ftsTerm.isEmpty()) {
+                sql.append("""
+                      AND (
+                        LOWER(a.nombre) LIKE :likeTerm
+                        OR LOWER(a.codigo) LIKE :likeTerm
+                        OR LOWER(r.titulo) LIKE :likeTerm
+                        OR LOWER(COALESCE(r.descripcion, '')) LIKE :likeTerm
+                        OR MATCH(a.nombre) AGAINST(:ftsTerm IN BOOLEAN MODE)
+                        OR MATCH(r.titulo, r.descripcion) AGAINST(:ftsTerm IN BOOLEAN MODE)
+                      )
+                    """);
+            } else {
+                sql.append("""
+                      AND (
+                        LOWER(a.nombre) LIKE :likeTerm
+                        OR LOWER(a.codigo) LIKE :likeTerm
+                        OR LOWER(r.titulo) LIKE :likeTerm
+                        OR LOWER(COALESCE(r.descripcion, '')) LIKE :likeTerm
+                      )
+                    """);
+            }
         }
 
         sql.append("""
@@ -418,17 +439,45 @@ public class LearningRouteRepository {
         String cleanQuery = (query == null) ? "" : query.trim();
         int maxResults = (limit <= 0 || limit > 20) ? 10 : limit;
 
-        String ftsTerm = cleanQuery.isEmpty() ? "*" : "+" + cleanQuery.replaceAll("[+\\-*~\"<>()@]+", " ") + "*";
+        String[] rawTokens = cleanQuery.replaceAll("[^\\p{L}\\p{N}]+", " ").trim().split("\\s+");
+        List<String> validTokens = java.util.Arrays.stream(rawTokens)
+                .filter(t -> t != null && !t.isBlank())
+                .toList();
+
+        String ftsTerm = validTokens.isEmpty() ? "" : validTokens.stream()
+                .map(t -> "+" + t + "*")
+                .collect(java.util.stream.Collectors.joining(" "));
         String likeTerm = "%" + cleanQuery.toLowerCase() + "%";
         String prefixTerm = cleanQuery.toLowerCase() + "%";
 
-        String sql = """
+        StringBuilder sql = new StringBuilder("""
                 SELECT DISTINCT a.nombre
                 FROM curriculo_area a
-                WHERE :cleanQuery = ''
-                   OR LOWER(a.nombre) LIKE :likeTerm
-                   OR LOWER(a.codigo) LIKE :likeTerm
-                   OR MATCH(a.nombre) AGAINST(:ftsTerm IN BOOLEAN MODE)
+                """);
+
+        var params = new MapSqlParameterSource()
+                .addValue("cleanQuery", cleanQuery)
+                .addValue("likeTerm", likeTerm)
+                .addValue("prefixTerm", prefixTerm)
+                .addValue("limit", maxResults);
+
+        if (cleanQuery.isEmpty()) {
+            // Sin filtro, devolver catálogo
+        } else if (!ftsTerm.isEmpty()) {
+            sql.append("""
+                    WHERE LOWER(a.nombre) LIKE :likeTerm
+                       OR LOWER(a.codigo) LIKE :likeTerm
+                       OR MATCH(a.nombre) AGAINST(:ftsTerm IN BOOLEAN MODE)
+                    """);
+            params.addValue("ftsTerm", ftsTerm);
+        } else {
+            sql.append("""
+                    WHERE LOWER(a.nombre) LIKE :likeTerm
+                       OR LOWER(a.codigo) LIKE :likeTerm
+                    """);
+        }
+
+        sql.append("""
                 ORDER BY
                   CASE
                     WHEN LOWER(a.nombre) LIKE :prefixTerm THEN 1
@@ -436,16 +485,9 @@ public class LearningRouteRepository {
                   END,
                   a.nombre ASC
                 LIMIT :limit
-                """;
+                """);
 
-        var params = new MapSqlParameterSource()
-                .addValue("cleanQuery", cleanQuery)
-                .addValue("ftsTerm", ftsTerm)
-                .addValue("likeTerm", likeTerm)
-                .addValue("prefixTerm", prefixTerm)
-                .addValue("limit", maxResults);
-
-        return jdbc.query(sql, params, (rs, rowNum) -> rs.getString("nombre"));
+        return jdbc.query(sql.toString(), params, (rs, rowNum) -> rs.getString("nombre"));
     }
 
     public boolean isPublishedRoute(UUID versionRouteId) {
