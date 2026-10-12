@@ -53,11 +53,30 @@ public class LearningRouteController {
     public LearningRouteDtos.SearchAutocompleteResponse search(
             @org.springframework.web.bind.annotation.RequestParam(value = "q", required = false, defaultValue = "") String query,
             @org.springframework.web.bind.annotation.RequestParam(value = "grade", required = false) Integer grade,
+            @org.springframework.web.bind.annotation.RequestParam(value = "grades", required = false) List<Integer> grades,
+            @org.springframework.web.bind.annotation.RequestParam(value = "area", required = false) String area,
+            @org.springframework.web.bind.annotation.RequestParam(value = "areas", required = false) List<String> areas,
             @org.springframework.web.bind.annotation.RequestParam(value = "limit", required = false, defaultValue = "20") int limit,
             Principal principal
     ) {
         UUID studentId = studentIdFrom(principal);
-        return service.searchAlternativeRoutes(studentId, query, grade, limit);
+        List<Integer> combinedGrades = new java.util.ArrayList<>();
+        if (grades != null) {
+            combinedGrades.addAll(grades);
+        }
+        if (grade != null && !combinedGrades.contains(grade)) {
+            combinedGrades.add(grade);
+        }
+
+        List<String> combinedAreas = new java.util.ArrayList<>();
+        if (areas != null) {
+            combinedAreas.addAll(areas);
+        }
+        if (area != null && !area.isBlank() && !combinedAreas.contains(area.trim())) {
+            combinedAreas.add(area.trim());
+        }
+
+        return service.searchAlternativeRoutes(studentId, query, combinedGrades, combinedAreas, limit);
     }
 
     @GetMapping("/suggestions")

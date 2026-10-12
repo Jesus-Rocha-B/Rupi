@@ -29,6 +29,7 @@ Configuración: `src/main/resources/application.yml`. Variables: `RUPI_DB_URL`, 
 | `App.tsx` | Estado global y flujo: login → selección de grado y curso → búsqueda de materias → mapa → actividad. |
 | `services/learningRoutesApi.ts` | Cliente tipado de la API (incluye búsqueda de roadmaps, sugerencias y contexto cultural). |
 | `components/RoadmapSearchBar.tsx`, `RoadmapSearchBar.css` | HU-09: barra de búsqueda física con atajo (`/` o `Ctrl+K`), autocompletado y voz de Rupi. |
+| `components/RoadmapFilterSidebar.tsx`, `RoadmapFilterSidebar.css` | HU-10: panel lateral de filtros avanzados por grado (1.°–6.°) y materia con sincronización URL y checkboxes táctiles. |
 | `features/auth/LoginView.tsx` | Login, animación de Rupi cada 10 s y selector de materia. |
 | `features/auth/GradeSelectView.tsx` | Selección de grado (1.º–6.º) y de curso. |
 | `features/roadmap/Roadmap.tsx` | Mapa interactivo y enfoque en el nodo recordado. |
@@ -61,6 +62,7 @@ Solo `curriculo/models.py` y `curriculo/admin.py`, como esqueleto. Sin app funci
 - `scripts/verify_learning_flow.py` (29 escenarios HTTP/MySQL, 6 de HU-04), `scripts/Verificar-HU01.ps1` y `scripts/Verificar-Auth.ps1`.
 - HU-04: `scripts/verify_hu04_content.py`, `scripts/verify_hu04_pantalla.mjs` y `scripts/fixtures/hu04-orden-esperado.json`.
 - HU-09: `scripts/Verificar-HU09.ps1` (6 escenarios de búsqueda y autocompletado) y `scripts/Verificar-Rendimiento-HU09.ps1` (benchmark FTS).
+- HU-10: `scripts/Verificar-HU10.ps1` (8 escenarios de filtros combinados de grado y materia con precisión).
 - `.local/` (ignorado): `env.sh`, `my.cnf`, `root.cnf`, `mysql-data`, logs y pids.
 
 ## Skills de diseño

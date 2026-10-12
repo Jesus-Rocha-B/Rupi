@@ -78,7 +78,7 @@ class LearningRouteServiceTest {
                 2, "2.° de primaria", "COM", "Comunicación", 5, false, "NO_INSCRITO"
         );
         when(repository.findSubjectSuggestions("comun", 6)).thenReturn(List.of("Comunicación"));
-        when(repository.searchAlternativeRoutes(student, "comun", 2, 20)).thenReturn(List.of(resultRoute));
+        when(repository.searchAlternativeRoutes(student, "comun", List.of(2), List.of(), 20)).thenReturn(List.of(resultRoute));
 
         var response = service.searchAlternativeRoutes(student, "  comun  ", 2, 20);
 
@@ -87,6 +87,28 @@ class LearningRouteServiceTest {
         assertEquals(1, response.routes().size());
         assertEquals("Comunicación: Cuentos del Valle", response.routes().getFirst().routeTitle());
         assertFalse(response.routes().getFirst().isEnrolled());
+    }
+    @Test void searchAlternativeRoutesWithMultipleGradesAndAreas() {
+        var result1 = new RouteSearchResult(
+                UUID.randomUUID(), "Matemática 3.°: Desafíos Wari", "Desc",
+                3, "3.° de primaria", "MAT", "Matemática", 6, true, "ACTIVO"
+        );
+        var result2 = new RouteSearchResult(
+                UUID.randomUUID(), "Matemática 4.°: Fracciones en ferias", "Desc",
+                4, "4.° de primaria", "MAT", "Matemática", 6, false, "NO_INSCRITO"
+        );
+        when(repository.findSubjectSuggestions("", 6)).thenReturn(List.of("Matemática", "Comunicación"));
+        when(repository.searchAlternativeRoutes(student, "", List.of(3, 4), List.of("MATEMATICA"), 20))
+                .thenReturn(List.of(result1, result2));
+
+        var response = service.searchAlternativeRoutes(student, "", List.of(3, 4), List.of("MATEMATICA"), 20);
+
+        assertEquals(2, response.routes().size());
+        assertEquals(List.of(3, 4), response.selectedGrades());
+        assertEquals(List.of("MATEMATICA"), response.selectedAreas());
+        assertEquals(2, response.totalResults());
+        assertTrue(response.routes().getFirst().isEnrolled());
+        verify(repository).searchAlternativeRoutes(student, "", List.of(3, 4), List.of("MATEMATICA"), 20);
     }
     @Test void getSubjectSuggestionsSanitizesQuery() {
         when(repository.findSubjectSuggestions("mate", 5)).thenReturn(List.of("Matemática"));

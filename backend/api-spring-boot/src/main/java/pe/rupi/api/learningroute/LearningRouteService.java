@@ -62,10 +62,25 @@ public class LearningRouteService {
 
     @Transactional(readOnly = true)
     public SearchAutocompleteResponse searchAlternativeRoutes(UUID studentId, String query, Integer gradeNumber, int limit) {
+        List<Integer> grades = (gradeNumber != null && gradeNumber > 0) ? List.of(gradeNumber) : List.of();
+        return searchAlternativeRoutes(studentId, query, grades, List.of(), limit);
+    }
+
+    @Transactional(readOnly = true)
+    public SearchAutocompleteResponse searchAlternativeRoutes(
+            UUID studentId,
+            String query,
+            List<Integer> gradeNumbers,
+            List<String> areaCodes,
+            int limit
+    ) {
         String sanitizedQuery = query == null ? "" : query.trim();
+        List<Integer> validGrades = gradeNumbers == null ? List.of() : gradeNumbers.stream().filter(g -> g != null && g > 0).toList();
+        List<String> validAreas = areaCodes == null ? List.of() : areaCodes.stream().filter(a -> a != null && !a.isBlank()).toList();
+
         List<String> suggestions = repository.findSubjectSuggestions(sanitizedQuery, 6);
-        List<RouteSearchResult> routes = repository.searchAlternativeRoutes(studentId, sanitizedQuery, gradeNumber, limit);
-        return new SearchAutocompleteResponse(sanitizedQuery, suggestions, routes);
+        List<RouteSearchResult> routes = repository.searchAlternativeRoutes(studentId, sanitizedQuery, validGrades, validAreas, limit);
+        return new SearchAutocompleteResponse(sanitizedQuery, suggestions, routes, validGrades, validAreas, routes.size());
     }
 
     @Transactional(readOnly = true)

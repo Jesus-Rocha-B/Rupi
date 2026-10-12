@@ -295,6 +295,17 @@ public class LearningRouteRepository {
     }
 
     public List<RouteSearchResult> searchAlternativeRoutes(UUID studentId, String query, Integer gradeNumber, int limit) {
+        List<Integer> grades = (gradeNumber != null && gradeNumber > 0) ? List.of(gradeNumber) : List.of();
+        return searchAlternativeRoutes(studentId, query, grades, List.of(), limit);
+    }
+
+    public List<RouteSearchResult> searchAlternativeRoutes(
+            UUID studentId,
+            String query,
+            List<Integer> gradeNumbers,
+            List<String> areaCodes,
+            int limit
+    ) {
         String cleanQuery = (query == null) ? "" : query.trim();
         int maxResults = (limit <= 0 || limit > 50) ? 20 : limit;
 
@@ -334,9 +345,31 @@ public class LearningRouteRepository {
                 .addValue("limit", maxResults)
                 .addValue("cleanQuery", cleanQuery);
 
-        if (gradeNumber != null && gradeNumber > 0) {
-            sql.append(" AND g.numero_grado = :gradeNumber ");
-            params.addValue("gradeNumber", gradeNumber);
+        if (gradeNumbers != null && !gradeNumbers.isEmpty()) {
+            sql.append(" AND g.numero_grado IN (:gradeNumbers) ");
+            params.addValue("gradeNumbers", gradeNumbers);
+        }
+
+        if (areaCodes != null && !areaCodes.isEmpty()) {
+            List<String> normalized = areaCodes.stream()
+                    .filter(a -> a != null && !a.isBlank())
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .toList();
+            if (!normalized.isEmpty()) {
+                sql.append("""
+                      AND (
+                        LOWER(a.codigo) IN (:areaCodes)
+                        OR LOWER(a.nombre) IN (:areaCodes)
+                        OR (LOWER(a.codigo) = 'mat' AND ('matematica' IN (:areaCodes) OR 'matemática' IN (:areaCodes)))
+                        OR (LOWER(a.codigo) = 'com' AND ('comunicacion' IN (:areaCodes) OR 'comunicación' IN (:areaCodes)))
+                        OR (LOWER(a.codigo) = 'cyt' AND ('cyt' IN (:areaCodes) OR 'ciencia y tecnología' IN (:areaCodes) OR 'ciencia y tecnologia' IN (:areaCodes)))
+                        OR (LOWER(a.codigo) = 'soc' AND ('personal social' IN (:areaCodes) OR 'soc' IN (:areaCodes)))
+                        OR (LOWER(a.codigo) = 'art' AND ('arte y cultura' IN (:areaCodes) OR 'art' IN (:areaCodes)))
+                      )
+                    """);
+                params.addValue("areaCodes", normalized);
+            }
         }
 
         if (!cleanQuery.isEmpty()) {

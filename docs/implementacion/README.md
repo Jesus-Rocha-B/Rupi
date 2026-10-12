@@ -33,6 +33,7 @@ React no recibe `estudianteId` desde el navegador ni accede a MySQL directamente
 | 7 | HU-07 · Insignias escolares y resumen formativo | Resumen de aciertos, desbloqueo de insignia y vitrina de medallas. | HU-05 y HU-06 con persistencia de insignias. | Completada. |
 | 8 | HU-08 · Culminación de ruta y diploma de honor | Celebrar finalización de ruta, Gran Gallito de Oro y diploma imprimible. | HU-05 a HU-07 con culminación de todas las paradas. | Completada. |
 | 9 | HU-09 · Búsqueda de roadmaps alternativos | Búsqueda por materia con autocompletado y FTS para explorar nuevos contenidos. | HU-01 a HU-04 y catálogo de áreas y rutas publicadas. | Completada. |
+| 10 | HU-10 · Filtros por grado y materia | Filtros laterales con checkboxes táctiles, soporte multi-parámetro backend y sincronización URL. | HU-01 a HU-09 y catálogo multiarea de 1.° a 6.°. | Completada. |
 
 La historia HU-03 depende de que HU-02 registre la visita. HU-04 depende de datos oficiales/versionados; no se cumple con texto decorativo ni ordenado solo en React.
 
@@ -252,6 +253,7 @@ Cada historia se marca terminada cuando sus criterios pueden demostrarse en la w
 - [HU-07: insignias escolares y resumen formativo](HU-07-insignias-resumen-formativo.md)
 - [HU-08: culminación de ruta y diploma de honor](HU-08-culminacion-ruta-diploma.md)
 - [HU-09: búsqueda de roadmaps alternativos por materia](HU-09-busqueda-roadmaps-alternativos.md)
+- [HU-10: filtros avanzados por grado escolar y materia](HU-10-filtros-avanzados-grados-materias.md)
 - [README de MySQL](../../database/mysql/README.md)
 - [DDL MySQL](../../database/mysql/schema.sql)
 - [Diagrama ER](../../database/mysql/rupi.dbml)

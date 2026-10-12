@@ -2,6 +2,33 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-12 · HU-10: Filtros avanzados por grado escolar y materia curricular con sincronización URL
+
+Detalle y especificación técnica en `docs/implementacion/HU-10-filtros-avanzados-grados-materias.md`.
+
+**Backend (Spring Boot & Java 21)**
+- Actualización de `LearningRouteController.java`:
+  - El endpoint `GET /api/v1/student/learning-routes/search` ahora acepta múltiples parámetros de filtrado simultáneos: `grades` (múltiples grados escolares), `grade` (grado singular para retrocompatibilidad), `areas` (múltiples materias curriculares), `area` (materia singular), `q` (texto libre FTS/LIKE) y `limit`.
+- Sobrecarga y lógica en `LearningRouteRepository.java` y `LearningRouteService.java`:
+  - Filtrado SQL dinámico y seguro por conjunto de grados (`g.numero_grado IN (:gradeNumbers)`) y conjunto de materias normalizadas (`LOWER(a.codigo) IN (:areaCodes) OR LOWER(a.nombre) IN (:areaCodes)...`).
+  - DTO `SearchAutocompleteResponse` enriquecido con `selectedGrades`, `selectedAreas` y `totalResults`.
+- Pruebas unitarias ampliadas en `LearningRouteServiceTest.java` (40 pruebas JUnit Maven aprobadas al 100%).
+
+**Frontend (React 19 & TypeScript)**
+- Componente `RoadmapFilterSidebar.tsx` y estilos artesanales `RoadmapFilterSidebar.css`:
+  - Panel desplegable/sidebar accesible con botones táctiles (≥48px), paleta oficial andina (`#173e30`, `#31724b`, `#f95738`, `#ffd26a`) y volumen físico.
+  - Checkboxes para selección múltiple de 1.° a 6.° de primaria y de materias (Matemática, Comunicación, Ciencia y Tecnología, Personal Social, Arte y Cultura).
+  - Chips de filtros activos con eliminación individual y botón de restablecimiento rápido.
+  - Narración accesible de Rupi por voz (`speakText`) que resume los filtros aplicados y resultados encontrados.
+  - Sincronización bidireccional continua con los query params de la URL (`?grades=3,4&areas=MATEMATICA&q=...`) mediante `window.history.replaceState`, permitiendo compartir enlaces y mantener los filtros activos tras recargar.
+- Integración en `App.tsx`:
+  - Lectura de filtros iniciales desde la URL al montar la aplicación.
+  - Selección de ruta desde el panel de filtros y apertura directa en el mapa interactivo.
+- Verificación limpia de build (`tsc -b && vite build`) y linter (`eslint .`).
+
+**Scripts y Pruebas**
+- `scripts/Verificar-HU10.ps1`: script de validación de integración E2E compatible con Windows PowerShell 5.1 y 7+ que valida 8 escenarios de seguridad, filtros por grado individual, múltiples grados, materias y filtros combinados.
+
 ## 2026-10-12 · Roadmaps Escolares CNEB para Todos los Grados de Primaria (1.° a 6.°)
 
 **Base de Datos (MySQL 8.4)**

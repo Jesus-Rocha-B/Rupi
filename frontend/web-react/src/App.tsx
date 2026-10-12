@@ -52,6 +52,7 @@ import { RupiCharacter } from './components/RupiCharacter'
 import { ActivityBlocks } from './features/roadmap/ActivityBlocks'
 import { RouteDiplomaModal } from './components/RouteDiplomaModal'
 import { RoadmapSearchBar } from './components/RoadmapSearchBar'
+import { RoadmapFilterSidebar } from './components/RoadmapFilterSidebar'
 import { speakText } from './utils/speech'
 import './App.css'
 
@@ -88,10 +89,29 @@ function App() {
   const [reloadKey, setReloadKey] = useState(0)
   const [sessionBusy, setSessionBusy] = useState(false)
   const [selectedGrade, setSelectedGrade] = useState<number | null>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const urlGrade = params.get('grade') || params.get('grades')
+      if (urlGrade) {
+        const parsed = parseInt(urlGrade.split(',')[0], 10)
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 6) return parsed
+      }
+    }
     const saved = localStorage.getItem('rupi_selected_grade')
     return saved ? parseInt(saved, 10) : 2
   })
   const [selectedCourse, setSelectedCourse] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const urlArea = params.get('area') || params.get('areas')
+      if (urlArea) {
+        const cleaned = urlArea.split(',')[0].toUpperCase()
+        if (cleaned.includes('COM')) return 'COMUNICACION'
+        if (cleaned.includes('CYT')) return 'CYT'
+        if (cleaned.includes('MAT')) return 'MATEMATICA'
+        return cleaned
+      }
+    }
     return localStorage.getItem('rupi_selected_course') || 'MATEMATICA'
   })
   const dialog = useRef<HTMLDialogElement>(null)
@@ -286,6 +306,21 @@ function App() {
       localStorage.setItem('rupi_selected_course', courseCode)
     } else {
       localStorage.removeItem('rupi_selected_course')
+    }
+
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      if (gradeNumber != null) {
+        url.searchParams.set('grade', String(gradeNumber))
+      } else {
+        url.searchParams.delete('grade')
+      }
+      if (courseCode != null) {
+        url.searchParams.set('area', courseCode)
+      } else {
+        url.searchParams.delete('area')
+      }
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
     }
   }
 
@@ -496,6 +531,24 @@ function App() {
                 handleSelectGradeAndCourse(selectedGrade, 'MATEMATICA')
               }
             }
+            setRouteId(versionRouteId)
+          }}
+        />
+
+        {/* Panel lateral / drawer de filtros avanzados por grado y materia (HU-10) */}
+        <RoadmapFilterSidebar
+          currentGrade={selectedGrade}
+          currentCourse={selectedCourse}
+          onSelectRoute={(versionRouteId, gradeNumber, areaCode) => {
+            const code = areaCode.toUpperCase()
+            const courseCode = code.includes('COM')
+              ? 'COMUNICACION'
+              : code.includes('CYT')
+              ? 'CYT'
+              : code.includes('MAT')
+              ? 'MATEMATICA'
+              : selectedCourse || 'MATEMATICA'
+            handleSelectGradeAndCourse(gradeNumber, courseCode)
             setRouteId(versionRouteId)
           }}
         />

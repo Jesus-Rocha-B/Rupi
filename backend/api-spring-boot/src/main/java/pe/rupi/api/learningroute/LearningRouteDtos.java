@@ -217,6 +217,13 @@ public final class LearningRouteDtos {
     public record SearchAutocompleteResponse(
             String query,
             List<String> suggestedSubjects,
-            List<RouteSearchResult> routes
-    ) {}
+            List<RouteSearchResult> routes,
+            List<Integer> selectedGrades,
+            List<String> selectedAreas,
+            long totalResults
+    ) {
+        public SearchAutocompleteResponse(String query, List<String> suggestedSubjects, List<RouteSearchResult> routes) {
+            this(query, suggestedSubjects, routes, List.of(), List.of(), routes != null ? routes.size() : 0);
+        }
+    }
 }

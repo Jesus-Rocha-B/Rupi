@@ -312,18 +312,43 @@ export interface SearchAutocompleteResponse {
   query: string
   suggestedSubjects: string[]
   routes: RouteSearchResult[]
+  selectedGrades?: number[]
+  selectedAreas?: string[]
+  totalResults?: number
+}
+
+export interface SearchFilters {
+  query?: string
+  gradeNumber?: number | null
+  grades?: number[]
+  area?: string | null
+  areas?: string[]
+  limit?: number
 }
 
 export const searchAlternativeRoutes = (
-  query: string,
+  filterOrQuery: string | SearchFilters,
   gradeNumber?: number | null,
   limit: number = 20,
   signal?: AbortSignal
 ) => {
   const params = new URLSearchParams()
-  if (query) params.set('q', query)
-  if (gradeNumber) params.set('grade', gradeNumber.toString())
-  if (limit) params.set('limit', limit.toString())
+  if (typeof filterOrQuery === 'string') {
+    if (filterOrQuery) params.set('q', filterOrQuery)
+    if (gradeNumber) params.set('grade', gradeNumber.toString())
+    if (limit) params.set('limit', limit.toString())
+  } else {
+    if (filterOrQuery.query) params.set('q', filterOrQuery.query)
+    if (filterOrQuery.gradeNumber) params.set('grade', filterOrQuery.gradeNumber.toString())
+    if (filterOrQuery.grades && filterOrQuery.grades.length > 0) {
+      filterOrQuery.grades.forEach((g) => params.append('grades', g.toString()))
+    }
+    if (filterOrQuery.area) params.set('area', filterOrQuery.area)
+    if (filterOrQuery.areas && filterOrQuery.areas.length > 0) {
+      filterOrQuery.areas.forEach((a) => params.append('areas', a))
+    }
+    if (filterOrQuery.limit) params.set('limit', filterOrQuery.limit.toString())
+  }
   const qs = params.toString() ? `?${params.toString()}` : ''
   return request<SearchAutocompleteResponse>(`student/learning-routes/search${qs}`, { signal })
 }
