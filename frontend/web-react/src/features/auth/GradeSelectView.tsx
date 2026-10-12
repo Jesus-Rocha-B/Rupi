@@ -9,7 +9,6 @@ import {
   FlaskConical,
   GraduationCap,
   Info,
-  Lock,
   LogOut,
   Sparkles,
   Volume2,
@@ -38,44 +37,44 @@ const PRIMARY_GRADES: PrimaryGradeOption[] = [
   {
     number: 1,
     title: '1.° de primaria',
-    subtitle: 'Primeros pasos en primaria: lectura inicial, números y descubrimientos',
+    subtitle: 'Primeros pasos en primaria: lectura inicial, números y descubrimientos con Rupi',
     coursesCount: 3,
-    hasActiveRoadmap: false,
+    hasActiveRoadmap: true,
   },
   {
     number: 2,
     title: '2.° de primaria',
-    subtitle: 'Ruta activa en Ayacucho: retos matemáticos y aventura con Rupi',
-    coursesCount: 3,
+    subtitle: 'Aventuras en Ayacucho: retos matemáticos, fábulas y biodiversidad andina',
+    coursesCount: 5,
     hasActiveRoadmap: true,
   },
   {
     number: 3,
     title: '3.° de primaria',
-    subtitle: 'Consolidación de operaciones, comprensión lectora y naturaleza',
+    subtitle: 'Geometría en Wari, mitos ancestrales andinos y fuerzas de la naturaleza',
     coursesCount: 3,
-    hasActiveRoadmap: false,
+    hasActiveRoadmap: true,
   },
   {
     number: 4,
     title: '4.° de primaria',
-    subtitle: 'Resolución de problemas, proyectos de indagación y relatos peruanos',
+    subtitle: 'Fracciones en las ferias, artículos informativos y ecosistemas del Perú',
     coursesCount: 3,
-    hasActiveRoadmap: false,
+    hasActiveRoadmap: true,
   },
   {
     number: 5,
     title: '5.° de primaria',
-    subtitle: 'Pensamiento lógico, redacción y ecosistemas del Perú',
+    subtitle: 'Decimales comerciales, textos argumentativos y nutrición andina',
     coursesCount: 3,
-    hasActiveRoadmap: false,
+    hasActiveRoadmap: true,
   },
   {
     number: 6,
     title: '6.° de primaria',
-    subtitle: 'Consolidación de primaria y preparación para nuevos retos escolares',
+    subtitle: 'Proporcionalidad, crónicas periodísticas y energías renovables',
     coursesCount: 3,
-    hasActiveRoadmap: false,
+    hasActiveRoadmap: true,
   },
 ]
 
@@ -125,37 +124,18 @@ export function GradeSelectView({
   function handleGradeClick(grade: PrimaryGradeOption) {
     setNotice(null)
     setSelectedGradeNumber(grade.number)
-    if (grade.number === 2) {
-      speakText(`Has elegido ${grade.title}. En este grado tienes la ruta activa de Matemática en Ayacucho. Elige tu materia para continuar.`)
-    } else {
-      speakText(`Has elegido ${grade.title}. Las rutas interactivas de este grado están en preparación. Puedes elegir una materia o cambiar a 2.° de primaria para acceder al roadmap activo.`)
-    }
+    speakText(`Has elegido ${grade.title}. Tienes rutas escolares activas en tus materias. Elige tu curso para continuar con Rupi.`)
   }
 
   function handleCourseClick(course: CourseOption) {
     if (!selectedGradeNumber) return
-    const isRoadmapReady = selectedGradeNumber === 2 && course.code === 'MATEMATICA'
-
-    if (!isRoadmapReady) {
-      setNotice(
-        selectedGradeNumber === 2
-          ? `La materia de ${course.name} (2.° de primaria) aún no cuenta con un mapa interactivo disponible. Puedes cambiar de materia para explorarla, pero el roadmap activo está en Matemática.`
-          : `Las materias de ${selectedGradeNumber}.° de primaria están en preparación. Puedes ver la materia, pero actualmente el único roadmap activo es 2.° de primaria · Matemática.`
-      )
-      speakText(
-        `Esta materia aún no tiene un mapa de ruta disponible. Solo puedes acceder al roadmap interactivo en 2.° de primaria de Matemática.`
-      )
-    }
-
-    // Permite cambiar de curso, ingresando a la vista del curso
+    speakText(`Ingresando a ${course.name} de ${selectedGradeObj?.title}. ¡Vamos a aprender!`)
     onSelectGradeAndCourse(selectedGradeNumber, course.code)
   }
 
   const welcomeInstruction = selectedGradeNumber
-    ? (selectedGradeNumber === 2
-      ? `En 2.° de primaria tienes disponible la ruta activa de Matemática en Ayacucho. Elige tu curso para ingresar.`
-      : `En ${selectedGradeObj?.title} los mapas están en preparación. Elige tu curso para revisarlo o cambia a 2.° de primaria para ver la ruta activa.`)
-    : `¡Hola, ${student.name}! ¿En qué grado estás? Selecciona tu grado de 1.° a 6.° de primaria para ver tus materias.`
+    ? `En ${selectedGradeObj?.title} tienes tus materias listas con rutas interactivas. Elige tu curso para ingresar.`
+    : `¡Hola, ${student.name}! ¿En qué grado estás? Selecciona tu grado de 1.° a 6.° de primaria para ver tus materias y roadmaps.`
 
   return (
     <section className="grade-screen-wrapper" aria-labelledby="grade-main-title">
@@ -239,9 +219,7 @@ export function GradeSelectView({
               </div>
               <p className="grade-subtitle">
                 {selectedGradeNumber
-                  ? (selectedGradeNumber === 2
-                    ? 'Tienes disponible la ruta activa de Matemática en Ayacucho. Puedes cambiar de materia para revisar tus cursos escolares.'
-                    : 'Las rutas interactivas de este grado están en preparación con tu docente. Recuerda que el roadmap activo está en 2.° de primaria · Matemática.')
+                  ? `Tienes disponibles rutas interactivas en ${selectedGradeObj?.title}. Elige tu materia para comenzar tu aventura con Rupi.`
                   : 'Elige tu grado de primaria (1.° a 6.°) para ver los cursos que ofrecemos con Rupi.'}
               </p>
             </div>
@@ -272,7 +250,7 @@ export function GradeSelectView({
 
                   <span className={`grade-status-pill ${grade.hasActiveRoadmap ? 'ready active-glow' : 'ready'}`}>
                     <Sparkles size={12} aria-hidden="true" />
-                    <span>{grade.hasActiveRoadmap ? 'Ruta activa disponible' : '3 materias'}</span>
+                    <span>Rutas escolares activas</span>
                   </span>
                 </div>
 
@@ -282,7 +260,7 @@ export function GradeSelectView({
 
                   <div className="grade-route-preview">
                     <BookOpen size={14} aria-hidden="true" />
-                    <span>{grade.hasActiveRoadmap ? 'Matemática con roadmap en Ayacucho' : 'Comunicación, Matemática y CYT'}</span>
+                    <span>Comunicación, Matemática y Ciencia y Tecnología</span>
                   </div>
                 </div>
 
@@ -310,7 +288,6 @@ export function GradeSelectView({
         {selectedGradeNumber && (
           <div className="courses-cards-grid" role="list" aria-label={`Materias de ${selectedGradeObj?.title}`}>
             {BASE_COURSES.map((course) => {
-              const isRoadmapReady = selectedGradeNumber === 2 && course.code === 'MATEMATICA'
               const cardClass =
                 course.code === 'COMUNICACION'
                   ? 'comunicacion'
@@ -322,15 +299,15 @@ export function GradeSelectView({
                 <div
                   key={course.code}
                   role="listitem"
-                  className={`course-card ${cardClass} ${isRoadmapReady ? 'roadmap-enabled' : 'roadmap-restricted'}`}
+                  className={`course-card ${cardClass} roadmap-enabled`}
                   onClick={() => handleCourseClick(course)}
                 >
                   <div className="course-card-header">
                     <div className="course-mascot-avatar" aria-hidden="true">
-                      <RupiCharacter role={course.role} mood={isRoadmapReady ? 'cheering' : 'idle'} />
+                      <RupiCharacter role={course.role} mood="cheering" />
                     </div>
                     <span className="course-area-pill">
-                      {isRoadmapReady ? 'Ruta activa en Ayacucho' : 'Sin roadmap activo'}
+                      Ruta activa CNEB
                     </span>
                   </div>
 
@@ -338,41 +315,26 @@ export function GradeSelectView({
                     <h2 className="course-card-title">{course.name}</h2>
                     <p className="course-card-desc">{course.description}</p>
                     <div className="course-card-badge-row">
-                      {isRoadmapReady ? (
-                        <>
-                          <Sparkles size={14} aria-hidden="true" />
-                          <span>Roadmap habilitado · 10 paradas</span>
-                        </>
-                      ) : (
-                        <>
-                          <Lock size={14} aria-hidden="true" />
-                          <span>Roadmap en preparación · Solo cambio de materia</span>
-                        </>
-                      )}
+                      <Sparkles size={14} aria-hidden="true" />
+                      <span>Roadmap habilitado · Paradas interactivas</span>
                     </div>
                   </div>
 
                   <div className="course-card-footer">
                     <button
                       type="button"
-                      className={`course-card-btn ${isRoadmapReady ? 'active-roadmap-btn' : 'preview-course-btn'}`}
+                      className="course-card-btn active-roadmap-btn"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleCourseClick(course)
                       }}
-                      aria-label={
-                        isRoadmapReady
-                          ? `Ingresar al roadmap de ${course.name}`
-                          : `Cambiar a la materia de ${course.name} (sin roadmap)`
-                      }
+                      aria-label={`Ingresar al roadmap de ${course.name}`}
                     >
                       {course.code === 'COMUNICACION' && <BookOpen size={18} aria-hidden="true" />}
                       {course.code === 'MATEMATICA' && <Calculator size={18} aria-hidden="true" />}
                       {course.code === 'CYT' && <FlaskConical size={18} aria-hidden="true" />}
-                      <span>
-                        {isRoadmapReady ? `Ingresar al roadmap de ${course.name}` : `Cambiar a ${course.name}`}
-                      </span>
-                      {isRoadmapReady ? <ArrowRight size={18} aria-hidden="true" /> : <Lock size={16} aria-hidden="true" />}
+                      <span>Ingresar al roadmap de {course.name}</span>
+                      <ArrowRight size={18} aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -386,7 +348,7 @@ export function GradeSelectView({
           <Sparkles size={16} aria-hidden="true" />
           <span>
             {selectedGradeNumber
-              ? `Cursos alineados al Currículo Nacional de Educación Básica para ${selectedGradeObj?.title}. Solo 2.° de primaria Matemática tiene acceso a su mapa interactivo.`
+              ? `Cursos alineados al Currículo Nacional de Educación Básica para ${selectedGradeObj?.title}. ¡Avanza a tu propio ritmo con Rupi!`
               : 'Selecciona tu grado de primaria para ver los cursos que ofrecemos con Rupi.'}
           </span>
         </footer>

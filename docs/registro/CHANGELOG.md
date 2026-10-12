@@ -2,6 +2,30 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-12 · Roadmaps Escolares CNEB para Todos los Grados de Primaria (1.° a 6.°)
+
+**Base de Datos (MySQL 8.4)**
+- Migración `V10__roadmaps_todos_los_grados_primaria.sql`:
+  - Catálogo completo de 12 nuevos roadmaps escolares interactivos vinculados a la base de datos para 1.°, 3.°, 4.°, 5.° y 6.° de primaria (sumados a los 5 de 2.° y 3.° de V09), cubriendo el 100% de la primaria peruana:
+    - **1.° Primaria:** Matemática (*«Primeros Números y Formas en Ayacucho»*), Comunicación (*«Vocales, Sonidos y Rimas con Rupi»*), Ciencia y Tecnología (*«Los Sentidos y el Entorno Natural»*).
+    - **3.° Primaria:** Comunicación (*«Mitos y Narraciones de los Andes»*), Ciencia y Tecnología (*«La Fuerza del Sol, el Viento y la Materia»*).
+    - **4.° Primaria:** Matemática (*«Fracciones y Medidas en las Ferias Andinas»*), Comunicación (*«Textos Informativos y Tradición Oral Peruana»*), Ciencia y Tecnología (*«Ecosistemas y Cadenas Vivas del Perú»*).
+    - **5.° Primaria:** Matemática (*«Números Decimales y Porcentajes en el Comercio»*), Comunicación (*«Textos Argumentativos y Opinión Crítica»*), Ciencia y Tecnología (*«Sistemas del Cuerpo Humano y Nutrición Andina»*).
+    - **6.° Primaria:** Matemática (*«Proporcionalidad, Álgebra Inicial y Geometría Espacial»*), Comunicación (*«Crónicas, Reportajes y Creación Literaria»*), Ciencia y Tecnología (*«Energías Renovables y Cambio Climático»*).
+  - 6 paradas en zigzag por cada ruta (`aprendizaje_nodo_ruta`) con coordenadas pedagógicas `(x, y)` armónicas.
+  - Actividades didácticas estructuradas (`LECCION` y `RETO`) con instrucciones y minutos estimados.
+  - Bloques de contenido pedagógico (`aprendizaje_bloque_contenido`) con explicaciones de Rupi y sin textos genéricos de IA.
+  - Preguntas formativas no punitivas con opciones de respuesta y retroalimentación inmediata (`evaluacion_pregunta` y `evaluacion_opcion_respuesta`).
+  - Contextos culturales andinos vinculados (`curriculo_contexto_cultural`) para Huamanga, Huanta, Quinua, Vilcashuamán, Cangallo y Pampa Galeras.
+  - Inscripciones (`aprendizaje_inscripcion_ruta`) y progreso por nodo (`aprendizaje_progreso_nodo`) activos para el estudiante demo.
+
+**Frontend (React & TypeScript)**
+- `GradeSelectView.tsx`:
+  - Habilitación del 100% de los grados (1.° a 6.°) con sus materias troncales disponibles y chips `Rutas escolares activas`.
+  - Tarjetas de cursos con estado activo `Roadmap habilitado · Paradas interactivas` y navegación directa al mapa de la materia seleccionada.
+  - Locución accesible por voz de Rupi (`speakText`) en español peruano contextualizada para cada grado escolar.
+- Verificación limpia de TypeScript (`tsc -b`), bundler Vite y linter (`eslint .`).
+
 ## 2026-10-12 · Catálogo Integral de Múltiples Roadmaps Escolares CNEB & Remediación de Errores
 
 **Base de Datos (MySQL 8.4)**
