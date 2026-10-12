@@ -10,7 +10,9 @@ import pe.rupi.api.learningroute.LearningRouteDtos.Progress;
 import org.springframework.web.server.ResponseStatusException;
 
 import pe.rupi.api.learningroute.LearningRouteDtos.RouteDetailResponse;
+import pe.rupi.api.learningroute.LearningRouteDtos.RouteSearchResult;
 import pe.rupi.api.learningroute.LearningRouteDtos.RouteSummary;
+import pe.rupi.api.learningroute.LearningRouteDtos.SearchAutocompleteResponse;
 
 @Service
 public class LearningRouteService {
@@ -43,5 +45,18 @@ public class LearningRouteService {
         var curriculum = RouteCurriculum.build(repository.findCurriculumData(versionRouteId), nodes);
         return new RouteDetailResponse(route.versionRouteId(), route.title(), route.grade(), route.area(),
                 enrollment, progress, nodes, culturalContext, curriculum);
+    }
+
+    @Transactional(readOnly = true)
+    public SearchAutocompleteResponse searchAlternativeRoutes(UUID studentId, String query, Integer gradeNumber, int limit) {
+        String sanitizedQuery = query == null ? "" : query.trim();
+        List<String> suggestions = repository.findSubjectSuggestions(sanitizedQuery, 6);
+        List<RouteSearchResult> routes = repository.searchAlternativeRoutes(studentId, sanitizedQuery, gradeNumber, limit);
+        return new SearchAutocompleteResponse(sanitizedQuery, suggestions, routes);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getSubjectSuggestions(String query, int limit) {
+        return repository.findSubjectSuggestions(query == null ? "" : query.trim(), limit);
     }
 }

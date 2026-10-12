@@ -294,3 +294,48 @@ export const fetchRouteDiploma = (routeId: string, signal?: AbortSignal) =>
     `student/learning-routes/${encodeURIComponent(routeId)}/diploma`,
     { signal }
   )
+
+export interface RouteSearchResult {
+  versionRouteId: string
+  routeTitle: string
+  description: string | null
+  gradeNumber: number
+  gradeName: string
+  areaCode: string
+  areaName: string
+  totalNodes: number
+  isEnrolled: boolean
+  enrollmentState: string
+}
+
+export interface SearchAutocompleteResponse {
+  query: string
+  suggestedSubjects: string[]
+  routes: RouteSearchResult[]
+}
+
+export const searchAlternativeRoutes = (
+  query: string,
+  gradeNumber?: number | null,
+  limit: number = 20,
+  signal?: AbortSignal
+) => {
+  const params = new URLSearchParams()
+  if (query) params.set('q', query)
+  if (gradeNumber) params.set('grade', gradeNumber.toString())
+  if (limit) params.set('limit', limit.toString())
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  return request<SearchAutocompleteResponse>(`student/learning-routes/search${qs}`, { signal })
+}
+
+export const fetchSubjectSuggestions = (
+  query: string,
+  limit: number = 6,
+  signal?: AbortSignal
+) => {
+  const params = new URLSearchParams()
+  if (query) params.set('q', query)
+  if (limit) params.set('limit', limit.toString())
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  return request<string[]>(`student/learning-routes/suggestions${qs}`, { signal })
+}

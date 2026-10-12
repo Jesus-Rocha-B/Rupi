@@ -22,6 +22,7 @@ import pe.rupi.api.learningroute.LearningRouteDtos.Position;
 import pe.rupi.api.learningroute.LearningRouteDtos.Progress;
 import pe.rupi.api.learningroute.LearningRouteDtos.RouteDetailResponse;
 import pe.rupi.api.learningroute.LearningRouteDtos.RouteNode;
+import pe.rupi.api.learningroute.LearningRouteDtos.RouteSearchResult;
 import pe.rupi.api.learningroute.LearningRouteDtos.RouteSummary;
 
 @Repository
@@ -291,6 +292,127 @@ public class LearningRouteRepository {
                 rs.getString("icono"),
                 rs.getString("fuente")
         ));
+    }
+
+    public List<RouteSearchResult> searchAlternativeRoutes(UUID studentId, String query, Integer gradeNumber, int limit) {
+        String cleanQuery = (query == null) ? "" : query.trim();
+        int maxResults = (limit <= 0 || limit > 50) ? 20 : limit;
+
+        String ftsTerm = cleanQuery.isEmpty() ? "*" : "+" + cleanQuery.replaceAll("[+\\-*~\"<>()@]+", " ") + "*";
+        String likeTerm = "%" + cleanQuery.toLowerCase() + "%";
+        String prefixTerm = cleanQuery.toLowerCase() + "%";
+
+        StringBuilder sql = new StringBuilder("""
+                SELECT vr.id AS version_route_id,
+                       r.titulo AS route_title,
+                       r.descripcion AS route_description,
+                       g.numero_grado,
+                       g.nombre AS grade_name,
+                       a.codigo AS area_code,
+                       a.nombre AS area_name,
+                       COUNT(DISTINCT n.id) AS total_nodes,
+                       MAX(CASE WHEN i.id IS NOT NULL THEN 1 ELSE 0 END) AS is_enrolled,
+                       MAX(COALESCE(i.estado, 'NO_INSCRITO')) AS enrollment_state
+                FROM aprendizaje_version_ruta vr
+                JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
+                JOIN curriculo_grado g ON g.id = vr.grado_id
+                JOIN curriculo_area a ON a.id = vr.area_id
+                LEFT JOIN aprendizaje_inscripcion_ruta i
+                       ON i.version_ruta_id = vr.id
+                      AND i.estudiante_id = :studentId
+                      AND i.estado IN ('ACTIVO', 'COMPLETADO')
+                LEFT JOIN aprendizaje_nodo_ruta n ON n.version_ruta_id = vr.id
+                WHERE vr.estado = 'PUBLICADO'
+                  AND r.archivado_en IS NULL
+                """);
+
+        var params = new MapSqlParameterSource()
+                .addValue("studentId", studentId.toString())
+                .addValue("ftsTerm", ftsTerm)
+                .addValue("likeTerm", likeTerm)
+                .addValue("prefixTerm", prefixTerm)
+                .addValue("limit", maxResults)
+                .addValue("cleanQuery", cleanQuery);
+
+        if (gradeNumber != null && gradeNumber > 0) {
+            sql.append(" AND g.numero_grado = :gradeNumber ");
+            params.addValue("gradeNumber", gradeNumber);
+        }
+
+        if (!cleanQuery.isEmpty()) {
+            sql.append("""
+                  AND (
+                    LOWER(a.nombre) LIKE :likeTerm
+                    OR LOWER(a.codigo) LIKE :likeTerm
+                    OR LOWER(r.titulo) LIKE :likeTerm
+                    OR LOWER(COALESCE(r.descripcion, '')) LIKE :likeTerm
+                    OR MATCH(a.nombre) AGAINST(:ftsTerm IN BOOLEAN MODE)
+                    OR MATCH(r.titulo, r.descripcion) AGAINST(:ftsTerm IN BOOLEAN MODE)
+                  )
+                """);
+        }
+
+        sql.append("""
+                GROUP BY vr.id, r.titulo, r.descripcion, g.numero_grado, g.nombre, a.codigo, a.nombre
+                ORDER BY
+                  CASE
+                    WHEN LOWER(a.nombre) = LOWER(:cleanQuery) THEN 1
+                    WHEN LOWER(a.nombre) LIKE :prefixTerm THEN 2
+                    WHEN LOWER(r.titulo) LIKE :prefixTerm THEN 3
+                    ELSE 4
+                  END,
+                  g.numero_grado ASC,
+                  a.nombre ASC,
+                  r.titulo ASC
+                LIMIT :limit
+                """);
+
+        return jdbc.query(sql.toString(), params, (rs, rowNum) -> new RouteSearchResult(
+                uuid(rs, "version_route_id"),
+                rs.getString("route_title"),
+                rs.getString("route_description"),
+                rs.getInt("numero_grado"),
+                rs.getString("grade_name"),
+                rs.getString("area_code"),
+                rs.getString("area_name"),
+                rs.getLong("total_nodes"),
+                rs.getInt("is_enrolled") == 1,
+                rs.getString("enrollment_state")
+        ));
+    }
+
+    public List<String> findSubjectSuggestions(String query, int limit) {
+        String cleanQuery = (query == null) ? "" : query.trim();
+        int maxResults = (limit <= 0 || limit > 20) ? 10 : limit;
+
+        String ftsTerm = cleanQuery.isEmpty() ? "*" : "+" + cleanQuery.replaceAll("[+\\-*~\"<>()@]+", " ") + "*";
+        String likeTerm = "%" + cleanQuery.toLowerCase() + "%";
+        String prefixTerm = cleanQuery.toLowerCase() + "%";
+
+        String sql = """
+                SELECT DISTINCT a.nombre
+                FROM curriculo_area a
+                WHERE :cleanQuery = ''
+                   OR LOWER(a.nombre) LIKE :likeTerm
+                   OR LOWER(a.codigo) LIKE :likeTerm
+                   OR MATCH(a.nombre) AGAINST(:ftsTerm IN BOOLEAN MODE)
+                ORDER BY
+                  CASE
+                    WHEN LOWER(a.nombre) LIKE :prefixTerm THEN 1
+                    ELSE 2
+                  END,
+                  a.nombre ASC
+                LIMIT :limit
+                """;
+
+        var params = new MapSqlParameterSource()
+                .addValue("cleanQuery", cleanQuery)
+                .addValue("ftsTerm", ftsTerm)
+                .addValue("likeTerm", likeTerm)
+                .addValue("prefixTerm", prefixTerm)
+                .addValue("limit", maxResults);
+
+        return jdbc.query(sql, params, (rs, rowNum) -> rs.getString("nombre"));
     }
 
     public record RouteHeader(

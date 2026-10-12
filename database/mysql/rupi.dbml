@@ -420,6 +420,7 @@ Table curriculo_area {
   indexes {
     (version_catalogo_id, codigo) [unique]
     (id, version_catalogo_id) [unique]
+    nombre [name: 'ft_area_busqueda']
   }
 }
 

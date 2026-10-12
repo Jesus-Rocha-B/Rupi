@@ -43,6 +43,27 @@ public class LearningRouteController {
         return activityService.getRouteDiploma(studentId, versionRouteId);
     }
 
+    @GetMapping("/search")
+    public LearningRouteDtos.SearchAutocompleteResponse search(
+            @org.springframework.web.bind.annotation.RequestParam(value = "q", required = false, defaultValue = "") String query,
+            @org.springframework.web.bind.annotation.RequestParam(value = "grade", required = false) Integer grade,
+            @org.springframework.web.bind.annotation.RequestParam(value = "limit", required = false, defaultValue = "20") int limit,
+            Principal principal
+    ) {
+        UUID studentId = studentIdFrom(principal);
+        return service.searchAlternativeRoutes(studentId, query, grade, limit);
+    }
+
+    @GetMapping("/suggestions")
+    public List<String> suggestions(
+            @org.springframework.web.bind.annotation.RequestParam(value = "q", required = false, defaultValue = "") String query,
+            @org.springframework.web.bind.annotation.RequestParam(value = "limit", required = false, defaultValue = "6") int limit,
+            Principal principal
+    ) {
+        studentIdFrom(principal);
+        return service.getSubjectSuggestions(query, limit);
+    }
+
     private static UUID studentIdFrom(Principal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);

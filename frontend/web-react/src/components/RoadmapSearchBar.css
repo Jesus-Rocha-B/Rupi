@@ -1,0 +1,551 @@
+/* ==========================================================================
+   RUPI · Barra de Búsqueda Rápida y Autocompletado de Roadmaps (HU-09)
+   Diseño artesanal escolar: Paleta peruana, botones táctiles, alto contraste
+   ========================================================================== */
+
+.roadmap-search-container {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto 1.5rem auto;
+  z-index: 80;
+}
+
+.roadmap-search-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  padding: 0.35rem 0.5rem;
+  border: 2px solid #173e30;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 #173e30;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.roadmap-search-bar-wrapper:focus-within {
+  border-color: #f95738;
+  box-shadow: 0 5px 0 #f95738;
+}
+
+.roadmap-search-input-box {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  min-height: 44px;
+}
+
+.search-box-icon {
+  color: #31724b;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.roadmap-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #173e30;
+  padding: 0.4rem 0.2rem;
+  min-width: 0;
+}
+
+.roadmap-search-input::placeholder {
+  color: #718a7a;
+  font-weight: 500;
+}
+
+.search-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f1ede4;
+  border-radius: 8px;
+  color: #556b5d;
+  cursor: pointer;
+  margin-right: 0.35rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.search-clear-btn:hover {
+  background: #e2dac9;
+  color: #173e30;
+}
+
+.search-shortcut-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.75rem;
+  font-family: monospace;
+  font-weight: 700;
+  color: #556b5d;
+  background: #f3efe6;
+  border: 1px solid #d3cbbd;
+  border-radius: 6px;
+  margin-right: 0.4rem;
+  box-shadow: 0 1px 0 #b3a998;
+}
+
+/* Botón principal de búsqueda táctil */
+.search-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: #f95738;
+  color: #ffffff;
+  border: 2px solid #b73218;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  padding: 0 1.1rem;
+  min-height: 44px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #b73218;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.search-submit-btn:hover {
+  background: #e24324;
+}
+
+.search-submit-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #b73218;
+}
+
+/* Panel Desplegable */
+.search-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #faf8f5;
+  border: 2px solid #173e30;
+  border-radius: 14px;
+  box-shadow: 0 8px 0 #173e30;
+  padding: 1rem;
+  max-height: 520px;
+  overflow-y: auto;
+  animation: dropdownFadeIn 0.18s ease-out;
+  z-index: 90;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fila de materias sugeridas (Autocompletado) */
+.suggestions-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 2px dashed #ded4c1;
+  margin-bottom: 1rem;
+}
+
+.suggestions-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: #31724b;
+  font-weight: 700;
+}
+
+.suggestions-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.suggestion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #ffffff;
+  border: 1.5px solid #31724b;
+  border-radius: 8px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #173e30;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #31724b;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.12s ease;
+}
+
+.suggestion-chip:hover {
+  background: #f0f7f2;
+}
+
+.suggestion-chip:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #31724b;
+}
+
+.suggestion-chip.selected {
+  background: #31724b;
+  color: #ffffff;
+  box-shadow: 0 2px 0 #173e30;
+}
+
+/* Estado de carga */
+.search-loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 2rem 1rem;
+  color: #31724b;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.search-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #cfe0d4;
+  border-top-color: #31724b;
+  border-radius: 50%;
+  animation: spinSearch 0.6s linear infinite;
+}
+
+@keyframes spinSearch {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Resultados de búsqueda */
+.results-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.results-count-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #173e30;
+}
+
+.results-voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #ffffff;
+  border: 1.5px solid #246a91;
+  color: #246a91;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #246a91;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.results-voice-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #246a91;
+}
+
+/* Cuadrícula de tarjetas de resultados */
+.roadmap-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 0.85rem;
+}
+
+.roadmap-result-card {
+  background: #ffffff;
+  border: 2px solid #d4cbb8;
+  border-radius: 12px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 3px 0 #d4cbb8;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.roadmap-result-card:hover {
+  border-color: #31724b;
+  box-shadow: 0 4px 0 #31724b;
+}
+
+.roadmap-result-card.enrolled {
+  border-color: #ffd26a;
+  background: #fffdf8;
+  box-shadow: 0 3px 0 #e8bc4a;
+}
+
+.result-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* Píldoras de Materia */
+.subject-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid;
+}
+
+.subject-pill.mat {
+  background: #fff8e8;
+  color: #8c6000;
+  border-color: #ffd26a;
+}
+
+.subject-pill.com {
+  background: #eef6fc;
+  color: #174b6b;
+  border-color: #246a91;
+}
+
+.subject-pill.cyt {
+  background: #ebf7ee;
+  color: #1b5331;
+  border-color: #31724b;
+}
+
+.subject-pill.art {
+  background: #fdf2f0;
+  color: #b73218;
+  border-color: #f95738;
+}
+
+.subject-pill.soc {
+  background: #f3efe6;
+  color: #55442e;
+  border-color: #c9bc9e;
+}
+
+.result-grade-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #63776a;
+}
+
+.result-card-title {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #173e30;
+  line-height: 1.3;
+}
+
+.result-card-description {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #516657;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.result-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f0e9dc;
+  gap: 0.5rem;
+}
+
+.result-nodes-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #4b6b57;
+}
+
+.enrolled-status-box,
+.alternative-status-box {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.enrolled-indicator {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #236c3e;
+}
+
+.alternative-indicator {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #7d6e53;
+}
+
+.explore-route-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1.5px solid;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.explore-route-btn.active {
+  background: #ffd26a;
+  color: #593e00;
+  border-color: #d8a72a;
+  box-shadow: 0 2px 0 #b38615;
+}
+
+.explore-route-btn.alternative {
+  background: #31724b;
+  color: #ffffff;
+  border-color: #173e30;
+  box-shadow: 0 2px 0 #173e30;
+}
+
+.explore-route-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 currentColor;
+}
+
+/* Estado sin resultados */
+.search-empty-state {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem;
+  background: #ffffff;
+  border: 2px dashed #d5cbba;
+  border-radius: 12px;
+}
+
+.empty-mascot-col {
+  flex-shrink: 0;
+  width: 70px;
+  height: 70px;
+}
+
+.empty-rupi-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.empty-text-col h4 {
+  margin: 0 0 0.3rem 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #173e30;
+}
+
+.empty-text-col p {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.84rem;
+  color: #556b5d;
+  line-height: 1.35;
+}
+
+.empty-quick-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.empty-suggestion-btn {
+  background: #f3efe6;
+  border: 1.5px solid #31724b;
+  color: #173e30;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #31724b;
+}
+
+.empty-suggestion-btn:hover {
+  background: #e5ded0;
+}
+
+/* Pie del panel */
+.search-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid #ded6c6;
+  font-size: 0.76rem;
+  color: #798e80;
+}
+
+.close-panel-btn {
+  background: #ffffff;
+  border: 1.5px solid #d4cbb8;
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+  font-weight: 700;
+  font-size: 0.76rem;
+  color: #556b5d;
+  cursor: pointer;
+}
+
+.close-panel-btn:hover {
+  background: #f1ede4;
+  color: #173e30;
+}
+
+@media (max-width: 640px) {
+  .roadmap-results-grid {
+    grid-template-columns: 1fr;
+  }
+  .search-shortcut-badge {
+    display: none;
+  }
+  .search-submit-btn span {
+    display: none;
+  }
+  .search-submit-btn {
+    padding: 0 0.75rem;
+  }
+}

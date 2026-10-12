@@ -72,4 +72,26 @@ class LearningRouteServiceTest {
         when(repository.findNodes(enrollment, route)).thenReturn(List.of(blocked, available));
         assertEquals(available.id(), service.getForStudent(student, route).enrollment().lastVisitedNodeId());
     }
+    @Test void searchAlternativeRoutesReturnsMatchingResults() {
+        var resultRoute = new RouteSearchResult(
+                UUID.randomUUID(), "Comunicación: Cuentos del Valle", "Desc",
+                2, "2.° de primaria", "COM", "Comunicación", 5, false, "NO_INSCRITO"
+        );
+        when(repository.findSubjectSuggestions("comun", 6)).thenReturn(List.of("Comunicación"));
+        when(repository.searchAlternativeRoutes(student, "comun", 2, 20)).thenReturn(List.of(resultRoute));
+
+        var response = service.searchAlternativeRoutes(student, "  comun  ", 2, 20);
+
+        assertEquals("comun", response.query());
+        assertEquals(List.of("Comunicación"), response.suggestedSubjects());
+        assertEquals(1, response.routes().size());
+        assertEquals("Comunicación: Cuentos del Valle", response.routes().getFirst().routeTitle());
+        assertFalse(response.routes().getFirst().isEnrolled());
+    }
+    @Test void getSubjectSuggestionsSanitizesQuery() {
+        when(repository.findSubjectSuggestions("mate", 5)).thenReturn(List.of("Matemática"));
+        var suggestions = service.getSubjectSuggestions("  mate  ", 5);
+        assertEquals(List.of("Matemática"), suggestions);
+        verify(repository).findSubjectSuggestions("mate", 5);
+    }
 }

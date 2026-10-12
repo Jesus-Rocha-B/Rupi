@@ -200,4 +200,23 @@ public final class LearningRouteDtos {
             this(nodeId, state, experienceEarned, totalExperience, nextUnlockedNode, rupiMessage, null, false, 0);
         }
     }
+
+    public record RouteSearchResult(
+            UUID versionRouteId,
+            String routeTitle,
+            String description,
+            int gradeNumber,
+            String gradeName,
+            String areaCode,
+            String areaName,
+            long totalNodes,
+            boolean isEnrolled,
+            String enrollmentState
+    ) {}
+
+    public record SearchAutocompleteResponse(
+            String query,
+            List<String> suggestedSubjects,
+            List<RouteSearchResult> routes
+    ) {}
 }

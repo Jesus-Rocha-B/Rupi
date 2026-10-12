@@ -12,11 +12,11 @@ Para ubicar archivos sin explorar. Rutas relativas a la raíz del repo.
 | `shared/StudentAuthenticationFilter.java` | Autentica cada petición `/api/v1/student/**`. |
 | `shared/PasswordService.java` | Hash y verificación de contraseñas. |
 | `shared/ApiExceptionHandler.java`, `ApiResponseHeadersFilter.java`, `WebCorsConfig.java` | Errores, cabeceras de seguridad y CORS. |
-| `learningroute/LearningRouteController.java` | `GET /api/v1/student/learning-routes` y `GET .../{versionRouteId}`. |
-| `learningroute/LearningRouteService.java` | Arma la ruta con progreso derivado y contexto cultural. |
-| `learningroute/LearningRouteRepository.java` | SQL de rutas, nodos, progreso y contexto cultural (`curriculo_contexto_cultural*`). |
+| `learningroute/LearningRouteController.java` | `GET /api/v1/student/learning-routes`, `GET .../{versionRouteId}`, `GET .../search` y `GET .../suggestions`. |
+| `learningroute/LearningRouteService.java` | Arma la ruta con progreso derivado, contexto cultural y búsqueda de roadmaps alternativos. |
+| `learningroute/LearningRouteRepository.java` | SQL de rutas, nodos, progreso, contexto cultural y consultas FTS (`searchAlternativeRoutes`, `findSubjectSuggestions`). |
 | `learningroute/RouteCurriculum.java` | HU-04: agrupa nodos por unidad, ordena por `numero_secuencia` y valida catálogo, grado y área. |
-| `learningroute/LearningRouteDtos.java` | Registros de respuesta, incluido `CulturalContext`. |
+| `learningroute/LearningRouteDtos.java` | Registros de respuesta, incluidos `CulturalContext`, `RouteSearchResult` y `SearchAutocompleteResponse`. |
 | `learningroute/ActivityController.java` | `POST .../{routeId}/nodes/{nodeId}/start`. |
 | `learningroute/ActivityService.java` | Inicio transaccional e idempotente, y último nodo visitado. |
 
@@ -26,8 +26,9 @@ Configuración: `src/main/resources/application.yml`. Variables: `RUPI_DB_URL`, 
 
 | Archivo | Responsabilidad |
 |---|---|
-| `App.tsx` | Estado global y flujo: login → selección de grado y curso → mapa → actividad. |
-| `services/learningRoutesApi.ts` | Cliente tipado de la API (incluye el tipo del contexto cultural). |
+| `App.tsx` | Estado global y flujo: login → selección de grado y curso → búsqueda de materias → mapa → actividad. |
+| `services/learningRoutesApi.ts` | Cliente tipado de la API (incluye búsqueda de roadmaps, sugerencias y contexto cultural). |
+| `components/RoadmapSearchBar.tsx`, `RoadmapSearchBar.css` | HU-09: barra de búsqueda física con atajo (`/` o `Ctrl+K`), autocompletado y voz de Rupi. |
 | `features/auth/LoginView.tsx` | Login, animación de Rupi cada 10 s y selector de materia. |
 | `features/auth/GradeSelectView.tsx` | Selección de grado (1.º–6.º) y de curso. |
 | `features/roadmap/Roadmap.tsx` | Mapa interactivo y enfoque en el nodo recordado. |
@@ -43,12 +44,12 @@ Configuración: `src/main/resources/application.yml`. Variables: `RUPI_DB_URL`, 
 | `utils/speech.ts` | `speakText` (síntesis de voz del navegador). |
 | `App.css`, `features/auth/AuthViews.css` | Estilos (unas 2300 líneas cada uno). |
 
-Recursos: `public/images/` (fondo de Ayacucho con su atribución).
+Recursos: `public/images/` (fondo de Ayacucho con su atribución). Pruebas en `tests/` (`unitGroups.test.ts`, `routeSelection.test.ts`, `searchApi.test.ts`).
 
 ## Base de datos · `database/mysql/`
 
 - `schema.sql`: DDL de 77 tablas más los grados. `rupi.dbml`: diagrama. `modelo.md`: normalización e invariantes.
-- `migrations/`: `V04` contexto cultural, `V05` última visita, `V06` reparar hash demo, `V07` unidades y competencias de prueba de HU-04.
+- `migrations/`: `V04` contexto cultural, `V05` última visita, `V06` reparar hash demo, `V07` unidades y competencias de prueba de HU-04, `V08` índices FTS en áreas/rutas y roadmaps alternativos de HU-09.
 - `seed-hu01.sql` (ruta, 10 nodos, inscripción y progreso demo; **no repetir sobre datos reales**) y `seed-hu02.sql` (contenido de actividades).
 
 ## Django · `backend/admin-django/`
@@ -59,7 +60,8 @@ Solo `curriculo/models.py` y `curriculo/admin.py`, como esqueleto. Sin app funci
 
 - `iniciar-rupi.sh` / `detener-rupi.sh` (Linux) y `Iniciar-Rupi.cmd|ps1` / `Detener-Rupi.ps1` (Windows).
 - `scripts/verify_learning_flow.py` (29 escenarios HTTP/MySQL, 6 de HU-04), `scripts/Verificar-HU01.ps1` y `scripts/Verificar-Auth.ps1`.
-- HU-04: `scripts/verify_hu04_content.py` (contenido de la ruta demo en base y API), `scripts/verify_hu04_pantalla.mjs` (orden dibujado en Firefox; Playwright fuera del repo) y `scripts/fixtures/hu04-orden-esperado.json` (orden esperado, escrito a mano).
+- HU-04: `scripts/verify_hu04_content.py`, `scripts/verify_hu04_pantalla.mjs` y `scripts/fixtures/hu04-orden-esperado.json`.
+- HU-09: `scripts/Verificar-HU09.ps1` (6 escenarios de búsqueda y autocompletado) y `scripts/Verificar-Rendimiento-HU09.ps1` (benchmark FTS).
 - `.local/` (ignorado): `env.sh`, `my.cnf`, `root.cnf`, `mysql-data`, logs y pids.
 
 ## Skills de diseño

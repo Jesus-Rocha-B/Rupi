@@ -2,6 +2,27 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-12 · HU-09: Búsqueda de roadmaps alternativos por materia con Full-Text Search (FTS)
+
+Detalle y especificación técnica en `docs/implementacion/HU-09-busqueda-roadmaps-alternativos.md`.
+
+**Backend (Spring Boot & MySQL)**
+- Migración `V08__busqueda_fulltext_materias_roadmaps.sql`: índices de texto completo `ft_area_busqueda` sobre `curriculo_area(nombre)` y `ft_ruta_busqueda` sobre `aprendizaje_ruta(titulo, descripcion)`.
+- Siembra curricular de catálogo CNEB (`COM`, `CYT`, `SOC`, `ART`) vinculados a `CNEB-2017` y 5 roadmaps alternativos publicados con nodos y paradas de demostración contextualizadas en el Perú.
+- Endpoints en `LearningRouteController.java`: `GET /api/v1/student/learning-routes/search?q={query}&grade={grade}` y `GET /api/v1/student/learning-routes/suggestions?q={query}`.
+- Consultas de alto rendimiento en `LearningRouteRepository.java` combinando `MATCH(...) AGAINST(... IN BOOLEAN MODE)` con ranking de relevancia y fallback con coincidencia prefijal para autocompletado instantáneo.
+- Suite de pruebas unitarias en `LearningRouteServiceTest.java` (39 pruebas JUnit Maven 100% aprobadas).
+
+**Frontend (React & CSS Artesanal)**
+- Componente `RoadmapSearchBar.tsx` y `RoadmapSearchBar.css`: barra de búsqueda con volumen físico táctil (≥48px), atajo de teclado (`/` o `Ctrl+K`), debounce de 200 ms, sugerencias con chips por materia y lectura accesible por voz de Rupi (`speakText`).
+- Tarjetas de resultados de roadmaps alternativos con botón de exploración directa para cambiar la ruta y materia activa en el mapa.
+- Integración en `App.tsx` y cliente tipado en `learningRoutesApi.ts`.
+- Pruebas automatizadas en `tests/searchApi.test.ts` (8 pruebas pasando) y cero advertencias en `tsc` y `eslint`.
+
+**Pruebas de Rendimiento y Scripts**
+- `scripts/Verificar-HU09.ps1`: validación de integración E2E de 6 escenarios funcionales (seguridad 401, login, sugerencias, búsqueda FTS, filtro de grado y estados vacíos).
+- `scripts/Verificar-Rendimiento-HU09.ps1`: prueba de rendimiento con 60 consultas FTS calculando latencias min, max, avg, P50, P90, P99 y throughput.
+
 ## 2026-10-11 · HU-08: Culminación de ruta escolar, Gran Gallito de Oro y Diploma imprimible CNEB
 
 Detalle y especificación técnica en `docs/implementacion/HU-08-culminacion-ruta-diploma.md`.

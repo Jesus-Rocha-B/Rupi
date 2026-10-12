@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS curriculo_area (
   nombre VARCHAR(120) NOT NULL,
   UNIQUE KEY uq_area_version_codigo (version_catalogo_id, codigo),
   UNIQUE KEY uq_area_id_version (id, version_catalogo_id),
+  FULLTEXT KEY ft_area_busqueda (nombre),
   FOREIGN KEY (version_catalogo_id) REFERENCES curriculo_version_catalogo(id)
 ) ENGINE=InnoDB;
 

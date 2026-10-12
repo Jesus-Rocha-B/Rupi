@@ -32,6 +32,7 @@ React no recibe `estudianteId` desde el navegador ni accede a MySQL directamente
 | 6 | HU-06 · Preguntas interactivas y retroalimentación formativa | Responder preguntas didácticas táctiles con feedback formativo de Rupi. | HU-02 y HU-05 con modelo de evaluación. | Completada. |
 | 7 | HU-07 · Insignias escolares y resumen formativo | Resumen de aciertos, desbloqueo de insignia y vitrina de medallas. | HU-05 y HU-06 con persistencia de insignias. | Completada. |
 | 8 | HU-08 · Culminación de ruta y diploma de honor | Celebrar finalización de ruta, Gran Gallito de Oro y diploma imprimible. | HU-05 a HU-07 con culminación de todas las paradas. | Completada. |
+| 9 | HU-09 · Búsqueda de roadmaps alternativos | Búsqueda por materia con autocompletado y FTS para explorar nuevos contenidos. | HU-01 a HU-04 y catálogo de áreas y rutas publicadas. | Completada. |
 
 La historia HU-03 depende de que HU-02 registre la visita. HU-04 depende de datos oficiales/versionados; no se cumple con texto decorativo ni ordenado solo en React.
 
@@ -228,6 +229,14 @@ La calificación de respuestas, finalización y entrega de XP quedan fuera de es
 - [x] Componente React `RouteDiplomaModal` con soporte de impresión y síntesis de voz.
 - [x] Celebración ampliada de fin de ruta y botón permanente de diploma en el Hero.
 
+### HU-09 · Búsqueda de roadmaps alternativos por materia
+
+- [x] Índices de búsqueda de texto completo (FTS) en MySQL sobre `curriculo_area(nombre)` y `aprendizaje_ruta(titulo, descripcion)`.
+- [x] Migración `V08__busqueda_fulltext_materias_roadmaps.sql` con catálogo de materias CNEB y roadmaps alternativos publicados.
+- [x] Endpoints optimizados en Spring Boot: `GET /api/v1/student/learning-routes/search` y `GET /api/v1/student/learning-routes/suggestions`.
+- [x] Barra de búsqueda física y accesible en React (`RoadmapSearchBar.tsx`) con atajo de teclado (`/`, `Ctrl+K`), autocompletado y voz de Rupi.
+- [x] Pruebas automatizadas de rendimiento (`Verificar-Rendimiento-HU09.ps1`) y suite de integración (`Verificar-HU09.ps1`).
+
 ## Definición de terminado
 
 Cada historia se marca terminada cuando sus criterios pueden demostrarse en la web, la API aplica autenticación y autorización, MySQL conserva los cambios tras recargar, no se presentan datos de demostración como reales y se ha comprobado el comportamiento con MySQL de desarrollo. Los requisitos de privacidad y acceso para menores se resuelven antes de publicar.
@@ -242,6 +251,7 @@ Cada historia se marca terminada cuando sus criterios pueden demostrarse en la w
 - [HU-06: preguntas interactivas y retroalimentación formativa](HU-06-preguntas-retroalimentacion-leccion.md)
 - [HU-07: insignias escolares y resumen formativo](HU-07-insignias-resumen-formativo.md)
 - [HU-08: culminación de ruta y diploma de honor](HU-08-culminacion-ruta-diploma.md)
+- [HU-09: búsqueda de roadmaps alternativos por materia](HU-09-busqueda-roadmaps-alternativos.md)
 - [README de MySQL](../../database/mysql/README.md)
 - [DDL MySQL](../../database/mysql/schema.sql)
 - [Diagrama ER](../../database/mysql/rupi.dbml)

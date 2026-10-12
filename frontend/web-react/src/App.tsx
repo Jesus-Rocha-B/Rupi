@@ -51,6 +51,7 @@ import { GradeSelectView } from './features/auth/GradeSelectView'
 import { RupiCharacter } from './components/RupiCharacter'
 import { ActivityBlocks } from './features/roadmap/ActivityBlocks'
 import { RouteDiplomaModal } from './components/RouteDiplomaModal'
+import { RoadmapSearchBar } from './components/RoadmapSearchBar'
 import { speakText } from './utils/speech'
 import './App.css'
 
@@ -466,6 +467,24 @@ function App() {
             <p>Un mundo por aprender. A tu propio ritmo.</p>
           </div>
         </section>
+
+        {/* Barra de búsqueda rápida de roadmaps alternativos por materia (HU-09) */}
+        <RoadmapSearchBar
+          currentGrade={selectedGrade}
+          onSelectRoute={(versionRouteId, areaCode) => {
+            if (areaCode) {
+              const code = areaCode.toUpperCase()
+              if (code.includes('COM')) {
+                handleSelectGradeAndCourse(selectedGrade, 'COMUNICACION')
+              } else if (code.includes('CYT')) {
+                handleSelectGradeAndCourse(selectedGrade, 'CYT')
+              } else if (code.includes('MAT')) {
+                handleSelectGradeAndCourse(selectedGrade, 'MATEMATICA')
+              }
+            }
+            setRouteId(versionRouteId)
+          }}
+        />
 
         {/* Barra interactiva de cambio de materia escolar:
             Permite alternar entre Comunicación, Matemática y CYT en todo momento */}
