@@ -34,7 +34,7 @@ INSERT INTO curriculo_competencia (id, area_id, codigo, nombre, descripcion) VAL
    'Capacidades: Modela objetos con formas geométricas y sus transformaciones; Comunica su comprensión sobre las formas y relaciones geométricas; Usa estrategias y procedimientos para orientarse en el espacio; Argumenta afirmaciones sobre relaciones geométricas.'),
   ('c1000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 'MAT-C4', 'Resuelve problemas de gestión de datos e incertidumbre',
    'Capacidades: Representa datos con gráficos y medidas estadísticas o probabilísticas; Comunica su comprensión de los conceptos estadísticos y probabilísticos; Usa estrategias y procedimientos para recopilar y procesar datos; Sustenta conclusiones o decisiones con base en la información obtenida.')
-ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE codigo = VALUES(codigo), nombre = VALUES(nombre), descripcion = VALUES(descripcion);
 
 -- 3. Estándar de aprendizaje: descripción del nivel esperado al final del ciclo III (grado NULL: vale para el ciclo)
 INSERT INTO curriculo_estandar (id, competencia_id, grado_id, codigo, descripcion) VALUES
