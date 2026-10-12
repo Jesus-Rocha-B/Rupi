@@ -75,11 +75,11 @@ public class ActivityService {
         )).stream().findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         if (!List.of("DISPONIBLE", "EN_CURSO", "COMPLETADO").contains(access.state())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El nivel solicitado aún está bloqueado.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El nivel solicitado aún está bloqueado.");
         }
 
         var blocks = jdbc.query("""
-                SELECT id, tipo, texto, url_recurso, texto_accesible
+                SELECT id, tipo, COALESCE(texto_cuerpo, '') AS texto, NULL AS url_recurso, texto_accesibilidad AS texto_accesible
                 FROM aprendizaje_bloque_contenido
                 WHERE version_actividad_id = :activity
                 ORDER BY numero_secuencia

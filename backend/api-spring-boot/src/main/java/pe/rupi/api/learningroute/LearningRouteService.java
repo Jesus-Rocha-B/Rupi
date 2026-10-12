@@ -26,10 +26,14 @@ public class LearningRouteService {
         return repository.findRoutesForStudent(studentId);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public RouteDetailResponse getForStudent(UUID studentId, UUID versionRouteId) {
-        var route = repository.findRouteForStudent(studentId, versionRouteId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        var routeOpt = repository.findRouteForStudent(studentId, versionRouteId);
+        if (routeOpt.isEmpty() && repository.isPublishedRoute(versionRouteId)) {
+            repository.enrollStudentInRoute(studentId, versionRouteId);
+            routeOpt = repository.findRouteForStudent(studentId, versionRouteId);
+        }
+        var route = routeOpt.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         var nodes = repository.findNodes(route.enrollment().id(), versionRouteId);
         if (nodes.stream().anyMatch(node -> node.state() == null)) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
@@ -45,6 +49,15 @@ public class LearningRouteService {
         var curriculum = RouteCurriculum.build(repository.findCurriculumData(versionRouteId), nodes);
         return new RouteDetailResponse(route.versionRouteId(), route.title(), route.grade(), route.area(),
                 enrollment, progress, nodes, culturalContext, curriculum);
+    }
+
+    @Transactional
+    public RouteDetailResponse enroll(UUID studentId, UUID versionRouteId) {
+        if (!repository.isPublishedRoute(versionRouteId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La ruta solicitada no existe o no está publicada.");
+        }
+        repository.enrollStudentInRoute(studentId, versionRouteId);
+        return getForStudent(studentId, versionRouteId);
     }
 
     @Transactional(readOnly = true)

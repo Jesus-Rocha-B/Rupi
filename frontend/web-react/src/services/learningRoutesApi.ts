@@ -339,3 +339,9 @@ export const fetchSubjectSuggestions = (
   const qs = params.toString() ? `?${params.toString()}` : ''
   return request<string[]>(`student/learning-routes/suggestions${qs}`, { signal })
 }
+
+export const enrollInRoute = (versionRouteId: string, signal?: AbortSignal) =>
+  request<RouteDetail>(`student/learning-routes/${versionRouteId}/enroll`, {
+    method: 'POST',
+    signal,
+  })

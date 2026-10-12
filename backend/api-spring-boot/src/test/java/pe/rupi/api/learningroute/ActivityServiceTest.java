@@ -25,7 +25,7 @@ class ActivityServiceTest {
     }
     @Test void blockedActivityDoesNotWriteOrReturnContent() {
         fixture("BLOQUEADO", "Contenido", List.of());
-        assertEquals(409, assertThrows(ResponseStatusException.class, () -> service.start(student, route, node)).getStatusCode().value());
+        assertEquals(403, assertThrows(ResponseStatusException.class, () -> service.start(student, route, node)).getStatusCode().value());
         verify(jdbc, never()).update(anyString(), any(SqlParameterSource.class));
         verify(jdbc, times(1)).query(anyString(), any(SqlParameterSource.class), any(RowMapper.class));
     }

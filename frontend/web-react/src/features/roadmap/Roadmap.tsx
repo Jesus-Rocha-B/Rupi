@@ -23,9 +23,29 @@ import {
 } from 'lucide-react'
 import { nodeStateLabels } from './nodeStates'
 import { RupiCharacter } from '../../components/RupiCharacter'
-import { createTrailPath } from './lessons'
 import { unitBandsByNode } from './unitGroups'
 import './UnitBands.css'
+
+function createTrailPath(points: { x: number; y: number }[]): string {
+  const coords = points.map(({ x, y }) => ({ x: x * 6, y: y * 10 }))
+  if (coords.length < 2) return ''
+
+  return coords.reduce((path, point, index) => {
+    if (index === 0) return `M ${point.x} ${point.y}`
+    const previous = coords[index - 1]
+    const beforePrevious = coords[index - 2] ?? previous
+    const next = coords[index + 1] ?? point
+    const controlOne = {
+      x: previous.x + (point.x - beforePrevious.x) / 6,
+      y: previous.y + (point.y - beforePrevious.y) / 6,
+    }
+    const controlTwo = {
+      x: point.x - (next.x - previous.x) / 6,
+      y: point.y - (next.y - previous.y) / 6,
+    }
+    return `${path} C ${controlOne.x} ${controlOne.y}, ${controlTwo.x} ${controlTwo.y}, ${point.x} ${point.y}`
+  }, '')
+}
 import { speakText } from '../../utils/speech'
 import type { RouteDetail, RouteNode } from '../../services/learningRoutesApi'
 

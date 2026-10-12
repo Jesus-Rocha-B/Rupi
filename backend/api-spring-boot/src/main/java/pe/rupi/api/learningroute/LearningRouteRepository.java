@@ -415,6 +415,75 @@ public class LearningRouteRepository {
         return jdbc.query(sql, params, (rs, rowNum) -> rs.getString("nombre"));
     }
 
+    public boolean isPublishedRoute(UUID versionRouteId) {
+        String sql = """
+                SELECT COUNT(*) FROM aprendizaje_version_ruta vr
+                JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
+                WHERE vr.id = :versionRouteId AND vr.estado = 'PUBLICADO' AND r.archivado_en IS NULL
+                """;
+        Integer count = jdbc.queryForObject(sql, new MapSqlParameterSource("versionRouteId", versionRouteId.toString()), Integer.class);
+        return count != null && count > 0;
+    }
+
+    public void enrollStudentInRoute(UUID studentId, UUID versionRouteId) {
+        UUID enrollmentId = UUID.randomUUID();
+        String sqlEnroll = """
+                INSERT IGNORE INTO aprendizaje_inscripcion_ruta
+                (id, version_ruta_id, estudiante_id, estado, inscrito_en, ultima_visita_en)
+                VALUES (:id, :versionRouteId, :studentId, 'ACTIVO', CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6))
+                """;
+        jdbc.update(sqlEnroll, new MapSqlParameterSource()
+                .addValue("id", enrollmentId.toString())
+                .addValue("versionRouteId", versionRouteId.toString())
+                .addValue("studentId", studentId.toString()));
+
+        String sqlGetEnrollment = """
+                SELECT id FROM aprendizaje_inscripcion_ruta
+                WHERE version_ruta_id = :versionRouteId AND estudiante_id = :studentId
+                """;
+        List<String> enrollments = jdbc.query(sqlGetEnrollment, new MapSqlParameterSource()
+                .addValue("versionRouteId", versionRouteId.toString())
+                .addValue("studentId", studentId.toString()), (rs, rowNum) -> rs.getString("id"));
+        if (enrollments.isEmpty()) {
+            return;
+        }
+        String realEnrollmentId = enrollments.getFirst();
+
+        record NodeSeq(String id, int sequence) {}
+        String sqlNodes = """
+                SELECT id, numero_secuencia FROM aprendizaje_nodo_ruta
+                WHERE version_ruta_id = :versionRouteId
+                ORDER BY numero_secuencia ASC
+                """;
+        List<NodeSeq> nodes = jdbc.query(sqlNodes, new MapSqlParameterSource("versionRouteId", versionRouteId.toString()),
+                (rs, rowNum) -> new NodeSeq(rs.getString("id"), rs.getInt("numero_secuencia")));
+
+        for (int i = 0; i < nodes.size(); i++) {
+            var n = nodes.get(i);
+            String state = (i == 0) ? "DISPONIBLE" : "BLOQUEADO";
+            String sqlProgress = """
+                    INSERT IGNORE INTO aprendizaje_progreso_nodo
+                    (inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en)
+                    VALUES (:enrollmentId, :versionRouteId, :nodeId, :state,
+                            CASE WHEN :state = 'DISPONIBLE' THEN CURRENT_TIMESTAMP(6) ELSE NULL END)
+                    """;
+            jdbc.update(sqlProgress, new MapSqlParameterSource()
+                    .addValue("enrollmentId", realEnrollmentId)
+                    .addValue("versionRouteId", versionRouteId.toString())
+                    .addValue("nodeId", n.id())
+                    .addValue("state", state));
+        }
+
+        if (!nodes.isEmpty()) {
+            jdbc.update("""
+                    UPDATE aprendizaje_inscripcion_ruta
+                    SET ultimo_nodo_visitado_id = COALESCE(ultimo_nodo_visitado_id, :firstNode)
+                    WHERE id = :enrollmentId
+                    """, new MapSqlParameterSource("firstNode", nodes.getFirst().id())
+                    .addValue("enrollmentId", realEnrollmentId));
+        }
+    }
+
     public record RouteHeader(
             UUID versionRouteId,
             UUID routeId,

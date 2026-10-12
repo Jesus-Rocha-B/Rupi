@@ -43,6 +43,12 @@ public class LearningRouteController {
         return activityService.getRouteDiploma(studentId, versionRouteId);
     }
 
+    @org.springframework.web.bind.annotation.PostMapping("/{versionRouteId}/enroll")
+    public RouteDetailResponse enroll(@PathVariable UUID versionRouteId, Principal principal) {
+        UUID studentId = studentIdFrom(principal);
+        return service.enroll(studentId, versionRouteId);
+    }
+
     @GetMapping("/search")
     public LearningRouteDtos.SearchAutocompleteResponse search(
             @org.springframework.web.bind.annotation.RequestParam(value = "q", required = false, defaultValue = "") String query,

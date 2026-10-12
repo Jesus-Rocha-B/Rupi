@@ -49,7 +49,7 @@ Recursos: `public/images/` (fondo de Ayacucho con su atribución). Pruebas en `t
 ## Base de datos · `database/mysql/`
 
 - `schema.sql`: DDL de 77 tablas más los grados. `rupi.dbml`: diagrama. `modelo.md`: normalización e invariantes.
-- `migrations/`: `V04` contexto cultural, `V05` última visita, `V06` reparar hash demo, `V07` unidades y competencias de prueba de HU-04, `V08` índices FTS en áreas/rutas y roadmaps alternativos de HU-09.
+- `migrations/`: `V04` contexto cultural, `V05` última visita, `V06` reparar hash demo, `V07` unidades y competencias de prueba de HU-04, `V08` índices FTS en áreas/rutas y roadmaps alternativos de HU-09, `V09` catálogo integral de múltiples roadmaps escolares CNEB (COM, CYT, SOC, ART, MAT 3.°).
 - `seed-hu01.sql` (ruta, 10 nodos, inscripción y progreso demo; **no repetir sobre datos reales**) y `seed-hu02.sql` (contenido de actividades).
 
 ## Django · `backend/admin-django/`

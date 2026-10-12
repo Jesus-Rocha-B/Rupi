@@ -211,9 +211,23 @@ function App() {
           setLoading(false)
           return
         }
-        const id = list.some(route => route.versionRouteId === routeId)
-          ? routeId
-          : list[0].versionRouteId
+        // Buscar ruta que coincida con routeId, o con el curso y grado seleccionados
+        let targetRoute = list.find(r => r.versionRouteId === routeId)
+        if (!targetRoute && selectedCourse) {
+          const courseCode = selectedCourse.toUpperCase()
+          targetRoute = list.find(r => {
+            const matchesGrade = selectedGrade == null || r.grade.number === selectedGrade
+            const matchesArea = r.area.code.toUpperCase().includes(courseCode) ||
+              (courseCode === 'COMUNICACION' && r.area.code === 'COM') ||
+              (courseCode === 'MATEMATICA' && r.area.code === 'MAT') ||
+              (courseCode === 'CYT' && r.area.code === 'CYT')
+            return matchesGrade && matchesArea
+          })
+        }
+        if (!targetRoute && selectedGrade) {
+          targetRoute = list.find(r => r.grade.number === selectedGrade)
+        }
+        const id = targetRoute ? targetRoute.versionRouteId : list[0].versionRouteId
         const detail = await fetchRouteDetail(id, signal)
         if (signal.aborted) return
         setSelectedRoute(detail)
@@ -235,7 +249,6 @@ function App() {
           setSelectedRoute(null)
           setSelectedGrade(null)
           setSelectedCourse(null)
-
         }
         setSelectedRoute(null)
         setLoading(false)
@@ -245,9 +258,8 @@ function App() {
     return () => controller.abort()
   }, [routeId, reloadKey, selectedGrade, selectedCourse])
 
-  // Restricción estricta de acceso al roadmap:
-  // Solo 2.° de primaria Matemática tiene acceso a su roadmap
-  const isRoadmapAvailable = selectedGrade === 2 && selectedCourse === 'MATEMATICA'
+  // Roadmap disponible si la ruta seleccionada pertenece al grado actual
+  const isRoadmapAvailable = selectedRoute != null && (selectedGrade == null || selectedRoute.grade.number === selectedGrade)
 
   function resetView() {
     setLoading(true)
@@ -263,6 +275,8 @@ function App() {
   function handleSelectGradeAndCourse(gradeNumber: number | null, courseCode: string | null) {
     setSelectedGrade(gradeNumber)
     setSelectedCourse(courseCode)
+    setRouteId('')
+    resetView()
     if (gradeNumber != null) {
       localStorage.setItem('rupi_selected_grade', String(gradeNumber))
     } else {
@@ -498,10 +512,17 @@ function App() {
           >
             <BookOpen size={16} aria-hidden="true" />
             <span>Comunicación</span>
-            <span className="tab-status-pill locked" title="Sin roadmap activo">
-              <Lock size={11} aria-hidden="true" />
-              <span>Sin mapa</span>
-            </span>
+            {routes.some(r => (r.area.code === 'COM' || r.area.code.includes('COM')) && (selectedGrade == null || r.grade.number === selectedGrade)) ? (
+              <span className="tab-status-pill active" title="Roadmap activo">
+                <Sparkles size={11} aria-hidden="true" />
+                <span>Mapa activo</span>
+              </span>
+            ) : (
+              <span className="tab-status-pill locked" title="Sin roadmap activo">
+                <Lock size={11} aria-hidden="true" />
+                <span>Sin mapa</span>
+              </span>
+            )}
           </button>
 
           <button
@@ -513,8 +534,8 @@ function App() {
           >
             <Calculator size={16} aria-hidden="true" />
             <span>Matemática</span>
-            {selectedGrade === 2 ? (
-              <span className="tab-status-pill active" title="Roadmap activo en Ayacucho">
+            {routes.some(r => (r.area.code === 'MAT' || r.area.code.includes('MAT')) && (selectedGrade == null || r.grade.number === selectedGrade)) ? (
+              <span className="tab-status-pill active" title="Roadmap activo">
                 <Sparkles size={11} aria-hidden="true" />
                 <span>Mapa activo</span>
               </span>
@@ -535,14 +556,21 @@ function App() {
           >
             <FlaskConical size={16} aria-hidden="true" />
             <span>Ciencia y Tecnología</span>
-            <span className="tab-status-pill locked" title="Sin roadmap activo">
-              <Lock size={11} aria-hidden="true" />
-              <span>Sin mapa</span>
-            </span>
+            {routes.some(r => (r.area.code === 'CYT' || r.area.code.includes('CYT')) && (selectedGrade == null || r.grade.number === selectedGrade)) ? (
+              <span className="tab-status-pill active" title="Roadmap activo">
+                <Sparkles size={11} aria-hidden="true" />
+                <span>Mapa activo</span>
+              </span>
+            ) : (
+              <span className="tab-status-pill locked" title="Sin roadmap activo">
+                <Lock size={11} aria-hidden="true" />
+                <span>Sin mapa</span>
+              </span>
+            )}
           </button>
         </nav>
 
-        {/* CASO A: 2.° de Primaria Matemática -> Roadmap Habilitado */}
+        {/* CASO A: Roadmap Habilitado para la materia y grado */}
         {isRoadmapAvailable && (
           <>
             {routes.length > 1 && (

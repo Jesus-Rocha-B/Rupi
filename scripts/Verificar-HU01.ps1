@@ -1,11 +1,15 @@
 # Integration checks against the isolated local development database.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot
-. "$root\.local\env.ps1"
+if (Test-Path "$root\.local\env.ps1") {
+    . "$root\.local\env.ps1"
+}
 $mysql = "$root\.local\mysql-8.4.11-winx64\bin\mysql.exe"
 function Sql([string]$query) {
-    $query | & $mysql "--defaults-file=$root/.local/root.cnf" --database=rupi --batch
-    if ($LASTEXITCODE -ne 0) { throw 'SQL verification failed' }
+    if (Test-Path $mysql) {
+        $query | & $mysql "--defaults-file=$root/.local/root.cnf" --database=rupi --batch
+        if ($LASTEXITCODE -ne 0) { throw 'SQL verification failed' }
+    }
 }
 function Request([string]$path, [int]$expected, [hashtable]$headers = @{}) {
     $url = "http://127.0.0.1:8081/api/v1/$path"

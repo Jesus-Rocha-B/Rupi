@@ -2,6 +2,31 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-12 · Catálogo Integral de Múltiples Roadmaps Escolares CNEB & Remediación de Errores
+
+**Base de Datos (MySQL 8.4)**
+- Migración `V09__creacion_multiples_roadmaps_cneb.sql`:
+  - 5 roadmaps completos vinculados a la base de datos: Comunicación 2.° (*«Cuentos y Leyendas del Valle Sagrado»*), Ciencia y Tecnología 2.° (*«Exploradores de la Biodiversidad Andina»*), Personal Social 2.° (*«Historia y Costumbres de Nuestra Comunidad»*), Arte y Cultura 2.° (*«Colores, Retablos y Melodías de Ayacucho»*) y Matemática 3.° (*«Desafíos y Geometría en la Ciudadela Wari»*).
+  - Competencias curriculares oficiales del CNEB asociadas a cada área.
+  - Unidades curriculares oficiales (`curriculo_unidad` y `curriculo_unidad_competencia`) para estructurar los tramos del mapa.
+  - 6 paradas en zigzag por cada ruta con coordenadas `(x, y)` armónicas.
+  - Actividades didácticas estructuradas, instrucciones pedagógicas y bloques de contenido (`aprendizaje_bloque_contenido`).
+  - Preguntas formativas no punitivas con opciones estructuradas (`evaluacion_pregunta` y `evaluacion_opcion_respuesta`).
+  - Contextos culturales peruanos para la mascota Rupi (`curriculo_contexto_cultural`).
+  - Inscripciones del estudiante demo (`aprendizaje_inscripcion_ruta`) y progreso inicial (`DISPONIBLE` en parada 1, `BLOQUEADO` en paradas 2 a 6).
+
+**Backend (Spring Boot)**
+- Corrección en `ActivityService.java`: consulta de bloques alineada con los nombres de columnas de base de datos (`texto_cuerpo AS texto`, `texto_accesibilidad AS texto_accesible`).
+- Armonización de código HTTP: `403 Forbidden` al intentar abrir niveles bloqueados.
+- Auto-inscripción transparente en `LearningRouteService.getForStudent` y nuevo endpoint `POST /api/v1/student/learning-routes/{versionRouteId}/enroll` en `LearningRouteController.java`.
+- 39 pruebas JUnit aprobadas al 100%.
+
+**Frontend (React & TypeScript)**
+- `App.tsx`: selección inteligente de ruta por curso y grado, `isRoadmapAvailable` dinámico y pestañas con chips reactivos (`Mapa activo`) para Comunicación, Matemática y CYT.
+- `learningRoutesApi.ts`: función cliente `enrollInRoute`.
+- Eliminación de código huérfano (`lessons.ts`) e integración de `createTrailPath` en `Roadmap.tsx`.
+- 8 pruebas de node y compilación de producción (`tsc -b && vite build`) limpias al 100%.
+
 ## 2026-10-12 · HU-09: Búsqueda de roadmaps alternativos por materia con Full-Text Search (FTS)
 
 Detalle y especificación técnica en `docs/implementacion/HU-09-busqueda-roadmaps-alternativos.md`.
