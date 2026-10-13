@@ -216,6 +216,18 @@ CREATE TABLE IF NOT EXISTS aprendizaje_nodo_ruta (
   CHECK (nodo_prerrequisito_id IS NULL OR nodo_prerrequisito_id <> id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS aprendizaje_nodo_recurso (
+  id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+  nodo_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  tipo ENUM('DOCUMENTO', 'ENLACE', 'PRESENTACION', 'IMAGEN') NOT NULL,
+  titulo VARCHAR(180) NOT NULL,
+  url_recurso VARCHAR(500) NOT NULL,
+  archivo_multimedia_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  creado_en DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  FOREIGN KEY (nodo_id) REFERENCES aprendizaje_nodo_ruta(id) ON DELETE CASCADE,
+  FOREIGN KEY (archivo_multimedia_id) REFERENCES recurso_archivo_multimedia(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS aprendizaje_codigo_acceso_ruta (
   id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
   version_ruta_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,

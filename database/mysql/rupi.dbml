@@ -567,6 +567,16 @@ Table aprendizaje_nodo_ruta {
   }
 }
 
+Table aprendizaje_nodo_recurso {
+  id CHAR(36) [pk]
+  nodo_id CHAR(36) [not null]
+  tipo VARCHAR(20) [not null]
+  titulo VARCHAR(180) [not null]
+  url_recurso VARCHAR(500) [not null]
+  archivo_multimedia_id CHAR(36)
+  creado_en DATETIME(6) [not null]
+}
+
 Table aprendizaje_codigo_acceso_ruta {
   id CHAR(36) [pk]
   version_ruta_id CHAR(36) [not null]

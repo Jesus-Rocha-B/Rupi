@@ -19,7 +19,8 @@ BEGIN
     SELECT table_name FROM information_schema.tables
      WHERE table_schema = 'rupi' AND table_type = 'BASE TABLE'
        AND (table_name LIKE 'escuela\_%' OR table_name LIKE 'aprendizaje\_%'
-         OR table_name LIKE 'evaluacion\_%' OR table_name LIKE 'gamificacion\_%');
+         OR table_name LIKE 'evaluacion\_%' OR table_name LIKE 'gamificacion\_%'
+         OR table_name LIKE 'recurso\_%');
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET terminado = 1;
 
   IF EXISTS (SELECT 1 FROM mysql.user WHERE user = usuario AND host = equipo) THEN

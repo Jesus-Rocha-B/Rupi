@@ -17,17 +17,26 @@ public class StudentAuthenticationFilter extends OncePerRequestFilter {
     public StudentAuthenticationFilter(StudentSessionService sessions) { this.sessions = sessions; }
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/v1/student/");
+        String uri = request.getRequestURI();
+        return !uri.startsWith("/api/v1/student/") && !uri.startsWith("/api/v1/teacher/");
     }
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
-        final StudentSessionService.Student student;
-        try { student = sessions.resolve(request).orElse(null); }
+        final StudentSessionService.Student user;
+        try { user = sessions.resolve(request).orElse(null); }
         catch (DataAccessException exception) { response.sendError(503); return; }
-        if (student == null) { response.sendError(401); return; }
-        request.setAttribute("student", student);
-        Principal principal = () -> student.id();
+        if (user == null) { response.sendError(401); return; }
+
+        if (request.getRequestURI().startsWith("/api/v1/teacher/") && !"DOCENTE".equalsIgnoreCase(user.role())) {
+            response.sendError(403);
+            return;
+        }
+
+        request.setAttribute("student", user);
+        request.setAttribute("teacher", user);
+        request.setAttribute("user", user);
+        Principal principal = () -> user.id();
         chain.doFilter(new HttpServletRequestWrapper(request) {
             @Override public Principal getUserPrincipal() { return principal; }
         }, response);

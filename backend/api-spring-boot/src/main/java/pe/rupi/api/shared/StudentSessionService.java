@@ -38,9 +38,13 @@ public class StudentSessionService {
         this.passwordService = passwordService;
     }
 
-    public record Student(String id, String name, String schoolName) {
+    public record Student(String id, String name, String schoolName, String role) {
         public Student(String id, String name) {
-            this(id, name, "I.E. 38001 Mariscal Sucre");
+            this(id, name, "I.E. 38001 Mariscal Sucre", "ESTUDIANTE");
+        }
+
+        public Student(String id, String name, String schoolName) {
+            this(id, name, schoolName, "ESTUDIANTE");
         }
     }
 
@@ -71,7 +75,8 @@ public class StudentSessionService {
             Timestamp deactivatedAt,
             Timestamp lockedUntil,
             String displayName,
-            String schoolName
+            String schoolName,
+            String role
     ) {}
 
     public Optional<Student> resolve(HttpServletRequest request) {
@@ -108,10 +113,13 @@ public class StudentSessionService {
         return jdbc.query("""
                 SELECT u.id,
                        COALESCE(p.nombre_preferido, p.nombre, u.nombre_usuario) AS nombre,
-                       COALESCE(inst.nombre, 'I.E. 38001 Mariscal Sucre') AS school_name
+                       COALESCE(inst.nombre, 'I.E. 38001 Mariscal Sucre') AS school_name,
+                       COALESCE(r.codigo, 'ESTUDIANTE') AS rol_codigo
                 FROM identidad_sesion_usuario s
                 JOIN identidad_cuenta_usuario u ON u.id = s.usuario_id
                 LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
+                LEFT JOIN identidad_usuario_rol ur ON ur.usuario_id = u.id
+                LEFT JOIN identidad_rol r ON r.id = ur.rol_id
                 LEFT JOIN escuela_membresia_aula m ON m.usuario_id = u.id AND m.estado = 'ACTIVO'
                 LEFT JOIN escuela_aula a ON a.id = m.aula_id
                 LEFT JOIN escuela_institucion inst ON inst.id = a.institucion_id
@@ -119,7 +127,7 @@ public class StudentSessionService {
                   AND s.expira_en > UTC_TIMESTAMP(6) AND s.cliente = 'WEB_USUARIO'
                   AND u.estado = 'ACTIVO' AND u.desactivado_en IS NULL
                   AND (u.bloqueado_hasta IS NULL OR u.bloqueado_hasta <= UTC_TIMESTAMP(6))
-                """, (rs, row) -> new Student(rs.getString("id"), rs.getString("nombre"), rs.getString("school_name")), hash)
+                """, (rs, row) -> new Student(rs.getString("id"), rs.getString("nombre"), rs.getString("school_name"), rs.getString("rol_codigo")), hash)
                 .stream().findFirst();
     }
 
@@ -164,9 +172,12 @@ public class StudentSessionService {
         var accounts = jdbc.query("""
                 SELECT u.id, u.nombre_usuario, u.hash_clave, u.estado, u.desactivado_en, u.bloqueado_hasta,
                        COALESCE(p.nombre_preferido, p.nombre, u.nombre_usuario) AS display_name,
-                       COALESCE(inst.nombre, 'I.E. 38001 Mariscal Sucre') AS school_name
+                       COALESCE(inst.nombre, 'I.E. 38001 Mariscal Sucre') AS school_name,
+                       COALESCE(r.codigo, 'ESTUDIANTE') AS rol_codigo
                 FROM identidad_cuenta_usuario u
                 LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
+                LEFT JOIN identidad_usuario_rol ur ON ur.usuario_id = u.id
+                LEFT JOIN identidad_rol r ON r.id = ur.rol_id
                 LEFT JOIN escuela_membresia_aula m ON m.usuario_id = u.id AND m.estado = 'ACTIVO'
                 LEFT JOIN escuela_aula a ON a.id = m.aula_id
                 LEFT JOIN escuela_institucion inst ON inst.id = a.institucion_id
@@ -179,7 +190,8 @@ public class StudentSessionService {
                 rs.getTimestamp("desactivado_en"),
                 rs.getTimestamp("bloqueado_hasta"),
                 rs.getString("display_name"),
-                rs.getString("school_name")
+                rs.getString("school_name"),
+                rs.getString("rol_codigo")
         ), username);
 
         if (accounts.isEmpty()) {
@@ -218,9 +230,9 @@ public class StudentSessionService {
 
         // 4. Registro de acceso exitoso
         jdbc.update("""
-                INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
-                VALUES (?, ?, 'CORRECTO', ?, UTC_TIMESTAMP(6))
-                """, account.id(), idHash, originHash);
+                    INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
+                    VALUES (?, ?, 'CORRECTO', ?, UTC_TIMESTAMP(6))
+                    """, account.id(), idHash, originHash);
 
         // 5. Rotación de sesiones: revocar sesiones activas previas del estudiante
         jdbc.update("""
@@ -241,7 +253,7 @@ public class StudentSessionService {
                 VALUES (?, ?, ?, 'WEB_USUARIO', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6) + INTERVAL 30 DAY)
                 """, sessionId, account.id(), tokenHash);
 
-        return AuthenticationResult.success(new Student(account.id(), account.displayName(), account.schoolName()), token);
+        return AuthenticationResult.success(new Student(account.id(), account.displayName(), account.schoolName(), account.role()), token);
     }
 
     public void revokeSession(HttpServletRequest request) {

@@ -30,6 +30,27 @@ public class SessionController {
         return (StudentSessionService.Student) request.getAttribute("student");
     }
 
+    @GetMapping("/api/v1/teacher/session")
+    public StudentSessionService.Student currentTeacher(HttpServletRequest request) {
+        var user = (StudentSessionService.Student) request.getAttribute("teacher");
+        if (user == null || !"DOCENTE".equalsIgnoreCase(user.role())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return user;
+    }
+
+    @GetMapping("/api/v1/auth/session")
+    public StudentSessionService.Student currentAuth(HttpServletRequest request) {
+        var user = (StudentSessionService.Student) request.getAttribute("user");
+        if (user == null) {
+            user = sessions.resolve(request).orElse(null);
+        }
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        return user;
+    }
+
     @GetMapping("/api/v1/auth/options")
     public SessionOptions options(HttpServletRequest request) {
         return new SessionOptions(!demoToken.isBlank() && isLocal(request));
