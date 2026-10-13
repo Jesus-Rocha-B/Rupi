@@ -80,4 +80,18 @@ public class TeacherRouteService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+
+    public TeacherDtos.TeacherRouteDetail reorderNodes(String teacherId, String routeId, TeacherDtos.ReorderNodesRequest req) {
+        if (req == null || req.nodeIds() == null || req.nodeIds().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe proporcionar la lista ordenada de IDs de las paradas.");
+        }
+
+        try {
+            repository.reorderNodes(teacherId, routeId, req.nodeIds());
+            return repository.findTeacherRouteDetail(teacherId, routeId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el roadmap después de reordenar."));
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
 }

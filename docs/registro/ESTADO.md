@@ -24,7 +24,7 @@ La numeración HU-xx del repo coincide con el backlog solo en **HU-01 a HU-04** 
 | HU-03 | Regresar al punto exacto del mapa | Completada y verificada |
 | HU-04 | Ruta agrupada por unidades MINEDU | Completada y verificada |
 | HU-05 | **Autoría y Gestión de Roadmaps Docente** (Scrum Backlog): Rol docente, creación de roadmaps personalizados por grado CNEB (1.° a 6.°) y materia | **Completada y verificada** (`Verificar-HU05-Docente.ps1`) |
-| HU-06 | Mejora de preguntas interactivas y retroalimentación formativa de lección | Completada y verificada |
+| HU-06 | **Reorganizar Secuencia de Aprendizaje con Drag & Drop** (Scrum Backlog): Reordenamiento interactivo de paradas pedagógicas por el profesor | **Completada y verificada** (`Verificar-HU06-Reordenamiento.ps1`) |
 | HU-07 | **Subida y vinculación de materiales educativos (PDF, PPT, enlaces) a nodos** (Scrum Backlog) / Insignias formativas | **Completada y verificada** |
 | HU-08 | Fin de ruta y vitrina de insignias de perfil escolar / Publicación docente | Completada y verificada |
 | HU-09 | Búsqueda de roadmaps por materia con FTS y autocompletado | Completada y verificada |
@@ -35,8 +35,9 @@ La numeración HU-xx del repo coincide con el backlog solo en **HU-01 a HU-04** 
 
 ## Qué sigue
 
-1. **Continuar con la Épica de Autoría Docente (Historias 6 y 8 del backlog Scrum):**
-   - Confirmar detalles y tareas específicas de la Historia 6 (edición, ordenamiento y configuración pedagógica de paradas) y de la Historia 8 (gestión de visibilidad, publicación, archivado y asignación a aulas).
+1. **Continuar con las Historias 7 y 8 de la Épica Docente:**
+   - Historia 7: Subida de archivos PDF, PPT y enlaces externos a nodos específicos (verificar si se requiere algún ajuste o validación adicional a lo ya construido).
+   - Historia 8: Gestión de publicación, visibilidad y asignación a aulas escolares.
 2. **Historia 12** del backlog: descargar materiales de la ruta para estudiar sin conexión (cierra la épica 3).
 3. **Calendario y planificación presencial** (historias 13 y 14) y reportes de aula (17 a 20).
 

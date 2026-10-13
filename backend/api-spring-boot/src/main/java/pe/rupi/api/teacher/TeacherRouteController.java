@@ -96,4 +96,16 @@ public class TeacherRouteController {
         String teacherId = principal != null ? principal.getName() : teacher.id();
         return service.publishRoute(teacherId, routeId);
     }
+
+    @PutMapping("/{routeId}/nodes/reorder")
+    public TeacherDtos.TeacherRouteDetail reorderNodes(
+            @PathVariable("routeId") String routeId,
+            @RequestBody TeacherDtos.ReorderNodesRequest body,
+            HttpServletRequest request,
+            Principal principal
+    ) {
+        var teacher = requireTeacher(request);
+        String teacherId = principal != null ? principal.getName() : teacher.id();
+        return service.reorderNodes(teacherId, routeId, body);
+    }
 }

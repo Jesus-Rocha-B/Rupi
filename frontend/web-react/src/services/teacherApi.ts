@@ -166,6 +166,16 @@ export const publishTeacherRoute = (routeId: string) =>
     }
   )
 
+export const reorderTeacherNodes = (routeId: string, nodeIds: string[]) =>
+  teacherRequest<TeacherRouteDetail>(
+    `teacher/learning-routes/${encodeURIComponent(routeId)}/nodes/reorder`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nodeIds }),
+    }
+  )
+
 export const uploadTeacherMaterial = async (file: File): Promise<UploadMaterialResult> => {
   const formData = new FormData()
   formData.append('file', file)

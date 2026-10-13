@@ -2,7 +2,23 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
-## 2026-10-13 · HU-05: Rol Docente, Autoría de Roadmaps y Gestión de Materiales Educativos
+## 2026-10-13 · HU-06: Reorganizar Secuencia de Aprendizaje con Drag and Drop (Docente)
+
+- **Backend (Spring Boot):**
+  - Creado DTO `TeacherDtos.ReorderNodesRequest` conteniendo la lista ordenada de IDs de las paradas.
+  - Implementado endpoint `PUT /api/v1/teacher/learning-routes/{routeId}/nodes/reorder` en `TeacherRouteController.java`.
+  - En `TeacherRouteRepository.java`: método transaccional `reorderNodes` con técnica de desplazamiento temporal `+1000` para prevenir colisiones con la clave única `uq_nodo_orden (version_ruta_id, numero_secuencia)`, asignación secuencial `1..N` y actualización armónica de coordenadas `mapa_x` y `mapa_y`.
+  - Agregadas 3 pruebas unitarias en `TeacherRouteServiceTest.java` (66 pruebas totales en verde con `mvn test`).
+- **Frontend (React):**
+  - En `teacherApi.ts`: cliente `reorderTeacherNodes` conectado al endpoint PUT.
+  - En `TeacherAuthoringView.tsx` y `TeacherAuthoring.css`:
+    - Funcionalidad interactiva de arrastrar y soltar nativa HTML5 (`draggable`, `onDragStart`, `onDragOver`, `onDrop`) con asa ergonómica `GripVertical`.
+    - Estados visuales de feedback (`.is-dragging` con opacidad y borde discontinuo; `.drag-over` con acento andino).
+    - Botones de movimiento vertical (`ChevronUp` / `ChevronDown`) para accesibilidad en tabletas táctiles y navegación por teclado (WCAG AA).
+    - Gestión de estado temporal (`orderedNodes`, `isReorderDirty`) con barra flotante de confirmación ("Guardar Nuevo Orden" o "Restablecer").
+  - Compilación `npm run build` (637ms) y linter `npm run lint` limpios al 100%.
+  - Creado script de verificación `scripts/Verificar-HU06-Reordenamiento.ps1` con 9/9 pruebas aprobadas.
+
 
 - **Rol Docente y Seguridad (Backend & DB):**
   - Creada migración idempotente `V12__rol_docente_autoria_hu05.sql` asegurando roles `DOCENTE` (`b1000000-0000-4000-8000-000000000002`) y `ESTUDIANTE` (`b1000000-0000-4000-8000-000000000001`).

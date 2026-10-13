@@ -308,6 +308,65 @@ public class TeacherRouteRepository {
         );
     }
 
+    @Transactional
+    public void reorderNodes(String teacherId, String routeId, List<String> nodeIds) {
+        if (nodeIds == null || nodeIds.isEmpty()) {
+            throw new IllegalArgumentException("La lista de paradas a reordenar no puede estar vacía.");
+        }
+
+        // 1. Obtener la última versión de la ruta del profesor
+        List<String> versionRouteIds = jdbc.query("""
+                SELECT vr.id
+                FROM aprendizaje_version_ruta vr
+                JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
+                WHERE r.id = ? AND r.propietario_id = ?
+                ORDER BY vr.numero_version DESC LIMIT 1
+                """, (rs, rowNum) -> rs.getString("id"), routeId, teacherId);
+
+        if (versionRouteIds.isEmpty()) {
+            throw new IllegalArgumentException("El roadmap no existe o no pertenece a su autoría.");
+        }
+        String versionRouteId = versionRouteIds.get(0);
+
+        // 2. Obtener los IDs actuales de los nodos de esta versión
+        List<String> existingNodeIds = jdbc.query("""
+                SELECT id FROM aprendizaje_nodo_ruta WHERE version_ruta_id = ?
+                """, (rs, rowNum) -> rs.getString("id"), versionRouteId);
+
+        if (existingNodeIds.size() != nodeIds.size()) {
+            throw new IllegalArgumentException("La cantidad de nodos enviados (" + nodeIds.size()
+                    + ") no coincide con las paradas del roadmap (" + existingNodeIds.size() + ").");
+        }
+
+        Set<String> existingSet = new HashSet<>(existingNodeIds);
+        for (String id : nodeIds) {
+            if (!existingSet.contains(id)) {
+                throw new IllegalArgumentException("El nodo " + id + " no pertenece a este roadmap.");
+            }
+        }
+
+        // 3. Desplazar temporalmente numero_secuencia (+1000) para evitar colisión con UNIQUE KEY uq_nodo_orden (version_ruta_id, numero_secuencia)
+        jdbc.update("""
+                UPDATE aprendizaje_nodo_ruta
+                SET numero_secuencia = numero_secuencia + 1000
+                WHERE version_ruta_id = ?
+                """, versionRouteId);
+
+        // 4. Asignar la nueva secuencia y coordenadas actualizadas del mapa interactivo
+        for (int i = 0; i < nodeIds.size(); i++) {
+            int newSequence = i + 1;
+            String nodeId = nodeIds.get(i);
+            Double newMapX = calculateDefaultMapX(newSequence);
+            Double newMapY = calculateDefaultMapY(newSequence);
+
+            jdbc.update("""
+                    UPDATE aprendizaje_nodo_ruta
+                    SET numero_secuencia = ?, mapa_x = ?, mapa_y = ?
+                    WHERE id = ? AND version_ruta_id = ?
+                    """, newSequence, newMapX, newMapY, nodeId, versionRouteId);
+        }
+    }
+
     private String getActiveCatalogId() {
         try {
             return jdbc.queryForObject("""

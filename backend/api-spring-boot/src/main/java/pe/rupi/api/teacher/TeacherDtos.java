@@ -28,6 +28,10 @@ public class TeacherDtos {
             String multimediaId
     ) {}
 
+    public record ReorderNodesRequest(
+            List<String> nodeIds
+    ) {}
+
     public record GradeInfo(int number, String name) {}
 
     public record AreaInfo(String code, String name) {}

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -124,5 +125,61 @@ class TeacherRouteServiceTest {
         assertThrows(ResponseStatusException.class, () ->
                 service.getRouteDetail("profesor-1", "r-inexistente")
         );
+    }
+
+    @Test
+    @DisplayName("Reordena paradas del roadmap exitosamente y retorna el detalle actualizado")
+    void reorderNodesSuccess() {
+        var nodeIds = List.of("node-2", "node-1", "node-3");
+        var req = new TeacherDtos.ReorderNodesRequest(nodeIds);
+
+        var mockDetail = new TeacherDtos.TeacherRouteDetail(
+                "r-1", "vr-1", "Ruta Reordenada", "Desc",
+                new TeacherDtos.GradeInfo(2, "2.° de primaria"),
+                new TeacherDtos.AreaInfo("MAT", "Matemática"),
+                "BORRADOR",
+                List.of(
+                        new TeacherDtos.TeacherNodeDto("node-2", 1, "Parada B", "Inst", "LECCION", 10, 50.0, 15.0, List.of()),
+                        new TeacherDtos.TeacherNodeDto("node-1", 2, "Parada A", "Inst", "LECCION", 15, 75.0, 30.0, List.of()),
+                        new TeacherDtos.TeacherNodeDto("node-3", 3, "Parada C", "Inst", "LECCION", 20, 25.0, 45.0, List.of())
+                ),
+                "2026-10-13T10:00:00Z", null
+        );
+
+        when(repository.findTeacherRouteDetail("profesor-1", "r-1")).thenReturn(Optional.of(mockDetail));
+
+        var result = service.reorderNodes("profesor-1", "r-1", req);
+
+        assertNotNull(result);
+        assertEquals(3, result.nodes().size());
+        assertEquals("node-2", result.nodes().get(0).id());
+        assertEquals(1, result.nodes().get(0).sequence());
+        assertEquals("node-1", result.nodes().get(1).id());
+        assertEquals(2, result.nodes().get(1).sequence());
+        verify(repository, times(1)).reorderNodes("profesor-1", "r-1", nodeIds);
+    }
+
+    @Test
+    @DisplayName("Rechaza reordenamiento si la lista de paradas es nula o vacía")
+    void reorderNodesEmptyThrowsBadRequest() {
+        assertThrows(ResponseStatusException.class, () ->
+                service.reorderNodes("profesor-1", "r-1", new TeacherDtos.ReorderNodesRequest(List.of()))
+        );
+        assertThrows(ResponseStatusException.class, () ->
+                service.reorderNodes("profesor-1", "r-1", null)
+        );
+    }
+
+    @Test
+    @DisplayName("Mapea IllegalArgumentException del repository a BAD_REQUEST al reordenar")
+    void reorderNodesRepositoryErrorThrowsBadRequest() {
+        var req = new TeacherDtos.ReorderNodesRequest(List.of("node-999"));
+        doThrow(new IllegalArgumentException("El nodo no pertenece a este roadmap"))
+                .when(repository).reorderNodes("profesor-1", "r-1", req.nodeIds());
+
+        var ex = assertThrows(ResponseStatusException.class, () ->
+                service.reorderNodes("profesor-1", "r-1", req)
+        );
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
     }
 }

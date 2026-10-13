@@ -14,6 +14,12 @@ import {
   Eye,
   LogOut,
   RefreshCw,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
+  Check,
+  RotateCcw,
+  ArrowUpDown,
 } from 'lucide-react'
 import {
   fetchTeacherRoutes,
@@ -22,6 +28,7 @@ import {
   createTeacherNode,
   attachResourceToNode,
   publishTeacherRoute,
+  reorderTeacherNodes,
   type TeacherRouteSummary,
   type TeacherRouteDetail,
   type TeacherNode,
@@ -74,6 +81,13 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
   // Notificaciones
   const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
+  // Estados de reorganización y Drag & Drop (HU-06)
+  const [orderedNodes, setOrderedNodes] = useState<TeacherNode[]>([])
+  const [isReorderDirty, setIsReorderDirty] = useState(false)
+  const [savingReorder, setSavingReorder] = useState(false)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+
   useEffect(() => {
     loadRoutes()
   }, [])
@@ -97,6 +111,8 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
     try {
       const detail = await fetchTeacherRouteDetail(routeId)
       setActiveRouteDetail(detail)
+      setOrderedNodes(detail.nodes)
+      setIsReorderDirty(false)
       if (detail.nodes.length > 0) {
         setSelectedNode(detail.nodes[0])
       }
@@ -159,6 +175,8 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
       // Recargar detalle
       const detail = await fetchTeacherRouteDetail(selectedRouteId)
       setActiveRouteDetail(detail)
+      setOrderedNodes(detail.nodes)
+      setIsReorderDirty(false)
       if (detail.nodes.length > 0) {
         setSelectedNode(detail.nodes[detail.nodes.length - 1])
       }
@@ -179,9 +197,84 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
     // Recargar detalle para ver el recurso reflejado
     const detail = await fetchTeacherRouteDetail(selectedRouteId)
     setActiveRouteDetail(detail)
+    setOrderedNodes(detail.nodes)
     const updatedNode = detail.nodes.find((n) => n.id === selectedNode.id)
     if (updatedNode) setSelectedNode(updatedNode)
     setBanner({ type: 'success', message: `Material enlazado exitosamente a "${selectedNode.title}".` })
+  }
+
+  // Funciones de Drag and Drop y Reorganización de Secuencia (HU-06)
+  function handleDragStart(index: number, e: React.DragEvent) {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(index))
+  }
+
+  function handleDragOver(index: number, e: React.DragEvent) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index)
+    }
+  }
+
+  function handleDragLeave(index: number) {
+    if (dragOverIndex === index) {
+      setDragOverIndex(null)
+    }
+  }
+
+  function handleDrop(targetIndex: number, e: React.DragEvent) {
+    e.preventDefault()
+    setDragOverIndex(null)
+    if (draggedIndex === null || draggedIndex === targetIndex) return
+
+    moveNode(draggedIndex, targetIndex)
+    setDraggedIndex(null)
+  }
+
+  function handleDragEnd() {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  function moveNode(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex || toIndex < 0 || toIndex >= orderedNodes.length) return
+    const updated = [...orderedNodes]
+    const [moved] = updated.splice(fromIndex, 1)
+    updated.splice(toIndex, 0, moved)
+
+    // Actualizar temporalmente el orden visual de la secuencia (Tarea 2)
+    const renumbered = updated.map((item, idx) => ({ ...item, sequence: idx + 1 }))
+    setOrderedNodes(renumbered)
+    setIsReorderDirty(true)
+  }
+
+  function handleCancelReorder() {
+    if (!activeRouteDetail) return
+    setOrderedNodes(activeRouteDetail.nodes)
+    setIsReorderDirty(false)
+    setBanner({ type: 'success', message: 'Secuencia restablecida a la última versión guardada.' })
+  }
+
+  async function handleSaveReorder() {
+    if (!selectedRouteId || !isReorderDirty) return
+    setSavingReorder(true)
+    setBanner(null)
+    try {
+      const nodeIds = orderedNodes.map((n) => n.id)
+      const updatedDetail = await reorderTeacherNodes(selectedRouteId, nodeIds)
+      setActiveRouteDetail(updatedDetail)
+      setOrderedNodes(updatedDetail.nodes)
+      setIsReorderDirty(false)
+      setBanner({ type: 'success', message: '¡Secuencia pedagógica reorganizada y guardada exitosamente!' })
+      speakText('Secuencia de aprendizaje guardada exitosamente.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al guardar la nueva secuencia.'
+      setBanner({ type: 'error', message: msg })
+    } finally {
+      setSavingReorder(false)
+    }
   }
 
   async function handlePublishRoute() {
@@ -400,28 +493,90 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
 
             {/* Cuerpo del editor: Paradas y Materiales */}
             <div className="editor-columns">
-              {/* Columna Izquierda: Paradas del camino */}
+              {/* Columna Izquierda: Paradas del camino y Reorganización Drag & Drop (HU-06) */}
               <div className="editor-stops-panel">
-                <h3 className="stops-panel-title">
-                  <Compass size={18} aria-hidden="true" />
-                  <span>Paradas del Roadmap ({activeRouteDetail.nodes.length})</span>
-                </h3>
+                <div className="stops-panel-header">
+                  <h3 className="stops-panel-title">
+                    <Compass size={18} aria-hidden="true" />
+                    <span>Secuencia de Paradas ({orderedNodes.length})</span>
+                  </h3>
+                  <span className="stops-hint-badge">Arrastra ⋮⋮ para ordenar</span>
+                </div>
 
-                {activeRouteDetail.nodes.length === 0 ? (
+                <p className="stops-panel-hint">
+                  Reorganiza el orden de aprendizaje arrastrando las paradas o usando las flechas de subida y bajada.
+                </p>
+
+                {/* Banner de confirmación de nuevo orden (Tarea 2) */}
+                {isReorderDirty && (
+                  <div className="reorder-action-banner" role="status" aria-live="polite">
+                    <div className="reorder-banner-info">
+                      <ArrowUpDown size={18} className="reorder-icon" aria-hidden="true" />
+                      <div>
+                        <strong className="reorder-alert-title">Nuevo orden sin guardar</strong>
+                        <span className="reorder-alert-desc">Se actualizó el orden visualmente. Confirma para guardar.</span>
+                      </div>
+                    </div>
+                    <div className="reorder-banner-actions">
+                      <button
+                        type="button"
+                        className="reorder-save-btn"
+                        onClick={handleSaveReorder}
+                        disabled={savingReorder}
+                        title="Confirmar y guardar nuevo orden en la base de datos"
+                      >
+                        <Check size={16} aria-hidden="true" />
+                        <span>{savingReorder ? 'Guardando…' : 'Guardar Orden'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="reorder-cancel-btn"
+                        onClick={handleCancelReorder}
+                        disabled={savingReorder}
+                        title="Descartar cambios y volver al orden original"
+                      >
+                        <RotateCcw size={15} aria-hidden="true" />
+                        <span>Restablecer</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {orderedNodes.length === 0 ? (
                   <div className="no-stops-card">
                     <p>Esta ruta no tiene paradas. Toca "+ Agregar Parada al Mapa" para comenzar.</p>
                   </div>
                 ) : (
-                  <div className="stops-timeline">
-                    {activeRouteDetail.nodes.map((n) => {
+                  <div className="stops-timeline" role="list" aria-label="Lista de paradas reorganizables">
+                    {orderedNodes.map((n, index) => {
                       const isSelected = selectedNode?.id === n.id
+                      const isDragging = draggedIndex === index
+                      const isOver = dragOverIndex === index
+
                       return (
                         <div
                           key={n.id}
-                          className={`stop-card-item ${isSelected ? 'is-selected' : ''}`}
+                          className={`stop-card-item ${isSelected ? 'is-selected' : ''} ${isDragging ? 'is-dragging' : ''} ${isOver ? 'drag-over' : ''}`}
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(index, e)}
+                          onDragOver={(e) => handleDragOver(index, e)}
+                          onDragLeave={() => handleDragLeave(index)}
+                          onDrop={(e) => handleDrop(index, e)}
+                          onDragEnd={handleDragEnd}
                           onClick={() => setSelectedNode(n)}
+                          role="listitem"
+                          aria-grabbed={isDragging}
                         >
+                          <div
+                            className="stop-drag-handle"
+                            title="Arrastra para mover en la secuencia"
+                            aria-label="Arrastrar parada"
+                          >
+                            <GripVertical size={16} aria-hidden="true" />
+                          </div>
+
                           <div className="stop-badge-seq">{n.sequence}</div>
+
                           <div className="stop-card-content">
                             <h4 className="stop-title">{n.title}</h4>
                             <div className="stop-meta">
@@ -435,6 +590,29 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                                 {n.resources.length} recursos
                               </span>
                             </div>
+                          </div>
+
+                          <div className="stop-move-actions" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              className="move-node-btn"
+                              onClick={() => moveNode(index, index - 1)}
+                              disabled={index === 0}
+                              title="Mover hacia arriba"
+                              aria-label={`Mover hacia arriba ${n.title}`}
+                            >
+                              <ChevronUp size={16} aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              className="move-node-btn"
+                              onClick={() => moveNode(index, index + 1)}
+                              disabled={index === orderedNodes.length - 1}
+                              title="Mover hacia abajo"
+                              aria-label={`Mover hacia abajo ${n.title}`}
+                            >
+                              <ChevronDown size={16} aria-hidden="true" />
+                            </button>
                           </div>
                         </div>
                       )
