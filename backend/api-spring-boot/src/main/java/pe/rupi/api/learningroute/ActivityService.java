@@ -1,6 +1,7 @@
 package pe.rupi.api.learningroute;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -82,10 +83,14 @@ public class ActivityService {
         }
 
         var blocks = jdbc.query("""
-                SELECT id, tipo, COALESCE(texto_cuerpo, '') AS texto, NULL AS url_recurso, texto_accesibilidad AS texto_accesible
-                FROM aprendizaje_bloque_contenido
-                WHERE version_actividad_id = :activity
-                ORDER BY numero_secuencia
+                SELECT b.id, b.tipo,
+                       COALESCE(b.texto_cuerpo, '') AS texto,
+                       m.url_almacenamiento AS url_recurso,
+                       b.texto_accesibilidad AS texto_accesible
+                FROM aprendizaje_bloque_contenido b
+                LEFT JOIN recurso_archivo_multimedia m ON m.id = b.archivo_multimedia_id
+                WHERE b.version_actividad_id = :activity
+                ORDER BY b.numero_secuencia
                 """, new MapSqlParameterSource("activity", access.activityId()), (rs, rowNum) -> new Block(
                 rs.getString("id"),
                 rs.getString("tipo"),
