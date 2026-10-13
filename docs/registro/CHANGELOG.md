@@ -2,6 +2,16 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-13 · Historia 12: descargar una unidad para estudiar sin conexión
+
+- **Backend (Spring Boot):** paquete `studypackage` con `GET /api/v1/student/learning-routes/{versionRouteId}/units/{unitId|otras}/package`. Comprueba la inscripción con `LearningRouteService.getForStudent` (401 sin sesión, 404 sin inscripción o unidad ajena, 409 sin lecciones publicadas) y solo lee la base.
+- **Empaquetador:** zip con `guia-de-estudio.pdf` (OpenPDF 2.2.5, A4, claves en página aparte, sin recursos remotos), materiales del docente verificados por SHA-256, `contenido.json`, `manifest.json` con tamaño y hash de cada archivo y `LEEME.txt`. No imprime las preguntas genéricas que siembra `EvaluationService`.
+- **Caché:** `uploads/package-cache/` con clave por contenido; un cambio del docente (orden, textos, adjuntos) genera otra clave sin invalidar a mano. Tiempo de vida de 168 h, un candado por clave y escritura atómica. `uploads/` pasa a `.gitignore`.
+- **Frontend:** panel «Llévate tu unidad» bajo la leyenda del mapa, una tarjeta por unidad, comprobación del SHA-256 en el navegador, botones de 48 px y contraste 8.3:1.
+- **`MaterialStorageService.diskPathFor`:** ruta del archivo sin consultar la base.
+- **Pruebas:** 19 JUnit nuevas (85 en total), 5 de Node (17 en total), `scripts/Verificar-HU12-Descarga.ps1` (20/20) y `scripts/verify_hu12_pantalla.mjs` (10/10).
+- **Fallos detectados al verificar** (sin corregir, detalle en `ESTADO.md`): abrir lecciones y subir materiales responden 503 por columnas de `recurso_archivo_multimedia` que no existen en `schema.sql`, y V12 no corre sobre el esquema del repo.
+
 ## 2026-10-13 · HU-06: Reorganizar Secuencia de Aprendizaje con Drag and Drop (Docente)
 
 - **Backend (Spring Boot):**

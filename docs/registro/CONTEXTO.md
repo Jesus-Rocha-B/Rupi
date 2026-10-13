@@ -53,11 +53,12 @@ R="--root-config .local/root.cnf --mysql .local/mysql-8.4.11-linux-glibc2.28-x86
 python3 -I scripts/verify_learning_flow.py $R
 python3 -I scripts/verify_hu04_content.py $R
 
-# PowerShell 7 sin sudo (~/pwsh-7, ver entorno-linux.md): Auth, HU01, HU02-HU05, HU08, HU09, HU10, HU11, Rendimiento-HU09
-for s in Verificar-Auth Verificar-HU01 Verificar-HU02-HU05 Verificar-HU08 Verificar-HU09 Verificar-HU10 Verificar-HU11; do ~/pwsh-7/pwsh -NoProfile -File scripts/$s.ps1; done
+# PowerShell 7 sin sudo (~/pwsh-7, ver entorno-linux.md): Auth, HU01, HU02-HU05, HU08, HU09, HU10, HU11, HU12, Rendimiento-HU09
+for s in Verificar-Auth Verificar-HU01 Verificar-HU02-HU05 Verificar-HU08 Verificar-HU09 Verificar-HU10 Verificar-HU11 Verificar-HU12-Descarga; do ~/pwsh-7/pwsh -NoProfile -File scripts/$s.ps1; done
 
 # Pantalla (Playwright fuera del repo, ~/pw-tmp)
 PLAYWRIGHT_DIR=~/pw-tmp node scripts/verify_hu04_pantalla.mjs
+PLAYWRIGHT_DIR=~/pw-tmp node scripts/verify_hu12_pantalla.mjs http://127.0.0.1:5173 /tmp
 ```
 
 En Linux, para consultar la base de Rupi hay que usar el cliente de `.local/mysql-8.4.*/bin/mysql`; el `mysql` del sistema es el de MariaDB.

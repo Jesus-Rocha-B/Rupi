@@ -1,6 +1,6 @@
 # Estado actual · RUPI
 
-Actualizado: 2026-10-12 (cierre de sesión) · rama `main` · último commit `38021f1`.
+Actualizado: 2026-10-13 · rama `main` · historia 12 del backlog (descarga offline por unidad) sobre `bf25c2d`.
 
 ## Cómo retomar (5 minutos)
 
@@ -30,6 +30,7 @@ La numeración HU-xx del repo coincide con el backlog solo en **HU-01 a HU-04** 
 | HU-09 | Búsqueda de roadmaps por materia con FTS y autocompletado | Completada y verificada |
 | HU-10 | Filtros por grado y materia con URL sincronizada | Completada y verificada |
 | HU-11 | Unirse a un roadmap con código de clase docente | Completada y verificada |
+| HU-12 | Descargar una unidad (guía PDF, materiales y ejercicios en zip) para estudiar sin conexión. Cierra la épica 3 | Completada y verificada (`Verificar-HU12-Descarga.ps1`, `verify_hu12_pantalla.mjs`) |
 
 «Verificada» significa probada contra la API Spring Boot, MySQL y frontend React reales.
 
@@ -38,10 +39,20 @@ La numeración HU-xx del repo coincide con el backlog solo en **HU-01 a HU-04** 
 1. **Continuar con las Historias 7 y 8 de la Épica Docente:**
    - Historia 7: Subida de archivos PDF, PPT y enlaces externos a nodos específicos (verificar si se requiere algún ajuste o validación adicional a lo ya construido).
    - Historia 8: Gestión de publicación, visibilidad y asignación a aulas escolares.
-2. **Historia 12** del backlog: descargar materiales de la ruta para estudiar sin conexión (cierra la épica 3).
+2. **Corregir los fallos conocidos** de la sección siguiente: hoy impiden abrir lecciones y subir materiales sobre una base armada desde `schema.sql`.
 3. **Calendario y planificación presencial** (historias 13 y 14) y reportes de aula (17 a 20).
 
 Decisión abierta: qué rutas del catálogo serán públicas cuando existan rutas privadas del docente. Hoy cualquier ruta publicada se puede abrir con `POST /enroll`.
+
+## Fallos conocidos (2026-10-13)
+
+- **Abrir una lección responde 503** sobre una base armada desde `schema.sql`: `ActivityService` lee `m.url_almacenamiento` de `recurso_archivo_multimedia`, columna que no existe (el esquema tiene `clave_almacenamiento` y `url_externa`). Viene de `f280e73`.
+- **Subir materiales responde 503**: `MaterialStorageService` inserta `tamanio_bytes` y `url_almacenamiento`; el esquema tiene `tamano_bytes` y exige `clave_almacenamiento` o `url_externa` (CHECK). Además guarda el archivo antes del `INSERT`, así que un fallo deja un archivo huérfano en `uploads/materials/`. `MaterialStorageService.findById` lee las mismas columnas.
+- **`V12__rol_docente_autoria_hu05.sql` no corre sobre `schema.sql`**: inserta `es_sistema` y `creado_en` en `identidad_rol`, columnas que no existen. Su paso 6 usa el aula `e3000000-…`, que solo existe con el `seed-hu01.sql` actual. V12 también escribe `identidad_*` desde el lado Spring (escritor único: Django).
+- Crear una parada como docente (`POST /teacher/learning-routes/{routeId}/nodes`) no devolvió `nodeId` en la prueba del 2026-10-13; sin investigar.
+- A 375 px la página tiene desplazamiento horizontal por `search-submit-btn` (HU-09) y `mascot-badge`.
+
+La historia 12 no depende de esas consultas: lee `tamano_bytes` y calcula la ruta del archivo con `MaterialStorageService.diskPathFor`.
 
 ## Pendiente menor
 
@@ -59,7 +70,14 @@ Decisión abierta: qué rutas del catálogo serán públicas cuando existan ruta
 - `App.css` y `AuthViews.css` superan las 1700 líneas cada una; conviene dividirlas.
 - El endpoint de unirse a clase acepta peticiones sin cabecera `Origin`; decidir si es intencional.
 
-## Última evidencia de pruebas (2026-10-12, Fedora 44, base armada desde cero)
+## Última evidencia de pruebas
+
+2026-10-13 (historia 12, base local del 2026-10-12 con las tablas de V12):
+
+- 85 pruebas Java y 17 de Node; lint y build correctos.
+- `scripts/Verificar-HU12-Descarga.ps1` (20/20, PowerShell 7.6) y `scripts/verify_hu12_pantalla.mjs` (10/10, Firefox 1280 y 375 px).
+
+2026-10-12 (Fedora 44, base armada desde cero):
 
 - 51 pruebas Java y 12 de Node; lint y build correctos.
 - `scripts/Verificar-Auth.ps1`, `HU01`, `HU02-HU05`, `HU08`, `HU09`, `HU10`, `HU11` y `Verificar-Rendimiento-HU09` con PowerShell 7.6.

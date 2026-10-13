@@ -134,9 +134,7 @@ public class MaterialStorageService {
                 """, (rs, rowNum) -> {
             String id = rs.getString("id");
             String originalName = rs.getString("nombre_original");
-            String ext = extractExtension(originalName).toLowerCase();
-            String diskFileName = id + "." + ext;
-            Path diskPath = storageDirectory.resolve(diskFileName).normalize();
+            Path diskPath = diskPathFor(id, originalName);
             return new StoredMaterial(
                     id,
                     originalName,
@@ -146,6 +144,12 @@ public class MaterialStorageService {
                     diskPath
             );
         }, materialId).stream().findFirst();
+    }
+
+    /** Ruta en disco de un material subido; no consulta la base. */
+    public Path diskPathFor(String materialId, String originalName) {
+        String ext = extractExtension(originalName == null ? "" : originalName).toLowerCase();
+        return storageDirectory.resolve(materialId + "." + ext).normalize();
     }
 
     private static String sanitizeFilename(String filename) {

@@ -1,0 +1,196 @@
+/* Descarga de unidades para estudiar sin conexión. Paleta oficial de Rupi, bordes y sombras sólidas. */
+.unit-downloads {
+  margin-top: 20px;
+  padding: 18px;
+  border: 2px solid #173e30;
+  border-radius: 18px;
+  background: #faf8f5;
+  color: #173e30;
+  box-shadow: 0 5px 0 #173e30;
+  font-family: var(--body-font, 'Nunito', sans-serif);
+}
+
+.unit-downloads-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.unit-downloads-icon {
+  display: grid;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 2px solid #173e30;
+  border-radius: 12px;
+  background: #ffd26a;
+  color: #173e30;
+}
+
+.unit-downloads-head h4 {
+  margin: 0 0 4px;
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 900;
+  font-size: 19px;
+  line-height: 1.2;
+}
+
+.unit-downloads-head p {
+  margin: 0;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.unit-downloads-head .inline-icon {
+  margin: 0 2px 0 4px;
+  vertical-align: -2px;
+}
+
+.unit-downloads-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.unit-download-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 2px solid #173e30;
+  border-left: 8px solid #f95738;
+  border-radius: 14px;
+  background: #fffefa;
+}
+
+.unit-download-card.is-done {
+  border-left-color: #31724b;
+}
+
+.unit-download-card.is-error {
+  border-left-color: #cc3a1d;
+}
+
+.unit-download-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.unit-download-title {
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.unit-download-meta {
+  font-weight: 700;
+  font-size: 13px;
+  color: #31724b;
+}
+
+.unit-download-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.unit-download-status:empty {
+  display: none;
+}
+
+.is-done .unit-download-status {
+  color: #31724b;
+}
+
+.is-error .unit-download-status {
+  color: #a8301a;
+}
+
+.unit-download-status svg {
+  flex: none;
+}
+
+.unit-download-btn {
+  display: inline-flex;
+  flex: none;
+  min-width: 48px;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 2px solid #173e30;
+  border-radius: 14px;
+  background: #ffd26a;
+  color: #173e30;
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 900;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #173e30;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.unit-download-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #173e30;
+}
+
+.unit-download-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+.unit-download-btn:focus-visible {
+  outline: 3px solid #246a91;
+  outline-offset: 3px;
+}
+
+.unit-download-btn:disabled {
+  background: #f3efe6;
+  cursor: progress;
+}
+
+.unit-download-btn .spin {
+  animation: unit-download-spin 0.9s linear infinite;
+}
+
+@keyframes unit-download-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .unit-download-btn,
+  .unit-download-btn .spin {
+    transition: none;
+    animation: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .unit-downloads {
+    padding: 14px;
+  }
+
+  .unit-download-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .unit-download-btn {
+    width: 100%;
+  }
+}

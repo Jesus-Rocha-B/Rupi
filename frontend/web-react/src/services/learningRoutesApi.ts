@@ -1,3 +1,5 @@
+import { fileNameFromDisposition, sha256Hex, unitPackagePath } from '../features/roadmap/unitDownloads'
+
 export interface Grade {
   number: number
   name: string
@@ -233,21 +235,52 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       ? AbortSignal.any([options.signal, AbortSignal.timeout(15000)])
       : AbortSignal.timeout(15000),
   })
-  if (!response.ok) {
-    let msg = `No se pudo consultar la información (${response.status})`
-    try {
-      const errData = await response.json()
-      if (errData?.message) msg = errData.message
-      else if (errData?.detail) msg = errData.detail
-      else if (errData?.error) msg = errData.error
-      else if (errData?.title) msg = errData.title
-    } catch {
-      // Ignora error de parseo si no es JSON
-    }
-    throw new ApiError(response.status, msg)
-  }
+  if (!response.ok) throw await apiErrorFrom(response)
   if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
+}
+
+async function apiErrorFrom(response: Response): Promise<ApiError> {
+  let msg = `No se pudo consultar la información (${response.status})`
+  try {
+    const errData = await response.json()
+    if (errData?.message) msg = errData.message
+    else if (errData?.detail) msg = errData.detail
+    else if (errData?.error) msg = errData.error
+    else if (errData?.title) msg = errData.title
+  } catch {
+    // Ignora error de parseo si no es JSON
+  }
+  return new ApiError(response.status, msg)
+}
+
+export interface UnitPackage {
+  blob: Blob
+  fileName: string
+  /** true si el SHA-256 del archivo recibido coincide con el que anunció el servidor; null si no se pudo comprobar. */
+  verified: boolean | null
+}
+
+export async function downloadUnitPackage(
+  versionRouteId: string,
+  unitKey: string,
+  fallbackName: string,
+  signal?: AbortSignal
+): Promise<UnitPackage> {
+  const timeout = AbortSignal.timeout(60000)
+  const response = await fetch(`${API_BASE}/api/v1/${unitPackagePath(versionRouteId, unitKey)}`, {
+    credentials: 'same-origin',
+    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+  })
+  if (!response.ok) throw await apiErrorFrom(response)
+  const data = await response.arrayBuffer()
+  const expected = response.headers.get('X-Rupi-Paquete-Sha256')
+  const actual = expected ? await sha256Hex(data) : null
+  return {
+    blob: new Blob([data], { type: 'application/zip' }),
+    fileName: fileNameFromDisposition(response.headers.get('Content-Disposition'), fallbackName),
+    verified: expected && actual ? expected.toLowerCase() === actual : null,
+  }
 }
 
 export const fetchSession = (signal?: AbortSignal) => request<Student>('student/session', { signal })

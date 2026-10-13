@@ -24,6 +24,7 @@ import {
 import { nodeStateLabels } from './nodeStates'
 import { RupiCharacter } from '../../components/RupiCharacter'
 import { unitBandsByNode } from './unitGroups'
+import { UnitDownloadPanel } from './UnitDownloadPanel'
 import './UnitBands.css'
 
 function createTrailPath(points: { x: number; y: number }[]): string {
@@ -383,6 +384,8 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
           <b>Aún no</b>
         </span>
       </div>
+
+      <UnitDownloadPanel route={route} />
     </section>
   )
 }

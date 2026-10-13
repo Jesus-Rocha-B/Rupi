@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 /tmp/
+/uploads/
 
 # Environment variables and credentials
 .env*

@@ -19,6 +19,11 @@ Para ubicar archivos sin explorar. Rutas relativas a la raíz del repo.
 | `learningroute/LearningRouteDtos.java` | Registros de respuesta, incluidos `CulturalContext`, `RouteSearchResult` y `SearchAutocompleteResponse`. |
 | `learningroute/ActivityController.java` | `POST .../{routeId}/nodes/{nodeId}/start`. |
 | `learningroute/ActivityService.java` | Inicio transaccional e idempotente, y último nodo visitado. |
+| `studypackage/StudyPackageController.java` | Historia 12: `GET .../{versionRouteId}/units/{unitId\|otras}/package` (zip de la unidad). |
+| `studypackage/StudyPackageService.java` | Comprueba inscripción y unidad, calcula la clave de contenido y pide el zip a la caché. |
+| `studypackage/StudyPackageRepository.java` | SQL de solo lectura: paradas publicadas, bloques, preguntas, opciones, adjuntos y archivos. |
+| `studypackage/StudyPackageBuilder.java` | Guía PDF (OpenPDF), materiales, `contenido.json`, `manifest.json` y `LEEME.txt`. `FORMAT_VERSION` invalida la caché. |
+| `studypackage/StudyPackageCache.java` | Zips en `uploads/package-cache/` con tiempo de vida, candado por clave y escritura atómica. |
 
 Configuración: `src/main/resources/application.yml`. Variables: `RUPI_DB_URL`, `RUPI_DB_USERNAME`, `RUPI_DB_PASSWORD` y `rupi.auth.demo-session-token`. Pruebas en `src/test/java/pe/rupi/api/` (`ActivityServiceTest`, `LearningRouteServiceTest`, `PasswordServiceTest`, `StudentAuthenticationFilterTest`).
 
@@ -35,6 +40,7 @@ Configuración: `src/main/resources/application.yml`. Variables: `RUPI_DB_URL`, 
 | `features/roadmap/Roadmap.tsx` | Mapa interactivo y enfoque en el nodo recordado. |
 | `features/roadmap/ActivityBlocks.tsx` | Bloques de actividad (sin HTML interpretado). |
 | `features/roadmap/unitGroups.ts`, `UnitBands.css` | HU-04: bandas de unidad sobre el mapa. Prueba en `tests/unitGroups.test.ts`. |
+| `features/roadmap/UnitDownloadPanel.tsx`, `unitDownloads.ts`, `UnitDownloadPanel.css` | Historia 12: panel «Llévate tu unidad» y descarga con comprobación SHA-256. Prueba en `tests/unitDownloads.test.ts`. |
 | `features/roadmap/nodeStates.ts` | Estados de nodo (bloqueado, disponible, en curso, completado). |
 | `features/roadmap/routeSelection.ts` | Elige la ruta más reciente. Prueba en `tests/routeSelection.test.ts`. |
 | `features/roadmap/RoadmapSkeleton.tsx` | Estado de carga. |
@@ -64,6 +70,7 @@ Solo `curriculo/models.py` y `curriculo/admin.py`, como esqueleto. Sin app funci
 - HU-04: `scripts/verify_hu04_content.py`, `scripts/verify_hu04_pantalla.mjs` y `scripts/fixtures/hu04-orden-esperado.json`.
 - HU-09: `scripts/Verificar-HU09.ps1` (6 escenarios de búsqueda y autocompletado) y `scripts/Verificar-Rendimiento-HU09.ps1` (benchmark FTS).
 - HU-10: `scripts/Verificar-HU10.ps1` (8 escenarios de filtros combinados de grado y materia con precisión).
+- Historia 12: `scripts/Verificar-HU12-Descarga.ps1` (20 comprobaciones contra la API real) y `scripts/verify_hu12_pantalla.mjs` (panel en Firefox 1280 y 375 px).
 - HU-11: `scripts/Verificar-HU11.ps1` (10 escenarios de unirse a clase con código alfanumérico, expiración, revocación e idempotencia).
 - `.local/` (ignorado): `env.sh`, `my.cnf`, `root.cnf`, `mysql-data`, logs y pids.
 
