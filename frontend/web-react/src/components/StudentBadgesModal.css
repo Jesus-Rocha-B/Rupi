@@ -1,0 +1,439 @@
+/* ==========================================================================
+   Vitrina de Insignias de Perfil Escolar · RUPI
+   Diseñado para niñas y niños de primaria (6-12 años).
+   Materialidad táctil, paleta peruana andina y accesibilidad estricta.
+   ========================================================================== */
+
+.badges-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 33, 26, 0.78);
+  backdrop-filter: blur(4px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.badges-modal-container {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  background-color: #fffef8;
+  border: 3.5px solid #173e30;
+  border-radius: 20px;
+  box-shadow: 0 10px 0 #173e30, 0 16px 28px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 92vh;
+  animation: badgeModalEnter 0.22s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+@keyframes badgeModalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Barra superior de herramientas */
+.badges-modal-header {
+  background: linear-gradient(135deg, #173e30 0%, #1e4d3c 100%);
+  color: #fffef8;
+  padding: 1.15rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid #31724b;
+}
+
+.badges-header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.badges-header-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #ffd26a;
+  color: #173e30;
+  font-weight: 900;
+  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid #fffef8;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.badges-header-text h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #ffd26a;
+  line-height: 1.2;
+}
+
+.badges-header-sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: #e4efe7;
+  font-weight: 600;
+}
+
+.badges-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badges-action-btn,
+.badges-close-btn {
+  background: #246a91;
+  color: #ffffff;
+  border: 2px solid #173e30;
+  border-radius: 12px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #173e30;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.badges-action-btn:hover,
+.badges-close-btn:hover {
+  background: #2e82b2;
+}
+
+.badges-action-btn:active,
+.badges-close-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+.badges-close-btn {
+  background: #f95738;
+}
+
+.badges-close-btn:hover {
+  background: #e64524;
+}
+
+/* Cuerpo de la vitrina */
+.badges-modal-body {
+  padding: 1.35rem 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Barra de resumen de experiencia */
+.badges-summary-banner {
+  background-color: #f4faee;
+  border: 2px solid #31724b;
+  border-radius: 14px;
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.badges-stats-group {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.badges-stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #173e30;
+}
+
+.badges-stat-pill.xp {
+  color: #8c5806;
+}
+
+.badges-stat-icon {
+  color: #f95738;
+}
+
+.badges-stat-pill.xp .badges-stat-icon {
+  color: #e6a817;
+}
+
+/* Insignia Principal Destacada (Gran Gallito de Oro) */
+.hero-badge-card {
+  background: linear-gradient(135deg, #fff7df 0%, #ffebad 100%);
+  border: 3px solid #dca331;
+  border-radius: 16px;
+  padding: 1.15rem 1.35rem;
+  box-shadow: 0 5px 0 #b3801a;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-badge-card::after {
+  content: '★ LOGRO CUMBRE ★';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  background-color: #173e30;
+  color: #ffd26a;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+
+.hero-badge-icon-box {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe699 0%, #ffd26a 100%);
+  border: 3px solid #173e30;
+  box-shadow: 0 4px 0 #173e30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #173e30;
+}
+
+.hero-badge-info h3 {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 900;
+  color: #173e30;
+}
+
+.hero-badge-info p {
+  margin: 0.3rem 0 0.45rem;
+  font-size: 0.88rem;
+  line-height: 1.38;
+  color: #2b4f3b;
+  font-weight: 600;
+}
+
+.hero-badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #7a4d04;
+  background-color: rgba(255, 210, 106, 0.4);
+  padding: 0.15rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #dca331;
+}
+
+/* Cuadrícula de insignias de la vitrina */
+.badges-grid-title {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #173e30;
+  margin: 0.2rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.badges-collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.9rem;
+}
+
+.badge-item-card {
+  background-color: #ffffff;
+  border: 2px solid #31724b;
+  border-radius: 14px;
+  padding: 0.95rem;
+  box-shadow: 0 4px 0 #31724b;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  width: 100%;
+}
+
+.badge-item-card:hover {
+  background-color: #f7fdf5;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #31724b;
+}
+
+.badge-item-card:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #31724b;
+}
+
+.badge-item-card.unlocked {
+  border-color: #246a91;
+  box-shadow: 0 4px 0 #1b4f6d;
+}
+
+.badge-item-card.unlocked:hover {
+  background-color: #f3f9fc;
+  box-shadow: 0 6px 0 #1b4f6d;
+}
+
+.badge-item-card.locked {
+  background-color: #f4f6f4;
+  border-color: #b7c8ba;
+  box-shadow: 0 3px 0 #b7c8ba;
+  opacity: 0.78;
+}
+
+.badge-item-card.locked:hover {
+  background-color: #eef2ee;
+  transform: none;
+  box-shadow: 0 3px 0 #b7c8ba;
+}
+
+.badge-item-icon-box {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  background-color: #ffd26a;
+  color: #173e30;
+  border: 2px solid #173e30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-item-card.unlocked .badge-item-icon-box {
+  background-color: #ffd26a;
+  color: #173e30;
+}
+
+.badge-item-card.locked .badge-item-icon-box {
+  background-color: #dbe4dc;
+  color: #687e6b;
+  border-color: #8fa693;
+}
+
+.badge-item-details {
+  flex: 1;
+}
+
+.badge-item-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #173e30;
+  line-height: 1.25;
+}
+
+.badge-item-desc {
+  margin: 0.25rem 0 0.45rem;
+  font-size: 0.8rem;
+  color: #435e4d;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.badge-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+}
+
+.badge-status-chip.earned {
+  background-color: #e5f6e6;
+  color: #1a6b28;
+  border: 1px solid #73b880;
+}
+
+.badge-status-chip.pending {
+  background-color: #e8ede8;
+  color: #556b59;
+  border: 1px solid #b2c4b5;
+}
+
+/* Pie del modal con Rupi animando */
+.badges-modal-footer {
+  background-color: #f7fdf5;
+  border-top: 2.5px solid #d4e4d7;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.badges-footer-mascot {
+  width: 48px;
+  height: 52px;
+  min-width: 48px;
+}
+
+.badges-footer-text {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #173e30;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+@media (max-width: 600px) {
+  .badges-modal-container {
+    max-height: 96vh;
+    border-radius: 16px;
+  }
+
+  .badges-modal-header {
+    padding: 1rem 1.15rem;
+  }
+
+  .badges-modal-body {
+    padding: 1.1rem;
+    gap: 1rem;
+  }
+
+  .badges-collection-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-badge-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .hero-badge-card::after {
+    position: static;
+    display: inline-block;
+    margin-bottom: 0.35rem;
+  }
+}

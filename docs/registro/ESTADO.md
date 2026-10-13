@@ -26,7 +26,7 @@ La numeración HU-xx del repo coincide con el backlog solo en **HU-01 a HU-04** 
 | HU-05 | Completar lección: +50 XP y desbloqueo del siguiente nivel | Verificada (mejora de gamificación) |
 | HU-06 | Preguntas didácticas con retroalimentación no punitiva y audio de Rupi | Verificada (mejora) |
 | HU-07 | Insignias escolares y resumen formativo | Verificada (mejora) |
-| HU-08 | Fin de ruta, Gran Gallito de Oro (+100 XP) y diploma imprimible | Verificada (mejora) |
+| HU-08 | Fin de ruta, Gran Gallito de Oro (+100 XP) y vitrina de insignias de perfil | Verificada (mejora) |
 | HU-09 | Búsqueda de roadmaps por materia con FTS y autocompletado | Completada y verificada |
 | HU-10 | Filtros por grado y materia con URL sincronizada | Completada y verificada |
 | HU-11 | Unirse a un roadmap con código de clase | Completada y verificada |

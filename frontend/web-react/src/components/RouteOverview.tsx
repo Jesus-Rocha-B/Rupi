@@ -8,10 +8,10 @@ type Props = {
   name: string
   badges?: BadgeDto[]
   onSelect?: (node: RouteNode) => void
-  onOpenDiploma?: () => void
+  onOpenBadges?: () => void
 }
 
-export function RouteOverview({ route, name, badges = [], onSelect, onOpenDiploma }: Props) {
+export function RouteOverview({ route, name, badges = [], onSelect, onOpenBadges }: Props) {
   const completed = route.progress.completedNodes
   const total = route.progress.totalNodes || 10
   const lastVisited = route.enrollment?.lastVisitedNodeId
@@ -59,21 +59,21 @@ export function RouteOverview({ route, name, badges = [], onSelect, onOpenDiplom
 
           <p className="welcome-phrase">{progressPhrase}</p>
 
-          {/* Botón táctil principal: Ver Diploma si la ruta está completa, o continuar la siguiente parada */}
-          {completed === total && onOpenDiploma ? (
+          {/* Botón táctil principal: Ver Insignias si la ruta está completa, o continuar la siguiente parada */}
+          {completed === total && onOpenBadges ? (
             <div className="hero-cta-wrapper">
               <button
                 type="button"
                 className="hero-next-button diploma-hero-btn"
-                onClick={onOpenDiploma}
-                aria-label="Ver y descargar mi Diploma de Logro Escolar"
+                onClick={onOpenBadges}
+                aria-label="Ver mis insignias de perfil escolar"
               >
                 <span className="cta-icon-box gold">
                   <Award size={20} fill="currentColor" aria-hidden="true" />
                 </span>
                 <span className="cta-label-group">
                   <small className="cta-kicker">¡Ruta Escolar Culminada!</small>
-                  <strong className="cta-title">Ver mi Diploma de Logro Escolar</strong>
+                  <strong className="cta-title">Ver mis Insignias de Perfil</strong>
                 </span>
                 <ArrowRight size={20} className="cta-arrow" aria-hidden="true" />
               </button>
@@ -143,10 +143,16 @@ export function RouteOverview({ route, name, badges = [], onSelect, onOpenDiplom
 
             {badges.length > 0 && (
               <div className="earned-badges-tray" role="region" aria-label="Insignias escolares obtenidas">
-                <span className="badges-tray-title">
+                <button
+                  type="button"
+                  className="badges-tray-title-btn"
+                  onClick={onOpenBadges}
+                  title="Abrir vitrina de insignias de perfil"
+                  aria-label="Abrir vitrina de insignias de perfil"
+                >
                   <Award size={14} aria-hidden="true" />
                   <b>Insignias ganadas ({badges.length}):</b>
-                </span>
+                </button>
                 <div className="badges-pill-list">
                   {badges.map((b) => (
                     <button
@@ -154,7 +160,7 @@ export function RouteOverview({ route, name, badges = [], onSelect, onOpenDiplom
                       type="button"
                       className="earned-badge-chip"
                       title={`${b.name}: ${b.description}`}
-                      onClick={() => speakText(`Insignia obtenida: ${b.name}. ${b.description}`)}
+                      onClick={() => onOpenBadges ? onOpenBadges() : speakText(`Insignia obtenida: ${b.name}. ${b.description}`)}
                     >
                       {b.icon === 'feather' ? (
                         <Feather size={14} className="badge-chip-icon" aria-hidden="true" />

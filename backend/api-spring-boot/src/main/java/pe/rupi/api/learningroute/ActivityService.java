@@ -322,7 +322,7 @@ public class ActivityService {
             int totalCount = (totalRouteNodes != null && totalRouteNodes > 0) ? totalRouteNodes : nodeAccess.sequence();
             message = wasAlreadyCompleted
                     ? "¡Misión cumplida! Ya habías culminado todas las paradas de la ruta escolar. ¡Sigue repasando cuando quieras!"
-                    : "¡Misión cumplida! Completaste las " + totalCount + " paradas de la ruta escolar como un auténtico Gallito de las Rocas. ¡Ganaste la Gran Insignia 'Gran Gallito de Oro' (+100 XP) y tu Diploma de Honor!";
+                    : "¡Misión cumplida! Completaste las " + totalCount + " paradas de la ruta escolar como un auténtico Gallito de las Rocas. ¡Ganaste la Gran Insignia 'Gran Gallito de Oro' (+100 XP) en tu vitrina de perfil escolar!";
         } else {
             message = wasAlreadyCompleted
                     ? "¡Excelente repaso! Esta parada ya estaba completada en tu aventura."

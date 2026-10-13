@@ -2,6 +2,15 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-13 · Reemplazo de diplomas por Vitrina de Insignias de Perfil Escolar para Primaria
+
+- **Experiencia de Usuario y Gamificación (Primaria 6-12 años):**
+  - Siguiendo la definición de producto para primaria y la retroalimentación de diseño, se eliminó el concepto de "diplomas / certificados imprimibles con firmas", sustituyéndolo por la **Vitrina de Insignias de Perfil del Estudiante** ([`StudentBadgesModal.tsx`](../../frontend/web-react/src/components/StudentBadgesModal.tsx)).
+  - Los niños celebran la culminación de rutas y lecciones desbloqueando medallas en su perfil (`GRAN_TUNQUI_ORO`, `EXPLORADOR_AYACUCHO`, retos diarios) con acceso permanente desde la barra lateral ("Mis insignias") y desde el botón de logro al 100% de la ruta en [`RouteOverview.tsx`](../../frontend/web-react/src/components/RouteOverview.tsx).
+  - Eliminado el componente obsoleto `RouteDiplomaModal.tsx`.
+- **Backend:**
+  - En [`ActivityService.java`](../../backend/api-spring-boot/src/main/java/pe/rupi/api/learningroute/ActivityService.java), el mensaje de culminación de ruta se actualizó para celebrar la Gran Insignia de Oro en la vitrina de perfil del estudiante.
+
 ## 2026-10-12 · Corrección de columnas, ENUMs y UUIDs en base de datos y backend
 
 - **`backend/api-spring-boot/src/main/java/pe/rupi/api/learningroute/ActivityService.java`:**

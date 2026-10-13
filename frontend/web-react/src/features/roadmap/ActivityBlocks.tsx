@@ -38,10 +38,10 @@ type Props = {
   routeId: string
   onComplete?: (result: ActivityCompleteResult) => void
   onClose: () => void
-  onOpenDiploma?: () => void
+  onOpenBadges?: () => void
 }
 
-export function ActivityBlocks({ activity, routeId, onComplete, onClose, onOpenDiploma }: Props) {
+export function ActivityBlocks({ activity, routeId, onComplete, onClose, onOpenBadges }: Props) {
   const [busy, setBusy] = useState(false)
   const [completionResult, setCompletionResult] = useState<ActivityCompleteResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -95,7 +95,7 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose, onOpenD
       const res = await completeActivity(routeId, activity.nodeId)
       setCompletionResult(res)
       const speech = res.isRouteCompleted
-        ? `¡Misión Cumplida! Has completado todas las paradas de la ruta. Obtuviste la insignia de graduación ${res.badgeEarned?.name || 'Gran Gallito de Oro'}, cien puntos de experiencia de bono y tu diploma escolar está listo.`
+        ? `¡Misión Cumplida! Has completado todas las paradas de la ruta. Obtuviste la insignia de graduación ${res.badgeEarned?.name || 'Gran Gallito de Oro'}, cien puntos de experiencia de bono y ya está en tu vitrina de perfil escolar.`
         : res.badgeEarned
         ? `¡Felicitaciones! Has obtenido la insignia ${res.badgeEarned.name}. ${res.rupiMessage}`
         : res.rupiMessage
@@ -174,18 +174,18 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose, onOpenD
         )}
 
         <div className="celebration-actions">
-          {completionResult.isRouteCompleted && onOpenDiploma && (
+          {completionResult.isRouteCompleted && onOpenBadges && (
             <button
               type="button"
               className="celebration-diploma-btn"
               onClick={() => {
                 onClose()
-                onOpenDiploma()
+                onOpenBadges()
               }}
               autoFocus
             >
               <Award size={20} aria-hidden="true" />
-              <span>Ver mi Diploma de Logro Escolar</span>
+              <span>Ver mis Insignias de Perfil</span>
             </button>
           )}
 

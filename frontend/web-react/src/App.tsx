@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   AlertTriangle,
   ArrowRight,
+  Award,
   Bird,
   BookOpen,
   Calculator,
@@ -29,7 +30,6 @@ import {
   enrollInRoute,
   fetchStudentRoutes,
   fetchStudentBadges,
-  fetchRouteDiploma,
   fetchSession,
   fetchSessionOptions,
   login,
@@ -40,7 +40,6 @@ import {
   type ActivityContent,
   type BadgeDto,
   type JoinByCodeResult,
-  type RouteDiplomaResponse,
   type RouteDetail,
   type RouteNode,
   type RouteSummary,
@@ -53,7 +52,7 @@ import { LoginView } from './features/auth/LoginView'
 import { GradeSelectView } from './features/auth/GradeSelectView'
 import { RupiCharacter } from './components/RupiCharacter'
 import { ActivityBlocks } from './features/roadmap/ActivityBlocks'
-import { RouteDiplomaModal } from './components/RouteDiplomaModal'
+import { StudentBadgesModal } from './components/StudentBadgesModal'
 import { RoadmapSearchBar } from './components/RoadmapSearchBar'
 import { RoadmapFilterSidebar } from './components/RoadmapFilterSidebar'
 import { JoinClassModal } from './components/JoinClassModal'
@@ -86,8 +85,8 @@ function App() {
   const [activity, setActivity] = useState<ActivityContent | null>(null)
   const [activityLoading, setActivityLoading] = useState(false)
   const [activityError, setActivityError] = useState<string | null>(null)
-  const [diplomaOpen, setDiplomaOpen] = useState(false)
-  const [diplomaData, setDiplomaData] = useState<RouteDiplomaResponse | null>(null)
+  const [badgesModalOpen, setBadgesModalOpen] = useState(false)
+  const [highlightBadge, setHighlightBadge] = useState<BadgeDto | null>(null)
   const [joinModalOpen, setJoinModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -123,15 +122,11 @@ function App() {
   })
   const dialog = useRef<HTMLDialogElement>(null)
 
-  async function handleOpenDiploma() {
-    if (!selectedRoute) return
-    try {
-      const data = await fetchRouteDiploma(selectedRoute.versionRouteId)
-      setDiplomaData(data)
-      setDiplomaOpen(true)
-    } catch {
-      // Si falla la red, no interrumpe la navegación
+  function handleOpenBadges(badge?: BadgeDto) {
+    if (badge) {
+      setHighlightBadge(badge)
     }
+    setBadgesModalOpen(true)
   }
 
   useEffect(() => {
@@ -495,6 +490,16 @@ function App() {
           <a className="nav-item" href="#mis-rutas">
             <Compass aria-hidden="true" />Mis aventuras
           </a>
+          <button
+            type="button"
+            className="nav-item"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', fontFamily: 'inherit' }}
+            onClick={() => handleOpenBadges()}
+            aria-label="Abrir vitrina de insignias de perfil"
+            title="Ver mis insignias escolares"
+          >
+            <Award aria-hidden="true" />Mis insignias
+          </button>
         </nav>
         <div className="sidebar-bottom">
           <div className="help-bubble">
@@ -724,7 +729,7 @@ function App() {
                 name={student.name}
                 badges={badges}
                 onSelect={handleOpenNode}
-                onOpenDiploma={handleOpenDiploma}
+                onOpenBadges={() => handleOpenBadges()}
               />
             )}
 
@@ -935,7 +940,7 @@ function App() {
               routeId={selectedRoute?.versionRouteId ?? ''}
               onComplete={handleActivityCompleted}
               onClose={() => setSelectedNode(null)}
-              onOpenDiploma={handleOpenDiploma}
+              onOpenBadges={() => handleOpenBadges()}
             />
           ) : (
             <>
@@ -988,10 +993,18 @@ function App() {
         </dialog>
       )}
 
-      {diplomaOpen && diplomaData && (
-        <RouteDiplomaModal
-          diploma={diplomaData}
-          onClose={() => setDiplomaOpen(false)}
+      {badgesModalOpen && (
+        <StudentBadgesModal
+          studentName={student?.name || 'Estudiante'}
+          schoolName={student?.schoolName || 'I.E. 38001 Mariscal Sucre'}
+          gradeName={`${selectedGrade || 2}.° de primaria`}
+          earnedBadges={badges}
+          totalXp={routes.reduce((acc, r) => acc + (r.completedNodes * 50), 0) + (badges.some(b => b.code === 'GRAN_TUNQUI_ORO') ? 100 : 0)}
+          highlightBadge={highlightBadge}
+          onClose={() => {
+            setBadgesModalOpen(false)
+            setHighlightBadge(null)
+          }}
         />
       )}
 
