@@ -2,6 +2,14 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-12 · Corrección de columnas y UUIDs en semillas iniciales de base de datos
+
+- **`database/mysql/seed-hu01.sql`:**
+  - Corregida sentencia `INSERT` en `aprendizaje_bloque_contenido`: alineada con [`schema.sql`](../mysql/schema.sql) utilizando `texto_cuerpo` y el orden de columnas `(id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo)`. Se eliminaron las referencias a columnas obsoletas (`texto`, `url_recurso`, `texto_accesible`).
+  - Corregidos identificadores no hexadecimales en `escuela_*` (`escuela_institucion`, `escuela_anio_escolar`, `escuela_aula`, `escuela_membresia_aula`), reemplazando los prefijos inválidos (`i0000000-`, `y0000000-`, `au000000-`, `m0000000-`) por UUIDs canónicos (`e1000000-`, `e2000000-`, `e3000000-`, `e4000000-`).
+- **`database/mysql/actualizar-grados-primaria.sql`:**
+  - Alineados los UUIDs de las tablas de `escuela_*` con los valores canónicos hexadecimales (`e1000000-` a `e4000000-`).
+
 ## 2026-10-12 · Segunda pasada: verificación en Fedora con PowerShell 7 y Playwright
 
 Se instaló PowerShell 7 sin `sudo` y se corrieron todos los `Verificar-*.ps1`, `verify_*.py` y `verify_hu04_pantalla.mjs`. Hallazgos corregidos:

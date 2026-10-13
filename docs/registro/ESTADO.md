@@ -46,9 +46,8 @@ Decisión abierta: qué rutas del catálogo serán públicas cuando existan ruta
 
 - Documento del Sprint: las filas 6 y 7 del Sprint Backlog repiten las historias 1 y 2, la fila 8 mezcla el texto de la historia 21 con tareas de la 8, la tarea «Modelar BD para unidades MINEDU» está bajo la historia 3 en vez de la 4, y una tarea nombra Node.js/Express (el proyecto usa Spring Boot). El Burndown está vacío.
 - HU-04: reemplazar las unidades `DEMO-*` por la programación real cuando Django cargue el catálogo oficial; seguir la actualización del CNEB (RM 393-2026-MINEDU); confirmar la regla de paradas sin unidad (hoy: grupo final «Otras paradas»).
-- `seed-hu01.sql` falla en la línea 277 (columna `texto`, hoy `texto_cuerpo`); `seed-hu02.sql` y V07 lo compensan, pero conviene corregirlo.
-- Ids de `seed-hu01.sql` para `escuela_*` no son UUID válidos (`i0000000-…`, `au000000-…`, `m0000000-…`, `y0000000-…`); hoy ningún endpoint los lee.
-- Las pruebas de Node son 12 (el CHANGELOG de HU-10/HU-11 anuncia más).
+- [x] Corregido `seed-hu01.sql` en línea 277 (columnas `texto_cuerpo` y `numero_secuencia` alineadas con `schema.sql`) y UUIDs canónicos para `escuela_*` (`e1000000-…` a `e4000000-…`), replicado en `actualizar-grados-primaria.sql`.
+- Las pruebas de Node son 12 (todas pasando).
 
 ## Deuda técnica conocida (sin priorizar)
 
