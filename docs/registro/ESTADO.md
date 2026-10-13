@@ -1,6 +1,6 @@
 # Estado actual · RUPI
 
-Actualizado: 2026-10-12 (cierre de sesión) · rama `main` = `origin/main` · último commit `c3200a3`.
+Actualizado: 2026-10-12 (cierre de sesión) · rama `main` · último commit `38021f1`.
 
 ## Cómo retomar (5 minutos)
 
@@ -47,6 +47,7 @@ Decisión abierta: qué rutas del catálogo serán públicas cuando existan ruta
 - Documento del Sprint: las filas 6 y 7 del Sprint Backlog repiten las historias 1 y 2, la fila 8 mezcla el texto de la historia 21 con tareas de la 8, la tarea «Modelar BD para unidades MINEDU» está bajo la historia 3 en vez de la 4, y una tarea nombra Node.js/Express (el proyecto usa Spring Boot). El Burndown está vacío.
 - HU-04: reemplazar las unidades `DEMO-*` por la programación real cuando Django cargue el catálogo oficial; seguir la actualización del CNEB (RM 393-2026-MINEDU); confirmar la regla de paradas sin unidad (hoy: grupo final «Otras paradas»).
 - [x] Corregido `seed-hu01.sql` en línea 277 (columnas `texto_cuerpo` y `numero_secuencia` alineadas con `schema.sql`) y UUIDs canónicos para `escuela_*` (`e1000000-…` a `e4000000-…`), replicado en `actualizar-grados-primaria.sql`.
+- [x] Corregido `ActivityService.java` para alinear el motivo ENUM a `'INSIGNIA'` y normalizar UUIDs de insignias a hexadecimal canónico (`ba000000-…`).
 - Las pruebas de Node son 12 (todas pasando).
 
 ## Deuda técnica conocida (sin priorizar)
