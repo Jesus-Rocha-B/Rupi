@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff,
   FlaskConical,
+  GraduationCap,
   HelpCircle,
   KeyRound,
   Lock,
@@ -478,10 +479,20 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
                 className="dev-demo-trigger-btn"
                 onClick={handleDirectDemoAccess}
                 disabled={sessionBusy}
-                aria-label="Acceder con sesión de prueba local para desarrollo"
+                aria-label="Acceder con sesión de prueba local de estudiante"
               >
                 <Sparkles size={14} aria-hidden="true" />
-                <span>Acceso de prueba local (Desarrollo)</span>
+                <span>Estudiante (Carlos Rivas)</span>
+              </button>
+              <button
+                type="button"
+                className="dev-demo-trigger-btn dev-demo-teacher-btn"
+                onClick={() => onLogin('profesor.demo', '123456')}
+                disabled={sessionBusy}
+                aria-label="Acceder con sesión de prueba local de profesor"
+              >
+                <GraduationCap size={14} aria-hidden="true" />
+                <span>Docente (Prof. Carlos)</span>
               </button>
             </div>
           )}

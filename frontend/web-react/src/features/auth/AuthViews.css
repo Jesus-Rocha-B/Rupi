@@ -1456,6 +1456,8 @@
   border-top: 1.5px dashed var(--line, #dbe8d2);
   display: flex;
   justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .dev-demo-trigger-btn {
@@ -1472,6 +1474,17 @@
   gap: 8px;
   cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.dev-demo-trigger-btn.dev-demo-teacher-btn {
+  background: #fdfaf2;
+  border-color: #f0c350;
+  color: #173e30;
+}
+
+.dev-demo-trigger-btn.dev-demo-teacher-btn:hover:not(:disabled) {
+  background: #fbf1d5;
+  border-color: #f95738;
 }
 
 .dev-demo-trigger-btn:hover:not(:disabled) {

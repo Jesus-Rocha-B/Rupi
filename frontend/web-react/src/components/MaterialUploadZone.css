@@ -1,0 +1,342 @@
+/* =============================================================================
+   MaterialUploadZone.css - Diseño Artesanal Escolar Peruano (Anti-AI Slop)
+   Colores: Verde bosque (#173e30), Verde hoja (#31724b), Naranja Rupi (#f95738), Sol maíz (#ffd26a)
+   ============================================================================= */
+
+.material-upload-container {
+  background: #ffffff;
+  border: 2px solid #31724b;
+  border-radius: 16px;
+  padding: 18px;
+  margin-top: 14px;
+  box-shadow: 0 4px 0 #173e30;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.material-zone-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 2px dashed #e2e8f0;
+  padding-bottom: 10px;
+}
+
+.material-zone-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #173e30;
+  margin: 0;
+}
+
+.material-zone-title .zone-icon {
+  color: #f95738;
+}
+
+.material-zone-subtitle {
+  font-size: 0.88rem;
+  color: #475569;
+}
+
+.material-tab-switcher {
+  display: flex;
+  gap: 8px;
+}
+
+.material-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  color: #334155;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.material-tab-btn:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.material-tab-btn.is-active {
+  background: #173e30;
+  border-color: #173e30;
+  color: #ffd26a;
+  box-shadow: 0 3px 0 #0d261e;
+}
+
+.file-drop-area {
+  position: relative;
+  background: #faf8f5;
+  border: 2px dashed #31724b;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: background 0.15s ease;
+}
+
+.file-drop-area:hover {
+  background: #f0fdf4;
+}
+
+.file-hidden-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-drop-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.drop-icon {
+  color: #31724b;
+}
+
+.drop-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.88rem;
+  color: #475569;
+}
+
+.drop-prompt strong {
+  color: #173e30;
+  font-size: 0.95rem;
+}
+
+.selected-file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #e6f4ea;
+  border: 1px solid #31724b;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.file-name {
+  font-weight: 700;
+  color: #173e30;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.file-title-field,
+.link-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.file-title-field label,
+.link-form-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.material-text-input {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.material-text-input:focus {
+  outline: none;
+  border-color: #31724b;
+  box-shadow: 0 0 0 3px rgba(49, 114, 75, 0.15);
+}
+
+.material-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 10px 18px;
+  background: #f95738;
+  color: #ffffff;
+  border: 2px solid #d43818;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #b32a10;
+  transition: all 0.12s ease;
+}
+
+.material-submit-btn:hover:not(:disabled) {
+  background: #fa6c50;
+  transform: translateY(-1px);
+}
+
+.material-submit-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #b32a10;
+}
+
+.material-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.material-feedback-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.material-feedback-banner.success {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.material-feedback-banner.error {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.attached-resources-list {
+  border-top: 2px dashed #e2e8f0;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resources-list-heading {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #173e30;
+  margin: 0;
+}
+
+.no-resources-hint {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-style: italic;
+  margin: 0;
+}
+
+.resources-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.resource-item-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: background 0.12s ease;
+}
+
+.resource-item-chip:hover {
+  background: #f1f5f9;
+}
+
+.resource-item-lead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.item-icon.pdf {
+  color: #dc2626;
+}
+
+.item-icon.ppt {
+  color: #d97706;
+}
+
+.item-icon.link {
+  color: #2563eb;
+}
+
+.resource-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resource-type-tag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.resource-download-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: #ffffff;
+  border: 1px solid #31724b;
+  border-radius: 6px;
+  color: #173e30;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.12s ease;
+}
+
+.resource-download-link:hover {
+  background: #31724b;
+  color: #ffffff;
+}

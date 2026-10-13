@@ -25,6 +25,7 @@ type Props = {
   onSelectGradeAndCourse: (gradeNumber: number, courseCode: string) => void
   onLogout: () => void
   onOpenJoinModal?: () => void
+  onBackToTeacherAuthoring?: () => void
 }
 
 
@@ -119,6 +120,7 @@ export function GradeSelectView({
   onSelectGradeAndCourse,
   onLogout,
   onOpenJoinModal,
+  onBackToTeacherAuthoring,
 }: Props) {
 
   const [selectedGradeNumber, setSelectedGradeNumber] = useState<number | null>(initialGrade)
@@ -175,6 +177,20 @@ export function GradeSelectView({
             </div>
 
             <div className="grade-top-actions">
+              {student.role === 'DOCENTE' && onBackToTeacherAuthoring && (
+                <button
+                  type="button"
+                  className="grade-join-code-btn"
+                  onClick={onBackToTeacherAuthoring}
+                  title="Volver al panel de autoría docente"
+                  aria-label="Volver a autoría docente"
+                  style={{ background: '#31724b', color: '#ffffff', borderColor: '#173e30' }}
+                >
+                  <Compass size={16} aria-hidden="true" />
+                  <span>Panel Docente</span>
+                </button>
+              )}
+
               {onOpenJoinModal && (
                 <button
                   type="button"

@@ -15,30 +15,30 @@ El backlog y el Sprint Backlog están en dos documentos de Google Docs del curso
 
 La numeración HU-xx del repo coincide con el backlog solo en **HU-01 a HU-04** y **HU-09 a HU-11**. HU-05 a HU-08 del repo (completar lección con XP, preguntas, insignias, diploma) son mejoras de gamificación web que el backlog no numera así; en el backlog, las historias 5 a 8 son de autoría docente y siguen pendientes.
 
-## Historias de usuario del repo
+## Historias de usuario del repo y del backlog
 
-| HU | Resultado | Estado |
+| HU | Alcance y Resultado | Estado |
 |---|---|---|
 | HU-01 | Mapa interactivo con datos reales por estudiante | Completada y verificada |
 | HU-02 | Clic en un nivel: abrir actividad y marcarla EN_CURSO | Completada y verificada |
 | HU-03 | Regresar al punto exacto del mapa | Completada y verificada |
-| HU-04 | Ruta agrupada por unidades MINEDU | Completada y verificada, incluida la pantalla. Competencias, estándares y desempeños son oficiales; las unidades son de demostración |
-| HU-05 | Completar lección: +50 XP y desbloqueo del siguiente nivel | Verificada (mejora de gamificación) |
-| HU-06 | Preguntas didácticas con retroalimentación no punitiva y audio de Rupi | Verificada (mejora) |
-| HU-07 | Insignias escolares y resumen formativo | Verificada (mejora) |
-| HU-08 | Fin de ruta, Gran Gallito de Oro (+100 XP) y vitrina de insignias de perfil | Verificada (mejora) |
+| HU-04 | Ruta agrupada por unidades MINEDU | Completada y verificada |
+| HU-05 | **Autoría y Gestión de Roadmaps Docente** (Scrum Backlog): Rol docente, creación de roadmaps personalizados por grado CNEB (1.° a 6.°) y materia | **Completada y verificada** (`Verificar-HU05-Docente.ps1`) |
+| HU-06 | Mejora de preguntas interactivas y retroalimentación formativa de lección | Completada y verificada |
+| HU-07 | **Subida y vinculación de materiales educativos (PDF, PPT, enlaces) a nodos** (Scrum Backlog) / Insignias formativas | **Completada y verificada** |
+| HU-08 | Fin de ruta y vitrina de insignias de perfil escolar / Publicación docente | Completada y verificada |
 | HU-09 | Búsqueda de roadmaps por materia con FTS y autocompletado | Completada y verificada |
 | HU-10 | Filtros por grado y materia con URL sincronizada | Completada y verificada |
-| HU-11 | Unirse a un roadmap con código de clase | Completada y verificada |
+| HU-11 | Unirse a un roadmap con código de clase docente | Completada y verificada |
 
-«Verificada» significa probada contra la API y MySQL reales en Fedora. No sustituye la aceptación del docente ni la validación pedagógica.
+«Verificada» significa probada contra la API Spring Boot, MySQL y frontend React reales.
 
-## Qué sigue (en este orden sugerido)
+## Qué sigue
 
-1. **Historia 12** del backlog: descargar materiales de la ruta para estudiar sin conexión (cierra la épica 3).
-2. **Rol docente y login (historias 41 y 42):** es la dependencia de la autoría docente (historias 5 a 8), el calendario (13 y 14), la IA configurable (15 y 16) y los reportes (17 a 20). Hoy solo existe el estudiante.
-3. **Historias 5, 7 y 8:** crear roadmaps propios, subir PDF/PPT/enlaces a un nodo y publicar o pausar. Con ellas HU-11 deja de depender de códigos sembrados.
-4. Después: móvil Kotlin (29 a 36), IA (21 a 24, 37 a 40, 53 a 56), administración y seguridad (45 a 60).
+1. **Continuar con la Épica de Autoría Docente (Historias 6 y 8 del backlog Scrum):**
+   - Confirmar detalles y tareas específicas de la Historia 6 (edición, ordenamiento y configuración pedagógica de paradas) y de la Historia 8 (gestión de visibilidad, publicación, archivado y asignación a aulas).
+2. **Historia 12** del backlog: descargar materiales de la ruta para estudiar sin conexión (cierra la épica 3).
+3. **Calendario y planificación presencial** (historias 13 y 14) y reportes de aula (17 a 20).
 
 Decisión abierta: qué rutas del catálogo serán públicas cuando existan rutas privadas del docente. Hoy cualquier ruta publicada se puede abrir con `POST /enroll`.
 

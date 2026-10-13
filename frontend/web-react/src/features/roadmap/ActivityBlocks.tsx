@@ -4,8 +4,12 @@ import {
   ArrowRight,
   Award,
   CheckCircle2,
+  Download,
   Feather,
+  FileText,
   HelpCircle,
+  Paperclip,
+  Presentation,
   Sparkles,
   Volume2,
   X,
@@ -264,6 +268,40 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose, onOpenB
         {activity.blocks.length > 0 ? (
           activity.blocks.map(block => {
             const url = safeResource(block.url)
+            const isPdf = block.url?.toLowerCase().includes('.pdf')
+            const isPpt = block.url?.toLowerCase().includes('.ppt') || block.url?.toLowerCase().includes('.pptx')
+            const isImage = block.url && /\.(png|jpe?g|svg|webp|gif)($|\?)/i.test(block.url)
+            const isAttachment = block.type === 'ADJUNTO' || isPdf || isPpt || (!isImage && Boolean(url) && block.type !== 'DESTACADO')
+
+            if (isAttachment) {
+              return (
+                <div key={block.id} className="activity-block-item attachment-box">
+                  <div className="attachment-content">
+                    <div className="attachment-icon-pill" aria-hidden="true">
+                      {isPdf ? <FileText size={22} /> : isPpt ? <Presentation size={22} /> : <Paperclip size={22} />}
+                    </div>
+                    <div className="attachment-info">
+                      <span className="attachment-tag">Material del Profesor</span>
+                      <h4 className="attachment-title">{block.text || (isPdf ? 'Documento PDF' : isPpt ? 'Presentación de Clase' : 'Recurso Educativo')}</h4>
+                      {block.accessibleText && <p className="attachment-desc">{block.accessibleText}</p>}
+                    </div>
+                  </div>
+                  {url && (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="attachment-open-btn"
+                      aria-label={`Abrir recurso: ${block.text || 'Material de clase'}`}
+                    >
+                      <Download size={16} aria-hidden="true" />
+                      <span>{isPdf ? 'Abrir PDF' : isPpt ? 'Ver PPT' : 'Abrir Enlace'}</span>
+                    </a>
+                  )}
+                </div>
+              )
+            }
+
             return (
               <div
                 key={block.id}

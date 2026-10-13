@@ -56,6 +56,7 @@ import { StudentBadgesModal } from './components/StudentBadgesModal'
 import { RoadmapSearchBar } from './components/RoadmapSearchBar'
 import { RoadmapFilterSidebar } from './components/RoadmapFilterSidebar'
 import { JoinClassModal } from './components/JoinClassModal'
+import { TeacherAuthoringView } from './features/teacher/TeacherAuthoringView'
 import { speakText } from './utils/speech'
 import './App.css'
 
@@ -89,6 +90,7 @@ function App() {
   const [highlightBadge, setHighlightBadge] = useState<BadgeDto | null>(null)
   const [joinModalOpen, setJoinModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview'>('authoring')
 
   const [errorType, setErrorType] = useState<Failure>(null)
   const [guideIndex, setGuideIndex] = useState(0)
@@ -380,6 +382,7 @@ function App() {
       setRouteId('')
       setSelectedGrade(null)
       setSelectedCourse(null)
+      setTeacherViewMode('authoring')
 
       setErrorType('UNAUTHORIZED')
       setReloadKey(value => value + 1)
@@ -398,6 +401,7 @@ function App() {
       const current = await login(username, password)
       resetView()
       setStudent(current)
+      setTeacherViewMode('authoring')
       setRoutes([]); setRouteId(''); setSelectedGrade(null); setSelectedCourse(null)
       setReloadKey(value => value + 1)
     } catch (error) {
@@ -414,6 +418,7 @@ function App() {
       const current = await loginDemo()
       resetView()
       setStudent(current)
+      setTeacherViewMode('authoring')
       setRoutes([]); setRouteId(''); setSelectedGrade(null); setSelectedCourse(null)
       setReloadKey(value => value + 1)
     } catch {
@@ -447,6 +452,22 @@ function App() {
     )
   }
 
+  // 1.5 Panel de Autoría para Docentes (HU-05)
+  if (student.role === 'DOCENTE' && teacherViewMode === 'authoring') {
+    return (
+      <TeacherAuthoringView
+        teacherName={student.name}
+        schoolName={student.schoolName || student.institutionName || 'I.E. 38001 Mariscal Sucre'}
+        onLogout={handleLogout}
+        onSwitchToStudentView={() => {
+          setTeacherViewMode('student_preview')
+          if (selectedGrade === null) setSelectedGrade(2)
+          if (selectedCourse === null) setSelectedCourse('MATEMATICA')
+        }}
+      />
+    )
+  }
+
   // 2. Pantalla de selección de grado y materias de Primaria: aislada y enfocada
   if (selectedGrade === null || selectedCourse === null) {
     return (
@@ -458,6 +479,7 @@ function App() {
           onSelectGradeAndCourse={(grade, course) => handleSelectGradeAndCourse(grade, course)}
           onLogout={handleLogout}
           onOpenJoinModal={() => setJoinModalOpen(true)}
+          onBackToTeacherAuthoring={student.role === 'DOCENTE' ? () => setTeacherViewMode('authoring') : undefined}
         />
         <JoinClassModal
           isOpen={joinModalOpen}
@@ -541,6 +563,26 @@ function App() {
       </aside>
 
       <main className="main-content" id="main-content">
+        {student.role === 'DOCENTE' && (
+          <div className="teacher-preview-topbar" role="status">
+            <div className="teacher-preview-info">
+              <GraduationCap size={18} aria-hidden="true" />
+              <span>
+                <strong>Modo Previsualización Docente:</strong> Estás probando la experiencia interactiva como un estudiante.
+              </span>
+            </div>
+            <button
+              type="button"
+              className="back-to-authoring-btn"
+              onClick={() => setTeacherViewMode('authoring')}
+              title="Regresar a diseñar y editar tus roadmaps"
+            >
+              <Compass size={16} aria-hidden="true" />
+              <span>Volver a Panel de Autoría</span>
+            </button>
+          </div>
+        )}
+
         <section className="course-heading" aria-labelledby="course-title">
           <div>
             <div className="eyebrow">Tu espacio para descubrir</div>

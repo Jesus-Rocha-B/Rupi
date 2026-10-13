@@ -222,6 +222,7 @@ export interface Student {
   name: string
   schoolName?: string
   institutionName?: string
+  role?: 'ESTUDIANTE' | 'DOCENTE'
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {

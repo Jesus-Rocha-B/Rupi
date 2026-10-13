@@ -2480,6 +2480,106 @@ body, button, input, select, textarea {
   object-fit: cover;
 }
 
+/* Adjuntos de clase / materiales subidos por el profesor (HU-05 y HU-07) */
+.activity-block-item.attachment-box {
+  background: #fbfbf8;
+  border: 2px solid #d5dfd1;
+  box-shadow: 0 3px 0 #bdcdb7;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  transition: border-color 0.15s ease;
+}
+
+.activity-block-item.attachment-box:hover {
+  border-color: #31724b;
+}
+
+.attachment-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.attachment-icon-pill {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  background: #eef6ed;
+  border: 2px solid #31724b;
+  color: #173e30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 0 #1b4d30;
+}
+
+.attachment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.attachment-tag {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #246a91;
+}
+
+.attachment-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #173e30;
+  line-height: 1.3;
+}
+
+.attachment-desc {
+  margin: 0;
+  font-size: 13px;
+  color: #556b5f;
+  line-height: 1.4;
+}
+
+.attachment-open-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  background: #31724b;
+  color: #ffffff;
+  border: 2px solid #173e30;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  text-decoration: none;
+  box-shadow: 0 3px 0 #173e30;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+}
+
+.attachment-open-btn:hover {
+  background: #25593a;
+}
+
+.attachment-open-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+.attachment-open-btn:focus-visible {
+  outline: 3px solid #ffd26a;
+  outline-offset: 2px;
+}
+
 /* =========================================================
    HU-06: PREGUNTAS INTERACTIVAS Y RETROALIMENTACIÓN FORMATIVA
    ========================================================= */
@@ -3994,4 +4094,67 @@ body, button, input, select, textarea {
   outline: 3px solid #f95738;
   outline-offset: 2px;
 }
+
+/* =========================================================
+   BARRA DE ESTADO: MODO PREVISUALIZACIÓN DOCENTE (HU-05)
+   ========================================================= */
+.teacher-preview-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #fdf6e2;
+  border: 2px solid #e0b44c;
+  box-shadow: 0 4px 0 #b38827;
+  border-radius: 16px;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+}
+
+.teacher-preview-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #5c3f09;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.teacher-preview-info svg {
+  flex-shrink: 0;
+  color: #f95738;
+}
+
+.back-to-authoring-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #173e30;
+  color: #ffffff;
+  border: 2px solid #0d261e;
+  box-shadow: 0 3px 0 #0d261e;
+  border-radius: 12px;
+  padding: 0 16px;
+  min-height: 48px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.12s;
+}
+
+.back-to-authoring-btn:hover {
+  background: #25593a;
+}
+
+.back-to-authoring-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #0d261e;
+}
+
+.back-to-authoring-btn:focus-visible {
+  outline: 3px solid #f95738;
+  outline-offset: 2px;
+}
+
 

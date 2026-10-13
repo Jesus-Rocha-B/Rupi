@@ -2,6 +2,30 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-13 · HU-05: Rol Docente, Autoría de Roadmaps y Gestión de Materiales Educativos
+
+- **Rol Docente y Seguridad (Backend & DB):**
+  - Creada migración idempotente `V12__rol_docente_autoria_hu05.sql` asegurando roles `DOCENTE` (`b1000000-0000-4000-8000-000000000002`) y `ESTUDIANTE` (`b1000000-0000-4000-8000-000000000001`).
+  - Sembrado usuario demo de profesor `profesor.demo` (`22222222-2222-4222-8222-222222222222`, clave `123456`, "Prof. Carlos Mendoza") con aula y membresía asignadas.
+  - Creada tabla relacional `aprendizaje_nodo_recurso` y actualizada `recurso_archivo_multimedia` para soporte de documentos educativos (.pdf, .ppt, .pptx, enlaces externos).
+  - Actualizados `schema.sql`, `rupi.dbml` y `grants-spring-boot.sql`.
+  - En `StudentAuthenticationFilter.java` y `SessionController.java`: detección automática de `role === 'DOCENTE'` y control de acceso estricto a `/api/v1/teacher/**` (403 Forbidden para no docentes).
+- **Servicios y Controladores REST (Spring Boot):**
+  - `TeacherRouteService` y `TeacherRouteController`: endpoints para crear roadmaps en borrador, agregar paradas/nodos secuenciados, vincular recursos educativos y publicar la versión para los estudiantes.
+  - `MaterialStorageService` y `MaterialController`: almacenamiento local protegido en `uploads/materials/`, hash SHA-256, sanitización de extensiones y endpoint de descarga `/api/v1/materials/{id}/download`.
+  - `ActivityService`: resolución de URLs de archivos multimedia desde `recurso_archivo_multimedia` mediante `LEFT JOIN`.
+  - 63 pruebas JUnit 5 ejecutadas y aprobadas al 100% en `backend/api-spring-boot`.
+- **Frontend y Experiencia de Usuario Artesanal (React):**
+  - Creado cliente `teacherApi.ts` con manejo de llamadas REST y subida `multipart/form-data`.
+  - Creado componente `TeacherAuthoringView.tsx` y `TeacherAuthoring.css`: panel completo para diseñar roadmaps por grado y área CNEB, agregar paradas escolares y publicarlas.
+  - Creado componente `MaterialUploadZone.tsx` y `MaterialUploadZone.css`: subida táctil de archivos PDF, PPT y enlaces web asociados al nodo.
+  - En `ActivityBlocks.tsx`: renderizado dedicado de bloques `ADJUNTO` con icono por tipo de archivo y botón 3D táctil de descarga/apertura para los alumnos.
+  - En `App.tsx`: detección de rol docente, carga directa del panel de autoría y barra superior de "Modo Previsualización Docente" para alternar con la vista de alumno.
+  - En `LoginView.tsx`: botón de acceso directo de prueba local para `Docente (Prof. Carlos)`.
+  - Compilación `tsc -b && vite build` y linter `eslint .` verificados al 100% sin advertencias.
+  - Creado script de verificación automatizada `scripts/Verificar-HU05-Docente.ps1` con 7 pruebas aprobadas al 100%.
+
+
 ## 2026-10-13 · Reemplazo de diplomas por Vitrina de Insignias de Perfil Escolar para Primaria
 
 - **Experiencia de Usuario y Gamificación (Primaria 6-12 años):**
