@@ -21,4 +21,4 @@ Si la tarea toca código concreto, añade: «y `MAPA-DE-CODIGO.md`».
 
 Al cerrar una sesión o un bloque de trabajo, pedir: «actualiza `docs/registro/` con lo que hicimos». Se agrega una entrada arriba en `CHANGELOG.md`, se ajusta `ESTADO.md` y, si cambió la estructura, `MAPA-DE-CODIGO.md`. No se duplica aquí lo que ya documentan `docs/implementacion/` y `database/mysql/`: se enlaza.
 
-Última actualización: 2026-10-07.
+Última actualización: 2026-10-12.

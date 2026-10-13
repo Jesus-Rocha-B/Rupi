@@ -43,12 +43,21 @@ Hay dos equivalentes. Windows: `Iniciar-Rupi.cmd` o `.ps1`, con credenciales en 
 ### Verificaciones
 
 ```bash
+# Java y Node
 JAVA_HOME=~/jdks/jdk-21.0.12.1+1 mvn -f backend/api-spring-boot/pom.xml test
 npm run build && npm run lint
-node --experimental-strip-types --test frontend/web-react/tests/routeSelection.test.ts
-python3 -I scripts/verify_learning_flow.py --root-config .local/root.cnf --mysql .local/mysql-8.4.11-linux-glibc2.28-x86_64/bin/mysql
-python3 -I scripts/verify_hu04_content.py --root-config .local/root.cnf --mysql .local/mysql-8.4.11-linux-glibc2.28-x86_64/bin/mysql
-PLAYWRIGHT_DIR=/tmp/pw node scripts/verify_hu04_pantalla.mjs   # Playwright fuera del repo
+node --experimental-strip-types --test frontend/web-react/tests/*.test.ts
+
+# API + MySQL reales (Rupi levantado)
+R="--root-config .local/root.cnf --mysql .local/mysql-8.4.11-linux-glibc2.28-x86_64/bin/mysql"
+python3 -I scripts/verify_learning_flow.py $R
+python3 -I scripts/verify_hu04_content.py $R
+
+# PowerShell 7 sin sudo (~/pwsh-7, ver entorno-linux.md): Auth, HU01, HU02-HU05, HU08, HU09, HU10, HU11, Rendimiento-HU09
+for s in Verificar-Auth Verificar-HU01 Verificar-HU02-HU05 Verificar-HU08 Verificar-HU09 Verificar-HU10 Verificar-HU11; do ~/pwsh-7/pwsh -NoProfile -File scripts/$s.ps1; done
+
+# Pantalla (Playwright fuera del repo, ~/pw-tmp)
+PLAYWRIGHT_DIR=~/pw-tmp node scripts/verify_hu04_pantalla.mjs
 ```
 
 En Linux, para consultar la base de Rupi hay que usar el cliente de `.local/mysql-8.4.*/bin/mysql`; el `mysql` del sistema es el de MariaDB.
@@ -57,16 +66,18 @@ En Linux, para consultar la base de Rupi hay que usar el cliente de `.local/mysq
 
 - El servidor es la fuente de verdad del progreso; `localStorage` solo guarda preferencias de interfaz no sensibles.
 - No se crean tablas nuevas sin necesidad demostrada; el modelo de 77 tablas ya cubre las 60 historias del backlog.
-- Las rutas disponibles salen de la inscripción activa o completada del estudiante. No se inventan rutas ni avance para materias sin contenido.
+- Las rutas disponibles salen de la inscripción activa o completada del estudiante. Leer una ruta no inscribe: la inscripción es explícita (`POST /enroll` o código de clase). No se inventan rutas ni avance.
+- Todos los ids son UUID canónicos en minúsculas hexadecimales (la API los parsea). Las fechas se guardan con `UTC_TIMESTAMP(6)`, no con `CURRENT_TIMESTAMP` (el servidor local está en UTC−5).
+- El backlog oficial son 60 historias del curso; `ESTADO.md` explica en qué difiere la numeración del repo.
 - El contenido de actividades se renderiza sin interpretar HTML.
-- Las migraciones se versionan en `database/mysql/migrations/` (V04–V06). `seed-hu01.sql` actualiza estados de demostración y no se vuelve a ejecutar sobre progreso real.
+- Las migraciones se versionan en `database/mysql/migrations/` (V04–V11, repetibles) y se aplican a mano; los permisos de la API están en `database/mysql/grants-spring-boot.sql`. `seed-hu01.sql` actualiza estados de demostración y no se vuelve a ejecutar sobre progreso real.
 - Falta elegir el mecanismo único de migraciones entre Django y Spring, y resolver privacidad y acceso de menores antes de publicar.
 
 - Datos curriculares: competencias, estándares y desempeños de Matemática de 2.° son del CNEB oficial (ver `docs/implementacion/HU-04-fuentes-curriculares.md`). Las unidades `DEMO-*` son de demostración, porque el MINEDU no publica unidades de primaria. El catálogo `CNEB-2017` es el vigente al 2026-10-07; hay una comisión de actualización (RM 393-2026-MINEDU) sin versión nueva publicada.
 
 ## Documentación existente (no duplicada aquí)
 
-- `docs/implementacion/README.md`: plan de HU-01 a HU-04 y lista de avance.
+- `docs/implementacion/README.md`: plan de HU-01 a HU-11 y lista de avance; hay un documento por historia (`HU-01-…` a `HU-11-…`).
 - `docs/implementacion/HU-01-mapa-interactivo.md` y `HU-01-verificacion-local.md`
 - `docs/implementacion/HU-02-HU-03.md`: contratos, migraciones y evidencia.
 - `database/mysql/README.md`, `modelo.md`, `schema.sql`, `rupi.dbml`

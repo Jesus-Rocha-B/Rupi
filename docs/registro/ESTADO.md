@@ -1,68 +1,68 @@
 # Estado actual · RUPI
 
-Actualizado: 2026-10-12 · rama `main` · revisión del Sprint Backlog aplicada en el último commit (`git log -1`).
+Actualizado: 2026-10-12 (cierre de sesión) · rama `main` = `origin/main` · último commit `c3200a3`.
 
-## Alineación con el backlog
+## Cómo retomar (5 minutos)
 
-La numeración HU-xx del repo coincide con el backlog de 60 historias solo en **HU-01 a HU-04** (Sprint 1) y **HU-09 a HU-11**. HU-05 a HU-08 del repo (completar lección con XP, preguntas, insignias, diploma) son mejoras de gamificación web que el backlog no lista con ese número; en el backlog, las historias 5 a 8 son de autoría docente y siguen pendientes, igual que la 12 (descarga sin conexión) y todo lo de docente, móvil, IA y administración.
+1. Leer este archivo y `CONTEXTO.md`. Si se va a tocar código, también `MAPA-DE-CODIGO.md`.
+2. Levantar el entorno: `./iniciar-rupi.sh` (MySQL 3307, API 8081, web 5173). Cuenta demo: `estudiante.demo` / `123456`.
+3. Comprobar que todo sigue en verde (comandos en `CONTEXTO.md`, sección Verificaciones).
+4. Si la base local se ve rara (rutas que dan 500, ids viejos), reconstruirla con el orden de `docs/implementacion/entorno-linux.md` (schema → V04 → seed-hu01 → V06 → seed-hu02 → V07 a V11 → `grants-spring-boot.sql`). El script usado el 2026-10-12 quedó en `~/reconstruir-bd-rupi.sh`, y el respaldo previo en `~/rupi-respaldo-2026-10-12.sql`.
 
-## Historias de usuario
+## Fuente de verdad del alcance
+
+El backlog y el Sprint Backlog están en dos documentos de Google Docs del curso (Laboratorio SCRUM, Construcción y Pruebas de Software, Tecsup): `GLAB-S06-2026-01` y `GLAB-S07-2026-02-1`. Son 60 historias en 15 épicas. El Sprint 1 son las historias 1 a 4 (30 h de capacidad: 3 integrantes × 10 h). Los enlaces los guarda el usuario; hay copia del resumen en `CHANGELOG.md` y en la memoria de Claude.
+
+La numeración HU-xx del repo coincide con el backlog solo en **HU-01 a HU-04** y **HU-09 a HU-11**. HU-05 a HU-08 del repo (completar lección con XP, preguntas, insignias, diploma) son mejoras de gamificación web que el backlog no numera así; en el backlog, las historias 5 a 8 son de autoría docente y siguen pendientes.
+
+## Historias de usuario del repo
 
 | HU | Resultado | Estado |
 |---|---|---|
-| HU-01 | Mapa interactivo con datos reales por estudiante | Completada |
-| HU-02 | Clic en un nivel: abrir actividad y marcarla EN_CURSO | Implementada y verificada localmente |
-| HU-03 | Regresar al punto exacto del mapa | Implementada y verificada localmente |
-| HU-04 | Ruta agrupada por unidades MINEDU | Implementada y revisada en navegador. Competencias, estándares y desempeños son oficiales; las unidades son de demostración |
-| HU-05 | Completar lección: +50 XP y desbloqueo automático del siguiente nivel | Implementada y verificada |
-| HU-06 | Preguntas didácticas interactivas y retroalimentación inmediata no punitiva con audio de Rupi | Implementada y verificada |
-| HU-07 | Insignias escolares (Explorador de Ayacucho) y resumen formativo con vitrina Hero | Implementada y verificada |
-| HU-08 | Culminación de ruta escolar, Gran Gallito de Oro (+100 XP) y Diploma imprimible CNEB | Implementada y verificada |
-| HU-09 | Barra de búsqueda rápida de roadmaps alternativos por materia con autocompletado y FTS | Implementada y verificada |
-| HU-10 | Filtros avanzados por grado escolar y materia con sincronización URL y checkboxes táctiles | Implementada y verificada |
-| HU-11 | Unirse a un roadmap con código alfanumérico de clase docente con validación segura | Implementada y verificada |
+| HU-01 | Mapa interactivo con datos reales por estudiante | Completada y verificada |
+| HU-02 | Clic en un nivel: abrir actividad y marcarla EN_CURSO | Completada y verificada |
+| HU-03 | Regresar al punto exacto del mapa | Completada y verificada |
+| HU-04 | Ruta agrupada por unidades MINEDU | Completada y verificada, incluida la pantalla. Competencias, estándares y desempeños son oficiales; las unidades son de demostración |
+| HU-05 | Completar lección: +50 XP y desbloqueo del siguiente nivel | Verificada (mejora de gamificación) |
+| HU-06 | Preguntas didácticas con retroalimentación no punitiva y audio de Rupi | Verificada (mejora) |
+| HU-07 | Insignias escolares y resumen formativo | Verificada (mejora) |
+| HU-08 | Fin de ruta, Gran Gallito de Oro (+100 XP) y diploma imprimible | Verificada (mejora) |
+| HU-09 | Búsqueda de roadmaps por materia con FTS y autocompletado | Completada y verificada |
+| HU-10 | Filtros por grado y materia con URL sincronizada | Completada y verificada |
+| HU-11 | Unirse a un roadmap con código de clase | Completada y verificada |
 
-«Verificada localmente» no sustituye la aceptación del docente ni la validación pedagógica. No marcar la entrega como aceptada sin revisar con el equipo los criterios de S07.
+«Verificada» significa probada contra la API y MySQL reales en Fedora. No sustituye la aceptación del docente ni la validación pedagógica.
 
-## Trabajo sin commitear
+## Qué sigue (en este orden sugerido)
 
-Ninguno al cerrar la revisión del 2026-10-12. Detalle en `docs/registro/CHANGELOG.md`.
+1. **Historia 12** del backlog: descargar materiales de la ruta para estudiar sin conexión (cierra la épica 3).
+2. **Rol docente y login (historias 41 y 42):** es la dependencia de la autoría docente (historias 5 a 8), el calendario (13 y 14), la IA configurable (15 y 16) y los reportes (17 a 20). Hoy solo existe el estudiante.
+3. **Historias 5, 7 y 8:** crear roadmaps propios, subir PDF/PPT/enlaces a un nodo y publicar o pausar. Con ellas HU-11 deja de depender de códigos sembrados.
+4. Después: móvil Kotlin (29 a 36), IA (21 a 24, 37 a 40, 53 a 56), administración y seguridad (45 a 60).
 
-## Pendiente
+Decisión abierta: qué rutas del catálogo serán públicas cuando existan rutas privadas del docente. Hoy cualquier ruta publicada se puede abrir con `POST /enroll`.
 
-**HU-04** (detalle en `docs/implementacion/README.md`):
-- [x] Tarea 4: `verify_hu04_content.py` y `verify_hu04_pantalla.mjs` comparan base, API y pantalla con `scripts/fixtures/hu04-orden-esperado.json`.
-- [x] Mapa revisado en Firefox (escritorio 1280 px y móvil 375 px) con Playwright.
-- [ ] Reemplazar las unidades `DEMO-*` por la programación real cuando Django cargue el catálogo oficial (ver `docs/implementacion/HU-04-fuentes-curriculares.md`).
-- [x] Contenido de las paradas 6–10 alineado con su título y con desempeños oficiales (V07, `seed-hu02.sql`). Sin validar con un docente.
-- [ ] Seguir el proceso de actualización del CNEB (RM 393-2026-MINEDU).
-- [ ] Confirmar con el equipo la regla de paradas sin unidad (hoy: grupo final «Otras paradas»).
-- [ ] Si las paradas de una unidad no son contiguas, el mapa sigue el orden de la ruta y repite la banda; revisar si hace falta reordenar.
+## Pendiente menor
 
-**Fuera del alcance actual** (otras historias): finalización de actividades, calificación, XP, desbloqueo del siguiente nodo, intentos de evaluación, Django admin y la app Kotlin.
+- Documento del Sprint: las filas 6 y 7 del Sprint Backlog repiten las historias 1 y 2, la fila 8 mezcla el texto de la historia 21 con tareas de la 8, la tarea «Modelar BD para unidades MINEDU» está bajo la historia 3 en vez de la 4, y una tarea nombra Node.js/Express (el proyecto usa Spring Boot). El Burndown está vacío.
+- HU-04: reemplazar las unidades `DEMO-*` por la programación real cuando Django cargue el catálogo oficial; seguir la actualización del CNEB (RM 393-2026-MINEDU); confirmar la regla de paradas sin unidad (hoy: grupo final «Otras paradas»).
+- `seed-hu01.sql` falla en la línea 277 (columna `texto`, hoy `texto_cuerpo`); `seed-hu02.sql` y V07 lo compensan, pero conviene corregirlo.
+- Ids de `seed-hu01.sql` para `escuela_*` no son UUID válidos (`i0000000-…`, `au000000-…`, `m0000000-…`, `y0000000-…`); hoy ningún endpoint los lee.
+- Las pruebas de Node son 12 (el CHANGELOG de HU-10/HU-11 anuncia más).
 
-**Deuda técnica conocida:**
-- Spring escribe tablas `identidad_*` (login), contra la regla de escritor único. Hay que reconciliarlo con Django.
-- Elegir un único mecanismo de migraciones y fijar el orden Django/Spring.
-- Privacidad y acceso para menores antes de publicar.
-- La cuenta demo y los datos de demostración no son para despliegue.
-- Las hojas de estilo son muy grandes (`App.css` y `AuthViews.css`, unas 2300 líneas cada una) y podrían dividirse.
-- `frontend/web-react/src/features/roadmap/lessons.ts` es un resto del origen estático anterior; comprobar si aún se usa.
+## Deuda técnica conocida (sin priorizar)
 
-## Revisión del 2026-10-12
+- Spring escribe `identidad_sesion_usuario` e `identidad_intento_acceso` (login), contra el escritor único; reconciliar con Django.
+- Elegir un único mecanismo de migraciones y fijar el orden Django/Spring. Hoy se aplican a mano.
+- Privacidad y acceso para menores antes de publicar. La cuenta demo y los datos demo no son para despliegue.
+- `App.css` y `AuthViews.css` superan las 1700 líneas cada una; conviene dividirlas.
+- El endpoint de unirse a clase acepta peticiones sin cabecera `Origin`; decidir si es intencional.
 
-Se aplicaron V08–V11 y se corrieron las verificaciones contra la API y MySQL reales. Se corrigieron migraciones V09/V10 que no se aplicaban, permisos MySQL de la API (`grants-spring-boot.sql`), la última visita de HU-03, el filtro de actividades publicadas de HU-02, las reglas de unidades de HU-04 y las fechas en UTC. Detalle en `CHANGELOG.md`.
+## Última evidencia de pruebas (2026-10-12, Fedora 44, base armada desde cero)
 
-Segunda pasada (misma fecha): verificados en Fedora con PowerShell 7 y Playwright todos los `Verificar-*.ps1` y la pantalla de HU-04 (ver `CHANGELOG.md`). La inscripción ya no ocurre al leer una ruta; es una acción explícita (`POST /enroll`).
+- 51 pruebas Java y 12 de Node; lint y build correctos.
+- `scripts/Verificar-Auth.ps1`, `HU01`, `HU02-HU05`, `HU08`, `HU09`, `HU10`, `HU11` y `Verificar-Rendimiento-HU09` con PowerShell 7.6.
+- `scripts/verify_learning_flow.py` (29), `verify_hu04_content.py` y `verify_hu04_pantalla.mjs` (10/10, Firefox 1280 y 375 px).
+- Detalle de lo corregido ese día en `CHANGELOG.md`.
 
-Pendiente: la base local de desarrollo conserva filas antiguas de V09/V10 con ids que no eran UUID; hay que reconstruirla con el orden de `docs/implementacion/entorno-linux.md` (V07 a V11 y `grants-spring-boot.sql`) para que las rutas de V09 abran. Decidir qué rutas del catálogo serán públicas cuando existan rutas privadas del docente.
-
-## Última evidencia de pruebas (2026-10-12, Fedora)
-
-51 pruebas Java y 12 de Node aprobadas; lint y build verificados. `verify_learning_flow.py`: 29 comprobaciones; `verify_hu04_content.py`: correcto; `Verificar-*.ps1` con PowerShell 7 y `verify_hu04_pantalla.mjs` (10/10) correctos sobre una base armada desde cero.
-
-## Evidencia anterior (2026-10-07, Fedora)
-
-36 pruebas Java y 5 de Node aprobadas. Build de producción y ESLint verificados. `scripts/verify_learning_flow.py`: 29 comprobaciones HTTP/MySQL. `scripts/verify_hu04_content.py`: 11 y `scripts/verify_hu04_pantalla.mjs`: 10 (Firefox, 1280 y 375 px). Detalle en `docs/implementacion/HU-04-ruta-por-unidades.md`.
-
-El entorno Linux se probó en Fedora 44 (`./iniciar-rupi.sh` levanta MySQL, API y web). Sin probar: otras distribuciones y ARM.
+El entorno Linux se probó en Fedora 44. Sin probar: otras distribuciones y ARM.
