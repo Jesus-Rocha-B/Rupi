@@ -2,13 +2,18 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
-## 2026-10-12 · Corrección de columnas y UUIDs en semillas iniciales de base de datos
+## 2026-10-12 · Corrección de columnas, ENUMs y UUIDs en base de datos y backend
 
+- **`backend/api-spring-boot/src/main/java/pe/rupi/api/learningroute/ActivityService.java`:**
+  - Alineado valor de columna `motivo` en la inserción de bonificación de fin de ruta en `gamificacion_movimiento_experiencia`: cambiado `'GRADUACION'` por `'INSIGNIA'` para cumplir estrictamente con la restricción `ENUM('ACTIVIDAD','RETO','INSIGNIA','AJUSTE','REVERSO')` de `schema.sql` y `rupi.dbml`.
+  - Normalizados identificadores de insignias escolares a UUID canónico hexadecimal de 128 bits (`ba000000-0000-4000-8000-000000000001` para `EXPLORADOR_AYACUCHO` y `ba000000-0000-4000-8000-000000000002` para `GRAN_TUNQUI_ORO`), sustituyendo los caracteres no hexadecimales `in` que violaban el estándar RFC 4122.
 - **`database/mysql/seed-hu01.sql`:**
   - Corregida sentencia `INSERT` en `aprendizaje_bloque_contenido`: alineada con [`schema.sql`](../mysql/schema.sql) utilizando `texto_cuerpo` y el orden de columnas `(id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo)`. Se eliminaron las referencias a columnas obsoletas (`texto`, `url_recurso`, `texto_accesible`).
   - Corregidos identificadores no hexadecimales en `escuela_*` (`escuela_institucion`, `escuela_anio_escolar`, `escuela_aula`, `escuela_membresia_aula`), reemplazando los prefijos inválidos (`i0000000-`, `y0000000-`, `au000000-`, `m0000000-`) por UUIDs canónicos (`e1000000-`, `e2000000-`, `e3000000-`, `e4000000-`).
 - **`database/mysql/actualizar-grados-primaria.sql`:**
   - Alineados los UUIDs de las tablas de `escuela_*` con los valores canónicos hexadecimales (`e1000000-` a `e4000000-`).
+- **`docs/implementacion/HU-08-culminacion-ruta-diploma.md`:**
+  - Actualizada la especificación del libro de movimientos de experiencia de la HU-08 para reflejar `motivo: 'INSIGNIA'`.
 
 ## 2026-10-12 · Segunda pasada: verificación en Fedora con PowerShell 7 y Playwright
 

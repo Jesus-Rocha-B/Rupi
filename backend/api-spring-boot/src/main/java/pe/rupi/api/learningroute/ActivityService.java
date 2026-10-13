@@ -249,7 +249,7 @@ public class ActivityService {
                 jdbc.update("""
                         INSERT IGNORE INTO gamificacion_movimiento_experiencia
                         (id, usuario_id, cantidad, motivo, referencia_tipo, referencia_id, evento_idempotencia, ocurrido_en)
-                        VALUES (:id, :userId, :amount, 'GRADUACION', 'RUTA', :refId, :idempotency, UTC_TIMESTAMP(6))
+                        VALUES (:id, :userId, :amount, 'INSIGNIA', 'RUTA', :refId, :idempotency, UTC_TIMESTAMP(6))
                         """, new MapSqlParameterSource()
                         .addValue("id", UUID.randomUUID().toString())
                         .addValue("userId", studentId.toString())
@@ -271,7 +271,7 @@ public class ActivityService {
         if (!wasAlreadyCompleted) {
             if (isRouteCompleted) {
                 // Gran Insignia de Culminación: Gran Gallito de Oro (HU-08)
-                String grandBadgeId = "in000000-0000-4000-8000-000000000002";
+                String grandBadgeId = "ba000000-0000-4000-8000-000000000002";
                 jdbc.update("""
                         INSERT IGNORE INTO gamificacion_insignia (id, codigo, nombre, descripcion, criterio, activa)
                         VALUES (:id, 'GRAN_TUNQUI_ORO', 'Gran Gallito de Oro',
@@ -291,7 +291,7 @@ public class ActivityService {
                 );
             } else {
                 // Primera insignia escolar de lección: Explorador de Ayacucho (HU-07)
-                String badgeId = "in000000-0000-4000-8000-000000000001";
+                String badgeId = "ba000000-0000-4000-8000-000000000001";
                 jdbc.update("""
                         INSERT IGNORE INTO gamificacion_insignia (id, codigo, nombre, descripcion, criterio, activa)
                         VALUES (:id, 'EXPLORADOR_AYACUCHO', 'Explorador de Ayacucho',

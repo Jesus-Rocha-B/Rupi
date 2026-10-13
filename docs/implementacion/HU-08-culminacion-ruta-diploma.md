@@ -19,7 +19,7 @@ Esta historia rinde homenaje a nuestra ave nacional, el **Gallito de las Rocas**
      - Descripción: *«¡Alcanzaste la cima de la ruta! Volaste como el gallito de las rocas por toda la aventura escolar de Ayacucho.»*.
      - Icono: Pluma del Tunqui de oro (`feather`).
 3. **Bonificación de Experiencia de Fin de Ruta (+100 XP):**
-   - Se registra una entrada adicional de +100 XP en el libro de eventos `gamificacion_movimiento_experiencia` con motivo `GRADUACION`, referencia a la versión de ruta y clave de idempotencia `(usuario_id:version_ruta_id:GRADUACION_RUTA)`.
+   - Se registra una entrada adicional de +100 XP en el libro de eventos `gamificacion_movimiento_experiencia` con motivo `INSIGNIA`, referencia a la versión de ruta y clave de idempotencia `(usuario_id:version_ruta_id:GRADUACION_RUTA)`.
 4. **Pantalla de Gran Celebración:**
    - Al completar la parada final, la vista de celebración despliega:
      - Mascota Rupi en su máxima expresión de júbilo (`cheering`).
