@@ -5,7 +5,7 @@ Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las 
 ## 2026-10-14 · Revisión de `48a9357..75a62b4` y correcciones de grado y carga
 
 - **Revisión:** 12 commits del equipo (HU-12 biblioteca MINEDU, HU-13 calendario, HU-14 recordatorios, roadmaps Oficial/Comunidad, perfil y lección). Detalle completo, pasos para poner al día la copia local y errores pendientes en [`README-CAMBIOS-2026-10-14.md`](README-CAMBIOS-2026-10-14.md).
-- **Frontend (`App.tsx`):** el grado escolar sale siempre de la sesión. Al iniciar o cerrar sesión se borran las preferencias guardadas en la tableta. Se quitó la inscripción automática al cargar. La pantalla de carga ya no se oculta a los 4 s: a los 8 s ofrece «Reintentar».
+- **Frontend (`App.tsx`):** el grado escolar sale siempre de la sesión. Al iniciar o cerrar sesión se borran las preferencias guardadas en la tableta. Se quitó la inscripción automática al cargar. Una carga cancelada ya no se marca como error de red: esa era la causa de que apareciera el login con sesión abierta. Se quitó el temporizador de 4 s y a los 8 s se ofrece «Reintentar». Entrar a un roadmap ya no deja la app en el esqueleto hasta pulsar F5: «Continuar mi aventura» fija el grado y `resetView()` siempre dispara una carga nueva.
 - **`package.json`:** nuevo `npm test` para las pruebas de Node (21 en verde).
 
 ## 2026-10-13 · Historia 12: descargar una unidad para estudiar sin conexión

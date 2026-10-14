@@ -1543,23 +1543,14 @@
   margin: 0;
 }
 
-.app-loading-slow .status-action-btn,
-.status-actions .status-action-btn {
+.app-loading-slow .status-action-btn {
   min-height: 48px;
   font-size: 14px;
 }
 
-.app-loading-slow .status-action-btn:active,
-.status-actions .status-action-btn:active {
+.app-loading-slow .status-action-btn:active {
   transform: translateY(3px);
   box-shadow: none;
-}
-
-.status-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
 }
 
 /* --------------------------------------------------------------------------

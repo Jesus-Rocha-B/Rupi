@@ -327,6 +327,9 @@ function App() {
           // Si no hay insignias o falla la consulta, no interrumpe el aula
         }
       } catch (error) {
+        // Una carga cancelada (cambio de ruta, grado o curso, o el doble montaje de StrictMode) no es un fallo:
+        // marcarla como error de red mostraba el inicio de sesión a un alumno con sesión abierta.
+        if (signal.aborted) return
         const status = error instanceof ApiError ? error.status : 0
         setErrorType(status === 401 ? 'UNAUTHORIZED' : status === 404 ? 'NOT_FOUND' : 'NETWORK')
         if (status === 401) {
@@ -336,7 +339,8 @@ function App() {
         }
         setSelectedRoute(null)
       } finally {
-        setLoading(false)
+        // La carga que reemplazó a esta es la que decide cuándo termina.
+        if (!signal.aborted) setLoading(false)
       }
     }
     void load()
@@ -354,16 +358,19 @@ function App() {
   // Roadmap disponible si la ruta seleccionada tiene paradas cargadas para interactuar
   const isRoadmapAvailable = Boolean(selectedRoute && selectedRoute.nodes && selectedRoute.nodes.length > 0)
 
+  // Toda pantalla de carga debe ir acompañada de una carga nueva. Si solo se activaba `loading` y la ruta,
+  // el grado y el curso no cambiaban (p. ej., volver a elegir la misma ruta), el efecto no se repetía y la app
+  // quedaba en el esqueleto hasta pulsar F5.
   function resetView() {
     setLoading(true)
     setSlowLoading(false)
+    setReloadKey(value => value + 1)
     setErrorType(null)
     setSelectedRoute(null)
     setSelectedNode(null)
   }
   function retry() {
     resetView()
-    setReloadKey(value => value + 1)
   }
 
   function handleSelectGradeAndCourse(gradeNumber: number | null, courseCode: string | null) {
@@ -522,10 +529,10 @@ function App() {
           routes={routes}
           initialGrade={selectedGrade}
           onSelectGradeAndCourse={handleSelectGradeAndCourse}
-          onSelectEnrolledRoute={(versionRouteId, _gradeNumber, courseCode) => {
-            setSelectedCourse(courseCode)
+          onSelectEnrolledRoute={(versionRouteId, gradeNumber, courseCode) => {
+            // También fija el grado: con `selectedGrade` en null la app volvía a esta pantalla tras cargar la ruta.
+            handleSelectGradeAndCourse(gradeNumber, courseCode)
             setRouteId(versionRouteId)
-            resetView()
           }}
           onLogout={handleLogout}
           onOpenJoinModal={() => setJoinModalOpen(true)}
@@ -860,15 +867,10 @@ function App() {
                       <Inbox aria-hidden="true" />
                     </div>
                     <h2>Aún no tienes rutas asignadas</h2>
-                    <p>Elige una ruta de tu grado en «Explorar Roadmaps» o pide a tu docente un código de clase.</p>
-                    <div className="status-actions">
-                      <button className="status-action-btn" onClick={() => setCurrentView('explorar')}>
-                        <Compass aria-hidden="true" />Explorar rutas de mi grado
-                      </button>
-                      <button className="status-action-btn" onClick={retry}>
-                        <RefreshCw aria-hidden="true" />Consultar mis inscripciones
-                      </button>
-                    </div>
+                    <p>Pide a tu docente que te inscriba en una ruta para comenzar tu aventura.</p>
+                    <button className="status-action-btn" onClick={retry}>
+                      <RefreshCw aria-hidden="true" />Consultar mis inscripciones
+                    </button>
                   </section>
                 )}
 
