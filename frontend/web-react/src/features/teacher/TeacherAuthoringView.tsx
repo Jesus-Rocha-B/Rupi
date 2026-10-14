@@ -1,3 +1,4 @@
+import { RouteCalendar } from '../calendar/RouteCalendar'
 import { useState, useEffect } from 'react'
 import {
   Compass,
@@ -470,6 +471,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
               </div>
             </div>
 
+            <RouteCalendar key={activeRouteDetail.versionRouteId} routeId={activeRouteDetail.versionRouteId} teacher />
             {/* Cabecera del roadmap activo */}
             <div className="editor-header-card">
               <div className="editor-header-info">

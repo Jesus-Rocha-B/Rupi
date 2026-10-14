@@ -1,3 +1,4 @@
+import { RouteCalendar } from '../features/calendar/RouteCalendar'
 import { useMemo, useState } from 'react'
 import {
   Award,
@@ -96,6 +97,7 @@ export function RouteCompanion({ route }: Props) {
             </div>
           </div>
         </section>
+      <RouteCalendar key={route.versionRouteId} routeId={route.versionRouteId} />
       </aside>
     )
   }
@@ -218,6 +220,7 @@ export function RouteCompanion({ route }: Props) {
           </span>
         </footer>
       </section>
-    </aside>
+    <RouteCalendar key={route.versionRouteId} routeId={route.versionRouteId} />
+      </aside>
   )
 }

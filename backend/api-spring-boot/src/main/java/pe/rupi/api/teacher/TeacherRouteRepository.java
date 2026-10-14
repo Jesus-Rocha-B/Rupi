@@ -91,12 +91,13 @@ public class TeacherRouteRepository {
                        n.numero_secuencia,
                        va.titulo,
                        va.instrucciones,
-                       va.tipo AS activity_type,
+                       a.tipo AS activity_type,
                        va.minutos_estimados,
                        n.mapa_x,
                        n.mapa_y
                 FROM aprendizaje_nodo_ruta n
                 JOIN aprendizaje_version_actividad va ON va.id = n.version_actividad_id
+                JOIN aprendizaje_actividad a ON a.id = va.actividad_id
                 WHERE n.version_ruta_id = ?
                 ORDER BY n.numero_secuencia ASC
                 """, (rs, rowNum) -> new TeacherDtos.TeacherNodeDto(
