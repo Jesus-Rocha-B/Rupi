@@ -142,8 +142,14 @@ function App() {
     if (!selectedRoute) return
     setSelectedNode(node)
     setActivity(null)
-    setActivityLoading(true)
     setActivityError(null)
+
+    if (node.state === 'BLOQUEADO') {
+      setActivityLoading(false)
+      return
+    }
+
+    setActivityLoading(true)
     try {
       const act = await startActivity(selectedRoute.versionRouteId, node.id)
       setActivity(act)
@@ -156,8 +162,12 @@ function App() {
           }
         })
       }
-    } catch {
-      setActivityError('No se pudo abrir la lección. Revisa tu conexión a internet.')
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 403) {
+        setActivityError('Esta parada aún está bloqueada. Avanza en las paradas previas para abrirla.')
+      } else {
+        setActivityError('No se pudo abrir la lección. Revisa tu conexión a internet e intenta de nuevo.')
+      }
     } finally {
       setActivityLoading(false)
     }
@@ -584,13 +594,18 @@ function App() {
         )}
 
         <section className="course-heading" aria-labelledby="course-title">
-          <div>
-            <div className="eyebrow">Tu espacio para descubrir</div>
-            <h1 id="course-title">
-              Mi ruta de aprendizaje
+          <div className="course-heading-layout">
+            <div className="course-heading-main">
+              <span className="eyebrow">Tu espacio para descubrir</span>
+              <h1 id="course-title">Mi ruta de aprendizaje</h1>
+              <p className="course-subtitle">Un mundo por aprender. A tu propio ritmo.</p>
+            </div>
+            <div className="course-heading-meta">
               <span className="current-grade-badge">
                 <GraduationCap size={16} aria-hidden="true" />
                 <span>{`${selectedGrade}.° de primaria · ${getCourseLabel(selectedCourse)}`}</span>
+              </span>
+              <div className="course-heading-actions">
                 <button
                   type="button"
                   className="change-grade-btn"
@@ -601,7 +616,8 @@ function App() {
                   title="Cambiar de materia"
                   aria-label="Cambiar de materia escolar"
                 >
-                  Cambiar materia
+                  <BookOpen size={15} aria-hidden="true" />
+                  <span>Cambiar materia</span>
                 </button>
                 <button
                   type="button"
@@ -615,7 +631,8 @@ function App() {
                   title="Cambiar de grado de primaria"
                   aria-label="Cambiar de grado de primaria"
                 >
-                  Cambiar grado
+                  <GraduationCap size={15} aria-hidden="true" />
+                  <span>Cambiar grado</span>
                 </button>
                 <button
                   type="button"
@@ -627,10 +644,8 @@ function App() {
                   <KeyRound size={15} aria-hidden="true" />
                   <span>Código de clase</span>
                 </button>
-              </span>
-            </h1>
-
-            <p>Un mundo por aprender. A tu propio ritmo.</p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -839,7 +854,7 @@ function App() {
           </>
         )}
 
-        {/* CASO B: Otra materia u otro grado -> Roadmap NO accesible (Permite ver curso, no entrar al roadmap) */}
+        {/* CASO B: Sin roadmap directo para la materia y grado */}
         {!isRoadmapAvailable && (
           <section className="course-locked-panel" role="region" aria-labelledby="locked-course-title">
             <div className="course-locked-card">
@@ -850,7 +865,7 @@ function App() {
                       ? 'reader'
                       : selectedCourse === 'CYT'
                       ? 'scientist'
-                      : 'default'
+                      : 'mathematician'
                   }
                   mood="thinking"
                   className="locked-rupi-svg"
@@ -859,34 +874,51 @@ function App() {
 
               <div className="course-locked-content">
                 <div className="course-locked-tag">
-                  <Lock size={15} aria-hidden="true" />
-                  <span>ACCESO A ROADMAP RESTRINGIDO</span>
+                  <Compass size={15} aria-hidden="true" />
+                  <span>EXPLORACIÓN ESCOLAR</span>
                 </div>
 
                 <h2 id="locked-course-title">
-                  {selectedGrade === 2
-                    ? `El roadmap de ${getCourseLabel(selectedCourse)} aún no está disponible`
-                    : `Los roadmaps para ${selectedGrade}.° de primaria están en preparación`
-                  }
+                  Ruta en preparación para {selectedGrade ? `${selectedGrade}.° de primaria` : 'tu grado'} · {getCourseLabel(selectedCourse)}
                 </h2>
 
                 <p className="locked-course-desc">
-                  {selectedGrade === 2
-                    ? `¡Hola, ${student.name}! Puedes cambiar de materia libremente para revisar tus áreas de clase, pero actualmente el mapa de ruta interactivo con paradas y retos solo está habilitado para 2.° de primaria · Matemática.`
-                    : `¡Hola, ${student.name}! Puedes explorar las áreas escolares de ${selectedGrade}.° de primaria, pero las rutas interactivas con el gallito Rupi se encuentran en preparación con tu docente. La única aventura activa es 2.° de primaria · Matemática.`
-                  }
+                  ¡Hola, {student.name}! Tu docente o tu escuela aún están estructurando el camino para esta materia.
+                  {routes.length > 0
+                    ? ` Ya cuentas con aventuras activas en ${routes.map(r => `${r.title} (${r.grade.name})`).join(', ')}.`
+                    : ' Puedes unirte a un roadmap con el código de 6 dígitos que te dé tu profesor.'}
                 </p>
 
                 <div className="course-locked-actions">
+                  {routes.length > 0 && (
+                    <button
+                      type="button"
+                      className="go-to-math-btn"
+                      onClick={() => {
+                        const target = routes[0]
+                        const courseCode = target.area.code.includes('COM')
+                          ? 'COMUNICACION'
+                          : target.area.code.includes('CYT')
+                          ? 'CYT'
+                          : 'MATEMATICA'
+                        handleSelectGradeAndCourse(target.grade.number, courseCode)
+                      }}
+                      title="Ir a mi ruta activa"
+                    >
+                      <Compass size={18} aria-hidden="true" />
+                      <span>Ir a mi ruta: {routes[0].title}</span>
+                      <ArrowRight size={18} aria-hidden="true" />
+                    </button>
+                  )}
+
                   <button
                     type="button"
-                    className="go-to-math-btn"
-                    onClick={() => handleSelectGradeAndCourse(2, 'MATEMATICA')}
-                    title="Ingresar al roadmap activo de 2.° de primaria Matemática"
+                    className="join-code-cta-btn"
+                    onClick={() => setJoinModalOpen(true)}
+                    title="Ingresar código de clase docente"
                   >
-                    <Compass size={18} aria-hidden="true" />
-                    <span>Ingresar al roadmap de 2.° de primaria · Matemática</span>
-                    <ArrowRight size={18} aria-hidden="true" />
+                    <KeyRound size={16} aria-hidden="true" />
+                    <span>Tengo un código de clase</span>
                   </button>
 
                   <button
@@ -898,6 +930,7 @@ function App() {
                     }}
                     title="Elegir otra materia"
                   >
+                    <BookOpen size={16} aria-hidden="true" />
                     <span>Elegir otra materia</span>
                   </button>
 
@@ -905,9 +938,7 @@ function App() {
                     type="button"
                     className="locked-speech-btn"
                     onClick={() => speakText(
-                      selectedGrade === 2
-                        ? `El roadmap de ${getCourseLabel(selectedCourse)} para 2.° de primaria aún no está disponible. Tu ruta activa te espera en 2.° de primaria de Matemática.`
-                        : `Los roadmaps para ${selectedGrade} grado de primaria aún no están disponibles. Solo puedes ingresar al mapa de 2.° de primaria de Matemática.`
+                      `Ruta en preparación para ${selectedGrade} grado de primaria en ${getCourseLabel(selectedCourse)}. Puedes ingresar un código de clase o explorar tus rutas activas con Rupi.`
                     )}
                     aria-label="Escuchar explicación de Rupi"
                     title="Escuchar explicación"
@@ -984,8 +1015,55 @@ function App() {
               onClose={() => setSelectedNode(null)}
               onOpenBadges={() => handleOpenBadges()}
             />
+          ) : selectedNode.state === 'BLOQUEADO' ? (
+            <div className="modal-locked-view" role="region" aria-label="Parada bloqueada">
+              <button
+                className="modal-close"
+                autoFocus
+                onClick={() => setSelectedNode(null)}
+                aria-label="Cerrar detalle"
+              >
+                <X aria-hidden="true" />
+              </button>
+              <div className="modal-icon locked">
+                <Lock size={28} aria-hidden="true" />
+              </div>
+              <span className="eyebrow locked-eyebrow">
+                PARADA #{selectedNode.sequence} · BLOQUEADA
+              </span>
+              <div className="modal-title-row">
+                <h2 id="modal-title">{selectedNode.title}</h2>
+                <button
+                  type="button"
+                  className="modal-listen-btn"
+                  onClick={() =>
+                    speakText(
+                      `Parada ${selectedNode.sequence}: ${selectedNode.title}. Esta parada aún está descansando. Completa la parada anterior para abrir este camino.`
+                    )
+                  }
+                  aria-label="Escuchar explicación de parada bloqueada"
+                  title="Escuchar"
+                >
+                  <Volume2 size={18} aria-hidden="true" />
+                </button>
+              </div>
+              <div className="locked-rupi-card">
+                <div className="locked-rupi-avatar" aria-hidden="true">
+                  <RupiCharacter mood="thinking" />
+                </div>
+                <div className="locked-rupi-bubble">
+                  <p>
+                    ¡Hola, explorador! Esta parada aún está en descanso 🌿.
+                    Para desbloquearla y ganar nuevas insignias, primero completa la parada #{Math.max(1, selectedNode.sequence - 1)} en tu mapa.
+                  </p>
+                </div>
+              </div>
+              <button className="start-button locked-back-btn" onClick={() => setSelectedNode(null)}>
+                Volver a mi mapa <ArrowRight aria-hidden="true" />
+              </button>
+            </div>
           ) : (
-            <>
+            <div className="modal-summary-view">
               <button
                 className="modal-close"
                 autoFocus
@@ -1027,10 +1105,24 @@ function App() {
                   : ''}
                 . Aquí puedes consultar el progreso guardado de esta actividad.
               </p>
-              <button className="start-button" onClick={() => setSelectedNode(null)}>
-                Volver al mapa <ArrowRight aria-hidden="true" />
-              </button>
-            </>
+              <div className="modal-summary-actions">
+                <button
+                  type="button"
+                  className="start-button primary"
+                  onClick={() => handleOpenNode(selectedNode)}
+                >
+                  <span>{selectedNode.state === 'COMPLETADO' ? 'Repasar lección' : 'Comenzar lección'}</span>
+                  <ArrowRight aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className="start-button secondary"
+                  onClick={() => setSelectedNode(null)}
+                >
+                  Volver al mapa
+                </button>
+              </div>
+            </div>
           )}
         </dialog>
       )}

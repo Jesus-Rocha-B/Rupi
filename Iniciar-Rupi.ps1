@@ -15,17 +15,22 @@ function Wait-Port([int]$Port) {
     }
     throw "No inicio el puerto $Port. Revisa los logs en .local."
 }
-if (!(Test-Port 3307)) {
-    Start-Process "$PSScriptRoot\.local\mysql-8.4.11-winx64\bin\mysqld.exe" -ArgumentList "--defaults-file=`"$PSScriptRoot/.local/my.ini`"" -WindowStyle Hidden
+$mysqlPort = 3307
+if (Test-Port 3306) {
+    $mysqlPort = 3306
+} elseif (!(Test-Port 3307)) {
+    if (Test-Path "$PSScriptRoot\.local\mysql-8.4.11-winx64\bin\mysqld.exe") {
+        Start-Process "$PSScriptRoot\.local\mysql-8.4.11-winx64\bin\mysqld.exe" -ArgumentList "--defaults-file=`"$PSScriptRoot/.local/my.ini`"" -WindowStyle Hidden
+    }
 }
-Wait-Port 3307
+Wait-Port $mysqlPort
 $jar = "$PSScriptRoot\backend\api-spring-boot\target\rupi-api-0.1.0-SNAPSHOT.jar"
 if ($Recompilar -or !(Test-Path $jar)) {
-    & mvn.cmd -f "$PSScriptRoot\backend\api-spring-boot\pom.xml" -B package
+    & mvn.cmd -f "$PSScriptRoot\backend\api-spring-boot\pom.xml" -B package -DskipTests
     if ($LASTEXITCODE -ne 0) { throw 'No se pudo compilar la API.' }
 }
 if (!(Test-Port 8081)) {
-    $api = Start-Process (Get-Command java.exe).Source -ArgumentList @("`"-Djdk.net.unixdomain.tmpdir=$PSScriptRoot/.local/sockets`"", "-Djava.net.preferIPv4Stack=true", "-jar", "`"$jar`"") -WindowStyle Hidden -PassThru -RedirectStandardOutput "$PSScriptRoot\.local\api.log" -RedirectStandardError "$PSScriptRoot\.local\api-error.log"
+    $api = Start-Process (Get-Command java.exe).Source -ArgumentList @("-Djdk.net.unixdomain.tmpdir=$PSScriptRoot/.local/sockets", "-Djava.net.preferIPv4Stack=true", "-jar", $jar) -WindowStyle Hidden -PassThru -RedirectStandardOutput "$PSScriptRoot\.local\api.log" -RedirectStandardError "$PSScriptRoot\.local\api-error.log"
     $api.Id | Set-Content "$PSScriptRoot\.local\api.pid"
 }
 Wait-Port 8081

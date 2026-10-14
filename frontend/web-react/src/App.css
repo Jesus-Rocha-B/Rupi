@@ -1192,15 +1192,17 @@ dialog.lesson-modal {
   position: fixed;
   inset: 0;
   margin: auto;
-  width: min(400px, calc(100vw - 32px));
-  max-width: 400px;
-  padding: 32px 28px 28px;
+  width: min(760px, calc(100vw - 32px));
+  max-width: 760px;
+  max-height: 88vh;
+  padding: 32px 32px 28px;
   border: 2px solid #dce7d5;
   border-radius: 24px;
   background: #fffefa;
   color: var(--ink);
-  text-align: center;
+  text-align: left;
   box-shadow: 0 20px 60px rgba(23, 62, 48, 0.28);
+  overflow-y: auto;
 }
 
 dialog.lesson-modal::backdrop {
@@ -2436,8 +2438,6 @@ body, button, input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: 48vh;
-  overflow-y: auto;
   padding: 4px 2px;
 }
 
@@ -4155,6 +4155,221 @@ body, button, input, select, textarea {
 .back-to-authoring-btn:focus-visible {
   outline: 3px solid #f95738;
   outline-offset: 2px;
+}
+
+/* ====================================================
+   NUEVAS MEJORAS DE DISEÑO: ENCABEZADO Y MODAL ACCESIBLE
+   ==================================================== */
+.course-heading-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  width: 100%;
+}
+
+.course-heading-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.course-heading-main h1 {
+  margin: 0 !important;
+  font-size: clamp(24px, 3.2vw, 32px) !important;
+  font-family: var(--display-font);
+  font-weight: 900;
+  color: var(--forest, #173e30);
+  line-height: 1.2;
+}
+
+.course-subtitle {
+  margin: 0 !important;
+  font-size: 15px !important;
+  color: #4a6356;
+  font-weight: 700;
+}
+
+.course-heading-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.course-heading-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Modal locked & summary states */
+.modal-summary-view,
+.modal-locked-view {
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-icon.locked {
+  background: #fef2f2;
+  border: 2px solid #f87171;
+  color: #dc2626;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.locked-eyebrow {
+  color: #b91c1c !important;
+  background: #fee2e2;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.locked-rupi-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fffbf0;
+  border: 2px solid #ffd26a;
+  border-radius: 16px;
+  padding: 16px;
+  margin: 8px 0 14px;
+  text-align: left;
+  box-shadow: 0 4px 0 #ebd092;
+}
+
+.locked-rupi-avatar {
+  flex: 0 0 74px;
+  width: 74px;
+  height: 74px;
+}
+
+.locked-rupi-bubble p {
+  margin: 0 !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  color: #173e30;
+  font-weight: 700;
+}
+
+.start-button.locked-back-btn {
+  background: #246a91;
+  border: 2px solid #1a5170;
+  box-shadow: 0 4px 0 #12374c;
+  color: #ffffff;
+  min-height: 48px;
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.start-button.locked-back-btn:hover {
+  background: #2c7da8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #12374c;
+}
+
+.start-button.locked-back-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #12374c;
+}
+
+.modal-summary-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.start-button.primary {
+  background: #f95738;
+  color: #ffffff;
+  border: 2px solid #d43818;
+  box-shadow: 0 4px 0 #b32a10;
+  border-radius: 14px;
+  padding: 12px 24px;
+  font-weight: 800;
+  min-height: 48px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.start-button.primary:hover {
+  background: #fa6c50;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #b32a10;
+}
+
+.start-button.primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #b32a10;
+}
+
+.start-button.secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border: 2px solid #cbd5e1;
+  box-shadow: 0 3px 0 #cbd5e1;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-weight: 800;
+  min-height: 48px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.start-button.secondary:hover {
+  background: #e2e8f0;
+}
+
+.join-code-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 18px;
+  background: #ffd26a;
+  color: #173e30;
+  border: 2px solid #173e30;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #173e30;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.join-code-cta-btn:hover {
+  background: #ffc740;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #173e30;
+}
+
+.join-code-cta-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
 }
 
 

@@ -85,7 +85,7 @@ public class ActivityService {
         var blocks = jdbc.query("""
                 SELECT b.id, b.tipo,
                        COALESCE(b.texto_cuerpo, '') AS texto,
-                       m.url_almacenamiento AS url_recurso,
+                       COALESCE(m.url_externa, m.clave_almacenamiento, '') AS url_recurso,
                        b.texto_accesibilidad AS texto_accesible
                 FROM aprendizaje_bloque_contenido b
                 LEFT JOIN recurso_archivo_multimedia m ON m.id = b.archivo_multimedia_id

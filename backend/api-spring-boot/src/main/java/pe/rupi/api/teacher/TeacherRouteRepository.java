@@ -191,15 +191,15 @@ public class TeacherRouteRepository {
 
         // 1. Actividad y versión de actividad
         jdbc.update("""
-                INSERT INTO aprendizaje_actividad (id, creado_por, creado_en)
-                VALUES (?, ?, UTC_TIMESTAMP(6))
-                """, activityId, teacherId);
+                INSERT INTO aprendizaje_actividad (id, tipo, creado_por, creado_en)
+                VALUES (?, ?, ?, UTC_TIMESTAMP(6))
+                """, activityId, activityType, teacherId);
 
         jdbc.update("""
                 INSERT INTO aprendizaje_version_actividad (
-                    id, actividad_id, numero_version, titulo, instrucciones, tipo, minutos_estimados, estado, creado_en
-                ) VALUES (?, ?, 1, ?, ?, ?, ?, 'PUBLICADO', UTC_TIMESTAMP(6))
-                """, versionActividadId, activityId, req.title().trim(), req.instructions() != null ? req.instructions().trim() : "Explora esta parada y realiza las actividades didácticas con tu profesor.", activityType, estimatedMinutes);
+                    id, actividad_id, numero_version, titulo, instrucciones, minutos_estimados, estado, creado_en
+                ) VALUES (?, ?, 1, ?, ?, ?, 'PUBLICADO', UTC_TIMESTAMP(6))
+                """, versionActividadId, activityId, req.title().trim(), req.instructions() != null ? req.instructions().trim() : "Explora esta parada y realiza las actividades didácticas con tu profesor.", estimatedMinutes);
 
         // 2. Bloque introductorio de contenido
         String blockId = UUID.randomUUID().toString();

@@ -115,7 +115,7 @@ public class MaterialStorageService {
 
         jdbc.update("""
                 INSERT INTO recurso_archivo_multimedia (
-                    id, nombre_original, tipo_mime, tamanio_bytes, url_almacenamiento, hash_sha256, creado_por, creado_en
+                    id, nombre_original, tipo_mime, tamano_bytes, url_externa, hash_sha256, creado_por, creado_en
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6))
                 """, materialId, sanitizedName, mimeType, file.getSize(), downloadUrl, hash, userId);
 
@@ -128,7 +128,7 @@ public class MaterialStorageService {
         }
 
         return jdbc.query("""
-                SELECT id, nombre_original, tipo_mime, tamanio_bytes, url_almacenamiento
+                SELECT id, nombre_original, tipo_mime, tamano_bytes, url_externa
                 FROM recurso_archivo_multimedia
                 WHERE id = ?
                 """, (rs, rowNum) -> {
@@ -139,8 +139,8 @@ public class MaterialStorageService {
                     id,
                     originalName,
                     rs.getString("tipo_mime"),
-                    rs.getLong("tamanio_bytes"),
-                    rs.getString("url_almacenamiento"),
+                    rs.getLong("tamano_bytes"),
+                    rs.getString("url_externa"),
                     diskPath
             );
         }, materialId).stream().findFirst();
