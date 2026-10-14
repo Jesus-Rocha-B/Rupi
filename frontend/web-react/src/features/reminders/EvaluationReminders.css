@@ -1,0 +1,5 @@
+.evaluation-reminders{padding:14px;margin:18px 0;border:2px solid #31724b;border-radius:14px;background:#fff3ce;color:#173e30}
+.evaluation-reminders h4{display:flex;align-items:center;gap:8px;margin:0;font-size:18px}.evaluation-reminders h4 svg{flex:none}
+.evaluation-reminders ul{list-style:none;margin:14px 0 0;padding:0}.evaluation-reminders li{display:flex;flex-direction:column;gap:8px;padding:12px;margin-top:12px;border-left:5px solid #f95738;background:#fffefa;overflow-wrap:anywhere}.evaluation-reminders li.is-read{border-left-color:#31724b}
+.evaluation-reminders time,.evaluation-reminders li>span{font-size:14px}.evaluation-reminders button{min-height:48px;min-width:48px;padding:10px;border:2px solid #173e30;border-radius:10px;box-shadow:0 3px 0 #173e30;color:#173e30;background:#fff;font:inherit;font-weight:800;cursor:pointer}
+.evaluation-reminders button:active{transform:translateY(2px);box-shadow:0 1px 0 #173e30}.evaluation-reminders button:focus-visible{outline:3px solid #246a91;outline-offset:3px}.evaluation-reminders .reminder-read{display:flex;align-items:center;gap:6px;color:#31724b;font-weight:800}

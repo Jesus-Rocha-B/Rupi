@@ -81,7 +81,7 @@ export function RouteCompanion({ route }: Props) {
   // Si no hay contexto cultural, mostrar solo la tarjeta de ánimo pedagógico de Rupi sin romper la pantalla
   if (!context || !facts.length) {
     return (
-      <aside className="route-companion sticky-companion" aria-label="Acompañamiento de tu ruta">
+      <aside className="route-companion" aria-label="Acompañamiento de tu ruta">
         <section className="cultural-companion-card simple-motivational">
           <div className="companion-rupi-quote">
             <RupiCharacter mood="cheering" className="companion-rupi-avatar" />
@@ -118,7 +118,7 @@ export function RouteCompanion({ route }: Props) {
   }
 
   return (
-    <aside className="route-companion sticky-companion" aria-label="Sobre tu recorrido cultural">
+    <aside className="route-companion" aria-label="Sobre tu recorrido cultural">
       <section className="cultural-companion-card" role="region" aria-labelledby="cultural-card-title">
         {/* 1. Imagen del lugar con alt descriptivo */}
         <div className="companion-image-wrapper">

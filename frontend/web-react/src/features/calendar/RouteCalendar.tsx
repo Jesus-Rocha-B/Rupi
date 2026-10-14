@@ -1,3 +1,4 @@
+import { EvaluationReminders } from '../reminders/EvaluationReminders'
 import { useEffect, useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { calendarRequest, type Schedule, type CalendarEvent } from '../../services/calendarApi'
@@ -61,6 +62,7 @@ export function RouteCalendar({ routeId, teacher = false }: { routeId: string; t
     {data && <>
       {data.classrooms.length === 0 ? <p>No tienes un aula activa de este grado asociada. Consulta con tu institución para asignarla.</p> : <>
         <label>Aula<select aria-label="Aula" value={selectedRoom} disabled={busy} onChange={e => {setRoom(e.target.value); reset()}}>{data.classrooms.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
+        {!teacher && <EvaluationReminders key={routeId} routeId={routeId} classroomId={selectedRoom} />}
         <div className="calendar-month"><button type="button" aria-label="Mes anterior" onClick={() => setMonth(m => shiftMonth(m, -1))}><ChevronLeft /></button><strong aria-live="polite">{new Intl.DateTimeFormat('es-PE', {month: 'long', year: 'numeric', timeZone: 'UTC'}).format(new Date(`${month}-01T12:00:00Z`))}</strong><button type="button" aria-label="Mes siguiente" onClick={() => setMonth(m => shiftMonth(m, 1))}><ChevronRight /></button></div>
         <div className="calendar-grid" aria-label="Fechas del mes">
           {['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(day => <b key={day}>{day}</b>)}
@@ -74,6 +76,7 @@ export function RouteCalendar({ routeId, teacher = false }: { routeId: string; t
           {teacher && <div className="calendar-actions"><button type="button" disabled={busy} onClick={() => edit(event)}>Editar fechas</button><button type="button" disabled={busy} onClick={() => remove(event)}>Retirar fecha</button></div>}
         </li>)}</ol>
         {teacher && <form onSubmit={save}>
+          <p>Rupi enviará un recordatorio dentro de la aplicación durante las 24 horas anteriores a cada evaluación publicada, sin repetirlo para la misma fecha.</p>
           <h4>{editing ? 'Modificar fechas' : 'Programar unidad o evaluación'}</h4>
           {data.targets.length === 0 ? <p>Agrega unidades o paradas de tipo Cuestionario o Reto a esta ruta para programarlas.</p> : <>
             <label>Unidad o evaluación<select required value={target} disabled={busy || editing} onChange={e => setTarget(e.target.value)}><option value="">Selecciona una actividad</option>{data.targets.map(t => <option key={`${t.type}:${t.id}`} value={`${t.type}:${t.id}`}>{t.type === 'UNIDAD' ? 'Unidad' : 'Evaluación'} · {t.title}</option>)}</select></label>
