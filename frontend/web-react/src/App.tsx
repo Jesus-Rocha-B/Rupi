@@ -296,9 +296,9 @@ function App() {
           })
         }
         if (!targetRoute && selectedGrade) {
-          targetRoute = list.find(r => r.grade.number === selectedGrade)
+          targetRoute = currentList.find(r => r.grade.number === selectedGrade)
         }
-        const id = routeId || (targetRoute ? targetRoute.versionRouteId : (list.length > 0 ? list[0].versionRouteId : ''))
+        const id = routeId || (targetRoute ? targetRoute.versionRouteId : (currentList.length > 0 ? currentList[0].versionRouteId : ''))
         if (!id) {
           setErrorType('EMPTY')
           setLoading(false)
@@ -309,14 +309,14 @@ function App() {
           detail = await fetchRouteDetail(id, signal)
         } catch (error) {
           // Ruta publicada del catálogo en la que aún no está inscrito: la inscripción es una acción explícita.
-          const notEnrolled = error instanceof ApiError && error.status === 404 && !list.some(r => r.versionRouteId === id)
+          const notEnrolled = error instanceof ApiError && error.status === 404 && !currentList.some(r => r.versionRouteId === id)
           if (!notEnrolled) throw error
           detail = await enrollInRoute(id, signal)
         }
         if (signal.aborted) return
         setSelectedRoute(detail)
         // Si la ruta obtenida fue auto-inscrita y no estaba en la lista previa, agregarla al estado
-        if (!list.some(r => r.versionRouteId === detail.versionRouteId)) {
+        if (!currentList.some(r => r.versionRouteId === detail.versionRouteId)) {
           setRoutes(prev => [
             ...prev,
             {
@@ -338,25 +338,31 @@ function App() {
         } catch {
           // Si no hay insignias o falla la consulta, no interrumpe el aula
         }
-        setLoading(false)
       } catch (error) {
-        if (signal.aborted) return
         const status = error instanceof ApiError ? error.status : 0
         setErrorType(status === 401 ? 'UNAUTHORIZED' : status === 404 ? 'NOT_FOUND' : 'NETWORK')
         if (status === 401) {
           setStudent(null)
           setRoutes([])
           setSelectedRoute(null)
-          setSelectedGrade(null)
-          setSelectedCourse(null)
         }
         setSelectedRoute(null)
+      } finally {
         setLoading(false)
       }
     }
     void load()
     return () => controller.abort()
   }, [routeId, reloadKey, selectedGrade, selectedCourse])
+
+  // Temporizador de seguridad: si la carga excede 4 segundos, se desactiva para no bloquear la interfaz
+  useEffect(() => {
+    if (!loading) return
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 4000)
+    return () => clearTimeout(timer)
+  }, [loading])
 
   // Roadmap disponible si la ruta seleccionada tiene paradas cargadas para interactuar
   const isRoadmapAvailable = Boolean(selectedRoute && selectedRoute.nodes && selectedRoute.nodes.length > 0)
