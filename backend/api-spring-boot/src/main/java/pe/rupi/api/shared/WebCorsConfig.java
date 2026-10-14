@@ -1,6 +1,11 @@
 package pe.rupi.api.shared;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -14,5 +19,18 @@ public class WebCorsConfig implements WebMvcConfigurer {
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("Content-Type", "Authorization", "X-Requested-With")
                 .allowCredentials(true);
+    }
+
+    @Override
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        for (HttpMessageConverter<?> converter : converters) {
+            if (converter instanceof MappingJackson2HttpMessageConverter jsonConverter) {
+                jsonConverter.setDefaultCharset(StandardCharsets.UTF_8);
+                jsonConverter.setSupportedMediaTypes(List.of(
+                    new MediaType("application", "json", StandardCharsets.UTF_8),
+                    MediaType.APPLICATION_JSON
+                ));
+            }
+        }
     }
 }

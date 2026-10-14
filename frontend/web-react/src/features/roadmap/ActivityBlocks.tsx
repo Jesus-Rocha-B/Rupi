@@ -72,8 +72,6 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose, onOpenB
         textAnswer: null,
       })
       setFeedbackMap(prev => ({ ...prev, [question.id]: feedback }))
-      const speechMessage = `${feedback.feedbackMessage}. ${feedback.explanation || ''}`
-      speakText(speechMessage)
 
       // Si se respondieron todas las preguntas, cargar resumen formativo
       if (answeredCount + 1 >= questions.length) {
@@ -98,12 +96,6 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose, onOpenB
     try {
       const res = await completeActivity(routeId, activity.nodeId)
       setCompletionResult(res)
-      const speech = res.isRouteCompleted
-        ? `¡Misión Cumplida! Has completado todas las paradas de la ruta. Obtuviste la insignia de graduación ${res.badgeEarned?.name || 'Gran Gallito de Oro'}, cien puntos de experiencia de bono y ya está en tu vitrina de perfil escolar.`
-        : res.badgeEarned
-        ? `¡Felicitaciones! Has obtenido la insignia ${res.badgeEarned.name}. ${res.rupiMessage}`
-        : res.rupiMessage
-      speakText(speech)
       if (onComplete) {
         onComplete(res)
       }

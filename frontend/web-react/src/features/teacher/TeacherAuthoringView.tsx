@@ -36,7 +36,6 @@ import {
   type AttachResourcePayload,
 } from '../../services/teacherApi'
 import { MaterialUploadZone } from '../../components/MaterialUploadZone'
-import { speakText } from '../../utils/speech'
 import './TeacherAuthoring.css'
 
 interface Props {
@@ -141,7 +140,6 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
       setNewTitle('')
       setNewDescription('')
       setBanner({ type: 'success', message: '¡Nuevo roadmap escolar creado! Ahora agrega paradas y materiales.' })
-      speakText('Roadmap creado. Ahora puedes estructurar las paradas pedagógicas y adjuntar tus materiales.')
 
       await loadRoutes()
       await handleOpenRouteDetail(res.routeId)
@@ -269,7 +267,6 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
       setOrderedNodes(updatedDetail.nodes)
       setIsReorderDirty(false)
       setBanner({ type: 'success', message: '¡Secuencia pedagógica reorganizada y guardada exitosamente!' })
-      speakText('Secuencia de aprendizaje guardada exitosamente.')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al guardar la nueva secuencia.'
       setBanner({ type: 'error', message: msg })
@@ -288,7 +285,6 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
     try {
       const res = await publishTeacherRoute(selectedRouteId)
       setBanner({ type: 'success', message: res.message })
-      speakText('¡Felicitaciones! El roadmap ha sido publicado y ya está disponible para tus estudiantes.')
 
       const detail = await fetchTeacherRouteDetail(selectedRouteId)
       setActiveRouteDetail(detail)

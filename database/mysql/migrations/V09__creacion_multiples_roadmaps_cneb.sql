@@ -130,7 +130,7 @@ INSERT INTO curriculo_contexto_cultural (
    'Hace más de mil años, los antiguos constructores Wari usaban proporciones exactas para edificar templos eternos.',
    '¡Piensa en grande y resuelve cada reto con la fuerza de nuestros antepasados!',
    '/images/ayacucho-plaza.jpg', 'Murallas de Wari', 'Arqueología Peruana', 'MINCETUR', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 -- ============================================================================
 -- 5. ACTIVIDADES Y VERSIONES DIDÁCTICAS PARA LAS 6 PARADAS DE CADA RUTA
@@ -153,7 +153,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000000000204', 'ac000000-0000-4000-8000-000000000204', 1, 'La leyenda de la flor sagrada de Cantuta', 10, 'PUBLICADO', 'Conoce por qué la cantuta es la flor nacional del Perú y símbolo de unión.'),
   ('fa000000-0000-4000-8000-000000000205', 'ac000000-0000-4000-8000-000000000205', 1, 'Adivinanzas en quechua y castellano', 10, 'PUBLICADO', 'Descifra las adivinanzas tradicionales usando las pistas de Rupi.'),
   ('fa000000-0000-4000-8000-000000000206', 'ac000000-0000-4000-8000-000000000206', 1, 'Mi primer cuento familiar ilustrado', 12, 'PUBLICADO', 'Escribe el inicio, nudo y desenlace de una linda historia de tu familia.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 -- CIENCIA Y TECNOLOGÍA 2.° (Ruta b0000000-0000-4000-8000-000000000003)
 INSERT INTO aprendizaje_actividad (id, tipo, creado_por) VALUES
@@ -172,7 +172,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000000000304', 'ac000000-0000-4000-8000-000000000304', 1, 'El suelo fértil y la siembra de la papa', 10, 'PUBLICADO', 'Compara la tierra de cultivo con la arena y descubre qué necesita una semilla para crecer.'),
   ('fa000000-0000-4000-8000-000000000305', 'ac000000-0000-4000-8000-000000000305', 1, 'La vicuña y la fauna de la puna', 10, 'PUBLICADO', 'Conoce cómo se abriga la vicuña en el frío extremo con su fina lana dorada.'),
   ('fa000000-0000-4000-8000-000000000306', 'ac000000-0000-4000-8000-000000000306', 1, 'Misión Guardián Verde: Protegemos nuestro río', 12, 'PUBLICADO', 'Diseña un plan escolar para no arrojar plásticos y cuidar el agua limpia.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 -- PERSONAL SOCIAL 2.° (Ruta b0000000-0000-4000-8000-000000000004)
 INSERT INTO aprendizaje_actividad (id, tipo, creado_por) VALUES
@@ -191,7 +191,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000000000404', 'ac000000-0000-4000-8000-000000000404', 1, 'Normas de amistad y respeto en el aula', 10, 'PUBLICADO', 'Construyamos acuerdos para jugar y aprender en paz y compañerismo.'),
   ('fa000000-0000-4000-8000-000000000405', 'ac000000-0000-4000-8000-000000000405', 1, 'Cuidamos la plaza y los espacios de todos', 10, 'PUBLICADO', 'Identifica acciones para mantener limpios los parques y banquetas.'),
   ('fa000000-0000-4000-8000-000000000406', 'ac000000-0000-4000-8000-000000000406', 1, 'El gran mural de nuestra memoria comunitaria', 12, 'PUBLICADO', 'Dibuja lo que más amas de tu pueblo para compartirlo con tu escuela.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 -- ARTE Y CULTURA 2.° (Ruta b0000000-0000-4000-8000-000000000005)
 INSERT INTO aprendizaje_actividad (id, tipo, creado_por) VALUES
@@ -210,7 +210,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000000000504', 'ac000000-0000-4000-8000-000000000504', 1, 'Sonidos del charango, zampoña y quena', 10, 'PUBLICADO', 'Reconoce las melodías dulces del viento y las cuerdas andinas.'),
   ('fa000000-0000-4000-8000-000000000505', 'ac000000-0000-4000-8000-000000000505', 1, 'Danza de las Tijeras: Agilidad y destreza', 10, 'PUBLICADO', 'Imita los pasos firmes y saltos que rinden tributo a las montañas.'),
   ('fa000000-0000-4000-8000-000000000506', 'ac000000-0000-4000-8000-000000000506', 1, 'Nuestra galería escolar de arte tradicional', 12, 'PUBLICADO', 'Presenta tu obra terminada y comparte qué sentiste al crearla.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 -- MATEMÁTICA 3.° (Ruta b0000000-0000-4000-8000-000000000007)
 INSERT INTO aprendizaje_actividad (id, tipo, creado_por) VALUES
@@ -229,7 +229,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000000000704', 'ac000000-0000-4000-8000-000000000704', 1, 'La balanza mágica: Pesando papas y quinua en kilos', 10, 'PUBLICADO', 'Equilibra la balanza usando pesas de 1 kilo y medio kilo en el mercado.'),
   ('fa000000-0000-4000-8000-000000000705', 'ac000000-0000-4000-8000-000000000705', 1, 'Patrones numéricos en los nudos del quipu', 10, 'PUBLICADO', 'Descubre el número que falta en una secuencia de números de 5 en 5 y 10 en 10.'),
   ('fa000000-0000-4000-8000-000000000706', 'ac000000-0000-4000-8000-000000000706', 1, 'Gran desafío del arquitecto Wari', 15, 'PUBLICADO', 'Resuelve el gran problema de construcción combinando multiplicación y geometría.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 -- ============================================================================
 -- 6. PARADAS / NODOS EN ZIGZAG PARA CADA RUTA (X, Y)

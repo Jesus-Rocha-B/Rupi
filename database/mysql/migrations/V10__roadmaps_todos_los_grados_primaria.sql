@@ -247,7 +247,7 @@ INSERT INTO curriculo_contexto_cultural (
    'Entre arcos coloniales y jardines floridos, comenzamos nuestra travesía escolar con la alegría de Rupi.',
    '¡Bienvenido a primaria! Cada número es una estrella que ilumina tu camino.',
    '/images/ayacucho-plaza.jpg', 'Alameda de Huamanga', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -258,7 +258,7 @@ INSERT INTO curriculo_contexto_cultural (
    'El agua cristalina que baja de las cumbres canta melodías suaves que nos invitan a leer y jugar con las palabras.',
    '¡Tus primeras palabras tienen la fuerza y belleza del río andino!',
    '/images/ayacucho-plaza.jpg', 'Río Cachi', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -269,7 +269,7 @@ INSERT INTO curriculo_contexto_cultural (
    'Con lupa en mano, descubrimos los colores de las flores, el canto de las aves y las texturas de las hojas.',
    '¡Tus ojos curiosos son el instrumento más valioso de la ciencia!',
    '/images/ayacucho-plaza.jpg', 'Jardín Escolar', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -280,7 +280,7 @@ INSERT INTO curriculo_contexto_cultural (
    'En este abrigo rocoso habitaron los primeros peruanos hace más de doce mil años, dejando huellas de sus vivencias.',
    '¡Cada historia que lees te conecta con la memoria viva de nuestros ancestros!',
    '/images/ayacucho-plaza.jpg', 'Pikimachay', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -291,7 +291,7 @@ INSERT INTO curriculo_contexto_cultural (
    'Los antiguos molinos de piedra aprovechaban la corriente del río para moler granos de maíz y trigo sin contaminar.',
    '¡Investiga con rigor y descubre la física oculta en la vida cotidiana!',
    '/images/ayacucho-plaza.jpg', 'Río Alameda', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -302,7 +302,7 @@ INSERT INTO curriculo_contexto_cultural (
    'Campesinos y alfareros comparten sus productos en canastas de carrizo y balanzas de bronce.',
    '¡Las fracciones son el arte de repartir con justicia y hermandad!',
    '/images/ayacucho-plaza.jpg', 'Feria Tradicional de Quinua', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -313,7 +313,7 @@ INSERT INTO curriculo_contexto_cultural (
    'Libros centenarios y periódicos antiguos nos muestran cómo la palabra escrita transforma y educa a los pueblos.',
    '¡Leer con atención te abre las puertas del conocimiento y la libertad!',
    '/images/ayacucho-plaza.jpg', 'Biblioteca Municipal de Ayacucho', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -324,7 +324,7 @@ INSERT INTO curriculo_contexto_cultural (
    'En la inmensa meseta andina, a más de cuatro mil metros de altura, las vicuñas pastan protegidas por la comunidad.',
    '¡Cuidar la biodiversidad es preservar el corazón vivo del Perú!',
    '/images/ayacucho-plaza.jpg', 'Reserva Nacional Pampa Galeras', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -335,7 +335,7 @@ INSERT INTO curriculo_contexto_cultural (
    'La pirámide del Ushnu domina el valle con terrazas simétricas que desafían al tiempo.',
    '¡La precisión matemática de nuestros antepasados vive en tu mente despierta!',
    '/images/ayacucho-plaza.jpg', 'Templo del Sol y la Luna', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -346,7 +346,7 @@ INSERT INTO curriculo_contexto_cultural (
    'En los salones históricos ayacuchanos se debatieron los ideales de justicia y emancipación de nuestra república.',
    '¡Defender tus ideas con argumentos razonados te convierte en un ciudadano valioso!',
    '/images/ayacucho-plaza.jpg', 'Casona Boza y Solís', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -357,7 +357,7 @@ INSERT INTO curriculo_contexto_cultural (
    'La quinua, la kiwicha y la cañihua nutrieron a generaciones con proteínas completas y minerales insustituibles.',
    '¡Conocer tu cuerpo y alimentarlo con sabiduría andina te da energía infinita!',
    '/images/ayacucho-plaza.jpg', 'Valle del Pampas', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -368,7 +368,7 @@ INSERT INTO curriculo_contexto_cultural (
    'Desde las cumbres más altas donde vuela el cóndor, se contemplan los seis años de esfuerzo y crecimiento.',
    '¡Has llegado a la cima de la primaria! Vuela alto como las aves sagradas del Perú.',
    '/images/ayacucho-plaza.jpg', 'Cañón de Huancaraylla', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -379,7 +379,7 @@ INSERT INTO curriculo_contexto_cultural (
    'Poetas, actores y oradores comparten historias que conmueven el corazón y despiertan la conciencia del pueblo.',
    '¡Tu voz y tu pluma son herramientas poderosas para transformar el porvenir!',
    '/images/ayacucho-plaza.jpg', 'Teatro Municipal de Ayacucho', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 INSERT INTO curriculo_contexto_cultural (
   id, ruta_id, codigo, ciudad, lugar, titulo, descripcion, mensaje_animo,
@@ -390,7 +390,7 @@ INSERT INTO curriculo_contexto_cultural (
    'Desde sus cumbres nevadas bajan las aguas que dan vida a Huanta, recordándonos la urgencia de frenar el cambio climático.',
    '¡El futuro del planeta y de nuestras montañas está en tus manos científicas!',
    '/images/ayacucho-plaza.jpg', 'Nevado Razuhuillca', 'MINCETUR / MinCul', 'PromPerú', 'CC BY-SA 4.0', 'https://rupi.pe')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
+ON DUPLICATE KEY UPDATE ciudad = VALUES(ciudad), lugar = VALUES(lugar), titulo = VALUES(titulo), descripcion = VALUES(descripcion), mensaje_animo = VALUES(mensaje_animo);
 
 -- ============================================================================
 -- 3. ACTIVIDADES DIDÁCTICAS, VERSIONES Y PARADAS EN ZIGZAG (NODOS)
@@ -415,7 +415,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000001010004', 'ac000000-0000-4000-8000-000001010004', 1, 'Contamos hasta el 10 con deditos y piedras', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000001010005', 'ac000000-0000-4000-8000-000001010005', 1, 'Patrones con flores rojas y amarillas', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000001010006', 'ac000000-0000-4000-8000-000001010006', 1, 'El gran reto del conteo en la huerta', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000001010001', 'b0000000-0000-4000-8000-000000000101', 'fa000000-0000-4000-8000-000001010001', 'd2000000-0000-4000-8000-000000000101', 1, FALSE, 50, 18),
@@ -484,7 +484,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000001020004', 'ac000000-0000-4000-8000-000001020004', 1, 'Rimas divertidas con animales del campo', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000001020005', 'ac000000-0000-4000-8000-000001020005', 1, 'Palabras mágicas: Mamá y Papá', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000001020006', 'ac000000-0000-4000-8000-000001020006', 1, 'Mi primer pregón escolar rimado', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000001020001', 'b0000000-0000-4000-8000-000000000102', 'fa000000-0000-4000-8000-000001020001', 'd2000000-0000-4000-8000-000000000102', 1, FALSE, 50, 18),
@@ -553,7 +553,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000001030004', 'ac000000-0000-4000-8000-000001030004', 1, 'Mis manos: Tocando lo suave y lo áspero', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000001030005', 'ac000000-0000-4000-8000-000001030005', 1, 'Cuidando las plantas de nuestro biohuerto', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000001030006', 'ac000000-0000-4000-8000-000001030006', 1, 'Pequeño detective del ambiente escolar', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000001030001', 'b0000000-0000-4000-8000-000000000103', 'fa000000-0000-4000-8000-000001030001', 'd2000000-0000-4000-8000-000000000103', 1, FALSE, 50, 18),
@@ -622,7 +622,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000003020004', 'ac000000-0000-4000-8000-000003020004', 1, 'Estructura narrativa: Inicio, nudo y desenlace', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000003020005', 'ac000000-0000-4000-8000-000003020005', 1, 'Uso del punto seguido, aparte y final', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000003020006', 'ac000000-0000-4000-8000-000003020006', 1, 'Redactando una fábula con moraleja comunitaria', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000003020001', 'b0000000-0000-4000-8000-000000000302', 'fa000000-0000-4000-8000-000003020001', 'd2000000-0000-4000-8000-000000000302', 1, FALSE, 50, 18),
@@ -691,7 +691,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000003030004', 'ac000000-0000-4000-8000-000003030004', 1, 'La luz solar y las sombras en el reloj andino', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000003030005', 'ac000000-0000-4000-8000-000003030005', 1, 'El ciclo del agua y el cuidado de los manantiales', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000003030006', 'ac000000-0000-4000-8000-000003030006', 1, 'Proyecto escolar: Cocina solar con cartón y espejo', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000003030001', 'b0000000-0000-4000-8000-000000000303', 'fa000000-0000-4000-8000-000003030001', 'd2000000-0000-4000-8000-000000000303', 1, FALSE, 50, 18),
@@ -760,7 +760,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000004010004', 'ac000000-0000-4000-8000-000004010004', 1, 'Cálculo de perímetros en canchas y parcelas', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000004010005', 'ac000000-0000-4000-8000-000004010005', 1, 'Área con cuadrículas: Superficie de telares', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000004010006', 'ac000000-0000-4000-8000-000004010006', 1, 'Desafío del comerciante justo en la feria de Quinua', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000004010001', 'b0000000-0000-4000-8000-000000000401', 'fa000000-0000-4000-8000-000004010001', 'd2000000-0000-4000-8000-000000000401', 1, FALSE, 50, 18),
@@ -829,7 +829,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000004020004', 'ac000000-0000-4000-8000-000004020004', 1, 'Uso de conectores lógicos de tiempo y causa', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000004020005', 'ac000000-0000-4000-8000-000004020005', 1, 'Ortografía: Reglas de acentuación de palabras agudas', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000004020006', 'ac000000-0000-4000-8000-000004020006', 1, 'Creación de un boletín escolar sobre nuestra comunidad', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000004020001', 'b0000000-0000-4000-8000-000000000402', 'fa000000-0000-4000-8000-000004020001', 'd2000000-0000-4000-8000-000000000402', 1, FALSE, 50, 18),
@@ -898,7 +898,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000004030004', 'ac000000-0000-4000-8000-000004030004', 1, 'La fotosíntesis: Fábrica de oxígeno y glucosa', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000004030005', 'ac000000-0000-4000-8000-000004030005', 1, 'El rol de los bofedales en la reserva de agua', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000004030006', 'ac000000-0000-4000-8000-000004030006', 1, 'Misión Guardián de la Pampa: Plan de conservación', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000004030001', 'b0000000-0000-4000-8000-000000000403', 'fa000000-0000-4000-8000-000004030001', 'd2000000-0000-4000-8000-000000000403', 1, FALSE, 50, 18),
@@ -967,7 +967,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000005010004', 'ac000000-0000-4000-8000-000005010004', 1, '¿Qué es el porcentaje? Descuentos en la tienda escolar', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000005010005', 'ac000000-0000-4000-8000-000005010005', 1, 'Interpretando gráficos de barras y tablas de frecuencias', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000005010006', 'ac000000-0000-4000-8000-000005010006', 1, 'El gran reto del presupuesto para el viaje escolar', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000005010001', 'b0000000-0000-4000-8000-000000000501', 'fa000000-0000-4000-8000-000005010001', 'd2000000-0000-4000-8000-000000000501', 1, FALSE, 50, 18),
@@ -1036,7 +1036,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000005020004', 'ac000000-0000-4000-8000-000005020004', 1, 'El uso de comillas y fuentes bibliográficas en citas', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000005020005', 'ac000000-0000-4000-8000-000005020005', 1, 'Declamación poética: Ritmo, entonación y sentimiento', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000005020006', 'ac000000-0000-4000-8000-000005020006', 1, 'Ensayo escolar: Cuidemos el patrimonio arqueológico', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000005020001', 'b0000000-0000-4000-8000-000000000502', 'fa000000-0000-4000-8000-000005020001', 'd2000000-0000-4000-8000-000000000502', 1, FALSE, 50, 18),
@@ -1105,7 +1105,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000005030004', 'ac000000-0000-4000-8000-000005030004', 1, 'Valor nutricional de la quinua, kiwicha y cañihua', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000005030005', 'ac000000-0000-4000-8000-000005030005', 1, 'La pirámide alimenticia y el plato del buen comer', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000005030006', 'ac000000-0000-4000-8000-000005030006', 1, 'Feria de la salud: Loncheras nutritivas sin octógonos', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000005030001', 'b0000000-0000-4000-8000-000000000503', 'fa000000-0000-4000-8000-000005030001', 'd2000000-0000-4000-8000-000000000503', 1, FALSE, 50, 18),
@@ -1174,7 +1174,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000006010004', 'ac000000-0000-4000-8000-000006010004', 1, 'Probabilidad elemental: Sucesos seguros, posibles e imposibles', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000006010005', 'ac000000-0000-4000-8000-000006010005', 1, 'Promedio y mediana en el rendimiento escolar', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000006010006', 'ac000000-0000-4000-8000-000006010006', 1, 'Gran prueba de graduación: Retos matemáticos del Bicentenario', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000006010001', 'b0000000-0000-4000-8000-000000000601', 'fa000000-0000-4000-8000-000006010001', 'd2000000-0000-4000-8000-000000000601', 1, FALSE, 50, 18),
@@ -1243,7 +1243,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000006020004', 'ac000000-0000-4000-8000-000006020004', 1, 'Uso correcto de la tilde diacrítica en monosílabos', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000006020005', 'ac000000-0000-4000-8000-000006020005', 1, 'Cohesión textual: Elipsis y sustitución léxica', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000006020006', 'ac000000-0000-4000-8000-000006020006', 1, 'Discurso de graduación de primaria: Nuestro legado escolar', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000006020001', 'b0000000-0000-4000-8000-000000000602', 'fa000000-0000-4000-8000-000006020001', 'd2000000-0000-4000-8000-000000000602', 1, FALSE, 50, 18),
@@ -1312,7 +1312,7 @@ INSERT INTO aprendizaje_version_actividad (id, actividad_id, numero_version, tit
   ('fa000000-0000-4000-8000-000006030004', 'ac000000-0000-4000-8000-000006030004', 1, 'Biotecnología tradicional: Fermentación de la chicha de jora', 10, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000006030005', 'ac000000-0000-4000-8000-000006030005', 1, 'Gestión integral de residuos sólidos: Las 5 Erres ecológicas', 12, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.'),
   ('fa000000-0000-4000-8000-000006030006', 'ac000000-0000-4000-8000-000006030006', 1, 'Proyecto de investigación científica escolar: Reforestación con Queñuales', 15, 'PUBLICADO', 'Aprende y resuelve junto a Rupi.')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucciones);
 
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
   ('ca000000-0000-4000-8000-000006030001', 'b0000000-0000-4000-8000-000000000603', 'fa000000-0000-4000-8000-000006030001', 'd2000000-0000-4000-8000-000000000603', 1, FALSE, 50, 18),

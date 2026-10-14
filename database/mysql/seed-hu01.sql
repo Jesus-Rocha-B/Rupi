@@ -77,7 +77,7 @@ INSERT INTO aprendizaje_ruta (
   'MAT-2P-PLAZA',
   'Matemática: aventura en la plaza',
   'Recorrido de diez paradas por la Plaza Mayor de Ayacucho aprendiendo números, operaciones y patrones.'
-) ON DUPLICATE KEY UPDATE titulo = 'Matemática: aventura en la plaza';
+) ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), descripcion = VALUES(descripcion);
 
 INSERT INTO aprendizaje_version_ruta (
   id, ruta_id, version_catalogo_id, grado_id, area_id, numero_version, estado, publicado_en

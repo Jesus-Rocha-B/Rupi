@@ -160,7 +160,7 @@ export function RouteOverview({ route, name, badges = [], onSelect, onOpenBadges
                       type="button"
                       className="earned-badge-chip"
                       title={`${b.name}: ${b.description}`}
-                      onClick={() => onOpenBadges ? onOpenBadges() : speakText(`Insignia obtenida: ${b.name}. ${b.description}`)}
+                      onClick={() => onOpenBadges && onOpenBadges()}
                     >
                       {b.icon === 'feather' ? (
                         <Feather size={14} className="badge-chip-icon" aria-hidden="true" />

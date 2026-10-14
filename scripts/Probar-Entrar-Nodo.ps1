@@ -1,4 +1,6 @@
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 $loginRes = Invoke-RestMethod -Uri 'http://127.0.0.1:5173/api/v1/auth/login' `
     -Method Post `

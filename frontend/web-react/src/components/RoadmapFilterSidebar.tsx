@@ -220,7 +220,6 @@ export function RoadmapFilterSidebar({
       ...prev,
       grades: AVAILABLE_GRADES.map((g) => g.number),
     }))
-    speakText('Todos los grados de primaria seleccionados.')
   }
 
   // Manejador para toggle de área / materia
@@ -242,7 +241,6 @@ export function RoadmapFilterSidebar({
       query: '',
     }
     setFilters(defaultState)
-    speakText('Filtros restablecidos a tu grado y materia actual.')
   }
 
   const activeFiltersCount =
@@ -433,7 +431,6 @@ export function RoadmapFilterSidebar({
                           const num = parseInt(val, 10)
                           if (!isNaN(num)) {
                             setFilters((p) => ({ ...p, grades: [num] }))
-                            speakText(`${num} grado de primaria seleccionado.`)
                           }
                         }
                       }}

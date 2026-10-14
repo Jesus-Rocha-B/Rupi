@@ -187,11 +187,9 @@ export function StudentBadgesModal({
             {displayCatalog.map((b) => {
               const isEarned = earnedCodes.has(b.code)
               return (
-                <button
+                <article
                   key={b.code}
-                  type="button"
                   className={`badge-item-card ${isEarned ? 'unlocked' : 'locked'}`}
-                  onClick={() => handleBadgeClick(b, isEarned)}
                   aria-label={`${b.name}: ${isEarned ? 'Insignia obtenida' : 'Insignia por descubrir'}`}
                 >
                   <div className="badge-item-icon-box" aria-hidden="true">
@@ -208,7 +206,18 @@ export function StudentBadgesModal({
                     )}
                   </div>
                   <div className="badge-item-details">
-                    <h4 className="badge-item-name">{b.name}</h4>
+                    <div className="badge-title-row">
+                      <h4 className="badge-item-name">{b.name}</h4>
+                      <button
+                        type="button"
+                        className="badge-listen-btn"
+                        onClick={() => handleBadgeClick(b, isEarned)}
+                        title="Escuchar detalle"
+                        aria-label={`Escuchar detalle de ${b.name}`}
+                      >
+                        <Volume2 size={15} aria-hidden="true" />
+                      </button>
+                    </div>
                     <p className="badge-item-desc">{b.description}</p>
                     <span className={`badge-status-chip ${isEarned ? 'earned' : 'pending'}`}>
                       {isEarned ? (
@@ -222,7 +231,7 @@ export function StudentBadgesModal({
                       )}
                     </span>
                   </div>
-                </button>
+                </article>
               )
             })}
           </div>

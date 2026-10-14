@@ -166,7 +166,6 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
   }
 
   const handleNodeInteraction = (node: RouteNode) => {
-    speakText(`Parada ${node.sequence}: ${node.title}. ${nodeStateLabels[node.state]}`)
     onSelectNode(node)
   }
 

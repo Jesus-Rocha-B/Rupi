@@ -131,12 +131,10 @@ export function GradeSelectView({
   function handleGradeClick(grade: PrimaryGradeOption) {
     setNotice(null)
     setSelectedGradeNumber(grade.number)
-    speakText(`Has elegido ${grade.title}. Tienes rutas escolares activas en tus materias. Elige tu curso para continuar con Rupi.`)
   }
 
   function handleCourseClick(course: CourseOption) {
     if (!selectedGradeNumber) return
-    speakText(`Ingresando a ${course.name} de ${selectedGradeObj?.title}. ¡Vamos a aprender!`)
     onSelectGradeAndCourse(selectedGradeNumber, course.code)
   }
 

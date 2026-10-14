@@ -344,12 +344,46 @@
   flex: 1;
 }
 
+.badge-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .badge-item-name {
   margin: 0;
   font-size: 0.95rem;
   font-weight: 900;
   color: #173e30;
   line-height: 1.25;
+}
+
+.badge-listen-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 8px;
+  border: 1.5px solid #173e30;
+  background-color: #f4faee;
+  color: #173e30;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #173e30;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.1s ease;
+}
+
+.badge-listen-btn:hover {
+  background-color: #ffd26a;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #173e30;
+}
+
+.badge-listen-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #173e30;
 }
 
 .badge-item-desc {

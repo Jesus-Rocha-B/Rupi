@@ -104,7 +104,6 @@ export function JoinClassModal({ isOpen, onClose, onJoined }: JoinClassModalProp
       const msg = 'El código de clase debe tener al menos 3 letras o números.'
       setStatus('error')
       setErrorMessage(msg)
-      speakText(msg)
       inputRef.current?.focus()
       return
     }
@@ -116,11 +115,6 @@ export function JoinClassModal({ isOpen, onClose, onJoined }: JoinClassModalProp
       const result = await joinRouteByCode(trimmed)
       setSuccessResult(result)
       setStatus('success')
-
-      const speechMessage = result.alreadyEnrolled
-        ? `¡Ya estás en esta clase! Te llevamos a tu ruta escolar de ${result.routeTitle}.`
-        : `¡Bienvenido a tu clase! Te has unido a ${result.routeTitle}. ¡A explorar!`
-      speakText(speechMessage)
 
       // Redirección suave al mapa interactivo tras breve confirmación
       redirectTimerRef.current = window.setTimeout(() => {
@@ -134,7 +128,6 @@ export function JoinClassModal({ isOpen, onClose, onJoined }: JoinClassModalProp
           ? err.message
           : 'No se pudo verificar el código de clase. Revisa tu conexión a internet.'
       setErrorMessage(msg)
-      speakText(msg)
       inputRef.current?.focus()
     }
   }

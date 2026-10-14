@@ -90,7 +90,6 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
 
   function handleSelectCourseCharacter(index: number) {
     setCourseIndex(index)
-    speakText(RUPI_COURSES[index].phrase)
   }
 
   function handleRupiCheer() {
