@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Award,
-  Bird,
   BookOpen,
   Calculator,
   Check,
@@ -53,12 +52,15 @@ import { GradeSelectView } from './features/auth/GradeSelectView'
 import { RupiCharacter } from './components/RupiCharacter'
 import { ActivityBlocks } from './features/roadmap/ActivityBlocks'
 import { StudentBadgesModal } from './components/StudentBadgesModal'
-import { RoadmapSearchBar } from './components/RoadmapSearchBar'
-import { RoadmapFilterSidebar } from './components/RoadmapFilterSidebar'
 import { JoinClassModal } from './components/JoinClassModal'
 import { TeacherAuthoringView } from './features/teacher/TeacherAuthoringView'
+import { StudentAvatar } from './components/StudentAvatar'
+import { ExploreRoadmapsView } from './features/roadmap/ExploreRoadmapsView'
+import { StudentProfileView } from './features/profile/StudentProfileView'
 import { speakText } from './utils/speech'
 import './App.css'
+
+export type AppView = 'camino' | 'explorar' | 'perfil'
 
 
 const guideMessages = [
@@ -90,6 +92,7 @@ function App() {
   const [highlightBadge, setHighlightBadge] = useState<BadgeDto | null>(null)
   const [joinModalOpen, setJoinModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [currentView, setCurrentView] = useState<AppView>('camino')
   const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview'>('authoring')
 
   const [errorType, setErrorType] = useState<Failure>(null)
@@ -516,47 +519,60 @@ function App() {
         </a>
         <div className="school-label">MI ESPACIO</div>
         <nav className="main-nav" aria-label="Navegación principal">
-          <a className="nav-item selected" href="#main-content" aria-current="page">
-            <House aria-hidden="true" />Mi aula
-          </a>
-          <a className="nav-item" href="#mis-rutas">
-            <Compass aria-hidden="true" />Mis aventuras
-          </a>
           <button
             type="button"
-            className="nav-item"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', fontFamily: 'inherit' }}
-            onClick={() => handleOpenBadges()}
-            aria-label="Abrir vitrina de insignias de perfil"
-            title="Ver mis insignias escolares"
+            className={`nav-item ${currentView === 'camino' ? 'selected' : ''}`}
+            onClick={() => setCurrentView('camino')}
+            aria-current={currentView === 'camino' ? 'page' : undefined}
           >
-            <Award aria-hidden="true" />Mis insignias
+            <House aria-hidden="true" />
+            <span>Mi Camino</span>
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${currentView === 'explorar' ? 'selected' : ''}`}
+            onClick={() => setCurrentView('explorar')}
+            aria-current={currentView === 'explorar' ? 'page' : undefined}
+          >
+            <Compass aria-hidden="true" />
+            <span>Explorar Roadmaps</span>
+            <span className="nav-badge-pill">Oficial y Comunidad</span>
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${currentView === 'perfil' ? 'selected' : ''}`}
+            onClick={() => setCurrentView('perfil')}
+            aria-current={currentView === 'perfil' ? 'page' : undefined}
+            title="Ver mi perfil e insignias escolares"
+          >
+            <Award aria-hidden="true" />
+            <span>Mi Perfil</span>
+            {badges.length > 0 && (
+              <span className="nav-badge-count">{badges.length}</span>
+            )}
           </button>
         </nav>
         <div className="sidebar-bottom">
-          <div className="help-bubble">
-            ¿Necesitas otra ruta?
-            <br />
-            <span>Consulta con tu docente.</span>
-            <div className="help-face">
-              <Bird aria-hidden="true" />
-            </div>
-          </div>
           <div className="profile-top-group">
-            <div
-              className="profile-student-card"
-              title={`Estudiante: ${student.name} · ${student.schoolName || student.institutionName || 'I.E. 38001 Mariscal Sucre'}`}
+            <button
+              type="button"
+              className={`profile-student-card ${currentView === 'perfil' ? 'active-profile' : ''}`}
+              onClick={() => setCurrentView('perfil')}
+              title={`Ver perfil e insignias de ${student.name}`}
             >
-              <span className="avatar small" aria-hidden="true">
-                {student.name.charAt(0)}
-              </span>
+              <StudentAvatar
+                name={student.name}
+                role={student.role}
+                size="sm"
+                showBadge
+              />
               <span className="profile-text-col">
                 <b className="profile-student-name">{student.name}</b>
                 <small className="profile-school-name">
                   {student.schoolName || student.institutionName || 'I.E. 38001 Mariscal Sucre'}
                 </small>
               </span>
-            </div>
+            </button>
             <button
               className="profile-logout-btn"
               type="button"
@@ -565,7 +581,7 @@ function App() {
               aria-label={`Cerrar sesión de ${student.name}`}
               title="Cerrar sesión"
             >
-              <LogOut size={15} aria-hidden="true" />
+              <LogOut size={16} aria-hidden="true" />
               <span>Salir</span>
             </button>
           </div>
@@ -593,363 +609,352 @@ function App() {
           </div>
         )}
 
-        <section className="course-heading" aria-labelledby="course-title">
-          <div className="course-heading-layout">
-            <div className="course-heading-main">
-              <span className="eyebrow">Tu espacio para descubrir</span>
-              <h1 id="course-title">Mi ruta de aprendizaje</h1>
-              <p className="course-subtitle">Un mundo por aprender. A tu propio ritmo.</p>
-            </div>
-            <div className="course-heading-meta">
-              <span className="current-grade-badge">
-                <GraduationCap size={16} aria-hidden="true" />
-                <span>{`${selectedGrade}.° de primaria · ${getCourseLabel(selectedCourse)}`}</span>
-              </span>
-              <div className="course-heading-actions">
-                <button
-                  type="button"
-                  className="change-grade-btn"
-                  onClick={() => {
-                    setSelectedCourse(null)
-                    localStorage.removeItem('rupi_selected_course')
-                  }}
-                  title="Cambiar de materia"
-                  aria-label="Cambiar de materia escolar"
-                >
-                  <BookOpen size={15} aria-hidden="true" />
-                  <span>Cambiar materia</span>
-                </button>
-                <button
-                  type="button"
-                  className="change-grade-btn"
-                  onClick={() => {
-                    setSelectedGrade(null)
-                    setSelectedCourse(null)
-                    localStorage.removeItem('rupi_selected_grade')
-                    localStorage.removeItem('rupi_selected_course')
-                  }}
-                  title="Cambiar de grado de primaria"
-                  aria-label="Cambiar de grado de primaria"
-                >
-                  <GraduationCap size={15} aria-hidden="true" />
-                  <span>Cambiar grado</span>
-                </button>
-                <button
-                  type="button"
-                  className="change-grade-btn join-code-btn"
-                  onClick={() => setJoinModalOpen(true)}
-                  title="Unirme a un roadmap con código de clase docente"
-                  aria-label="Ingresar código de clase docente"
-                >
-                  <KeyRound size={15} aria-hidden="true" />
-                  <span>Código de clase</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Barra de búsqueda rápida de roadmaps alternativos por materia (HU-09) */}
-        <RoadmapSearchBar
-          currentGrade={selectedGrade}
-          onSelectRoute={(versionRouteId, areaCode) => {
-            if (areaCode) {
-              const code = areaCode.toUpperCase()
-              if (code.includes('COM')) {
-                handleSelectGradeAndCourse(selectedGrade, 'COMUNICACION')
-              } else if (code.includes('CYT')) {
-                handleSelectGradeAndCourse(selectedGrade, 'CYT')
-              } else if (code.includes('MAT')) {
-                handleSelectGradeAndCourse(selectedGrade, 'MATEMATICA')
+        {/* Pantalla 1: Explorar Roadmaps (Oficial CNEB 1.°-6.° vs Comunidad/Profesores) */}
+        {currentView === 'explorar' && (
+          <ExploreRoadmapsView
+            currentGrade={selectedGrade}
+            currentCourse={selectedCourse}
+            enrolledRoutes={routes}
+            onSelectRoute={(versionRouteId, gradeNumber, areaCode) => {
+              if (gradeNumber) setSelectedGrade(gradeNumber)
+              if (areaCode) {
+                const code = areaCode.toUpperCase()
+                if (code.includes('COM')) setSelectedCourse('COMUNICACION')
+                else if (code.includes('CYT')) setSelectedCourse('CYT')
+                else if (code.includes('MAT')) setSelectedCourse('MATEMATICA')
               }
-            }
-            setRouteId(versionRouteId)
-          }}
-        />
-
-        {/* Panel lateral / drawer de filtros avanzados por grado y materia (HU-10) */}
-        <RoadmapFilterSidebar
-          currentGrade={selectedGrade}
-          currentCourse={selectedCourse}
-          onSelectRoute={(versionRouteId, gradeNumber, areaCode) => {
-            const code = areaCode.toUpperCase()
-            const courseCode = code.includes('COM')
-              ? 'COMUNICACION'
-              : code.includes('CYT')
-              ? 'CYT'
-              : code.includes('MAT')
-              ? 'MATEMATICA'
-              : selectedCourse || 'MATEMATICA'
-            handleSelectGradeAndCourse(gradeNumber, courseCode)
-            setRouteId(versionRouteId)
-          }}
-        />
-
-        {/* Barra interactiva de cambio de materia escolar:
-            Permite alternar entre Comunicación, Matemática y CYT en todo momento */}
-        <nav className="course-switch-bar" aria-label="Cambiar de materia">
-          <button
-            type="button"
-            className={`course-switch-tab ${selectedCourse === 'COMUNICACION' ? 'active comunicacion' : ''}`}
-            onClick={() => handleSelectGradeAndCourse(selectedGrade, 'COMUNICACION')}
-            aria-pressed={selectedCourse === 'COMUNICACION'}
-            title="Cambiar a Comunicación"
-          >
-            <BookOpen size={16} aria-hidden="true" />
-            <span>Comunicación</span>
-            {routes.some(r => (r.area.code === 'COM' || r.area.code.includes('COM')) && (selectedGrade == null || r.grade.number === selectedGrade)) ? (
-              <span className="tab-status-pill active" title="Roadmap activo">
-                <Sparkles size={11} aria-hidden="true" />
-                <span>Mapa activo</span>
-              </span>
-            ) : (
-              <span className="tab-status-pill locked" title="Sin roadmap activo">
-                <Lock size={11} aria-hidden="true" />
-                <span>Sin mapa</span>
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            className={`course-switch-tab ${selectedCourse === 'MATEMATICA' ? 'active matematica' : ''}`}
-            onClick={() => handleSelectGradeAndCourse(selectedGrade, 'MATEMATICA')}
-            aria-pressed={selectedCourse === 'MATEMATICA'}
-            title="Cambiar a Matemática"
-          >
-            <Calculator size={16} aria-hidden="true" />
-            <span>Matemática</span>
-            {routes.some(r => (r.area.code === 'MAT' || r.area.code.includes('MAT')) && (selectedGrade == null || r.grade.number === selectedGrade)) ? (
-              <span className="tab-status-pill active" title="Roadmap activo">
-                <Sparkles size={11} aria-hidden="true" />
-                <span>Mapa activo</span>
-              </span>
-            ) : (
-              <span className="tab-status-pill locked" title="Sin roadmap activo">
-                <Lock size={11} aria-hidden="true" />
-                <span>Sin mapa</span>
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            className={`course-switch-tab ${selectedCourse === 'CYT' ? 'active cyt' : ''}`}
-            onClick={() => handleSelectGradeAndCourse(selectedGrade, 'CYT')}
-            aria-pressed={selectedCourse === 'CYT'}
-            title="Cambiar a Ciencia y Tecnología"
-          >
-            <FlaskConical size={16} aria-hidden="true" />
-            <span>Ciencia y Tecnología</span>
-            {routes.some(r => (r.area.code === 'CYT' || r.area.code.includes('CYT')) && (selectedGrade == null || r.grade.number === selectedGrade)) ? (
-              <span className="tab-status-pill active" title="Roadmap activo">
-                <Sparkles size={11} aria-hidden="true" />
-                <span>Mapa activo</span>
-              </span>
-            ) : (
-              <span className="tab-status-pill locked" title="Sin roadmap activo">
-                <Lock size={11} aria-hidden="true" />
-                <span>Sin mapa</span>
-              </span>
-            )}
-          </button>
-        </nav>
-
-        {/* CASO A: Roadmap Habilitado para la materia y grado */}
-        {isRoadmapAvailable && (
-          <>
-            {routes.length > 1 && (
-              <section id="mis-rutas" className="route-picker" aria-label="Rutas inscritas">
-                <label htmlFor="route-select">Mis aventuras inscritas</label>
-                <select
-                  id="route-select"
-                  value={selectedRoute?.versionRouteId ?? routeId}
-                  disabled={loading || sessionBusy}
-                  onChange={event => {
-                    resetView()
-                    setRouteId(event.target.value)
-                  }}
-                >
-                  {!selectedRoute && !routeId && <option value="" disabled>Cargando ruta…</option>}
-                  {routes.map(route => (
-                    <option key={route.versionRouteId} value={route.versionRouteId}>
-                      {route.grade.name} · {route.area.name} · {route.title} ({route.completedNodes}/{route.totalNodes})
-                    </option>
-                  ))}
-                </select>
-              </section>
-            )}
-
-            {selectedRoute && (
-              <RouteOverview
-                route={selectedRoute}
-                name={student.name}
-                badges={badges}
-                onSelect={handleOpenNode}
-                onOpenBadges={() => handleOpenBadges()}
-              />
-            )}
-
-            {errorType === 'NETWORK' && (
-              <section className="status-panel" role="alert">
-                <div className="status-panel-icon error">
-                  <AlertTriangle aria-hidden="true" />
-                </div>
-                <h2>No pudimos consultar tu progreso</h2>
-                <p>Tu avance sigue guardado. Espera un momento y vuelve a intentarlo.</p>
-                <button className="status-action-btn" onClick={retry}>
-                  <RefreshCw aria-hidden="true" />Reintentar
-                </button>
-              </section>
-            )}
-
-            {errorType === 'NOT_FOUND' && (
-              <section className="status-panel" role="alert">
-                <h2>Esta ruta ya no está disponible</h2>
-                <p>Puede haber cambiado tu inscripción. Consulta tus rutas de nuevo.</p>
-                <button
-                  className="status-action-btn"
-                  onClick={() => {
-                    resetView()
-                    setRouteId('')
-                    setReloadKey(value => value + 1)
-                  }}
-                >
-                  Volver a mis rutas
-                </button>
-              </section>
-            )}
-
-            {errorType === 'EMPTY' && (
-              <section className="status-panel" role="status">
-                <div className="status-panel-icon empty">
-                  <Inbox aria-hidden="true" />
-                </div>
-                <h2>Aún no tienes rutas asignadas</h2>
-                <p>Pide a tu docente que te inscriba en una ruta para comenzar tu aventura.</p>
-                <button className="status-action-btn" onClick={retry}>
-                  <RefreshCw aria-hidden="true" />Consultar mis inscripciones
-                </button>
-              </section>
-            )}
-
-            {selectedRoute && (
-              selectedRoute.nodes.length ? (
-                <div className="adventure-layout">
-                  <Roadmap
-                    route={selectedRoute}
-                    guideMessage={guideMessages[guideIndex]}
-                    onGuideClick={() => setGuideIndex(index => (index + 1) % guideMessages.length)}
-                    onSelectNode={handleOpenNode}
-                  />
-                  <RouteCompanion route={selectedRoute} onSelect={handleOpenNode} />
-                </div>
-              ) : (
-                <section className="status-panel" role="status">
-                  <h2>Esta ruta aún no tiene actividades</h2>
-                  <p>Consulta con tu docente o selecciona otra ruta.</p>
-                </section>
-              )
-            )}
-          </>
+              resetView()
+              setRouteId(versionRouteId)
+              setCurrentView('camino')
+            }}
+            onOpenJoinModal={() => setJoinModalOpen(true)}
+          />
         )}
 
-        {/* CASO B: Sin roadmap directo para la materia y grado */}
-        {!isRoadmapAvailable && (
-          <section className="course-locked-panel" role="region" aria-labelledby="locked-course-title">
-            <div className="course-locked-card">
-              <div className="course-locked-mascot" aria-hidden="true">
-                <RupiCharacter
-                  role={
-                    selectedCourse === 'COMUNICACION'
-                      ? 'reader'
-                      : selectedCourse === 'CYT'
-                      ? 'scientist'
-                      : 'mathematician'
-                  }
-                  mood="thinking"
-                  className="locked-rupi-svg"
-                />
-              </div>
+        {/* Pantalla 2: Mi Perfil Escolar e Insignias Integradas */}
+        {currentView === 'perfil' && (
+          <StudentProfileView
+            student={student}
+            currentGrade={selectedGrade}
+            earnedBadges={badges}
+            enrolledRoutes={routes}
+            onChangeGrade={() => {
+              setSelectedGrade(null)
+              setSelectedCourse(null)
+              localStorage.removeItem('rupi_selected_grade')
+              localStorage.removeItem('rupi_selected_course')
+            }}
+            onOpenJoinModal={() => setJoinModalOpen(true)}
+            onLogout={() => void handleLogout()}
+          />
+        )}
 
-              <div className="course-locked-content">
-                <div className="course-locked-tag">
-                  <Compass size={15} aria-hidden="true" />
-                  <span>EXPLORACIÓN ESCOLAR</span>
+        {/* Pantalla 3: Mi Camino (Mapa interactivo despejado y enfocado en la lección actual) */}
+        {currentView === 'camino' && (
+          <>
+            <section className="course-heading" aria-labelledby="course-title">
+              <div className="course-heading-layout">
+                <div className="course-heading-main">
+                  <span className="eyebrow">Tu espacio para descubrir</span>
+                  <h1 id="course-title">Mi ruta de aprendizaje</h1>
+                  <p className="course-subtitle">Un mundo por aprender. A tu propio ritmo.</p>
                 </div>
-
-                <h2 id="locked-course-title">
-                  Ruta en preparación para {selectedGrade ? `${selectedGrade}.° de primaria` : 'tu grado'} · {getCourseLabel(selectedCourse)}
-                </h2>
-
-                <p className="locked-course-desc">
-                  ¡Hola, {student.name}! Tu docente o tu escuela aún están estructurando el camino para esta materia.
-                  {routes.length > 0
-                    ? ` Ya cuentas con aventuras activas en ${routes.map(r => `${r.title} (${r.grade.name})`).join(', ')}.`
-                    : ' Puedes unirte a un roadmap con el código de 6 dígitos que te dé tu profesor.'}
-                </p>
-
-                <div className="course-locked-actions">
-                  {routes.length > 0 && (
+                <div className="course-heading-meta">
+                  <span className="current-grade-badge">
+                    <GraduationCap size={16} aria-hidden="true" />
+                    <span>{`${selectedGrade}.° de primaria · ${getCourseLabel(selectedCourse)}`}</span>
+                  </span>
+                  <div className="course-heading-actions">
                     <button
                       type="button"
-                      className="go-to-math-btn"
+                      className="change-grade-btn"
                       onClick={() => {
-                        const target = routes[0]
-                        const courseCode = target.area.code.includes('COM')
-                          ? 'COMUNICACION'
-                          : target.area.code.includes('CYT')
-                          ? 'CYT'
-                          : 'MATEMATICA'
-                        handleSelectGradeAndCourse(target.grade.number, courseCode)
+                        setSelectedCourse(null)
+                        localStorage.removeItem('rupi_selected_course')
                       }}
-                      title="Ir a mi ruta activa"
+                      title="Cambiar de materia"
+                      aria-label="Cambiar de materia escolar"
                     >
-                      <Compass size={18} aria-hidden="true" />
-                      <span>Ir a mi ruta: {routes[0].title}</span>
-                      <ArrowRight size={18} aria-hidden="true" />
+                      <BookOpen size={15} aria-hidden="true" />
+                      <span>Cambiar materia</span>
                     </button>
-                  )}
-
-                  <button
-                    type="button"
-                    className="join-code-cta-btn"
-                    onClick={() => setJoinModalOpen(true)}
-                    title="Ingresar código de clase docente"
-                  >
-                    <KeyRound size={16} aria-hidden="true" />
-                    <span>Tengo un código de clase</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="change-course-alt-btn"
-                    onClick={() => {
-                      setSelectedCourse(null)
-                      localStorage.removeItem('rupi_selected_course')
-                    }}
-                    title="Elegir otra materia"
-                  >
-                    <BookOpen size={16} aria-hidden="true" />
-                    <span>Elegir otra materia</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="locked-speech-btn"
-                    onClick={() => speakText(
-                      `Ruta en preparación para ${selectedGrade} grado de primaria en ${getCourseLabel(selectedCourse)}. Puedes ingresar un código de clase o explorar tus rutas activas con Rupi.`
-                    )}
-                    aria-label="Escuchar explicación de Rupi"
-                    title="Escuchar explicación"
-                  >
-                    <Volume2 size={18} aria-hidden="true" />
-                    <span>Escuchar</span>
-                  </button>
+                    <button
+                      type="button"
+                      className="change-grade-btn"
+                      onClick={() => {
+                        setSelectedGrade(null)
+                        setSelectedCourse(null)
+                        localStorage.removeItem('rupi_selected_grade')
+                        localStorage.removeItem('rupi_selected_course')
+                      }}
+                      title="Cambiar de grado de primaria"
+                      aria-label="Cambiar de grado de primaria"
+                    >
+                      <GraduationCap size={15} aria-hidden="true" />
+                      <span>Cambiar grado</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="change-grade-btn join-code-btn"
+                      onClick={() => setJoinModalOpen(true)}
+                      title="Unirme a un roadmap con código de clase docente"
+                      aria-label="Ingresar código de clase docente"
+                    >
+                      <KeyRound size={15} aria-hidden="true" />
+                      <span>Código de clase</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+
+            {/* Barra interactiva de cambio ágil de materia escolar */}
+            <nav className="course-switch-bar" aria-label="Cambiar de materia">
+              <button
+                type="button"
+                className={`course-switch-tab ${selectedCourse === 'COMUNICACION' ? 'active comunicacion' : ''}`}
+                onClick={() => handleSelectGradeAndCourse(selectedGrade, 'COMUNICACION')}
+                aria-pressed={selectedCourse === 'COMUNICACION'}
+                title="Cambiar a Comunicación"
+              >
+                <BookOpen size={16} aria-hidden="true" />
+                <span>Comunicación</span>
+                {routes.some(r => (r.area.code === 'COM' || r.area.code.includes('COM')) && (selectedGrade == null || r.grade.number === selectedGrade)) ? (
+                  <span className="tab-status-pill active" title="Roadmap activo">
+                    <Sparkles size={11} aria-hidden="true" />
+                    <span>Mapa activo</span>
+                  </span>
+                ) : (
+                  <span className="tab-status-pill locked" title="Sin roadmap activo">
+                    <Lock size={11} aria-hidden="true" />
+                    <span>Sin mapa</span>
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                className={`course-switch-tab ${selectedCourse === 'MATEMATICA' ? 'active matematica' : ''}`}
+                onClick={() => handleSelectGradeAndCourse(selectedGrade, 'MATEMATICA')}
+                aria-pressed={selectedCourse === 'MATEMATICA'}
+                title="Cambiar a Matemática"
+              >
+                <Calculator size={16} aria-hidden="true" />
+                <span>Matemática</span>
+                {routes.some(r => (r.area.code === 'MAT' || r.area.code.includes('MAT')) && (selectedGrade == null || r.grade.number === selectedGrade)) ? (
+                  <span className="tab-status-pill active" title="Roadmap activo">
+                    <Sparkles size={11} aria-hidden="true" />
+                    <span>Mapa activo</span>
+                  </span>
+                ) : (
+                  <span className="tab-status-pill locked" title="Sin roadmap activo">
+                    <Lock size={11} aria-hidden="true" />
+                    <span>Sin mapa</span>
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                className={`course-switch-tab ${selectedCourse === 'CYT' ? 'active cyt' : ''}`}
+                onClick={() => handleSelectGradeAndCourse(selectedGrade, 'CYT')}
+                aria-pressed={selectedCourse === 'CYT'}
+                title="Cambiar a Ciencia y Tecnología"
+              >
+                <FlaskConical size={16} aria-hidden="true" />
+                <span>Ciencia y Tecnología</span>
+                {routes.some(r => (r.area.code === 'CYT' || r.area.code.includes('CYT')) && (selectedGrade == null || r.grade.number === selectedGrade)) ? (
+                  <span className="tab-status-pill active" title="Roadmap activo">
+                    <Sparkles size={11} aria-hidden="true" />
+                    <span>Mapa activo</span>
+                  </span>
+                ) : (
+                  <span className="tab-status-pill locked" title="Sin roadmap activo">
+                    <Lock size={11} aria-hidden="true" />
+                    <span>Sin mapa</span>
+                  </span>
+                )}
+              </button>
+            </nav>
+
+            {/* CASO A: Roadmap Habilitado para la materia y grado */}
+            {isRoadmapAvailable && (
+              <>
+                {selectedRoute && (
+                  <RouteOverview
+                    route={selectedRoute}
+                    name={student.name}
+                    badges={badges}
+                    onSelect={handleOpenNode}
+                    onOpenBadges={() => setCurrentView('perfil')}
+                  />
+                )}
+
+                {errorType === 'NETWORK' && (
+                  <section className="status-panel" role="alert">
+                    <div className="status-panel-icon error">
+                      <AlertTriangle aria-hidden="true" />
+                    </div>
+                    <h2>No pudimos consultar tu progreso</h2>
+                    <p>Tu avance sigue guardado. Espera un momento y vuelve a intentarlo.</p>
+                    <button className="status-action-btn" onClick={retry}>
+                      <RefreshCw aria-hidden="true" />Reintentar
+                    </button>
+                  </section>
+                )}
+
+                {errorType === 'NOT_FOUND' && (
+                  <section className="status-panel" role="alert">
+                    <h2>Esta ruta ya no está disponible</h2>
+                    <p>Puede haber cambiado tu inscripción. Consulta tus rutas de nuevo.</p>
+                    <button
+                      className="status-action-btn"
+                      onClick={() => {
+                        resetView()
+                        setRouteId('')
+                        setReloadKey(value => value + 1)
+                      }}
+                    >
+                      Volver a mis rutas
+                    </button>
+                  </section>
+                )}
+
+                {errorType === 'EMPTY' && (
+                  <section className="status-panel" role="status">
+                    <div className="status-panel-icon empty">
+                      <Inbox aria-hidden="true" />
+                    </div>
+                    <h2>Aún no tienes rutas asignadas</h2>
+                    <p>Pide a tu docente que te inscriba en una ruta para comenzar tu aventura.</p>
+                    <button className="status-action-btn" onClick={retry}>
+                      <RefreshCw aria-hidden="true" />Consultar mis inscripciones
+                    </button>
+                  </section>
+                )}
+
+                {selectedRoute && (
+                  selectedRoute.nodes.length ? (
+                    <div className="adventure-layout">
+                      <Roadmap
+                        route={selectedRoute}
+                        guideMessage={guideMessages[guideIndex]}
+                        onGuideClick={() => setGuideIndex(index => (index + 1) % guideMessages.length)}
+                        onSelectNode={handleOpenNode}
+                      />
+                      <RouteCompanion route={selectedRoute} onSelect={handleOpenNode} />
+                    </div>
+                  ) : (
+                    <section className="status-panel" role="status">
+                      <h2>Esta ruta aún no tiene actividades</h2>
+                      <p>Consulta con tu docente o selecciona otra ruta en el catálogo.</p>
+                      <button
+                        type="button"
+                        className="status-action-btn"
+                        onClick={() => setCurrentView('explorar')}
+                      >
+                        <Compass size={16} aria-hidden="true" />
+                        <span>Ver catálogo de roadmaps</span>
+                      </button>
+                    </section>
+                  )
+                )}
+              </>
+            )}
+
+            {/* CASO B: Sin roadmap directo para la materia y grado */}
+            {!isRoadmapAvailable && (
+              <section className="course-locked-panel" role="region" aria-labelledby="locked-course-title">
+                <div className="course-locked-card">
+                  <div className="course-locked-mascot" aria-hidden="true">
+                    <RupiCharacter
+                      role={
+                        selectedCourse === 'COMUNICACION'
+                          ? 'reader'
+                          : selectedCourse === 'CYT'
+                          ? 'scientist'
+                          : 'mathematician'
+                      }
+                      mood="thinking"
+                      className="locked-rupi-svg"
+                    />
+                  </div>
+
+                  <div className="course-locked-content">
+                    <div className="course-locked-tag">
+                      <Compass size={15} aria-hidden="true" />
+                      <span>EXPLORACIÓN ESCOLAR</span>
+                    </div>
+
+                    <h2 id="locked-course-title">
+                      Ruta en preparación para {selectedGrade ? `${selectedGrade}.° de primaria` : 'tu grado'} · {getCourseLabel(selectedCourse)}
+                    </h2>
+
+                    <p className="locked-course-desc">
+                      ¡Hola, {student.name}! Tu docente o tu escuela aún están preparando el camino para esta materia.
+                      Puedes explorar el catálogo completo de roadmaps oficiales y de la comunidad, o unirte con el código que te dé tu profesor.
+                    </p>
+
+                    <div className="course-locked-actions">
+                      <button
+                        type="button"
+                        className="go-to-math-btn"
+                        onClick={() => setCurrentView('explorar')}
+                        title="Explorar roadmaps oficiales y de la comunidad"
+                      >
+                        <Compass size={18} aria-hidden="true" />
+                        <span>Explorar catálogo de roadmaps</span>
+                        <ArrowRight size={18} aria-hidden="true" />
+                      </button>
+
+                      {routes.length > 0 && (
+                        <button
+                          type="button"
+                          className="change-course-alt-btn"
+                          onClick={() => {
+                            const target = routes[0]
+                            const courseCode = target.area.code.includes('COM')
+                              ? 'COMUNICACION'
+                              : target.area.code.includes('CYT')
+                              ? 'CYT'
+                              : 'MATEMATICA'
+                            handleSelectGradeAndCourse(target.grade.number, courseCode)
+                          }}
+                          title="Ir a mi ruta activa"
+                        >
+                          <BookOpen size={16} aria-hidden="true" />
+                          <span>Volver a: {routes[0].title}</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        className="join-code-cta-btn"
+                        onClick={() => setJoinModalOpen(true)}
+                        title="Ingresar código de clase docente"
+                      >
+                        <KeyRound size={16} aria-hidden="true" />
+                        <span>Tengo un código de clase</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="locked-speech-btn"
+                        onClick={() => speakText(
+                          `Ruta en preparación para ${selectedGrade} grado de primaria en ${getCourseLabel(selectedCourse)}. Puedes explorar el catálogo de roadmaps o ingresar un código de clase.`
+                        )}
+                        aria-label="Escuchar explicación de Rupi"
+                        title="Escuchar explicación"
+                      >
+                        <Volume2 size={18} aria-hidden="true" />
+                        <span>Escuchar</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+          </>
         )}
 
         <footer className="page-footer">

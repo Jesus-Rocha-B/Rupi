@@ -65,21 +65,134 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 .brand-logo { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #ffffff; box-shadow: 0 0 0 3px #ffd26a, 0 3px 8px rgba(158, 71, 47, 0.25); }
 .brand-dot { color: var(--red); }
 .school-label { display: none; }
-.main-nav { display: flex; flex: 1; justify-content: center; gap: 5px; margin: 0 22px; }
-.nav-item { position: relative; display: flex; align-items: center; gap: 7px; min-height: 48px; padding: 10px 14px; border-radius: 12px; color: #778178; font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap; transition: background .18s,color .18s; }
-.nav-item:hover { background: #f7f2e8; color: #9e592d; }
-.nav-item.selected { background: #fff0e8; color: #a8402f; }
-.nav-item.selected::after { position: absolute; right: 12px; bottom: -9px; left: 12px; height: 3px; border-radius: 3px 3px 0 0; background: var(--red); content: ''; }
-.nav-item svg { width: 17px; height: 17px; flex: 0 0 17px; stroke-width: 1.9; }
+.main-nav { display: flex; flex: 1; justify-content: center; gap: 8px; margin: 0 16px; }
+.nav-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  color: #556c60;
+  font-size: 13px;
+  font-weight: 800;
+  font-family: inherit;
+  background: transparent;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.nav-item:hover {
+  background: #f4f8f5;
+  color: #173e30;
+  border-color: #d8e2dc;
+}
+.nav-item.selected {
+  background: #eef5f1;
+  color: #173e30;
+  border-color: #31724b;
+  box-shadow: 0 2px 0 #31724b;
+}
+.nav-item.selected svg {
+  color: #f95738;
+}
+.nav-badge-pill {
+  font-size: 10px;
+  font-weight: 800;
+  background: #ffd26a;
+  color: #173e30;
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: 2px;
+  border: 1px solid #173e30;
+}
+.nav-badge-count {
+  font-size: 11px;
+  font-weight: 900;
+  background: #f95738;
+  color: #ffffff;
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-left: 2px;
+}
 .sidebar-bottom { display: flex; flex: 0 0 auto; margin-left: auto; }
 .help-bubble { display: none; }
-.profile-button { display: flex; align-items: center; gap: 8px; width: auto; padding: 0; border: 0; background: transparent; color: #35463e; text-align: left; }
-.profile-button b,.profile-button small { display: block; }
-.profile-button b { font-size: 12px; }
-.profile-button small { margin-top: 2px; color: #899188; font-size: 10px; }
-.profile-button .dots { display: none; }
-.avatar { display: grid; width: 34px; height: 34px; place-items: center; border: 2px solid white; border-radius: 50%; background: #f3d49a; color: #665132; font-size: 13px; font-weight: 800; box-shadow: 0 0 0 1px #e7ebdf; }
-.avatar.small { width: 34px; height: 34px; }
+.profile-top-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.profile-student-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1.5px solid #d8e2dc;
+  box-shadow: 0 2px 0 #d8e2dc;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.15s ease;
+  min-height: 48px;
+}
+.profile-student-card:hover {
+  border-color: #31724b;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #31724b;
+}
+.profile-student-card:active, .profile-student-card.active-profile {
+  background-color: #f2f7f4;
+  border-color: #173e30;
+  box-shadow: 0 2px 0 #173e30;
+}
+.profile-text-col {
+  display: flex;
+  flex-direction: column;
+}
+.profile-student-name {
+  font-size: 13px;
+  font-weight: 900;
+  color: #173e30;
+  line-height: 1.2;
+}
+.profile-school-name {
+  font-size: 10px;
+  color: #63776b;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #fff0f0;
+  color: #c53030;
+  border: 1.5px solid #fed7d7;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 44px;
+  box-shadow: 0 2px 0 #feb2b2;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.profile-logout-btn:hover {
+  background: #fee2e2;
+  border-color: #e53e3e;
+  transform: translateY(-1px);
+}
+.profile-logout-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #feb2b2;
+}
 
 /* Course and progress */
 .main-content { width: 100%; max-width: 1440px; margin: 0 auto; padding: 26px clamp(20px,4vw,58px) 22px; }

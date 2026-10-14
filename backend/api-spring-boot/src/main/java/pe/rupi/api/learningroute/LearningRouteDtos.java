@@ -17,8 +17,23 @@ public final class LearningRouteDtos {
             String enrollmentState,
             long completedNodes,
             long totalNodes,
-            String lastVisitedAt
-    ) {}
+            String lastVisitedAt,
+            String category,
+            String authorName
+    ) {
+        public RouteSummary(
+                UUID versionRouteId,
+                String title,
+                Grade grade,
+                Area area,
+                String enrollmentState,
+                long completedNodes,
+                long totalNodes,
+                String lastVisitedAt
+        ) {
+            this(versionRouteId, title, grade, area, enrollmentState, completedNodes, totalNodes, lastVisitedAt, "OFICIAL", "Rupi Oficial · CNEB");
+        }
+    }
 
     public record CulturalFact(
             UUID id,
@@ -211,8 +226,26 @@ public final class LearningRouteDtos {
             String areaName,
             long totalNodes,
             boolean isEnrolled,
-            String enrollmentState
-    ) {}
+            String enrollmentState,
+            String category,
+            String authorName
+    ) {
+        public RouteSearchResult(
+                UUID versionRouteId,
+                String routeTitle,
+                String description,
+                int gradeNumber,
+                String gradeName,
+                String areaCode,
+                String areaName,
+                long totalNodes,
+                boolean isEnrolled,
+                String enrollmentState
+        ) {
+            this(versionRouteId, routeTitle, description, gradeNumber, gradeName, areaCode, areaName, totalNodes, isEnrolled, enrollmentState,
+                    "OFICIAL", "Rupi Oficial · CNEB");
+        }
+    }
 
     public record SearchAutocompleteResponse(
             String query,

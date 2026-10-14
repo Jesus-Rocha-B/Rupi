@@ -49,9 +49,23 @@ public class LearningRouteRepository {
                        g.numero_grado, g.nombre AS grade_name,
                        a.codigo AS area_code, a.nombre AS area_name,
                        i.estado AS enrollment_state, i.ultima_visita_en,
+                       CASE
+                         WHEN r.codigo LIKE 'RO-DOC-%' OR prof_u.nombre_usuario LIKE 'profesor%' THEN 'COMUNIDAD'
+                         ELSE 'OFICIAL'
+                       END AS category,
+                       CASE
+                         WHEN r.codigo LIKE 'RO-DOC-%' OR prof_u.nombre_usuario LIKE 'profesor%' THEN COALESCE(NULLIF(TRIM(CONCAT(prof_p.nombre, ' ', prof_p.apellido)), ''), 'Docente de Primaria')
+                         ELSE 'Rupi Oficial · CNEB'
+                       END AS author_name,
                        COUNT(DISTINCT n.id) AS total_nodes,
                        COUNT(DISTINCT CASE WHEN p.estado = 'COMPLETADO' THEN n.id END) AS completed_nodes
-                """ + ENROLLMENT_FROM + """
+                FROM aprendizaje_inscripcion_ruta i
+                JOIN aprendizaje_version_ruta vr ON vr.id = i.version_ruta_id
+                JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
+                JOIN curriculo_grado g ON g.id = vr.grado_id
+                JOIN curriculo_area a ON a.id = vr.area_id
+                LEFT JOIN identidad_cuenta_usuario prof_u ON prof_u.id = r.creado_por_id
+                LEFT JOIN identidad_perfil_usuario prof_p ON prof_p.cuenta_id = prof_u.id
                 LEFT JOIN aprendizaje_nodo_ruta n ON n.version_ruta_id = vr.id
                 LEFT JOIN aprendizaje_progreso_nodo p
                        ON p.inscripcion_id = i.id
@@ -61,8 +75,8 @@ public class LearningRouteRepository {
                   AND i.estado IN ('ACTIVO', 'COMPLETADO')
                   AND vr.estado = 'PUBLICADO'
                   AND r.archivado_en IS NULL
-                GROUP BY vr.id, r.titulo, g.numero_grado, g.nombre,
-                         a.codigo, a.nombre, i.estado, i.inscrito_en, i.ultima_visita_en
+                GROUP BY vr.id, r.titulo, r.codigo, prof_u.nombre_usuario, prof_p.nombre, prof_p.apellido,
+                         g.numero_grado, g.nombre, a.codigo, a.nombre, i.estado, i.inscrito_en, i.ultima_visita_en
                 ORDER BY i.ultima_visita_en DESC, g.numero_grado, a.nombre, r.titulo, vr.id
                 """;
 
@@ -74,7 +88,10 @@ public class LearningRouteRepository {
                         new Area(rs.getString("area_code"), rs.getString("area_name")),
                         rs.getString("enrollment_state"),
                         rs.getLong("completed_nodes"),
-                        rs.getLong("total_nodes"), rs.getString("ultima_visita_en")
+                        rs.getLong("total_nodes"),
+                        rs.getString("ultima_visita_en"),
+                        rs.getString("category"),
+                        rs.getString("author_name")
                 ));
     }
 
@@ -330,6 +347,14 @@ public class LearningRouteRepository {
                        g.nombre AS grade_name,
                        a.codigo AS area_code,
                        a.nombre AS area_name,
+                       CASE
+                         WHEN r.codigo LIKE 'RO-DOC-%' OR prof_u.nombre_usuario LIKE 'profesor%' THEN 'COMUNIDAD'
+                         ELSE 'OFICIAL'
+                       END AS category,
+                       CASE
+                         WHEN r.codigo LIKE 'RO-DOC-%' OR prof_u.nombre_usuario LIKE 'profesor%' THEN COALESCE(NULLIF(TRIM(CONCAT(prof_p.nombre, ' ', prof_p.apellido)), ''), 'Docente de Primaria')
+                         ELSE 'Rupi Oficial · CNEB'
+                       END AS author_name,
                        COUNT(DISTINCT n.id) AS total_nodes,
                        MAX(CASE WHEN i.id IS NOT NULL THEN 1 ELSE 0 END) AS is_enrolled,
                        MAX(COALESCE(i.estado, 'NO_INSCRITO')) AS enrollment_state
@@ -337,6 +362,8 @@ public class LearningRouteRepository {
                 JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
                 JOIN curriculo_grado g ON g.id = vr.grado_id
                 JOIN curriculo_area a ON a.id = vr.area_id
+                LEFT JOIN identidad_cuenta_usuario prof_u ON prof_u.id = r.creado_por_id
+                LEFT JOIN identidad_perfil_usuario prof_p ON prof_p.cuenta_id = prof_u.id
                 LEFT JOIN aprendizaje_inscripcion_ruta i
                        ON i.version_ruta_id = vr.id
                       AND i.estudiante_id = :studentId
@@ -409,7 +436,8 @@ public class LearningRouteRepository {
         }
 
         sql.append("""
-                GROUP BY vr.id, r.titulo, r.descripcion, g.numero_grado, g.nombre, a.codigo, a.nombre
+                GROUP BY vr.id, r.titulo, r.descripcion, r.codigo, prof_u.nombre_usuario, prof_p.nombre, prof_p.apellido,
+                         g.numero_grado, g.nombre, a.codigo, a.nombre
                 ORDER BY
                   CASE
                     WHEN LOWER(a.nombre) = LOWER(:cleanQuery) THEN 1
@@ -433,7 +461,9 @@ public class LearningRouteRepository {
                 rs.getString("area_name"),
                 rs.getLong("total_nodes"),
                 rs.getInt("is_enrolled") == 1,
-                rs.getString("enrollment_state")
+                rs.getString("enrollment_state"),
+                rs.getString("category"),
+                rs.getString("author_name")
         ));
     }
 

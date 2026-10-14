@@ -1,0 +1,90 @@
+/* StudentAvatar.css · Avatar artesanal con identidad escolar peruana */
+
+.student-avatar-root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.student-avatar-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border-style: solid;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.student-avatar-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Tamaños modulares */
+.student-avatar-root.size-sm .student-avatar-frame {
+  width: 38px;
+  height: 38px;
+  border-width: 2px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16);
+}
+
+.student-avatar-root.size-md .student-avatar-frame {
+  width: 52px;
+  height: 52px;
+  border-width: 2.5px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+}
+
+.student-avatar-root.size-lg .student-avatar-frame {
+  width: 88px;
+  height: 88px;
+  border-width: 3.5px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Insignia pequeña en la esquina inferior derecha */
+.avatar-badge-corner {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.student-avatar-root.size-sm .avatar-badge-corner {
+  width: 18px;
+  height: 18px;
+}
+
+.student-avatar-root.size-md .avatar-badge-corner {
+  width: 22px;
+  height: 22px;
+}
+
+.student-avatar-root.size-lg .avatar-badge-corner {
+  width: 28px;
+  height: 28px;
+  bottom: 0px;
+  right: 0px;
+}
+
+.avatar-badge-corner.teacher-badge {
+  background-color: #173e30;
+  color: #ffd26a;
+}
+
+.avatar-badge-corner.student-badge {
+  background-color: #f95738;
+  color: #ffffff;
+}

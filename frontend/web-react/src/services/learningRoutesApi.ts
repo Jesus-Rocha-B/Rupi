@@ -37,6 +37,8 @@ export interface RouteSummary {
   enrollmentState: string
   completedNodes: number
   totalNodes: number
+  category?: 'OFICIAL' | 'COMUNIDAD'
+  authorName?: string
 }
 
 export interface CulturalFact {
@@ -353,6 +355,8 @@ export interface RouteSearchResult {
   totalNodes: number
   isEnrolled: boolean
   enrollmentState: string
+  category?: 'OFICIAL' | 'COMUNIDAD'
+  authorName?: string
 }
 
 export interface SearchAutocompleteResponse {

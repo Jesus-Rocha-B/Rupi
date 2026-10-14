@@ -1,0 +1,589 @@
+/* ExploreRoadmapsView.css · Catálogo escolar artesanal de roadmaps */
+
+.explore-view-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+  box-sizing: border-box;
+}
+
+/* Cabecera */
+.explore-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.explore-header-text {
+  flex: 1;
+  min-width: 280px;
+}
+
+.explore-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #246a91;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+
+.explore-title {
+  margin: 0 0 0.5rem 0;
+  font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+  font-weight: 900;
+  color: #173e30;
+  line-height: 1.2;
+}
+
+.explore-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #4a5d53;
+  max-width: 650px;
+  line-height: 1.45;
+}
+
+/* Botón de código de clase en cabecera */
+.btn-join-code-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: #ffd26a;
+  color: #173e30;
+  border: 2px solid #173e30;
+  border-radius: 14px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #173e30;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  min-height: 48px;
+}
+
+.btn-join-code-highlight:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #173e30;
+  background-color: #ffe08a;
+}
+
+.btn-join-code-highlight:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+/* Pestañas principales de categoría: Rutas Oficiales vs Comunidad / Profesores */
+.category-tabs-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 640px) {
+  .category-tabs-nav {
+    grid-template-columns: 1fr;
+  }
+}
+
+.category-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.35rem;
+  background-color: #ffffff;
+  border: 2.5px solid #d8e2dc;
+  border-radius: 18px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: #4a5d53;
+  box-shadow: 0 4px 0 #d8e2dc;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.1s ease;
+  min-height: 72px;
+}
+
+.category-tab-btn:hover {
+  transform: translateY(-2px);
+  border-color: #a3b899;
+  box-shadow: 0 6px 0 #a3b899;
+}
+
+.category-tab-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #a3b899;
+}
+
+.category-tab-btn.active.oficial {
+  background-color: #f2f7f4;
+  border-color: #173e30;
+  color: #173e30;
+  box-shadow: 0 5px 0 #173e30;
+}
+
+.category-tab-btn.active.comunidad {
+  background-color: #fff8f5;
+  border-color: #f95738;
+  color: #173e30;
+  box-shadow: 0 5px 0 #f95738;
+}
+
+.category-tab-btn svg {
+  flex-shrink: 0;
+}
+
+.category-tab-btn.active.oficial svg {
+  color: #31724b;
+}
+
+.category-tab-btn.active.comunidad svg {
+  color: #f95738;
+}
+
+.tab-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tab-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.tab-desc {
+  font-size: 0.8rem;
+  color: #63776b;
+  line-height: 1.3;
+}
+
+/* Barra de Filtros: Buscador + Grados + Materias */
+.explore-filters-bar {
+  background-color: #ffffff;
+  border: 2px solid #173e30;
+  border-radius: 20px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: 0 4px 0 #173e30;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.explore-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: #63776b;
+  pointer-events: none;
+}
+
+.explore-search-input {
+  width: 100%;
+  padding: 0.85rem 2.6rem 0.85rem 2.75rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  border: 2px solid #cfded6;
+  border-radius: 14px;
+  background-color: #fafcfb;
+  color: #173e30;
+  box-sizing: border-box;
+  min-height: 48px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.explore-search-input:focus {
+  outline: none;
+  border-color: #246a91;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(36, 106, 145, 0.15);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #8fa397;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.clear-search-btn:hover {
+  color: #173e30;
+}
+
+/* Filtro por Grado */
+.explore-grade-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.chips-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #4a5d53;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-right: 0.25rem;
+}
+
+.grade-chip-btn {
+  background-color: #f3f6f4;
+  border: 1.5px solid #cfded6;
+  border-radius: 10px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #315243;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.1s ease;
+  min-height: 38px;
+}
+
+.grade-chip-btn:hover {
+  background-color: #e5ece8;
+  border-color: #31724b;
+}
+
+.grade-chip-btn.active {
+  background-color: #173e30;
+  border-color: #173e30;
+  color: #ffd26a;
+  box-shadow: 0 2px 0 #0d241c;
+}
+
+/* Filtro por Materia */
+.explore-area-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.25rem;
+  border-top: 1px dashed #cfded6;
+}
+
+.area-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #ffffff;
+  border: 1.5px solid #cfded6;
+  border-radius: 12px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #315243;
+  cursor: pointer;
+  font-family: inherit;
+  min-height: 40px;
+  transition: all 0.1s ease;
+}
+
+.area-chip-btn:hover {
+  background-color: #f7faf8;
+  border-color: #246a91;
+}
+
+.area-chip-btn.active {
+  background-color: #246a91;
+  border-color: #246a91;
+  color: #ffffff;
+  box-shadow: 0 2px 0 #164660;
+}
+
+/* Contador de resultados */
+.results-count-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  color: #556c60;
+}
+
+.loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #246a91;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Grilla de Tarjetas */
+.roadmaps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Tarjeta individual */
+.roadmap-card {
+  background-color: #ffffff;
+  border: 2px solid #173e30;
+  border-radius: 20px;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: 0 4px 0 #173e30;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  position: relative;
+}
+
+.roadmap-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 0 #173e30;
+}
+
+.card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.card-grade-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #f3f6f4;
+  border: 1.5px solid #cfded6;
+  border-radius: 8px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #173e30;
+}
+
+.card-area-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #eaf3f8;
+  border: 1.5px solid #c2dbe8;
+  border-radius: 8px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #246a91;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #173e30;
+  line-height: 1.3;
+}
+
+.card-description {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #556c60;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-author-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #d8e2dc;
+}
+
+.author-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border-radius: 8px;
+  padding: 0.2rem 0.55rem;
+}
+
+.author-pill.oficial {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.author-pill.comunidad {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffe0b2;
+}
+
+.card-stops-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #63776b;
+}
+
+/* Progreso si ya está inscrita */
+.card-progress-box {
+  background-color: #f7faf8;
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  border: 1.5px solid #d8e2dc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.progress-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.progress-status-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #31724b;
+}
+
+.progress-percent {
+  color: #173e30;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: #e2ebe6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #31724b;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* Botón de Acción */
+.card-action-row {
+  margin-top: 0.35rem;
+}
+
+.card-action-btn {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border-radius: 14px;
+  border: 2px solid #173e30;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #173e30;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.card-action-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #173e30;
+}
+
+.card-action-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+.card-action-btn.btn-continue {
+  background-color: #31724b;
+  color: #ffffff;
+}
+
+.card-action-btn.btn-enroll {
+  background-color: #f95738;
+  color: #ffffff;
+}
+
+/* Estado Vacío */
+.explore-empty-state {
+  background-color: #ffffff;
+  border: 2px dashed #b8ccc1;
+  border-radius: 24px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 550px;
+  margin: 2rem auto;
+}
+
+.explore-empty-state h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #173e30;
+}
+
+.explore-empty-state p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #556c60;
+  line-height: 1.45;
+}
+
+.btn-reset-filters {
+  background-color: #f3f6f4;
+  border: 2px solid #173e30;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  font-family: inherit;
+  color: #173e30;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #173e30;
+  min-height: 44px;
+}
