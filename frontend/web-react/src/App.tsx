@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
   ArrowRight,
   Award,
   BookOpen,
   Calculator,
-  Check,
   Compass,
   FlaskConical,
   GraduationCap,
@@ -17,9 +16,7 @@ import {
   LogOut,
   RefreshCw,
   Sparkles,
-  Star,
   Volume2,
-  X,
 } from 'lucide-react'
 import { Roadmap } from './features/roadmap/Roadmap'
 import { RoadmapSkeleton } from './features/roadmap/RoadmapSkeleton'
@@ -35,6 +32,7 @@ import {
   loginDemo,
   logout,
   startActivity,
+  searchAlternativeRoutes,
   type ActivityCompleteResult,
   type ActivityContent,
   type BadgeDto,
@@ -44,13 +42,12 @@ import {
   type RouteSummary,
   type Student,
 } from './services/learningRoutesApi'
-import { nodeStateLabels } from './features/roadmap/nodeStates'
 import { RouteOverview } from './components/RouteOverview'
 import { RouteCompanion } from './components/RouteCompanion'
 import { LoginView } from './features/auth/LoginView'
 import { GradeSelectView } from './features/auth/GradeSelectView'
 import { RupiCharacter } from './components/RupiCharacter'
-import { ActivityBlocks } from './features/roadmap/ActivityBlocks'
+import { LessonScreenView } from './features/roadmap/LessonScreenView'
 import { StudentBadgesModal } from './components/StudentBadgesModal'
 import { JoinClassModal } from './components/JoinClassModal'
 import { TeacherAuthoringView } from './features/teacher/TeacherAuthoringView'
@@ -60,7 +57,7 @@ import { StudentProfileView } from './features/profile/StudentProfileView'
 import { speakText } from './utils/speech'
 import './App.css'
 
-export type AppView = 'camino' | 'explorar' | 'perfil'
+export type AppView = 'camino' | 'explorar' | 'perfil' | 'leccion'
 
 
 const guideMessages = [
@@ -135,8 +132,6 @@ function App() {
     }
     return localStorage.getItem('rupi_selected_course') || 'MATEMATICA'
   })
-  const dialog = useRef<HTMLDialogElement>(null)
-
   function handleOpenBadges(badge?: BadgeDto) {
     if (badge) {
       setHighlightBadge(badge)
@@ -144,25 +139,19 @@ function App() {
     setBadgesModalOpen(true)
   }
 
-  useEffect(() => {
-    if (!selectedNode || !dialog.current) return
-    const previous = document.activeElement as HTMLElement | null
-    dialog.current.showModal()
-    return () => previous?.focus()
-  }, [selectedNode])
-
   async function handleOpenNode(node: RouteNode) {
     if (!selectedRoute) return
-    setSelectedNode(node)
-    setActivity(null)
-    setActivityError(null)
-
     if (node.state === 'BLOQUEADO') {
-      setActivityLoading(false)
+      speakText('Esta parada aún está bloqueada. Completa las paradas anteriores en tu camino para abrirla.')
       return
     }
 
+    setSelectedNode(node)
+    setCurrentView('leccion')
+    setActivity(null)
+    setActivityError(null)
     setActivityLoading(true)
+
     try {
       const act = await startActivity(selectedRoute.versionRouteId, node.id)
       setActivity(act)
@@ -251,23 +240,53 @@ function App() {
         const current = await fetchSession(signal)
         setStudent(current)
         const list = await fetchStudentRoutes(signal)
-        setRoutes(list)
-        if (current.gradeNumber) {
-          const manualSaved = localStorage.getItem('rupi_student_manual_grade')
-          const effectiveGrade = manualSaved ? parseInt(manualSaved, 10) : current.gradeNumber
-          setStudentEnrolledGrade(effectiveGrade)
-          localStorage.setItem('rupi_student_enrolled_grade', String(effectiveGrade))
+        const manualSaved = localStorage.getItem('rupi_student_manual_grade')
+        const effectiveGrade = manualSaved ? parseInt(manualSaved, 10) : (current.gradeNumber || 2)
+        setStudentEnrolledGrade(effectiveGrade)
+        localStorage.setItem('rupi_student_enrolled_grade', String(effectiveGrade))
+
+        let currentList = list
+        if (!currentList.length) {
+          try {
+            const catalogRes = await searchAlternativeRoutes(
+              { gradeNumber: effectiveGrade, limit: 10 },
+              undefined,
+              10,
+              signal
+            )
+            const catalogRoutes = catalogRes.routes || []
+            if (catalogRoutes.length > 0) {
+              const defaultRoute = catalogRoutes.find(r => r.areaCode?.includes('MAT')) || catalogRoutes[0]
+              const enrolledDetail = await enrollInRoute(defaultRoute.versionRouteId, signal)
+              currentList = [
+                {
+                  versionRouteId: enrolledDetail.versionRouteId,
+                  title: enrolledDetail.title,
+                  grade: enrolledDetail.grade,
+                  area: enrolledDetail.area,
+                  enrollmentState: enrolledDetail.enrollment.state,
+                  completedNodes: enrolledDetail.progress.completedNodes,
+                  totalNodes: enrolledDetail.progress.totalNodes,
+                  lastVisitedAt: new Date().toISOString(),
+                }
+              ]
+            }
+          } catch {
+            // Continúa con la lista obtenida
+          }
         }
-        if (!list.length) {
+
+        setRoutes(currentList)
+        if (!currentList.length) {
           setErrorType('EMPTY')
           setLoading(false)
           return
         }
         // Buscar ruta que coincida con routeId, o con el curso y grado seleccionados
-        let targetRoute = list.find(r => r.versionRouteId === routeId)
+        let targetRoute = currentList.find(r => r.versionRouteId === routeId)
         if (!targetRoute && selectedCourse) {
           const courseCode = selectedCourse.toUpperCase()
-          targetRoute = list.find(r => {
+          targetRoute = currentList.find(r => {
             const matchesGrade = selectedGrade == null || r.grade.number === selectedGrade
             const matchesArea = r.area.code.toUpperCase().includes(courseCode) ||
               (courseCode === 'COMUNICACION' && r.area.code === 'COM') ||
@@ -979,180 +998,29 @@ function App() {
           </>
         )}
 
+        {/* Pantalla 4: Lección Escolar Dedicada (Video explicativo previo + Retos y Preguntas didácticas) */}
+        {currentView === 'leccion' && selectedNode && selectedRoute && (
+          <LessonScreenView
+            node={selectedNode}
+            route={selectedRoute}
+            activity={activity}
+            loading={activityLoading}
+            error={activityError}
+            onBackToRoadmap={() => {
+              setCurrentView('camino')
+              setSelectedNode(null)
+            }}
+            onComplete={(result) => {
+              handleActivityCompleted(result)
+            }}
+            onOpenBadges={() => handleOpenBadges()}
+          />
+        )}
+
         <footer className="page-footer">
           Hecho para aprender, crecer y descubrir <Heart aria-label="con cariño" />
         </footer>
       </main>
-
-      {selectedNode && (
-        <dialog
-          ref={dialog}
-          className="lesson-modal"
-          aria-labelledby="modal-title"
-          aria-describedby="modal-desc"
-          onCancel={() => setSelectedNode(null)}
-          onClick={event => {
-            if (event.target === event.currentTarget) setSelectedNode(null)
-          }}
-        >
-          {activityLoading ? (
-            <div className="activity-loading-state" role="status" aria-live="polite">
-              <div className="activity-loading-mascot" aria-hidden="true">
-                <RupiCharacter mood="thinking" className="loading-rupi-svg" />
-              </div>
-              <p className="activity-loading-text">Preparando tu lección... ¡Ya casi estamos listos!</p>
-            </div>
-          ) : activityError ? (
-            <div className="activity-error-state" role="alert">
-              <button
-                className="modal-close"
-                type="button"
-                autoFocus
-                onClick={() => setSelectedNode(null)}
-                aria-label="Cerrar ventana"
-              >
-                <X aria-hidden="true" />
-              </button>
-              <AlertTriangle className="activity-error-icon" size={40} aria-hidden="true" />
-              <h3>¡Uy! Ocurrió un inconveniente</h3>
-              <p>{activityError}</p>
-              <div className="activity-error-actions">
-                <button
-                  type="button"
-                  className="activity-retry-btn"
-                  onClick={() => handleOpenNode(selectedNode)}
-                >
-                  <RefreshCw size={16} aria-hidden="true" />
-                  <span>Volver a intentar</span>
-                </button>
-                <button
-                  type="button"
-                  className="activity-cancel-btn"
-                  onClick={() => setSelectedNode(null)}
-                >
-                  <span>Cerrar</span>
-                </button>
-              </div>
-            </div>
-          ) : activity ? (
-            <ActivityBlocks
-              activity={activity}
-              routeId={selectedRoute?.versionRouteId ?? ''}
-              onComplete={handleActivityCompleted}
-              onClose={() => setSelectedNode(null)}
-              onOpenBadges={() => handleOpenBadges()}
-            />
-          ) : selectedNode.state === 'BLOQUEADO' ? (
-            <div className="modal-locked-view" role="region" aria-label="Parada bloqueada">
-              <button
-                className="modal-close"
-                autoFocus
-                onClick={() => setSelectedNode(null)}
-                aria-label="Cerrar detalle"
-              >
-                <X aria-hidden="true" />
-              </button>
-              <div className="modal-icon locked">
-                <Lock size={28} aria-hidden="true" />
-              </div>
-              <span className="eyebrow locked-eyebrow">
-                PARADA #{selectedNode.sequence} · BLOQUEADA
-              </span>
-              <div className="modal-title-row">
-                <h2 id="modal-title">{selectedNode.title}</h2>
-                <button
-                  type="button"
-                  className="modal-listen-btn"
-                  onClick={() =>
-                    speakText(
-                      `Parada ${selectedNode.sequence}: ${selectedNode.title}. Esta parada aún está descansando. Completa la parada anterior para abrir este camino.`
-                    )
-                  }
-                  aria-label="Escuchar explicación de parada bloqueada"
-                  title="Escuchar"
-                >
-                  <Volume2 size={18} aria-hidden="true" />
-                </button>
-              </div>
-              <div className="locked-rupi-card">
-                <div className="locked-rupi-avatar" aria-hidden="true">
-                  <RupiCharacter mood="thinking" />
-                </div>
-                <div className="locked-rupi-bubble">
-                  <p>
-                    ¡Hola, explorador! Esta parada aún está en descanso 🌿.
-                    Para desbloquearla y ganar nuevas insignias, primero completa la parada #{Math.max(1, selectedNode.sequence - 1)} en tu mapa.
-                  </p>
-                </div>
-              </div>
-              <button className="start-button locked-back-btn" onClick={() => setSelectedNode(null)}>
-                Volver a mi mapa <ArrowRight aria-hidden="true" />
-              </button>
-            </div>
-          ) : (
-            <div className="modal-summary-view">
-              <button
-                className="modal-close"
-                autoFocus
-                onClick={() => setSelectedNode(null)}
-                aria-label="Cerrar detalle"
-              >
-                <X aria-hidden="true" />
-              </button>
-              <div className="modal-icon">
-                {selectedNode.state === 'COMPLETADO' ? (
-                  <Check aria-hidden="true" />
-                ) : (
-                  <Star aria-hidden="true" />
-                )}
-              </div>
-              <span className="eyebrow">
-                PARADA #{selectedNode.sequence} · {nodeStateLabels[selectedNode.state]}
-              </span>
-              <div className="modal-title-row">
-                <h2 id="modal-title">{selectedNode.title}</h2>
-                <button
-                  type="button"
-                  className="modal-listen-btn"
-                  onClick={() =>
-                    speakText(
-                      `Parada ${selectedNode.sequence}: ${selectedNode.title}. ${nodeStateLabels[selectedNode.state]}`
-                    )
-                  }
-                  aria-label="Escuchar título"
-                  title="Escuchar"
-                >
-                  <Volume2 size={18} aria-hidden="true" />
-                </button>
-              </div>
-              <p id="modal-desc">
-                {selectedNode.activityType}
-                {selectedNode.estimatedMinutes != null
-                  ? ` · ${selectedNode.estimatedMinutes} minutos aprox.`
-                  : ''}
-                . Aquí puedes consultar el progreso guardado de esta actividad.
-              </p>
-              <div className="modal-summary-actions">
-                <button
-                  type="button"
-                  className="start-button primary"
-                  onClick={() => handleOpenNode(selectedNode)}
-                >
-                  <span>{selectedNode.state === 'COMPLETADO' ? 'Repasar lección' : 'Comenzar lección'}</span>
-                  <ArrowRight aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  className="start-button secondary"
-                  onClick={() => setSelectedNode(null)}
-                >
-                  Volver al mapa
-                </button>
-              </div>
-            </div>
-          )}
-        </dialog>
-      )}
 
       {badgesModalOpen && (
         <StudentBadgesModal
