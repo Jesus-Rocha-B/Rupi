@@ -601,3 +601,31 @@
   box-shadow: 0 3px 0 #173e30;
   min-height: 44px;
 }
+
+/* Banner de acceso rápido a código en pestaña Comunidad */
+.community-join-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(255, 248, 230, 0.95);
+  border: 1.5px solid #ffd26a;
+  border-radius: 18px;
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 14px rgba(255, 210, 106, 0.15);
+  flex-wrap: wrap;
+}
+
+.community-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #173e30;
+}
+
+.community-banner-text .banner-icon {
+  color: #f95738;
+}

@@ -109,17 +109,20 @@ export function ExploreRoadmapsView({
     }
   }, [searchQuery, filterGrade, filterArea])
 
-  // Filtrar según la pestaña activa (Oficial CNEB vs Comunidad / Docentes)
+  // Filtrar según la pestaña activa (Por Defecto RUPI vs Comunidad / Docentes)
   const filteredRoutes = useMemo(() => {
-    return results.filter((r) => {
-      const isComunidad = r.category === 'COMUNIDAD' || (r.authorName && !r.authorName.includes('Rupi Oficial'))
-      if (activeTab === 'OFICIAL') {
-        return !isComunidad
-      } else {
-        return isComunidad
-      }
-    })
-  }, [results, activeTab])
+    if (activeTab === 'OFICIAL') {
+      // Rutas por defecto creadas por nosotros (RUPI)
+      return results.filter((r) => r.category !== 'COMUNIDAD')
+    } else {
+      // En Comunidad: rutas de profesores a las que el estudiante ya se unió mediante código de clase
+      return results.filter((r) => {
+        const isComunidad = r.category === 'COMUNIDAD' || (r.authorName && !r.authorName.includes('RUPI'))
+        const isEnrolled = Boolean(r.isEnrolled || enrolledMap.has(r.versionRouteId))
+        return isComunidad && isEnrolled
+      })
+    }
+  }, [results, activeTab, enrolledMap])
 
   // Manejar click en una tarjeta de ruta
   async function handleActionClick(route: RouteSearchResult) {
@@ -153,7 +156,7 @@ export function ExploreRoadmapsView({
           </div>
           <h1 className="explore-title">Explorar Roadmaps</h1>
           <p className="explore-subtitle">
-            Descubre nuevos caminos de aprendizaje creados por el CNEB y por docentes de colegios de todo el Perú.
+            Descubre los caminos de aprendizaje oficiales creados por RUPI o accede a las rutas creadas por tus profesores para tu aula.
           </p>
         </div>
 
@@ -164,11 +167,11 @@ export function ExploreRoadmapsView({
           title="Unirme con el código que me dio mi profesor"
         >
           <KeyRound size={18} aria-hidden="true" />
-          <span>Ingresar con código de clase</span>
+          <span>Ingresar código de clase</span>
         </button>
       </header>
 
-      {/* Pestañas de Categoría: Aplicación vs Comunidad / Profesores */}
+      {/* Pestañas de Categoría: Por Defecto (RUPI) vs Comunidad / Profesores */}
       <nav className="category-tabs-nav" aria-label="Categorías de roadmaps">
         <button
           type="button"
@@ -178,8 +181,8 @@ export function ExploreRoadmapsView({
         >
           <GraduationCap size={20} aria-hidden="true" />
           <div className="tab-text-group">
-            <strong className="tab-title">Rutas Oficiales (1.° a 6.° Primaria)</strong>
-            <small className="tab-desc">Currículo Nacional CNEB aprobado para primaria</small>
+            <strong className="tab-title">Por Defecto (RUPI)</strong>
+            <small className="tab-desc">Rutas oficiales de 1.° a 6.° de primaria en Costa, Sierra y Selva</small>
           </div>
         </button>
 
@@ -192,7 +195,7 @@ export function ExploreRoadmapsView({
           <Users size={20} aria-hidden="true" />
           <div className="tab-text-group">
             <strong className="tab-title">Comunidad y Profesores</strong>
-            <small className="tab-desc">Creadas por docentes de primaria y proyectos escolares</small>
+            <small className="tab-desc">Rutas de tus docentes a las que te has unido con código</small>
           </div>
         </button>
       </nav>
@@ -291,7 +294,7 @@ export function ExploreRoadmapsView({
         <div className="results-count-bar">
           <span>
             Mostrando <strong>{filteredRoutes.length}</strong> {filteredRoutes.length === 1 ? 'roadmap' : 'roadmaps'}{' '}
-            en <em>{activeTab === 'OFICIAL' ? 'Rutas Oficiales' : 'Comunidad y Profesores'}</em>
+            en <em>{activeTab === 'OFICIAL' ? 'Por Defecto (RUPI)' : 'Comunidad y Profesores'}</em>
           </span>
           {loading && (
             <span className="loading-indicator">
@@ -300,36 +303,71 @@ export function ExploreRoadmapsView({
           )}
         </div>
 
+        {/* Banner de acceso rápido a código en pestaña Comunidad si ya tiene rutas */}
+        {activeTab === 'COMUNIDAD' && filteredRoutes.length > 0 && (
+          <div className="community-join-banner" role="region" aria-label="Unirse a otra clase">
+            <div className="community-banner-text">
+              <KeyRound size={18} className="banner-icon" aria-hidden="true" />
+              <span>¿Tu profesor te asignó un nuevo código de clase?</span>
+            </div>
+            <button
+              type="button"
+              className="btn-join-code-highlight"
+              onClick={onOpenJoinModal}
+            >
+              <KeyRound size={16} aria-hidden="true" />
+              <span>Ingresar otro código</span>
+            </button>
+          </div>
+        )}
+
         {/* Estado Vacío */}
         {!loading && filteredRoutes.length === 0 && (
           <div className="explore-empty-state">
-            <RupiCharacter mood="thinking" role="default" className="explore-empty-rupi" />
-            <h3>No encontramos roadmaps con estos filtros</h3>
-            <p>
-              {activeTab === 'COMUNIDAD'
-                ? 'Aún no hay rutas de la comunidad con estos filtros. Si tu docente te dio un código de clase, puedes ingresarlo arriba.'
-                : 'Intenta seleccionando "Todos los grados" o borrando el texto de búsqueda.'}
-            </p>
-            <div className="empty-actions">
-              {searchQuery && (
-                <button
-                  type="button"
-                  className="btn-reset-filters"
-                  onClick={() => setSearchQuery('')}
-                >
-                  Borrar búsqueda
-                </button>
-              )}
-              {filterGrade !== null && (
-                <button
-                  type="button"
-                  className="btn-reset-filters"
-                  onClick={() => setFilterGrade(null)}
-                >
-                  Ver todos los grados
-                </button>
-              )}
-            </div>
+            <RupiCharacter mood={activeTab === 'COMUNIDAD' ? 'cheering' : 'thinking'} role="default" className="explore-empty-rupi" />
+            {activeTab === 'COMUNIDAD' ? (
+              <>
+                <h3>¡Aún no te has unido a rutas de tus profesores!</h3>
+                <p>
+                  Cuando tu profesor o profesora te entregue un código de clase para tu aula, ingrésalo aquí para desbloquear su roadmap escolar y avanzar juntos.
+                </p>
+                <div className="empty-actions">
+                  <button
+                    type="button"
+                    className="btn-join-code-highlight"
+                    onClick={onOpenJoinModal}
+                  >
+                    <KeyRound size={18} aria-hidden="true" />
+                    <span>Ingresar código de clase</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3>No encontramos roadmaps por defecto con estos filtros</h3>
+                <p>Intenta seleccionando "Todos los grados" o borrando el texto de búsqueda.</p>
+                <div className="empty-actions">
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      className="btn-reset-filters"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      Borrar búsqueda
+                    </button>
+                  )}
+                  {filterGrade !== null && (
+                    <button
+                      type="button"
+                      className="btn-reset-filters"
+                      onClick={() => setFilterGrade(null)}
+                    >
+                      Ver todos los grados
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         )}
 

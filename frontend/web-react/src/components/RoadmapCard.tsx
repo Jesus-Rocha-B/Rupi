@@ -36,8 +36,8 @@ export function RoadmapCard({
   const areaCode = ('area' in route ? route.area.code : route.areaCode || '').toUpperCase()
   const areaName = 'area' in route ? route.area.name : route.areaName
   const description = 'description' in route ? route.description : null
-  const category = route.category || (route.authorName?.includes('Rupi Oficial') ? 'OFICIAL' : 'COMUNIDAD')
-  const authorName = route.authorName || (category === 'OFICIAL' ? 'Rupi Oficial · CNEB' : 'Docente de Primaria')
+  const category = route.category || (route.authorName?.includes('RUPI') ? 'OFICIAL' : 'COMUNIDAD')
+  const authorName = route.authorName || (category === 'OFICIAL' ? 'Creado por RUPI' : 'Docente de Primaria')
   const total = totalNodes || ('totalNodes' in route ? route.totalNodes : 0)
   const completed = completedNodes || ('completedNodes' in route ? route.completedNodes : 0)
   const percent = total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0
@@ -149,9 +149,9 @@ export function RoadmapCard({
               <span>{authorName}</span>
             </span>
           ) : (
-            <span className="author-toy-pill official" title="Aprobado por el Ministerio de Educación">
+            <span className="author-toy-pill official" title="Creado por el equipo RUPI">
               <Sparkles size={14} aria-hidden="true" />
-              <span>Rupi Oficial · CNEB</span>
+              <span>Creado por RUPI</span>
             </span>
           )}
 

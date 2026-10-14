@@ -55,7 +55,7 @@ public class LearningRouteRepository {
                        END AS category,
                        CASE
                          WHEN r.codigo LIKE 'RO-DOC-%' OR prof_u.nombre_usuario LIKE 'profesor%' THEN COALESCE(NULLIF(TRIM(CONCAT(prof_p.nombre, ' ', prof_p.apellido)), ''), 'Docente de Primaria')
-                         ELSE 'Rupi Oficial · CNEB'
+                         ELSE 'Creado por RUPI'
                        END AS author_name,
                        COUNT(DISTINCT n.id) AS total_nodes,
                        COUNT(DISTINCT CASE WHEN p.estado = 'COMPLETADO' THEN n.id END) AS completed_nodes
@@ -64,8 +64,8 @@ public class LearningRouteRepository {
                 JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
                 JOIN curriculo_grado g ON g.id = vr.grado_id
                 JOIN curriculo_area a ON a.id = vr.area_id
-                LEFT JOIN identidad_cuenta_usuario prof_u ON prof_u.id = r.creado_por_id
-                LEFT JOIN identidad_perfil_usuario prof_p ON prof_p.cuenta_id = prof_u.id
+                LEFT JOIN identidad_cuenta_usuario prof_u ON prof_u.id = r.propietario_id
+                LEFT JOIN identidad_perfil_usuario prof_p ON prof_p.usuario_id = prof_u.id
                 LEFT JOIN aprendizaje_nodo_ruta n ON n.version_ruta_id = vr.id
                 LEFT JOIN aprendizaje_progreso_nodo p
                        ON p.inscripcion_id = i.id
@@ -353,7 +353,7 @@ public class LearningRouteRepository {
                        END AS category,
                        CASE
                          WHEN r.codigo LIKE 'RO-DOC-%' OR prof_u.nombre_usuario LIKE 'profesor%' THEN COALESCE(NULLIF(TRIM(CONCAT(prof_p.nombre, ' ', prof_p.apellido)), ''), 'Docente de Primaria')
-                         ELSE 'Rupi Oficial · CNEB'
+                         ELSE 'Creado por RUPI'
                        END AS author_name,
                        COUNT(DISTINCT n.id) AS total_nodes,
                        MAX(CASE WHEN i.id IS NOT NULL THEN 1 ELSE 0 END) AS is_enrolled,
@@ -362,8 +362,8 @@ public class LearningRouteRepository {
                 JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
                 JOIN curriculo_grado g ON g.id = vr.grado_id
                 JOIN curriculo_area a ON a.id = vr.area_id
-                LEFT JOIN identidad_cuenta_usuario prof_u ON prof_u.id = r.creado_por_id
-                LEFT JOIN identidad_perfil_usuario prof_p ON prof_p.cuenta_id = prof_u.id
+                LEFT JOIN identidad_cuenta_usuario prof_u ON prof_u.id = r.propietario_id
+                LEFT JOIN identidad_perfil_usuario prof_p ON prof_p.usuario_id = prof_u.id
                 LEFT JOIN aprendizaje_inscripcion_ruta i
                        ON i.version_ruta_id = vr.id
                       AND i.estudiante_id = :studentId
