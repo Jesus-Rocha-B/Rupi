@@ -32,7 +32,6 @@ import {
   loginDemo,
   logout,
   startActivity,
-  searchAlternativeRoutes,
   type ActivityCompleteResult,
   type ActivityContent,
   type BadgeDto,
@@ -74,6 +73,38 @@ function getCourseLabel(courseCode: string | null) {
   return 'Aventura escolar'
 }
 
+// Preferencias de navegación de esta pestaña. El grado escolar del alumno lo decide siempre el servidor.
+const NAVIGATION_KEYS = ['rupi_selected_grade', 'rupi_selected_course']
+// Claves antiguas que guardaban el grado en la tableta y lo heredaba el siguiente alumno.
+const LEGACY_GRADE_KEYS = ['rupi_student_manual_grade', 'rupi_student_enrolled_grade']
+const SLOW_LOADING_MS = 8000
+
+function readStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function writeStorage(key: string, value: string | null) {
+  try {
+    if (value == null) localStorage.removeItem(key)
+    else localStorage.setItem(key, value)
+  } catch {
+    // Sin almacenamiento local (modo privado o bloqueado): la navegación sigue funcionando.
+  }
+}
+
+function clearStoredNavigation() {
+  ;[...NAVIGATION_KEYS, ...LEGACY_GRADE_KEYS].forEach(key => writeStorage(key, null))
+}
+
+function parseGrade(value: string | number | null | undefined): number | null {
+  const parsed = typeof value === 'number' ? value : Number.parseInt(value ?? '', 10)
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 6 ? parsed : null
+}
+
 function App() {
   const [student, setStudent] = useState<Student | null>(null)
   const [demoAvailable, setDemoAvailable] = useState(false)
@@ -89,6 +120,7 @@ function App() {
   const [highlightBadge, setHighlightBadge] = useState<BadgeDto | null>(null)
   const [joinModalOpen, setJoinModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [slowLoading, setSlowLoading] = useState(false)
   const [currentView, setCurrentView] = useState<AppView>('camino')
   const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview'>('authoring')
 
@@ -96,27 +128,16 @@ function App() {
   const [guideIndex, setGuideIndex] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
   const [sessionBusy, setSessionBusy] = useState(false)
-  const [studentEnrolledGrade, setStudentEnrolledGrade] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('rupi_student_enrolled_grade')
-      if (saved) {
-        const parsed = parseInt(saved, 10)
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 6) return parsed
-      }
-    }
-    return 2
-  })
+  // Grado escolar real del alumno (aula activa); solo se actualiza con la respuesta de la sesión.
+  const [studentEnrolledGrade, setStudentEnrolledGrade] = useState<number>(2)
   const [selectedGrade, setSelectedGrade] = useState<number | null>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
       const urlGrade = params.get('grade') || params.get('grades')
-      if (urlGrade) {
-        const parsed = parseInt(urlGrade.split(',')[0], 10)
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 6) return parsed
-      }
+      const fromUrl = parseGrade(urlGrade?.split(',')[0])
+      if (fromUrl != null) return fromUrl
     }
-    const saved = localStorage.getItem('rupi_selected_grade')
-    return saved ? parseInt(saved, 10) : 2
+    return parseGrade(readStorage('rupi_selected_grade')) ?? 2
   })
   const [selectedCourse, setSelectedCourse] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
@@ -130,7 +151,7 @@ function App() {
         return cleaned
       }
     }
-    return localStorage.getItem('rupi_selected_course') || 'MATEMATICA'
+    return readStorage('rupi_selected_course') || 'MATEMATICA'
   })
   function handleOpenBadges(badge?: BadgeDto) {
     if (badge) {
@@ -239,43 +260,10 @@ function App() {
         setDemoAvailable(options.demoAvailable)
         const current = await fetchSession(signal)
         setStudent(current)
-        const list = await fetchStudentRoutes(signal)
-        const manualSaved = localStorage.getItem('rupi_student_manual_grade')
-        const effectiveGrade = manualSaved ? parseInt(manualSaved, 10) : (current.gradeNumber || 2)
-        setStudentEnrolledGrade(effectiveGrade)
-        localStorage.setItem('rupi_student_enrolled_grade', String(effectiveGrade))
+        const currentList = await fetchStudentRoutes(signal)
+        setStudentEnrolledGrade(parseGrade(current.gradeNumber) ?? 2)
 
-        let currentList = list
-        if (!currentList.length) {
-          try {
-            const catalogRes = await searchAlternativeRoutes(
-              { gradeNumber: effectiveGrade, limit: 10 },
-              undefined,
-              10,
-              signal
-            )
-            const catalogRoutes = catalogRes.routes || []
-            if (catalogRoutes.length > 0) {
-              const defaultRoute = catalogRoutes.find(r => r.areaCode?.includes('MAT')) || catalogRoutes[0]
-              const enrolledDetail = await enrollInRoute(defaultRoute.versionRouteId, signal)
-              currentList = [
-                {
-                  versionRouteId: enrolledDetail.versionRouteId,
-                  title: enrolledDetail.title,
-                  grade: enrolledDetail.grade,
-                  area: enrolledDetail.area,
-                  enrollmentState: enrolledDetail.enrollment.state,
-                  completedNodes: enrolledDetail.progress.completedNodes,
-                  totalNodes: enrolledDetail.progress.totalNodes,
-                  lastVisitedAt: new Date().toISOString(),
-                }
-              ]
-            }
-          } catch {
-            // Continúa con la lista obtenida
-          }
-        }
-
+        // Sin inscripciones no se inscribe a nadie al cargar: el alumno elige su ruta en «Explorar» o con un código de clase.
         setRoutes(currentList)
         if (!currentList.length) {
           setErrorType('EMPTY')
@@ -355,20 +343,20 @@ function App() {
     return () => controller.abort()
   }, [routeId, reloadKey, selectedGrade, selectedCourse])
 
-  // Temporizador de seguridad: si la carga excede 4 segundos, se desactiva para no bloquear la interfaz
+  // Con conexión lenta se ofrece reintentar sin salir de la pantalla de carga: ocultarla antes de tiempo
+  // mostraba el inicio de sesión a un alumno que ya tenía sesión abierta. Cada petición expira a los 15 s.
   useEffect(() => {
     if (!loading) return
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 4000)
+    const timer = setTimeout(() => setSlowLoading(true), SLOW_LOADING_MS)
     return () => clearTimeout(timer)
-  }, [loading])
+  }, [loading, reloadKey])
 
   // Roadmap disponible si la ruta seleccionada tiene paradas cargadas para interactuar
   const isRoadmapAvailable = Boolean(selectedRoute && selectedRoute.nodes && selectedRoute.nodes.length > 0)
 
   function resetView() {
     setLoading(true)
+    setSlowLoading(false)
     setErrorType(null)
     setSelectedRoute(null)
     setSelectedNode(null)
@@ -383,16 +371,8 @@ function App() {
     setSelectedCourse(courseCode)
     setRouteId('')
     resetView()
-    if (gradeNumber != null) {
-      localStorage.setItem('rupi_selected_grade', String(gradeNumber))
-    } else {
-      localStorage.removeItem('rupi_selected_grade')
-    }
-    if (courseCode != null) {
-      localStorage.setItem('rupi_selected_course', courseCode)
-    } else {
-      localStorage.removeItem('rupi_selected_course')
-    }
+    writeStorage('rupi_selected_grade', gradeNumber != null ? String(gradeNumber) : null)
+    writeStorage('rupi_selected_course', courseCode)
 
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href)
@@ -429,6 +409,8 @@ function App() {
     resetView()
     try {
       await logout()
+      // En tabletas compartidas, el siguiente alumno no debe heredar grado ni curso.
+      clearStoredNavigation()
       setStudent(null)
       setRoutes([])
       setBadges([])
@@ -452,6 +434,7 @@ function App() {
     setErrorType(null)
     try {
       const current = await login(username, password)
+      clearStoredNavigation()
       resetView()
       setStudent(current)
       setTeacherViewMode('authoring')
@@ -469,6 +452,7 @@ function App() {
     setSessionBusy(true)
     try {
       const current = await loginDemo()
+      clearStoredNavigation()
       resetView()
       setStudent(current)
       setTeacherViewMode('authoring')
@@ -487,6 +471,14 @@ function App() {
     return (
       <div className="app-loading-screen" aria-busy="true">
         <p role="status">Cargando tu aula y tu progreso…</p>
+        {slowLoading && (
+          <div className="app-loading-slow" role="alert">
+            <p>La conexión está lenta. Tu avance sigue guardado.</p>
+            <button type="button" className="status-action-btn" onClick={retry}>
+              <RefreshCw aria-hidden="true" />Reintentar
+            </button>
+          </div>
+        )}
         <RoadmapSkeleton />
       </div>
     )
@@ -529,12 +521,7 @@ function App() {
           student={student}
           routes={routes}
           initialGrade={selectedGrade}
-          onSelectGradeAndCourse={(grade, course) => {
-            setStudentEnrolledGrade(grade)
-            localStorage.setItem('rupi_student_manual_grade', String(grade))
-            localStorage.setItem('rupi_student_enrolled_grade', String(grade))
-            handleSelectGradeAndCourse(grade, course)
-          }}
+          onSelectGradeAndCourse={handleSelectGradeAndCourse}
           onSelectEnrolledRoute={(versionRouteId, _gradeNumber, courseCode) => {
             setSelectedCourse(courseCode)
             setRouteId(versionRouteId)
@@ -700,8 +687,8 @@ function App() {
             onChangeGrade={() => {
               setSelectedGrade(null)
               setSelectedCourse(null)
-              localStorage.removeItem('rupi_selected_grade')
-              localStorage.removeItem('rupi_selected_course')
+              writeStorage('rupi_selected_grade', null)
+              writeStorage('rupi_selected_course', null)
             }}
             onOpenJoinModal={() => setJoinModalOpen(true)}
             onLogout={() => void handleLogout()}
@@ -873,10 +860,15 @@ function App() {
                       <Inbox aria-hidden="true" />
                     </div>
                     <h2>Aún no tienes rutas asignadas</h2>
-                    <p>Pide a tu docente que te inscriba en una ruta para comenzar tu aventura.</p>
-                    <button className="status-action-btn" onClick={retry}>
-                      <RefreshCw aria-hidden="true" />Consultar mis inscripciones
-                    </button>
+                    <p>Elige una ruta de tu grado en «Explorar Roadmaps» o pide a tu docente un código de clase.</p>
+                    <div className="status-actions">
+                      <button className="status-action-btn" onClick={() => setCurrentView('explorar')}>
+                        <Compass aria-hidden="true" />Explorar rutas de mi grado
+                      </button>
+                      <button className="status-action-btn" onClick={retry}>
+                        <RefreshCw aria-hidden="true" />Consultar mis inscripciones
+                      </button>
+                    </div>
                   </section>
                 )}
 

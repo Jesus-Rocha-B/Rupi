@@ -2,6 +2,12 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-14 · Revisión de `48a9357..75a62b4` y correcciones de grado y carga
+
+- **Revisión:** 12 commits del equipo (HU-12 biblioteca MINEDU, HU-13 calendario, HU-14 recordatorios, roadmaps Oficial/Comunidad, perfil y lección). Detalle completo, pasos para poner al día la copia local y errores pendientes en [`README-CAMBIOS-2026-10-14.md`](README-CAMBIOS-2026-10-14.md).
+- **Frontend (`App.tsx`):** el grado escolar sale siempre de la sesión. Al iniciar o cerrar sesión se borran las preferencias guardadas en la tableta. Se quitó la inscripción automática al cargar. La pantalla de carga ya no se oculta a los 4 s: a los 8 s ofrece «Reintentar».
+- **`package.json`:** nuevo `npm test` para las pruebas de Node (21 en verde).
+
 ## 2026-10-13 · Historia 12: descargar una unidad para estudiar sin conexión
 
 - **Backend (Spring Boot):** paquete `studypackage` con `GET /api/v1/student/learning-routes/{versionRouteId}/units/{unitId|otras}/package`. Comprueba la inscripción con `LearningRouteService.getForStudent` (401 sin sesión, 404 sin inscripción o unidad ajena, 409 sin lecciones publicadas) y solo lee la base.

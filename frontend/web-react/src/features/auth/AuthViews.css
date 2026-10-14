@@ -1523,6 +1523,45 @@
   box-sizing: border-box;
 }
 
+/* Aviso de conexión lenta: aparece sobre el esqueleto sin abandonar la pantalla de carga. */
+.app-loading-slow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border: 2px solid #ffd26a;
+  border-radius: 12px;
+  background: #fff8e6;
+  color: #173e30;
+  font-weight: 700;
+}
+
+.app-loading-slow p {
+  margin: 0;
+}
+
+.app-loading-slow .status-action-btn,
+.status-actions .status-action-btn {
+  min-height: 48px;
+  font-size: 14px;
+}
+
+.app-loading-slow .status-action-btn:active,
+.status-actions .status-action-btn:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
 /* --------------------------------------------------------------------------
    5. Adaptación Responsiva (Tablet y Móvil)
    -------------------------------------------------------------------------- */
