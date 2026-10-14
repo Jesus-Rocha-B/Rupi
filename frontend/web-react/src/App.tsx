@@ -99,6 +99,16 @@ function App() {
   const [guideIndex, setGuideIndex] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
   const [sessionBusy, setSessionBusy] = useState(false)
+  const [studentEnrolledGrade, setStudentEnrolledGrade] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('rupi_student_enrolled_grade')
+      if (saved) {
+        const parsed = parseInt(saved, 10)
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 6) return parsed
+      }
+    }
+    return 2
+  })
   const [selectedGrade, setSelectedGrade] = useState<number | null>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
@@ -324,8 +334,8 @@ function App() {
     return () => controller.abort()
   }, [routeId, reloadKey, selectedGrade, selectedCourse])
 
-  // Roadmap disponible si la ruta seleccionada pertenece al grado actual
-  const isRoadmapAvailable = selectedRoute != null && (selectedGrade == null || selectedRoute.grade.number === selectedGrade)
+  // Roadmap disponible si la ruta seleccionada tiene paradas cargadas para interactuar
+  const isRoadmapAvailable = Boolean(selectedRoute && selectedRoute.nodes && selectedRoute.nodes.length > 0)
 
   function resetView() {
     setLoading(true)
@@ -489,7 +499,17 @@ function App() {
           student={student}
           routes={routes}
           initialGrade={selectedGrade}
-          onSelectGradeAndCourse={(grade, course) => handleSelectGradeAndCourse(grade, course)}
+          onSelectGradeAndCourse={(grade, course) => {
+            setStudentEnrolledGrade(grade)
+            localStorage.setItem('rupi_student_enrolled_grade', String(grade))
+            handleSelectGradeAndCourse(grade, course)
+          }}
+          onSelectEnrolledRoute={(versionRouteId, gradeNumber, courseCode) => {
+            setSelectedGrade(gradeNumber)
+            setSelectedCourse(courseCode)
+            setRouteId(versionRouteId)
+            resetView()
+          }}
           onLogout={handleLogout}
           onOpenJoinModal={() => setJoinModalOpen(true)}
           onBackToTeacherAuthoring={student.role === 'DOCENTE' ? () => setTeacherViewMode('authoring') : undefined}
@@ -569,7 +589,7 @@ function App() {
               <span className="profile-text-col">
                 <b className="profile-student-name">{student.name}</b>
                 <small className="profile-school-name">
-                  {student.schoolName || student.institutionName || 'I.E. 38001 Mariscal Sucre'}
+                  {student.role === 'DOCENTE' ? 'Docente' : `${studentEnrolledGrade}.° de Primaria`}
                 </small>
               </span>
             </button>
@@ -635,9 +655,21 @@ function App() {
         {currentView === 'perfil' && (
           <StudentProfileView
             student={student}
-            currentGrade={selectedGrade}
+            enrolledGrade={studentEnrolledGrade}
             earnedBadges={badges}
             enrolledRoutes={routes}
+            onSelectRoute={(versionRouteId, gradeNumber, areaCode) => {
+              if (gradeNumber) setSelectedGrade(gradeNumber)
+              if (areaCode) {
+                const code = areaCode.toUpperCase()
+                if (code.includes('COM')) setSelectedCourse('COMUNICACION')
+                else if (code.includes('CYT')) setSelectedCourse('CYT')
+                else if (code.includes('MAT')) setSelectedCourse('MATEMATICA')
+              }
+              resetView()
+              setRouteId(versionRouteId)
+              setCurrentView('camino')
+            }}
             onChangeGrade={() => {
               setSelectedGrade(null)
               setSelectedCourse(null)
@@ -656,52 +688,40 @@ function App() {
               <div className="course-heading-layout">
                 <div className="course-heading-main">
                   <span className="eyebrow">Tu espacio para descubrir</span>
-                  <h1 id="course-title">Mi ruta de aprendizaje</h1>
-                  <p className="course-subtitle">Un mundo por aprender. A tu propio ritmo.</p>
+                  <h1 id="course-title">
+                    {selectedRoute ? selectedRoute.title : 'Mi ruta de aprendizaje'}
+                  </h1>
+                  <p className="course-subtitle">
+                    {selectedRoute?.culturalContext?.motivationalMessage || 'Un mundo por aprender. A tu propio ritmo.'}
+                  </p>
                 </div>
                 <div className="course-heading-meta">
                   <span className="current-grade-badge">
                     <GraduationCap size={16} aria-hidden="true" />
-                    <span>{`${selectedGrade}.° de primaria · ${getCourseLabel(selectedCourse)}`}</span>
+                    <span>
+                      {selectedRoute
+                        ? `${selectedRoute.grade.number}.° de primaria · ${selectedRoute.area.name}`
+                        : `${selectedGrade || studentEnrolledGrade}.° de primaria · ${getCourseLabel(selectedCourse)}`}
+                    </span>
                   </span>
+
+                  {selectedRoute && selectedRoute.grade.number !== studentEnrolledGrade && (
+                    <span className="exploring-grade-pill" title="Explorando contenido de otro grado escolar">
+                      <Compass size={14} aria-hidden="true" />
+                      <span>Explorando {selectedRoute.grade.number}.° de Primaria</span>
+                    </span>
+                  )}
+
                   <div className="course-heading-actions">
                     <button
                       type="button"
-                      className="change-grade-btn"
-                      onClick={() => {
-                        setSelectedCourse(null)
-                        localStorage.removeItem('rupi_selected_course')
-                      }}
-                      title="Cambiar de materia"
-                      aria-label="Cambiar de materia escolar"
+                      className="change-grade-btn explore-more-btn"
+                      onClick={() => setCurrentView('explorar')}
+                      title="Explorar más rutas oficiales y de profesores"
+                      aria-label="Explorar otros roadmaps"
                     >
-                      <BookOpen size={15} aria-hidden="true" />
-                      <span>Cambiar materia</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="change-grade-btn"
-                      onClick={() => {
-                        setSelectedGrade(null)
-                        setSelectedCourse(null)
-                        localStorage.removeItem('rupi_selected_grade')
-                        localStorage.removeItem('rupi_selected_course')
-                      }}
-                      title="Cambiar de grado de primaria"
-                      aria-label="Cambiar de grado de primaria"
-                    >
-                      <GraduationCap size={15} aria-hidden="true" />
-                      <span>Cambiar grado</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="change-grade-btn join-code-btn"
-                      onClick={() => setJoinModalOpen(true)}
-                      title="Unirme a un roadmap con código de clase docente"
-                      aria-label="Ingresar código de clase docente"
-                    >
-                      <KeyRound size={15} aria-hidden="true" />
-                      <span>Código de clase</span>
+                      <Compass size={16} aria-hidden="true" />
+                      <span>Explorar otros roadmaps</span>
                     </button>
                   </div>
                 </div>

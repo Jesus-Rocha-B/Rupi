@@ -11,6 +11,7 @@ import {
   Paperclip,
   Presentation,
   Sparkles,
+  Video,
   Volume2,
   X,
 } from 'lucide-react'
@@ -32,6 +33,27 @@ function safeResource(value: string | null) {
   try {
     const url = new URL(value, window.location.origin)
     return ['http:', 'https:'].includes(url.protocol) ? url.href : null
+  } catch {
+    return null
+  }
+}
+
+function getYouTubeEmbedUrl(urlStr: string | null): string | null {
+  if (!urlStr) return null
+  try {
+    const url = new URL(urlStr)
+    if (url.hostname.includes('youtube.com')) {
+      if (url.pathname.startsWith('/embed/')) {
+        return `https://www.youtube-nocookie.com/embed/${url.pathname.replace('/embed/', '')}`
+      }
+      const v = url.searchParams.get('v')
+      if (v) return `https://www.youtube-nocookie.com/embed/${v}`
+    }
+    if (url.hostname.includes('youtu.be')) {
+      const id = url.pathname.replace('/', '')
+      if (id) return `https://www.youtube-nocookie.com/embed/${id}`
+    }
+    return null
   } catch {
     return null
   }
@@ -260,6 +282,29 @@ export function ActivityBlocks({ activity, routeId, onComplete, onClose, onOpenB
         {activity.blocks.length > 0 ? (
           activity.blocks.map(block => {
             const url = safeResource(block.url)
+            const youtubeEmbed = getYouTubeEmbedUrl(block.url)
+
+            if (youtubeEmbed) {
+              return (
+                <div key={block.id} className="activity-block-item youtube-embed-card">
+                  {block.text && <p className="block-text">{block.text}</p>}
+                  <div className="youtube-player-ratio">
+                    <iframe
+                      src={youtubeEmbed}
+                      title={block.accessibleText || block.text || 'Video explicativo de la lección'}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="youtube-iframe-player"
+                    />
+                  </div>
+                  <span className="youtube-player-tag">
+                    <Video size={14} aria-hidden="true" />
+                    <span>Video didáctico de apoyo · Mira el video con calma antes de responder</span>
+                  </span>
+                </div>
+              )
+            }
+
             const isPdf = block.url?.toLowerCase().includes('.pdf')
             const isPpt = block.url?.toLowerCase().includes('.ppt') || block.url?.toLowerCase().includes('.pptx')
             const isImage = block.url && /\.(png|jpe?g|svg|webp|gif)($|\?)/i.test(block.url)

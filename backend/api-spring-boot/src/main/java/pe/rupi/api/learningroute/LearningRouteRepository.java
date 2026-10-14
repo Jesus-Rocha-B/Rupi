@@ -150,7 +150,7 @@ public class LearningRouteRepository {
         String sql = """
                 SELECT n.id AS node_id, n.numero_secuencia, va.titulo AS activity_title,
                        act.tipo AS activity_type, va.minutos_estimados,
-                       CASE WHEN va.estado <> 'PUBLICADO' OR act.archivado_en IS NOT NULL THEN 'BLOQUEADO' ELSE p.estado END AS progress_state,
+                       CASE WHEN va.estado <> 'PUBLICADO' OR act.archivado_en IS NOT NULL THEN 'BLOQUEADO' ELSE COALESCE(p.estado, CASE WHEN n.numero_secuencia = 1 THEN 'DISPONIBLE' ELSE 'BLOQUEADO' END) END AS progress_state,
                        n.es_opcional, n.mapa_x, n.mapa_y
                 FROM aprendizaje_nodo_ruta n
                 JOIN aprendizaje_version_actividad va ON va.id = n.version_actividad_id

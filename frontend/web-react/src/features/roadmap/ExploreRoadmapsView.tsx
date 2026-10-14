@@ -6,11 +6,8 @@ import {
   GraduationCap,
   KeyRound,
   Search,
-  Sparkles,
   Users,
   FlaskConical,
-  CheckCircle2,
-  ArrowRight,
   Filter,
   RefreshCw,
 } from 'lucide-react'
@@ -21,6 +18,7 @@ import {
   type RouteSummary,
 } from '../../services/learningRoutesApi'
 import { RupiCharacter } from '../../components/RupiCharacter'
+import { RoadmapCard } from '../../components/RoadmapCard'
 import './ExploreRoadmapsView.css'
 
 interface ExploreRoadmapsViewProps {
@@ -89,7 +87,7 @@ export function ExploreRoadmapsView({
         if (!isCancelled) {
           setResults(res.routes || [])
         }
-      } catch (err: unknown) {
+      } catch {
         if (!isCancelled) {
           setErrorMsg('No pudimos cargar el catálogo de roadmaps. Revisa tu conexión e intenta de nuevo.')
         }
@@ -142,14 +140,6 @@ export function ExploreRoadmapsView({
     } finally {
       setEnrollingId(null)
     }
-  }
-
-  function getAreaIcon(code: string) {
-    const c = (code || '').toUpperCase()
-    if (c.includes('COM')) return <BookOpen size={16} aria-hidden="true" />
-    if (c.includes('MAT')) return <Calculator size={16} aria-hidden="true" />
-    if (c.includes('CYT')) return <FlaskConical size={16} aria-hidden="true" />
-    return <Sparkles size={16} aria-hidden="true" />
   }
 
   return (
@@ -343,101 +333,25 @@ export function ExploreRoadmapsView({
           </div>
         )}
 
-        {/* Grilla de Tarjetas de Roadmaps */}
+        {/* Grilla de Tarjetas de Roadmaps Ilustradas */}
         <div className="roadmaps-grid">
           {filteredRoutes.map((route) => {
             const enrolled = enrolledMap.get(route.versionRouteId)
             const isEnrolled = Boolean(route.isEnrolled || enrolled)
             const completedCount = enrolled ? enrolled.completedNodes : 0
             const totalCount = enrolled ? enrolled.totalNodes : route.totalNodes
-            const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
             const isBusy = enrollingId === route.versionRouteId
 
             return (
-              <article
+              <RoadmapCard
                 key={route.versionRouteId}
-                className={`roadmap-card ${activeTab === 'OFICIAL' ? 'card-oficial' : 'card-comunidad'} ${
-                  isEnrolled ? 'is-enrolled' : ''
-                }`}
-              >
-                {/* Cabecera de la tarjeta: Grado y Materia */}
-                <div className="card-top-row">
-                  <span className="card-grade-badge">
-                    <GraduationCap size={14} aria-hidden="true" />
-                    <span>{route.gradeNumber}.° de Primaria</span>
-                  </span>
-                  <span className="card-area-badge">
-                    {getAreaIcon(route.areaCode)}
-                    <span>{route.areaName}</span>
-                  </span>
-                </div>
-
-                {/* Título de la ruta */}
-                <h2 className="card-title">{route.routeTitle}</h2>
-
-                {/* Descripción breve */}
-                {route.description && (
-                  <p className="card-description">{route.description}</p>
-                )}
-
-                {/* Autoría e Identidad (CNEB vs Docente) */}
-                <div className="card-author-row">
-                  {activeTab === 'OFICIAL' ? (
-                    <span className="author-pill oficial">
-                      <Sparkles size={13} aria-hidden="true" />
-                      <span>{route.authorName || 'Rupi Oficial · CNEB'}</span>
-                    </span>
-                  ) : (
-                    <span className="author-pill comunidad">
-                      <Users size={13} aria-hidden="true" />
-                      <span>{route.authorName || 'Docente de Primaria'}</span>
-                    </span>
-                  )}
-                  <span className="card-stops-count">
-                    {route.totalNodes} {route.totalNodes === 1 ? 'parada' : 'paradas'}
-                  </span>
-                </div>
-
-                {/* Progreso del estudiante si está inscrita */}
-                {isEnrolled && (
-                  <div className="card-progress-box">
-                    <div className="progress-info-row">
-                      <span className="progress-status-text">
-                        <CheckCircle2 size={13} aria-hidden="true" /> Avance: {completedCount} de {totalCount}
-                      </span>
-                      <strong className="progress-percent">{percent}%</strong>
-                    </div>
-                    <div className="progress-track" aria-hidden="true">
-                      <div className="progress-bar" style={{ width: `${percent}%` }} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Botón de acción táctil */}
-                <div className="card-action-row">
-                  <button
-                    type="button"
-                    className={`card-action-btn ${isEnrolled ? 'btn-continue' : 'btn-enroll'}`}
-                    disabled={isBusy}
-                    onClick={() => void handleActionClick(route)}
-                    aria-label={`${isEnrolled ? 'Continuar aventura en' : 'Comenzar aventura en'} ${route.routeTitle}`}
-                  >
-                    {isBusy ? (
-                      <span>Abriendo ruta...</span>
-                    ) : isEnrolled ? (
-                      <>
-                        <span>Continuar mi ruta</span>
-                        <ArrowRight size={16} aria-hidden="true" />
-                      </>
-                    ) : (
-                      <>
-                        <span>Empezar aventura</span>
-                        <Sparkles size={16} aria-hidden="true" />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </article>
+                route={route}
+                isEnrolled={isEnrolled}
+                completedNodes={completedCount}
+                totalNodes={totalCount}
+                isBusy={isBusy}
+                onAction={() => void handleActionClick(route)}
+              />
             )
           })}
         </div>

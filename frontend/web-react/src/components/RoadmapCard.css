@@ -1,0 +1,275 @@
+/* RoadmapCard.css · Tarjeta ilustrada y táctil para estudiantes de primaria */
+
+.roadmap-card-toy {
+  background-color: #ffffff;
+  border: 2.5px solid #173e30;
+  border-radius: 22px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 5px 0 #173e30;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  position: relative;
+}
+
+.roadmap-card-toy:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 0 #173e30;
+}
+
+/* Cabecera ilustrada */
+.card-illustration-header {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  background-color: #e5ece8;
+  border-bottom: 2.5px solid #173e30;
+}
+
+.card-header-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Badges flotantes sobre la portada */
+.card-floating-grade-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #ffd26a;
+  border: 2px solid #173e30;
+  border-radius: 10px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #173e30;
+  box-shadow: 0 2px 0 #173e30;
+  letter-spacing: 0.02em;
+}
+
+.card-floating-area-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #ffffff;
+  border: 2px solid #173e30;
+  border-radius: 10px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #173e30;
+  box-shadow: 0 2px 0 #173e30;
+}
+
+/* Cuerpo de la tarjeta */
+.card-toy-body {
+  padding: 1.25rem 1.35rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+/* Fila de Autoría */
+.card-author-pill-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.author-toy-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  border-radius: 8px;
+  padding: 0.25rem 0.6rem;
+  border: 1.5px solid;
+}
+
+.author-toy-pill.official {
+  background-color: #e8f5e9;
+  border-color: #31724b;
+  color: #173e30;
+}
+
+.author-toy-pill.official svg {
+  color: #31724b;
+}
+
+.author-toy-pill.teacher {
+  background-color: #fff3e0;
+  border-color: #f95738;
+  color: #9c27b0;
+  color: #b73e00;
+}
+
+.author-toy-pill.teacher svg {
+  color: #f95738;
+}
+
+.card-stops-count-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #556c60;
+  background-color: #f3f6f4;
+  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Título */
+.card-toy-title {
+  margin: 0.15rem 0 0;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #173e30;
+  line-height: 1.3;
+}
+
+/* Descripción */
+.card-toy-desc {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #4a5d53;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Características / Chips de recursos didácticos */
+.card-features-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.35rem 0;
+}
+
+.feature-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background-color: #f7faf8;
+  border: 1px solid #d8e2dc;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  color: #315243;
+}
+
+.feature-chip svg {
+  color: #246a91;
+}
+
+/* Barra de progreso si está inscrita */
+.card-enrolled-progress {
+  background-color: #f7faf8;
+  border: 1.5px solid #d8e2dc;
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.enrolled-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.enrolled-status-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #31724b;
+}
+
+.enrolled-percent {
+  color: #173e30;
+}
+
+.enrolled-track {
+  width: 100%;
+  height: 8px;
+  background-color: #e2ebe6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.enrolled-fill {
+  height: 100%;
+  background-color: #31724b;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* Footer y Botón Táctil */
+.card-toy-footer {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.card-toy-btn {
+  width: 100%;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 900;
+  border-radius: 14px;
+  border: 2px solid #173e30;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #173e30;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.card-toy-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #173e30;
+}
+
+.card-toy-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+.card-toy-btn.btn-toy-continue {
+  background-color: #31724b;
+  color: #ffffff;
+}
+
+.card-toy-btn.btn-toy-continue:hover:not(:disabled) {
+  background-color: #3b875a;
+}
+
+.card-toy-btn.btn-toy-start {
+  background-color: #f95738;
+  color: #ffffff;
+}
+
+.card-toy-btn.btn-toy-start:hover:not(:disabled) {
+  background-color: #ff6e52;
+}

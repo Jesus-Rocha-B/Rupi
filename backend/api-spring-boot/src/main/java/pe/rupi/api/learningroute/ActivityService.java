@@ -55,7 +55,7 @@ public class ActivityService {
         // Lock the enrollment and progress together. Repeated starts preserve first access and completion.
         var access = jdbc.query("""
                 SELECT i.id AS enrollment_id, va.id AS activity_id, va.titulo, va.instrucciones,
-                       COALESCE(p.estado, 'BLOQUEADO') AS estado
+                       COALESCE(p.estado, CASE WHEN n.numero_secuencia = 1 THEN 'DISPONIBLE' ELSE 'BLOQUEADO' END) AS estado
                 FROM aprendizaje_inscripcion_ruta i
                 JOIN aprendizaje_version_ruta vr ON vr.id = i.version_ruta_id
                 JOIN aprendizaje_nodo_ruta n ON n.id = :node AND n.version_ruta_id = vr.id

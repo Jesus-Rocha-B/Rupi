@@ -16,14 +16,16 @@ import {
 } from 'lucide-react'
 import type { BadgeDto, RouteSummary, Student } from '../../services/learningRoutesApi'
 import { StudentAvatar } from '../../components/StudentAvatar'
+import { RoadmapCard } from '../../components/RoadmapCard'
 import { speakText } from '../../utils/speech'
 import './StudentProfileView.css'
 
 interface StudentProfileViewProps {
   student: Student
-  currentGrade: number | null
+  enrolledGrade: number
   earnedBadges: BadgeDto[]
   enrolledRoutes: RouteSummary[]
+  onSelectRoute?: (versionRouteId: string, gradeNumber?: number, areaCode?: string) => void
   onChangeGrade: () => void
   onOpenJoinModal: () => void
   onLogout: () => void
@@ -77,9 +79,10 @@ const PRIMARY_BADGES_CATALOG: CatalogBadge[] = [
 
 export function StudentProfileView({
   student,
-  currentGrade,
+  enrolledGrade,
   earnedBadges = [],
   enrolledRoutes = [],
+  onSelectRoute,
   onChangeGrade,
   onOpenJoinModal,
   onLogout,
@@ -181,14 +184,15 @@ export function StudentProfileView({
           <div className="profile-grade-row">
             <span className="profile-grade-badge">
               <GraduationCap size={15} aria-hidden="true" />
-              <span>{currentGrade ? `${currentGrade}.° de Primaria` : 'Primaria'}</span>
+              <span>{enrolledGrade ? `${enrolledGrade}.° de Primaria` : 'Primaria'}</span>
             </span>
+            <span className="profile-enrolled-tag">Grado matriculado</span>
 
             <button
               type="button"
               className="btn-change-grade-pill"
               onClick={onChangeGrade}
-              title="Cambiar mi grado escolar"
+              title="Cambiar mi grado escolar oficial"
             >
               Cambiar de grado
             </button>
@@ -229,6 +233,53 @@ export function StudentProfileView({
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Mis Rutas de Aprendizaje en Marcha */}
+      <section className="profile-routes-section" aria-labelledby="profile-routes-title">
+        <div className="routes-header-row">
+          <div>
+            <h2 id="profile-routes-title" className="profile-routes-title">
+              <BookOpen size={22} aria-hidden="true" />
+              <span>Mis Rutas de Aprendizaje</span>
+            </h2>
+            <p className="profile-routes-subtitle">
+              Tus aventuras activas: tanto las de tu grado como las de tus profesores y proyectos escolares a los que te has unido.
+            </p>
+          </div>
+        </div>
+
+        {enrolledRoutes.length > 0 ? (
+          <div className="profile-routes-grid">
+            {enrolledRoutes.map((route) => {
+              const areaUpper = (route.area.code || '').toUpperCase()
+              const courseCode = areaUpper.includes('COM')
+                ? 'COMUNICACION'
+                : areaUpper.includes('CYT')
+                ? 'CYT'
+                : 'MATEMATICA'
+
+              return (
+                <RoadmapCard
+                  key={route.versionRouteId}
+                  route={route}
+                  isEnrolled={true}
+                  completedNodes={route.completedNodes}
+                  totalNodes={route.totalNodes}
+                  onAction={() => {
+                    if (onSelectRoute) {
+                      onSelectRoute(route.versionRouteId, route.grade.number, courseCode)
+                    }
+                  }}
+                />
+              )
+            })}
+          </div>
+        ) : (
+          <div className="profile-empty-routes">
+            <p>Aún no te has inscrito en ninguna ruta. Explora el catálogo escolar para comenzar.</p>
+          </div>
+        )}
       </section>
 
       {/* Vitrina de Insignias Integrada en la Pantalla */}

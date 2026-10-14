@@ -15,6 +15,7 @@ import {
   Volume2,
 } from 'lucide-react'
 import { RupiCharacter } from '../../components/RupiCharacter'
+import { RoadmapCard } from '../../components/RoadmapCard'
 import { speakText } from '../../utils/speech'
 import type { RouteSummary, Student } from '../../services/learningRoutesApi'
 
@@ -23,6 +24,7 @@ type Props = {
   routes?: RouteSummary[]
   initialGrade?: number | null
   onSelectGradeAndCourse: (gradeNumber: number, courseCode: string) => void
+  onSelectEnrolledRoute?: (versionRouteId: string, gradeNumber: number, courseCode: string) => void
   onLogout: () => void
   onOpenJoinModal?: () => void
   onBackToTeacherAuthoring?: () => void
@@ -116,8 +118,10 @@ const BASE_COURSES: CourseOption[] = [
 
 export function GradeSelectView({
   student,
+  routes = [],
   initialGrade = null,
   onSelectGradeAndCourse,
+  onSelectEnrolledRoute,
   onLogout,
   onOpenJoinModal,
   onBackToTeacherAuthoring,
@@ -266,6 +270,54 @@ export function GradeSelectView({
             <Info size={18} aria-hidden="true" />
             <p>{notice}</p>
           </div>
+        )}
+
+        {/* Sección: Rutas a las que ya te has unido (Oficiales y de tu Profesor) */}
+        {!selectedGradeNumber && routes && routes.length > 0 && (
+          <section className="enrolled-welcome-routes-section" aria-label="Rutas escolares en marcha">
+            <div className="enrolled-welcome-header">
+              <span className="enrolled-welcome-tag">
+                <Sparkles size={15} aria-hidden="true" />
+                <span>CONTINÚA TU AVANCE</span>
+              </span>
+              <h2 className="enrolled-welcome-title">Tus Aventuras Escolares en Marcha</h2>
+              <p className="enrolled-welcome-desc">
+                Ya estás participando en estas rutas (incluyendo las creadas por tu profesor y las de tu grado). Toca para continuar:
+              </p>
+            </div>
+
+            <div className="enrolled-welcome-cards-grid">
+              {routes.map((route) => {
+                const areaCode = (route.area.code || '').toUpperCase()
+                const courseCode = areaCode.includes('COM')
+                  ? 'COMUNICACION'
+                  : areaCode.includes('CYT')
+                  ? 'CYT'
+                  : 'MATEMATICA'
+
+                return (
+                  <RoadmapCard
+                    key={route.versionRouteId}
+                    route={route}
+                    isEnrolled={true}
+                    completedNodes={route.completedNodes}
+                    totalNodes={route.totalNodes}
+                    onAction={() => {
+                      if (onSelectEnrolledRoute) {
+                        onSelectEnrolledRoute(route.versionRouteId, route.grade.number, courseCode)
+                      } else {
+                        onSelectGradeAndCourse(route.grade.number, courseCode)
+                      }
+                    }}
+                  />
+                )
+              })}
+            </div>
+
+            <div className="enrolled-welcome-divider">
+              <span>O ELIGE OTRA RUTA PARA EXPLORAR</span>
+            </div>
+          </section>
         )}
 
         {/* PASO 1: Selección de Grado (1.° a 6.° de Primaria) */}
