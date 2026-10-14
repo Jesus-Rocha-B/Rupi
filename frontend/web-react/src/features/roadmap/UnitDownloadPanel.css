@@ -194,3 +194,18 @@
     width: 100%;
   }
 }
+
+/* Biblioteca del grado: fuentes oficiales y repaso original con procedencia visible. */
+.official-study { margin-top: 22px; padding-top: 18px; border-top: 2px dashed #31724b; }
+.official-study h5 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 19px; }
+.official-study p { font-size: 14px; line-height: 1.5; margin: 8px 0; }
+.official-study ul { list-style: none; margin: 14px 0; padding: 0; }
+.official-study li { padding: 14px; border-left: 5px solid #f95738; background: #fffefa; overflow-wrap: anywhere; }
+.official-study li > span { display: block; font-size: 13px; margin-top: 4px; }
+.official-study-link { display: inline-flex; min-height: 48px; align-items: center; gap: 8px; padding: 8px 12px; margin-top: 6px; border: 2px solid #246a91; border-radius: 10px; color: #173e30; background: #fff; font-weight: 800; box-shadow: 0 3px 0 #246a91; }
+.official-study-link:active { transform: translateY(2px); box-shadow: 0 1px 0 #246a91; }
+.official-study-link:focus-visible { outline: 3px solid #246a91; outline-offset: 4px; }
+.official-study-link svg { flex-shrink: 0; }
+.official-study-note { padding: 12px; background: #fff3ce; border-radius: 10px; }
+
+.official-study .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

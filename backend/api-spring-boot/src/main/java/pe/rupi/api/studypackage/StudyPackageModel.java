@@ -13,8 +13,14 @@ public final class StudyPackageModel {
             String unitCode,
             String unitTitle,
             List<String> competencies,
-            List<Stop> stops
-    ) {}
+            List<Stop> stops,
+            List<PrimaryStudyCatalog.Entry> supplementaryResources
+    ) {
+        public Unit(String routeTitle, String gradeName, String areaName, String unitCode,
+                    String unitTitle, List<String> competencies, List<Stop> stops) {
+            this(routeTitle, gradeName, areaName, unitCode, unitTitle, competencies, stops, List.of());
+        }
+    }
 
     public record Stop(
             int sequence,

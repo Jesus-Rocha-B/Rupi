@@ -53,7 +53,7 @@ import pe.rupi.api.studypackage.StudyPackageModel.Unit;
 /** Arma el zip de una unidad: guía PDF imprimible, materiales del docente, contenido.json y manifest.json. */
 public class StudyPackageBuilder {
     /** Subirlo cuando cambie la plantilla del PDF o la estructura del zip, para invalidar la caché. */
-    public static final int FORMAT_VERSION = 1;
+    public static final int FORMAT_VERSION = 2;
 
     public static final String GUIDE_ENTRY = "guia-de-estudio.pdf";
     public static final String CONTENT_ENTRY = "contenido.json";
@@ -121,6 +121,10 @@ public class StudyPackageBuilder {
         try (ZipOutputStream zip = new ZipOutputStream(out, StandardCharsets.UTF_8)) {
             zip.setComment("Paquete de estudio de Rupi");
             putEntry(zip, GUIDE_ENTRY, renderPdf(unit, packagedNames, generatedAt), entries);
+            if (!unit.supplementaryResources().isEmpty()) {
+                putEntry(zip, "repaso-rupi.pdf", new PrimaryStudyHandout().render(unit), entries);
+                putEntry(zip, "fuentes-minedu.html", PrimaryStudyHandout.sources(unit).getBytes(StandardCharsets.UTF_8), entries);
+            }
             for (var file : packagedBytes.entrySet()) {
                 putEntry(zip, file.getKey(), file.getValue(), entries);
             }
@@ -197,7 +201,14 @@ public class StudyPackageBuilder {
                 - contenido.json y manifest.json: Rupi los usa para comprobar que el paquete está completo.
                   No necesitas abrirlos.
 
-                Para abrir la guía y los materiales no necesitas internet.
+                Si tu grado y materia tienen material complementario:
+                - repaso-rupi.pdf: ejercicios propios de Rupi y respuestas. Se puede usar sin internet.
+                  Es repaso general del grado, no una evaluación de la unidad ni una publicación del MINEDU.
+                - fuentes-minedu.html: referencias oficiales. Sus enlaces necesitan internet.
+                  Abre la ficha del MINEDU y guarda el PDF antes de desconectarte.
+                  Los libros externos no están incluidos dentro de este ZIP.
+
+                Para abrir la guía y los materiales incluidos no necesitas internet.
                 Los enlaces a páginas web que aparecen en la guía sí necesitan conexión.
                 """.formatted(unit.routeTitle(), unit.gradeName(), unit.areaName(), unit.unitTitle());
         return text.replace("\n", "\r\n");

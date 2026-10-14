@@ -83,6 +83,15 @@ class StudyPackageServiceTest {
     }
 
     @Test
+    void resourcesRespectRouteAuthorizationAndGrade() {
+        var entries = service.resourcesForRoute(STUDENT, ROUTE);
+        assertEquals(3, entries.getFirst().grade());
+        assertEquals("MATEMATICA", entries.getFirst().areaCode());
+        when(routes.getForStudent(STUDENT, ROUTE)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+        assertThrows(ResponseStatusException.class, () -> service.resourcesForRoute(STUDENT, ROUTE));
+    }
+
+    @Test
     @DisplayName("Arma el paquete de la unidad pedida solo con sus paradas")
     void buildsPackageForUnit() {
         when(repository.findStops(ROUTE, List.of(NODE_1))).thenReturn(List.of(stop(1, "Contamos retablos.")));

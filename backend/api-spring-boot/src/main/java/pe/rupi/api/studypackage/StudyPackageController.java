@@ -23,6 +23,11 @@ public class StudyPackageController {
         this.service = service;
     }
 
+    @GetMapping("/api/v1/student/learning-routes/{versionRouteId}/study-resources")
+    public java.util.List<PrimaryStudyCatalog.Entry> resources(@PathVariable UUID versionRouteId, Principal principal) {
+        return service.resourcesForRoute(studentIdFrom(principal), versionRouteId);
+    }
+
     @GetMapping("/api/v1/student/learning-routes/{versionRouteId}/units/{unitKey}/package")
     public ResponseEntity<Resource> download(@PathVariable UUID versionRouteId, @PathVariable String unitKey,
                                              Principal principal) {

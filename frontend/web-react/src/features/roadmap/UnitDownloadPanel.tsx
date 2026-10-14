@@ -3,6 +3,7 @@ import { CircleCheck, Download, LoaderCircle, Printer, TriangleAlert, WifiOff } 
 import { ApiError, downloadUnitPackage, type RouteDetail } from '../../services/learningRoutesApi'
 import { downloadableUnits } from './unitDownloads'
 import './UnitDownloadPanel.css'
+import { OfficialStudyResources } from './OfficialStudyResources'
 
 type Status =
   | { kind: 'idle' }
@@ -124,6 +125,7 @@ export function UnitDownloadPanel({ route }: { route: RouteDetail }) {
           )
         })}
       </ul>
+      <OfficialStudyResources key={route.versionRouteId} routeId={route.versionRouteId} />
     </section>
   )
 }

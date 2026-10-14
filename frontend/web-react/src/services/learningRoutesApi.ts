@@ -434,3 +434,19 @@ export const joinRouteByCode = (code: string, signal?: AbortSignal) =>
     signal,
   })
 
+
+/** Referencias por grado y materia de una ruta autorizada. Los libros se descargan desde el MINEDU. */
+export interface StudyResource {
+  grade: number
+  areaCode: string
+  title: string
+  publisher: string
+  year: number
+  sourceUrl: string
+  checkedOn: string
+  note: string
+  exercises: { prompt: string; answer: string }[]
+}
+
+export const getStudyResources = (versionRouteId: string, signal?: AbortSignal) =>
+  request<StudyResource[]>(`student/learning-routes/${encodeURIComponent(versionRouteId)}/study-resources`, { signal })

@@ -89,4 +89,8 @@ node --experimental-strip-types --test frontend/web-react/tests/*.test.ts
 PLAYWRIGHT_DIR=~/pw-tmp node scripts/verify_hu12_pantalla.mjs http://127.0.0.1:5173 /tmp
 ```
 
-Pendiente: ejecutar `Verificar-HU12-Descarga.ps1` en Windows PowerShell 5.1 (el script es ASCII y solo usa cmdlets y clases .NET disponibles en 5.1).
+Verificado el 13/10/2026 en Windows PowerShell 5.1 contra API/MySQL aislados: 10/10 comprobaciones para una ruta con una unidad.
+
+## Ampliación: materiales de primaria y repaso
+
+Ver [Biblioteca MINEDU y repaso descargable](HU-12-biblioteca-minedu.md). Añade 18 referencias por grado/materia y 36 ejercicios originales; formato del paquete 2. Los libros oficiales se descargan desde su fuente y los ejercicios Rupi se incluyen en el ZIP.

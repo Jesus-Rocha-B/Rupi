@@ -1,0 +1,362 @@
+[
+  {
+    "grade": 1,
+    "areaCode": "MATEMATICA",
+    "title": "Cuadernillo de Matemática 1",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2023,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/10079",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Ana tiene 6 tunas y recibe 3 más. ¿Cuántas tiene ahora?",
+        "answer": "9 tunas: 6 + 3 = 9."
+      },
+      {
+        "prompt": "Completa: 2, 4, 6, __, __.",
+        "answer": "8 y 10. Se suma 2 cada vez."
+      }
+    ]
+  },
+  {
+    "grade": 2,
+    "areaCode": "MATEMATICA",
+    "title": "Cuadernillo de Matemática 2",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2025,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/11800",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Hay 27 cuentos y llegan 15 nuevos. ¿Cuántos hay en total?",
+        "answer": "42 cuentos: 27 + 15 = 42."
+      },
+      {
+        "prompt": "Descompón 64 en decenas y unidades.",
+        "answer": "6 decenas y 4 unidades: 60 + 4 = 64."
+      }
+    ]
+  },
+  {
+    "grade": 3,
+    "areaCode": "MATEMATICA",
+    "title": "Cuadernillo de Matemática 3",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2023,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/10081",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Hay 7 bolsas con 6 papas cada una. ¿Cuántas papas hay?",
+        "answer": "42 papas: 7 x 6 = 42."
+      },
+      {
+        "prompt": "Reparte 36 lápices entre 4 equipos por igual. ¿Cuántos recibe cada equipo?",
+        "answer": "9 lápices: 36 dividido entre 4 es 9."
+      }
+    ]
+  },
+  {
+    "grade": 4,
+    "areaCode": "MATEMATICA",
+    "title": "Cuadernillo de Matemática 4",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2023,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/10082",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Un huerto rectangular mide 8 m de largo y 5 m de ancho. ¿Cuál es su perímetro?",
+        "answer": "26 m: 8 + 5 + 8 + 5 = 26."
+      },
+      {
+        "prompt": "Una tortilla se divide en 8 partes iguales. Se comen 3. ¿Qué fracción queda?",
+        "answer": "Quedan 5 de las 8 partes: 5/8."
+      }
+    ]
+  },
+  {
+    "grade": 5,
+    "areaCode": "MATEMATICA",
+    "title": "Cuadernillo de Matemática 5",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2022,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/8877",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Lucía usa 3/4 de litro de agua y luego 1/2 litro. ¿Cuánto usa en total?",
+        "answer": "5/4 de litro: 3/4 + 2/4 = 5/4. Es 1 litro y 1/4."
+      },
+      {
+        "prompt": "Un cuaderno cuesta S/ 4,50. ¿Cuánto cuestan 3?",
+        "answer": "S/ 13,50: 4,50 x 3 = 13,50."
+      }
+    ]
+  },
+  {
+    "grade": 6,
+    "areaCode": "MATEMATICA",
+    "title": "Cuadernillo de Matemática 6",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2022,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/8878",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Un libro cuesta S/ 80 y tiene 25 % de descuento. ¿Cuánto se paga?",
+        "answer": "S/ 60. Se descuentan S/ 20: 80 x 25/100 = 20."
+      },
+      {
+        "prompt": "Se recolectan 12, 16 y 20 botellas en tres días. Calcula el promedio diario.",
+        "answer": "16 botellas: (12 + 16 + 20) dividido entre 3 = 16."
+      }
+    ]
+  },
+  {
+    "grade": 1,
+    "areaCode": "COMUNICACION",
+    "title": "Cuadernillo de Comunicación 1",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2025,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/11801",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Lee: Ana cuida una planta. Cada mañana la riega. ¿Qué cuida Ana?",
+        "answer": "Ana cuida una planta."
+      },
+      {
+        "prompt": "Escribe el nombre de una persona y una oración corta sobre ella.",
+        "answer": "Respuesta libre. El nombre empieza con mayúscula y la oración comunica una idea."
+      }
+    ]
+  },
+  {
+    "grade": 2,
+    "areaCode": "COMUNICACION",
+    "title": "Cuadernillo de Comunicación 2",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2025,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/11802",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Lee: Inti llevó una botella reutilizable al colegio para usar menos envases. ¿Para qué la llevó?",
+        "answer": "Para usar menos envases."
+      },
+      {
+        "prompt": "Ordena y escribe una oración: lee / Rosa / un cuento.",
+        "answer": "Rosa lee un cuento."
+      }
+    ]
+  },
+  {
+    "grade": 3,
+    "areaCode": "COMUNICACION",
+    "title": "Cuadernillo de Comunicación 3",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2023,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/10075",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Lee: La biblioteca abrió el sábado. Julia terminó sus tareas el viernes para visitarla temprano. ¿Por qué terminó sus tareas el viernes?",
+        "answer": "Para tener tiempo de visitar la biblioteca temprano el sábado."
+      },
+      {
+        "prompt": "Escribe una invitación a una feria de libros. Incluye destinatario, lugar, día y hora.",
+        "answer": "Respuesta libre. Comprueba que aparezcan a quién invitas, el motivo, el lugar, el día y la hora."
+      }
+    ]
+  },
+  {
+    "grade": 4,
+    "areaCode": "COMUNICACION",
+    "title": "Cuadernillo de Comunicación 4",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2024,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/11294",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Lee: El aula separó papel y plástico durante un mes. Así pudo entregar los residuos clasificados al recolector. Escribe la idea principal.",
+        "answer": "El aula clasificó sus residuos para entregarlos separados. Se aceptan otras formulaciones equivalentes."
+      },
+      {
+        "prompt": "Describe un lugar de tu comunidad en cuatro oraciones. Usa dos características y un conector.",
+        "answer": "Respuesta libre. Las características deben ser claras y el conector debe unir las ideas."
+      }
+    ]
+  },
+  {
+    "grade": 5,
+    "areaCode": "COMUNICACION",
+    "title": "Cuadernillo de Comunicación 5",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2024,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/11295",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Un cartel recomienda usar ambas caras del papel para reducir el desperdicio. Propón una razón que apoye esa recomendación.",
+        "answer": "Ejemplo: se aprovecha cada hoja y se necesitan menos hojas para escribir lo mismo."
+      },
+      {
+        "prompt": "Propón una mejora para la biblioteca escolar en un párrafo. Incluye propuesta, razón y beneficio.",
+        "answer": "Respuesta libre. Debe aparecer una propuesta concreta con una razón y un beneficio coherentes."
+      }
+    ]
+  },
+  {
+    "grade": 6,
+    "areaCode": "COMUNICACION",
+    "title": "Cuadernillo de Comunicación 6",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2024,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/11296",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Compara: A dice que la feria será el viernes a las 10. B dice que será muy divertida. ¿Cuál presenta un dato comprobable y cuál una opinión?",
+        "answer": "A presenta fecha y hora comprobables. B expresa una opinión."
+      },
+      {
+        "prompt": "Escribe un texto a favor de cuidar un área verde. Incluye dos argumentos y una conclusión.",
+        "answer": "Respuesta libre. Los argumentos deben apoyar la postura y la conclusión debe retomar la idea principal."
+      }
+    ]
+  },
+  {
+    "grade": 1,
+    "areaCode": "CYT",
+    "title": "Ciencia y Tecnología 1: cuaderno de autoaprendizaje",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2021,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/8321",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Observa sin tocar una planta y una piedra. Dibuja ambas y menciona una diferencia.",
+        "answer": "Ejemplo: la planta crece y necesita agua; la piedra no crece como un ser vivo."
+      },
+      {
+        "prompt": "Relaciona cada acción con un sentido: escuchar un ave y mirar una flor.",
+        "answer": "Escuchar: oído. Mirar: vista."
+      }
+    ]
+  },
+  {
+    "grade": 2,
+    "areaCode": "CYT",
+    "title": "Ciencia y Tecnología 2: cuaderno de autoaprendizaje",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2021,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/8322",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Una planta está junto a una ventana y otra en un lugar oscuro. ¿Qué pregunta investigarías sobre la luz?",
+        "answer": "Ejemplo: ¿cómo influye la cantidad de luz en el crecimiento de plantas del mismo tipo?"
+      },
+      {
+        "prompt": "Indica el estado del hielo, del agua de un vaso y del vapor de agua.",
+        "answer": "Hielo: sólido. Agua del vaso: líquido. Vapor de agua: gaseoso."
+      }
+    ]
+  },
+  {
+    "grade": 3,
+    "areaCode": "CYT",
+    "title": "Ciencia y Tecnología 3: cuaderno de autoaprendizaje",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2021,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/8323",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Se comparará el crecimiento de dos plantas con distinta cantidad de agua. ¿Qué dos condiciones mantendrías iguales?",
+        "answer": "Por ejemplo, tipo de planta, maceta, tierra y luz. Basta indicar dos."
+      },
+      {
+        "prompt": "En un jardín hay plantas, orugas y aves que comen orugas. Describe una relación de alimentación.",
+        "answer": "Las orugas comen partes de las plantas y algunas aves comen las orugas."
+      }
+    ]
+  },
+  {
+    "grade": 4,
+    "areaCode": "CYT",
+    "title": "Ciencia y Tecnología 4: cuaderno de autoaprendizaje",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2021,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/8324",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Una planta mide 5 cm el lunes, 7 cm el jueves y 9 cm el domingo. ¿Cuánto creció y qué muestran los datos?",
+        "answer": "Creció 4 cm entre lunes y domingo. Los registros muestran aumento de altura en ese periodo."
+      },
+      {
+        "prompt": "Propón una forma de reutilizar papel en el aula y explica qué problema reduce.",
+        "answer": "Ejemplo: usar el reverso limpio para borradores reduce el desperdicio de papel."
+      }
+    ]
+  },
+  {
+    "grade": 5,
+    "areaCode": "CYT",
+    "title": "Ciencia y Tecnología 5: cuaderno de autoaprendizaje",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2021,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/8325",
+    "checkedOn": "2026-10-13",
+    "note": "Material de consulta por grado; el docente selecciona las páginas para su unidad.",
+    "exercises": [
+      {
+        "prompt": "Dos recipientes iguales tienen agua. Uno está al sol y otro a la sombra. ¿Qué medirías para comparar la evaporación?",
+        "answer": "El nivel o cantidad de agua al inicio y después del mismo tiempo, manteniendo iguales los recipientes y la cantidad inicial."
+      },
+      {
+        "prompt": "¿Cómo puede afectar a un ave la desaparición de los árboles donde construye su nido?",
+        "answer": "Puede perder refugio y lugares de reproducción, y necesitar desplazarse a otro hábitat."
+      }
+    ]
+  },
+  {
+    "grade": 6,
+    "areaCode": "CYT",
+    "title": "Carpeta de Recuperación A: sexto grado de Primaria",
+    "publisher": "Ministerio de Educación del Perú",
+    "year": 2021,
+    "sourceUrl": "https://repositorio.minedu.gob.pe/handle/20.500.12799/7034",
+    "checkedOn": "2026-10-13",
+    "note": "Material integrado. Consultar la sección sobre biodiversidad para Ciencia y Tecnología.",
+    "exercises": [
+      {
+        "prompt": "Un grupo afirma que un abono hace crecer más las plantas. ¿Qué comparación permitiría reunir evidencia?",
+        "answer": "Comparar varias plantas similares con y sin ese abono, manteniendo iguales agua, luz, suelo y tiempo, y registrar su crecimiento."
+      },
+      {
+        "prompt": "Un riego usa 2 litros y otro 3 para la misma tarea. ¿Qué más comprobarías antes de elegir el primero?",
+        "answer": "Que las plantas reciban el agua necesaria, que el riego sea uniforme y que no haya fugas."
+      }
+    ]
+  }
+]

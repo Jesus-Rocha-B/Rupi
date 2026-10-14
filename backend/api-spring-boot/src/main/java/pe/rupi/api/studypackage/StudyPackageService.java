@@ -60,6 +60,11 @@ public class StudyPackageService {
     public record StudyPackage(Path path, String fileName, String contentKey, String sha256, long sizeBytes,
                                boolean fromCache) {}
 
+    public List<PrimaryStudyCatalog.Entry> resourcesForRoute(UUID studentId, UUID versionRouteId) {
+        var route = routes.getForStudent(studentId, versionRouteId);
+        return PrimaryStudyCatalog.forGradeAndArea(route.grade().number(), route.area().code());
+    }
+
     public StudyPackage packageForUnit(UUID studentId, UUID versionRouteId, String unitKey) {
         // getForStudent responde 404 si el estudiante no está inscrito o la ruta no está publicada.
         RouteDetailResponse route = routes.getForStudent(studentId, versionRouteId);
@@ -72,7 +77,8 @@ public class StudyPackageService {
         }
 
         Unit content = new Unit(route.title(), route.grade().name(), route.area().name(), unit.code(), unit.title(),
-                unit.competencies().stream().map(Competency::name).toList(), stops);
+                unit.competencies().stream().map(Competency::name).toList(), stops,
+                PrimaryStudyCatalog.forGradeAndArea(route.grade().number(), route.area().code()));
         List<FileRef> files = repository.findFiles(referencedFileIds(stops));
         String key = contentKey(content, files);
 
