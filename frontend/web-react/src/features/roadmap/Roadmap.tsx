@@ -303,45 +303,41 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                   <span className={`pill-state ${cssClass}`}>{nodeStateLabels[node.state]}</span>
                 </div>
 
-                {/* Rupi y su bocadillo situados al lado opuesto de la etiqueta */}
+                {/* Rupi (el gallito de las rocas) posicionado directamente en el nivel actual del estudiante */}
                 {isActive && (
                   <div
-                    className={`rupi-road-anchor ${labelSide === 'right' ? 'anchor-left' : 'anchor-right'}`}
-                    aria-live="polite"
+                    className="rupi-perched-current-node"
+                    onClick={handleGuideAction}
+                    role="button"
+                    tabIndex={0}
+                    title="¡Rupi está aquí contigo en este nivel! Toca para escuchar tu consejo"
+                    aria-label={`Rupi está en tu nivel actual: ${node.title}. Toca para escuchar.`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleGuideAction()
+                      }
+                    }}
                   >
-                    <div
-                      className="rupi-guide-box"
-                      onClick={handleGuideAction}
-                      role="button"
-                      tabIndex={0}
-                      aria-label="Rupi te acompaña en esta parada. Toca para pedir otro consejo."
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleGuideAction()
-                        }
-                      }}
-                    >
-                      <RupiCharacter mood={rupiMood} className="avatar-on-road" />
-                      <div className="road-bubble">
-                        <div className="road-bubble-header">
-                          <span className="rupi-badge-name">Rupi contigo</span>
-                          <button
-                            type="button"
-                            className="rupi-listen-btn"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              speakText(guideMessage)
-                            }}
-                            aria-label="Escuchar consejo de Rupi"
-                            title="Escuchar consejo"
-                          >
-                            <Volume2 size={16} aria-hidden="true" />
-                            <span>Escuchar</span>
-                          </button>
-                        </div>
-                        <p className="road-bubble-text">{guideMessage}</p>
-                      </div>
+                    <div className="rupi-perched-sprite-box">
+                      <RupiCharacter mood={rupiMood} className="avatar-perched" />
+                      <div className="rupi-feet-shadow" aria-hidden="true" />
+                    </div>
+                    <div className="rupi-level-badge">
+                      <span className="rupi-badge-pulse" aria-hidden="true" />
+                      <span>¡Tu nivel actual!</span>
+                      <button
+                        type="button"
+                        className="rupi-mini-listen-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          speakText(guideMessage)
+                        }}
+                        aria-label="Escuchar consejo de Rupi"
+                        title="Escuchar"
+                      >
+                        <Volume2 size={13} aria-hidden="true" />
+                      </button>
                     </div>
                   </div>
                 )}

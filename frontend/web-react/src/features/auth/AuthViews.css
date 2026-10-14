@@ -2378,70 +2378,72 @@
 }
 
 /* --------------------------------------------------------------------------
-   8. Barra de Cambio de Materia en el Aula Escolar (Course Switch Bar)
+   8. Barra de Cambio de Materia en el Aula Escolar (iOS / macOS Segmented Control)
    -------------------------------------------------------------------------- */
 .course-switch-bar {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
   margin: 16px 0 22px;
+  padding: 5px;
+  background: rgba(23, 62, 48, 0.06);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(23, 62, 48, 0.08);
+  border-radius: 20px;
   flex-wrap: wrap;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .course-switch-tab {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-height: 48px;
+  gap: 9px;
+  min-height: 44px;
   padding: 8px 18px;
-  background: var(--paper, #fffefa);
-  border: 2px solid var(--line, #dbe8d2);
-  border-radius: 16px;
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 15px;
   font-size: 13.5px;
   font-weight: 800;
-  color: var(--muted, #43614c);
+  color: #4a5d53;
   cursor: pointer;
-  box-shadow: 0 3px 0 #cfdbd0;
-  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+  box-shadow: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .course-switch-tab:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 0 #cfdbd0;
-  color: var(--ink, #173e30);
-  background: #ffffff;
+  color: #173e30;
+  background: rgba(255, 255, 255, 0.55);
 }
 
 .course-switch-tab:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #cfdbd0;
+  transform: scale(0.96);
 }
 
 .course-switch-tab:focus-visible {
   outline: 3px solid #ffd26a;
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
 .course-switch-tab.active {
-  color: #ffffff;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(23, 62, 48, 0.09), 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .course-switch-tab.active.comunicacion {
-  background: #246a91;
-  border-color: #174b6a;
-  box-shadow: 0 4px 0 #133c55;
+  color: #246a91;
+  border-color: rgba(36, 106, 145, 0.25);
 }
 
 .course-switch-tab.active.matematica {
-  background: #f95738;
-  border-color: #cc3a1d;
-  box-shadow: 0 4px 0 #b32f14;
+  color: #f95738;
+  border-color: rgba(249, 87, 56, 0.25);
 }
 
 .course-switch-tab.active.cyt {
-  background: #31724b;
-  border-color: #215134;
-  box-shadow: 0 4px 0 #183e27;
+  color: #31724b;
+  border-color: rgba(49, 114, 75, 0.25);
 }
 
 .tab-status-pill {

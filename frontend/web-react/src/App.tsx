@@ -249,10 +249,15 @@ function App() {
         if (signal.aborted) return
         setDemoAvailable(options.demoAvailable)
         const current = await fetchSession(signal)
-        const list = await fetchStudentRoutes(signal)
-        if (signal.aborted) return
         setStudent(current)
+        const list = await fetchStudentRoutes(signal)
         setRoutes(list)
+        if (current.gradeNumber) {
+          const manualSaved = localStorage.getItem('rupi_student_manual_grade')
+          const effectiveGrade = manualSaved ? parseInt(manualSaved, 10) : current.gradeNumber
+          setStudentEnrolledGrade(effectiveGrade)
+          localStorage.setItem('rupi_student_enrolled_grade', String(effectiveGrade))
+        }
         if (!list.length) {
           setErrorType('EMPTY')
           setLoading(false)
@@ -501,11 +506,11 @@ function App() {
           initialGrade={selectedGrade}
           onSelectGradeAndCourse={(grade, course) => {
             setStudentEnrolledGrade(grade)
+            localStorage.setItem('rupi_student_manual_grade', String(grade))
             localStorage.setItem('rupi_student_enrolled_grade', String(grade))
             handleSelectGradeAndCourse(grade, course)
           }}
-          onSelectEnrolledRoute={(versionRouteId, gradeNumber, courseCode) => {
-            setSelectedGrade(gradeNumber)
+          onSelectEnrolledRoute={(versionRouteId, _gradeNumber, courseCode) => {
             setSelectedCourse(courseCode)
             setRouteId(versionRouteId)
             resetView()
@@ -556,7 +561,6 @@ function App() {
           >
             <Compass aria-hidden="true" />
             <span>Explorar Roadmaps</span>
-            <span className="nav-badge-pill">Oficial y Comunidad</span>
           </button>
           <button
             type="button"
@@ -632,11 +636,10 @@ function App() {
         {/* Pantalla 1: Explorar Roadmaps (Oficial CNEB 1.°-6.° vs Comunidad/Profesores) */}
         {currentView === 'explorar' && (
           <ExploreRoadmapsView
-            currentGrade={selectedGrade}
+            currentGrade={studentEnrolledGrade}
             currentCourse={selectedCourse}
             enrolledRoutes={routes}
-            onSelectRoute={(versionRouteId, gradeNumber, areaCode) => {
-              if (gradeNumber) setSelectedGrade(gradeNumber)
+            onSelectRoute={(versionRouteId, _gradeNumber, areaCode) => {
               if (areaCode) {
                 const code = areaCode.toUpperCase()
                 if (code.includes('COM')) setSelectedCourse('COMUNICACION')
@@ -658,8 +661,7 @@ function App() {
             enrolledGrade={studentEnrolledGrade}
             earnedBadges={badges}
             enrolledRoutes={routes}
-            onSelectRoute={(versionRouteId, gradeNumber, areaCode) => {
-              if (gradeNumber) setSelectedGrade(gradeNumber)
+            onSelectRoute={(versionRouteId, _gradeNumber, areaCode) => {
               if (areaCode) {
                 const code = areaCode.toUpperCase()
                 if (code.includes('COM')) setSelectedCourse('COMUNICACION')

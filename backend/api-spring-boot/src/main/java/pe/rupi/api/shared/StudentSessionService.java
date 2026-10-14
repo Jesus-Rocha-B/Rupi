@@ -38,13 +38,24 @@ public class StudentSessionService {
         this.passwordService = passwordService;
     }
 
-    public record Student(String id, String name, String schoolName, String role) {
+    public record Student(
+            String id,
+            String name,
+            String schoolName,
+            String role,
+            Integer gradeNumber,
+            String gradeName
+    ) {
+        public Student(String id, String name, String schoolName, String role) {
+            this(id, name, schoolName, role, 2, "2.° de primaria");
+        }
+
         public Student(String id, String name) {
-            this(id, name, "I.E. 38001 Mariscal Sucre", "ESTUDIANTE");
+            this(id, name, "I.E. 38001 Mariscal Sucre", "ESTUDIANTE", 2, "2.° de primaria");
         }
 
         public Student(String id, String name, String schoolName) {
-            this(id, name, schoolName, "ESTUDIANTE");
+            this(id, name, schoolName, "ESTUDIANTE", 2, "2.° de primaria");
         }
     }
 
@@ -76,7 +87,9 @@ public class StudentSessionService {
             Timestamp lockedUntil,
             String displayName,
             String schoolName,
-            String role
+            String role,
+            Integer gradeNumber,
+            String gradeName
     ) {}
 
     public Optional<Student> resolve(HttpServletRequest request) {
@@ -114,7 +127,9 @@ public class StudentSessionService {
                 SELECT u.id,
                        COALESCE(p.nombre_preferido, p.nombre, u.nombre_usuario) AS nombre,
                        COALESCE(inst.nombre, 'I.E. 38001 Mariscal Sucre') AS school_name,
-                       COALESCE(r.codigo, 'ESTUDIANTE') AS rol_codigo
+                       COALESCE(r.codigo, 'ESTUDIANTE') AS rol_codigo,
+                       COALESCE(g.numero_grado, 2) AS numero_grado,
+                       COALESCE(g.nombre, '2.° de primaria') AS grado_nombre
                 FROM identidad_sesion_usuario s
                 JOIN identidad_cuenta_usuario u ON u.id = s.usuario_id
                 LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
@@ -123,11 +138,19 @@ public class StudentSessionService {
                 LEFT JOIN escuela_membresia_aula m ON m.usuario_id = u.id AND m.estado = 'ACTIVO'
                 LEFT JOIN escuela_aula a ON a.id = m.aula_id
                 LEFT JOIN escuela_institucion inst ON inst.id = a.institucion_id
+                LEFT JOIN curriculo_grado g ON g.id = a.grado_id
                 WHERE s.token_hash = ? AND s.revocada_en IS NULL
                   AND s.expira_en > UTC_TIMESTAMP(6) AND s.cliente = 'WEB_USUARIO'
                   AND u.estado = 'ACTIVO' AND u.desactivado_en IS NULL
                   AND (u.bloqueado_hasta IS NULL OR u.bloqueado_hasta <= UTC_TIMESTAMP(6))
-                """, (rs, row) -> new Student(rs.getString("id"), rs.getString("nombre"), rs.getString("school_name"), rs.getString("rol_codigo")), hash)
+                """, (rs, row) -> new Student(
+                        rs.getString("id"),
+                        rs.getString("nombre"),
+                        rs.getString("school_name"),
+                        rs.getString("rol_codigo"),
+                        rs.getInt("numero_grado"),
+                        rs.getString("grado_nombre")
+                ), hash)
                 .stream().findFirst();
     }
 
@@ -173,7 +196,9 @@ public class StudentSessionService {
                 SELECT u.id, u.nombre_usuario, u.hash_clave, u.estado, u.desactivado_en, u.bloqueado_hasta,
                        COALESCE(p.nombre_preferido, p.nombre, u.nombre_usuario) AS display_name,
                        COALESCE(inst.nombre, 'I.E. 38001 Mariscal Sucre') AS school_name,
-                       COALESCE(r.codigo, 'ESTUDIANTE') AS rol_codigo
+                       COALESCE(r.codigo, 'ESTUDIANTE') AS rol_codigo,
+                       COALESCE(g.numero_grado, 2) AS numero_grado,
+                       COALESCE(g.nombre, '2.° de primaria') AS grado_nombre
                 FROM identidad_cuenta_usuario u
                 LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
                 LEFT JOIN identidad_usuario_rol ur ON ur.usuario_id = u.id
@@ -181,6 +206,7 @@ public class StudentSessionService {
                 LEFT JOIN escuela_membresia_aula m ON m.usuario_id = u.id AND m.estado = 'ACTIVO'
                 LEFT JOIN escuela_aula a ON a.id = m.aula_id
                 LEFT JOIN escuela_institucion inst ON inst.id = a.institucion_id
+                LEFT JOIN curriculo_grado g ON g.id = a.grado_id
                 WHERE u.nombre_usuario = ?
                 """, (rs, rowNum) -> new UserAccount(
                 rs.getString("id"),
@@ -191,7 +217,9 @@ public class StudentSessionService {
                 rs.getTimestamp("bloqueado_hasta"),
                 rs.getString("display_name"),
                 rs.getString("school_name"),
-                rs.getString("rol_codigo")
+                rs.getString("rol_codigo"),
+                rs.getInt("numero_grado"),
+                rs.getString("grado_nombre")
         ), username);
 
         if (accounts.isEmpty()) {
@@ -253,7 +281,7 @@ public class StudentSessionService {
                 VALUES (?, ?, ?, 'WEB_USUARIO', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6) + INTERVAL 30 DAY)
                 """, sessionId, account.id(), tokenHash);
 
-        return AuthenticationResult.success(new Student(account.id(), account.displayName(), account.schoolName(), account.role()), token);
+        return AuthenticationResult.success(new Student(account.id(), account.displayName(), account.schoolName(), account.role(), account.gradeNumber(), account.gradeName()), token);
     }
 
     public void revokeSession(HttpServletRequest request) {
