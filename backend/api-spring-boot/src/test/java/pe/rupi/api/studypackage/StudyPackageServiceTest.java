@@ -83,6 +83,43 @@ class StudyPackageServiceTest {
     }
 
     @Test
+    void nodePackageIncludesOnlySelectedStopAndIsCached() throws Exception {
+        when(repository.findStops(ROUTE, List.of(NODE_2))).thenReturn(List.of(stop(2, "Solo segunda parada")));
+        var pack = service.packageForNode(STUDENT, ROUTE, NODE_2);
+        assertEquals("rupi-parada-2-parada-2.zip", pack.fileName());
+        try (var zip = new java.util.zip.ZipFile(pack.path().toFile())) {
+            var data = StudyPackageBuilder.JSON.readTree(zip.getInputStream(zip.getEntry("contenido.json")).readAllBytes());
+            assertEquals(1, data.get("unidad").get("stops").size());
+            assertEquals(2, data.get("unidad").get("stops").get(0).get("sequence").asInt());
+            assertNotNull(zip.getEntry("ABRIR.html"));
+        }
+        assertTrue(service.packageForNode(STUDENT, ROUTE, NODE_2).fromCache());
+        Mockito.verify(repository, Mockito.never()).findStops(ROUTE, List.of(NODE_1));
+    }
+
+    @Test
+    void nodeFromAnotherRouteIsRejectedBeforeQuery() {
+        var error = assertThrows(ResponseStatusException.class,
+                () -> service.packageForNode(STUDENT, ROUTE, UUID.randomUUID()));
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatusCode());
+        Mockito.verifyNoInteractions(repository);
+    }
+
+    @Test
+    void unpublishedNodeCannotBeDownloaded() {
+        when(repository.findStops(ROUTE, List.of(NODE_1))).thenReturn(List.of());
+        assertEquals(HttpStatus.CONFLICT, assertThrows(ResponseStatusException.class,
+                () -> service.packageForNode(STUDENT, ROUTE, NODE_1)).getStatusCode());
+    }
+
+    @Test
+    void nodeRequiresEnrollment() {
+        when(routes.getForStudent(STUDENT, ROUTE)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+        assertThrows(ResponseStatusException.class, () -> service.packageForNode(STUDENT, ROUTE, NODE_1));
+        Mockito.verifyNoInteractions(repository);
+    }
+
+    @Test
     void resourcesRespectRouteAuthorizationAndGrade() {
         var entries = service.resourcesForRoute(STUDENT, ROUTE);
         assertEquals(3, entries.getFirst().grade());

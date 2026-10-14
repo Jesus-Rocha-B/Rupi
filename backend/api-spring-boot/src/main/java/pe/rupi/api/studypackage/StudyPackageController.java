@@ -32,6 +32,16 @@ public class StudyPackageController {
     public ResponseEntity<Resource> download(@PathVariable UUID versionRouteId, @PathVariable String unitKey,
                                              Principal principal) {
         var pack = service.packageForUnit(studentIdFrom(principal), versionRouteId, unitKey);
+        return response(pack);
+    }
+
+    @GetMapping("/api/v1/student/learning-routes/{versionRouteId}/nodes/{nodeId}/package")
+    public ResponseEntity<Resource> downloadNode(@PathVariable UUID versionRouteId, @PathVariable UUID nodeId,
+                                                  Principal principal) {
+        return response(service.packageForNode(studentIdFrom(principal), versionRouteId, nodeId));
+    }
+
+    private ResponseEntity<Resource> response(StudyPackageService.StudyPackage pack) {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/zip"))
                 .contentLength(pack.sizeBytes())

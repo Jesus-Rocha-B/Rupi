@@ -265,10 +265,11 @@ export async function downloadUnitPackage(
   versionRouteId: string,
   unitKey: string,
   fallbackName: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  nodePackage = false
 ): Promise<UnitPackage> {
   const timeout = AbortSignal.timeout(60000)
-  const response = await fetch(`${API_BASE}/api/v1/${unitPackagePath(versionRouteId, unitKey)}`, {
+  const response = await fetch(`${API_BASE}/api/v1/${nodePackage ? `student/learning-routes/${encodeURIComponent(versionRouteId)}/nodes/${encodeURIComponent(unitKey)}/package` : unitPackagePath(versionRouteId, unitKey)}`, {
     credentials: 'same-origin',
     signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
   })

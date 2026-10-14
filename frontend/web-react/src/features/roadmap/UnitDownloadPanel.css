@@ -209,3 +209,8 @@
 .official-study-note { padding: 12px; background: #fff3ce; border-radius: 10px; }
 
 .official-study .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.offline-instructions { font-size: 14px; line-height: 1.6; }
+.download-scope { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0; font-weight: 800; }
+.download-scope select { min-height: 48px; max-width: 100%; padding: 8px 12px; border: 2px solid #173e30; border-radius: 10px; background: #fffefa; color: #173e30; font: inherit; }
+.download-scope select:focus-visible { outline: 3px solid #246a91; outline-offset: 3px; }

@@ -34,7 +34,8 @@ function saveFile(blob: Blob, fileName: string) {
 }
 
 export function UnitDownloadPanel({ route }: { route: RouteDetail }) {
-  const units = useMemo(() => downloadableUnits(route), [route])
+  const [scope, setScope] = useState<'unit' | 'node'>('node')
+  const units = useMemo(() => scope === 'unit' ? downloadableUnits(route) : route.nodes.map(node => ({ key: node.id, title: `Parada ${node.sequence} · ${node.title}`, code: null, stops: 1 })), [route, scope])
   const [status, setStatus] = useState<Record<string, Status>>({})
   const controllers = useRef(new Map<string, AbortController>())
 
@@ -43,26 +44,28 @@ export function UnitDownloadPanel({ route }: { route: RouteDetail }) {
     return () => active.forEach(controller => controller.abort())
   }, [route.versionRouteId])
 
-  if (units.length === 0) return null
+  if (route.nodes.length === 0) return null
 
   const download = async (key: string, title: string) => {
-    controllers.current.get(key)?.abort()
+    const statusKey = `${scope}:${key}`
+    controllers.current.get(statusKey)?.abort()
     const controller = new AbortController()
-    controllers.current.set(key, controller)
-    setStatus(prev => ({ ...prev, [key]: { kind: 'loading' } }))
+    controllers.current.set(statusKey, controller)
+    setStatus(prev => ({ ...prev, [statusKey]: { kind: 'loading' } }))
     try {
-      const pack = await downloadUnitPackage(route.versionRouteId, key, `rupi-${route.title}-${title}`, controller.signal)
+      const pack = await downloadUnitPackage(route.versionRouteId, key, `rupi-${route.title}-${title}`, controller.signal, scope === 'node')
+      if (controller.signal.aborted) return
       if (pack.verified === false) {
-        setStatus(prev => ({ ...prev, [key]: { kind: 'error', message: 'El archivo llegó incompleto. Vuelve a descargarlo.' } }))
+        setStatus(prev => ({ ...prev, [statusKey]: { kind: 'error', message: 'El archivo llegó incompleto. Vuelve a descargarlo.' } }))
         return
       }
       saveFile(pack.blob, pack.fileName)
-      setStatus(prev => ({ ...prev, [key]: { kind: 'done', fileName: pack.fileName, verified: pack.verified } }))
+      setStatus(prev => ({ ...prev, [statusKey]: { kind: 'done', fileName: pack.fileName, verified: pack.verified } }))
     } catch (error) {
       if (controller.signal.aborted) return
-      setStatus(prev => ({ ...prev, [key]: { kind: 'error', message: friendlyError(error) } }))
+      setStatus(prev => ({ ...prev, [statusKey]: { kind: 'error', message: friendlyError(error) } }))
     } finally {
-      if (controllers.current.get(key) === controller) controllers.current.delete(key)
+      if (controllers.current.get(statusKey) === controller) controllers.current.delete(statusKey)
     }
   }
 
@@ -73,7 +76,7 @@ export function UnitDownloadPanel({ route }: { route: RouteDetail }) {
           <WifiOff size={22} />
         </span>
         <div>
-          <h4 id="unit-downloads-title">Llévate tu unidad</h4>
+          <h4 id="unit-downloads-title">Llévate tus materiales</h4>
           <p>
             Descarga las lecturas y ejercicios para estudiar sin internet. Trae una guía para imprimir
             <Printer size={15} aria-hidden="true" className="inline-icon" /> y los materiales de tu profesor.
@@ -81,9 +84,17 @@ export function UnitDownloadPanel({ route }: { route: RouteDetail }) {
         </div>
       </header>
 
+      <p className="offline-instructions">Con internet, descarga tu paquete. Luego extrae todo el ZIP y abre <strong>ABRIR.html</strong> para estudiar sin conexión. Allí verás los materiales disponibles y cualquier archivo que falte. Tu avance en Rupi no cambia al practicar fuera de línea.</p>
+      <label className="download-scope">Quiero descargar
+        <select value={scope} onChange={event => setScope(event.target.value as 'unit' | 'node')}>
+          <option value="node">Una parada del mapa</option>
+          <option value="unit">Una unidad completa</option>
+        </select>
+      </label>
+      {units.length === 0 && <p role="status">Tu profesor aún no agrupó las paradas en unidades. Puedes descargar cada parada por separado.</p>}
       <ul className="unit-downloads-list">
         {units.map(unit => {
-          const state = status[unit.key] ?? { kind: 'idle' }
+          const state = status[`${scope}:${unit.key}`] ?? { kind: 'idle' }
           const busy = state.kind === 'loading'
           return (
             <li key={unit.key} className={`unit-download-card is-${state.kind}`}>
@@ -98,7 +109,7 @@ export function UnitDownloadPanel({ route }: { route: RouteDetail }) {
                   {state.kind === 'done' && (
                     <>
                       <CircleCheck size={15} aria-hidden="true" />
-                      {state.verified ? '¡Listo y completo! ' : '¡Listo! '}
+                      {state.verified ? '¡Archivo verificado! ' : '¡Listo! '}
                       Búscalo en tus descargas como {state.fileName}
                     </>
                   )}
@@ -116,7 +127,7 @@ export function UnitDownloadPanel({ route }: { route: RouteDetail }) {
                 onClick={() => download(unit.key, unit.title)}
                 disabled={busy}
                 aria-busy={busy}
-                aria-label={`Descargar la unidad ${unit.title}`}
+                aria-label={`Descargar ${scope === 'unit' ? 'la unidad ' : 'materiales de '}${unit.title}`}
               >
                 {busy ? <LoaderCircle size={20} className="spin" aria-hidden="true" /> : <Download size={20} aria-hidden="true" />}
                 <span>{busy ? 'Preparando' : state.kind === 'done' ? 'Otra vez' : 'Descargar'}</span>

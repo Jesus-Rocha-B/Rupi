@@ -53,7 +53,7 @@ import pe.rupi.api.studypackage.StudyPackageModel.Unit;
 /** Arma el zip de una unidad: guía PDF imprimible, materiales del docente, contenido.json y manifest.json. */
 public class StudyPackageBuilder {
     /** Subirlo cuando cambie la plantilla del PDF o la estructura del zip, para invalidar la caché. */
-    public static final int FORMAT_VERSION = 2;
+    public static final int FORMAT_VERSION = 3;
 
     public static final String GUIDE_ENTRY = "guia-de-estudio.pdf";
     public static final String CONTENT_ENTRY = "contenido.json";
@@ -112,6 +112,7 @@ public class StudyPackageBuilder {
                     continue;
                 }
                 String name = "materiales/parada-%02d-%s".formatted(stop.sequence(), safeFileName(file.originalName()));
+                if (packagedBytes.containsKey(name)) name = "materiales/" + safeFileName(fileId) + "-" + safeFileName(file.originalName());
                 packagedNames.put(fileId, name);
                 packagedBytes.put(name, bytes);
             }
@@ -130,7 +131,8 @@ public class StudyPackageBuilder {
             }
             byte[] content = JSON.writeValueAsBytes(new Content(FORMAT_VERSION, generatedAt.toString(), unit, packagedNames));
             putEntry(zip, CONTENT_ENTRY, content, entries);
-            putEntry(zip, README_ENTRY, readme(unit).getBytes(StandardCharsets.UTF_8), entries);
+            putEntry(zip, "ABRIR.html", OfflineStudyPage.render(unit, packagedNames, missing).getBytes(StandardCharsets.UTF_8), entries);
+            putEntry(zip, README_ENTRY, (readme(unit) + "\r\nMateriales no incluidos: " + (missing.isEmpty() ? "ninguno" : String.join("; ", missing))).getBytes(StandardCharsets.UTF_8), entries);
 
             var manifest = new Manifest("rupi-paquete-unidad", FORMAT_VERSION, generatedAt.toString(),
                     unit.routeTitle(), unit.gradeName(), unit.areaName(), unit.unitTitle(), entries, missing);
@@ -194,6 +196,10 @@ public class StudyPackageBuilder {
 
                 Ruta: %s (%s, %s)
                 Unidad: %s
+
+                Primero extrae TODO el ZIP y abre ABRIR.html en tu navegador, incluso sin internet.
+                También puedes abrir directamente los PDF. No necesitas iniciar sesión.
+                El estudio sin conexión no registra respuestas ni cambia tu avance en Rupi.
 
                 Qué hay aquí:
                 - guia-de-estudio.pdf: lecturas, ejercicios y claves para revisar. Puedes imprimirla.
@@ -289,7 +295,7 @@ public class StudyPackageBuilder {
         howTo.setLeading(17);
         howTo.setSpacingAfter(4);
         document.add(howTo);
-        document.add(new Paragraph("Preparada el " + DATE.format(generatedAt) + ". Esta unidad tiene "
+        document.add(new Paragraph("Preparada el " + DATE.format(generatedAt) + ". Este paquete tiene "
                 + unit.stops().size() + (unit.stops().size() == 1 ? " parada." : " paradas."), NOTE));
     }
 

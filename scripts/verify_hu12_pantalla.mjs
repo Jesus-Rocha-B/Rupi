@@ -26,6 +26,7 @@ for (const [nombre, w, h] of [['escritorio 1280 px', 1280, 900], ['móvil 375 px
   await panel.waitFor({ timeout: 15000 })
   await panel.scrollIntoViewIfNeeded()
 
+  await page.getByRole('combobox', { name: 'Quiero descargar' }).selectOption('unit')
   const datos = await page.evaluate(() => {
     const bandas = [...document.querySelectorAll('.map-area .unit-band-title')].map(e => e.textContent.trim())
     const tarjetas = [...document.querySelectorAll('.unit-download-title')].map(e => e.textContent.trim())
@@ -46,8 +47,8 @@ for (const [nombre, w, h] of [['escritorio 1280 px', 1280, 900], ['móvil 375 px
   check(`[${nombre}] la descarga con teclado entrega un .zip`, descarga.suggestedFilename().endsWith('.zip') && zip.subarray(0, 2).toString() === 'PK',
     descarga.suggestedFilename())
   const estado = page.locator('.unit-download-card').first().locator('.unit-download-status')
-  await estado.filter({ hasText: 'Listo' }).waitFor({ timeout: 10000 })
-  check(`[${nombre}] el mensaje confirma que llegó completo`, (await estado.textContent()).includes('¡Listo y completo!'))
+  await estado.filter({ hasText: 'Archivo verificado' }).waitFor({ timeout: 10000 })
+  check(`[${nombre}] el mensaje confirma que llegó completo`, (await estado.textContent()).includes('¡Archivo verificado!'))
   await panel.screenshot({ path: join(capturas, `hu12-panel-${w}.png`) })
   await ctx.close()
 }

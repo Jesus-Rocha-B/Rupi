@@ -92,6 +92,29 @@ public class StudyPackageService {
         }
     }
 
+    public StudyPackage packageForNode(UUID studentId, UUID versionRouteId, UUID nodeId) {
+        var route = routes.getForStudent(studentId, versionRouteId);
+        var node = route.nodes().stream().filter(n -> n.id().equals(nodeId)).findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Esta parada no pertenece a tu ruta."));
+        var stops = repository.findStops(versionRouteId, List.of(nodeId));
+        if (stops.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Esta parada todavía no tiene materiales publicados para descargar.");
+        var content = new Unit(route.title(), route.grade().name(), route.area().name(), null,
+                "Parada " + node.sequence() + " · " + node.title(), List.of(), stops,
+                PrimaryStudyCatalog.forGradeAndArea(route.grade().number(), route.area().code()));
+        var files = repository.findFiles(referencedFileIds(stops));
+        var key = contentKey(content, files);
+        try {
+            var entry = cache.getOrCreate(key, out -> builder.write(content, files, this::pathOf, clock.instant(), out));
+            byte[] bytes = Files.readAllBytes(entry.path());
+            return new StudyPackage(entry.path(), "rupi-parada-" + node.sequence() + "-"
+                    + StudyPackageBuilder.safeFileName(node.title()).toLowerCase(Locale.ROOT) + ".zip",
+                    key, StudyPackageBuilder.sha256(bytes), bytes.length, entry.fromCache());
+        } catch (IOException e) {
+            throw new UncheckedIOException("No se pudo preparar la parada", e);
+        }
+    }
+
     static RouteUnit findUnit(RouteDetailResponse route, String unitKey) {
         List<RouteUnit> units = route.curriculum() == null ? List.of() : route.curriculum().units();
         Optional<RouteUnit> found;

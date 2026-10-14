@@ -74,3 +74,17 @@ powershell.exe -NoProfile -File scripts/Verificar-HU12-Descarga.ps1
 6. Cambiar de grado/materia y comprobar que cambia el recurso y los ejercicios.
 
 Los problemas previos de V12, autoría docente y carga de materiales quedan fuera de este cambio, a cargo del equipo.
+
+
+## Descarga por nodo y consulta sin conexión
+
+La HU-12 permite descargar una parada o una unidad completa desde «Llévate tus materiales», debajo del mapa. El selector empieza en «Una parada del mapa». Se conserva la paleta y los botones táctiles de Rupi.
+
+Endpoint: `GET /api/v1/student/learning-routes/{versionRouteId}/nodes/{nodeId}/package`.
+Exige sesión e inscripción en una ruta publicada, valida que el nodo pertenezca a esa ruta y consulta únicamente su actividad publicada. Devuelve 401 sin sesión, 404 ante ruta/nodo ajeno y 409 sin contenido publicado. Como en la descarga por unidad, se permite estudiar de antemano las paradas publicadas; descargar no desbloquea ni completa actividades.
+
+El ZIP incluye `ABRIR.html`, una guía PDF, preguntas con respuestas para revisar, adjuntos locales disponibles, repaso Rupi por grado, referencias oficiales, instrucciones y manifest con hashes. Tras extraer todo el ZIP, `ABRIR.html` funciona directamente en el navegador sin servidor, sesión, scripts ni peticiones de red. No es un modo offline de toda la aplicación y no sincroniza respuestas ni progreso. Los adjuntos ausentes o dañados aparecen como no incluidos en el lector, las instrucciones y el manifest. Dos adjuntos con el mismo nombre conservan archivos separados.
+
+Los enlaces web y los libros externos del MINEDU no se convierten en archivos locales automáticamente: la biblioteca indica que el PDF oficial debe guardarse por separado antes de desconectarse. Los ejercicios incluidos son originales de Rupi.
+
+Validación de esta ampliación: pruebas de servicio (aislamiento de nodo, inscripción, publicación y caché), controlador HTTP (401, ZIP y cabeceras), lector con contenido escapado, advertencia de archivos faltantes, hashes de paquete, compilación y lint del frontend. Prueba visual aislada con respuestas HTTP simuladas en 1280 y 375 px, descarga por teclado, selector y reintento; apertura de `ABRIR.html` con la red del navegador desactivada. El script `verify_hu12_resources.py` permite repetir la comprobación de unidades y nodos contra la API local; esta ampliación no modifica la base de datos ni corrige los problemas de autoría reportados por separado.

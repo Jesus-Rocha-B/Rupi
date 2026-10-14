@@ -41,6 +41,16 @@ def main():
             manifest=json.loads(pack.read('manifest.json'))
             for part in manifest['archivos']:
                 raw=pack.read(part['ruta']);assert len(raw)==part['bytes'];assert hashlib.sha256(raw).hexdigest()==part['sha256']
+        node=detail['nodes'][0]
+        with request(base+'/nodes/'+node['id']+'/package') as response:
+            content=response.read();assert hashlib.sha256(content).hexdigest()==response.headers['X-Rupi-Paquete-Sha256']
+        with zipfile.ZipFile(io.BytesIO(content)) as pack:
+            stops=json.loads(pack.read('contenido.json'))['unidad']['stops']
+            assert len(stops)==1 and stops[0]['sequence']==node['sequence']
+            assert 'MI MOCHILA SIN CONEXIÓN' in pack.read('ABRIR.html').decode()
+        try: get(base+'/nodes/00000000-0000-4000-8000-000000000000/package')
+        except urllib.error.HTTPError as error: assert error.code==404
+        else: raise AssertionError('Se permitió un nodo ajeno')
         covered.add((grade,area));print(f'OK {grade} {area}: fuente, grado, repaso y hashes')
     assert covered,'No hay rutas inscritas de primaria para verificar.'
     # Rechazo real de sesión ausente y ruta ajena para el nuevo endpoint.

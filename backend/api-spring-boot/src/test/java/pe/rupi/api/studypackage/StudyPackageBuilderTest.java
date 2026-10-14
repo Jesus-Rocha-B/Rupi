@@ -89,12 +89,28 @@ class StudyPackageBuilderTest {
     }
 
     @Test
+    void offlinePageHasLocalMaterialsExercisesAndVisibleMissingFiles() throws IOException {
+        var entries = build(files(StudyPackageBuilder.sha256(materialBytes)));
+        var html = new String(entries.get("ABRIR.html"), StandardCharsets.UTF_8);
+        assertTrue(html.contains("María visita la feria"));
+        assertTrue(html.contains("9 retablos"));
+        assertTrue(html.contains("href=\"materiales/parada-01-Lectura-Retablo-Nano.pdf\""));
+        assertTrue(html.contains("Ficha perdida"));
+        assertTrue(html.contains("necesita internet"));
+        assertFalse(html.contains("<script"));
+        var evidence = Path.of("target", "hu12-evidence", "offline-reader");
+        Files.createDirectories(evidence);
+        Files.write(evidence.resolve("ABRIR.html"), entries.get("ABRIR.html"));
+        assertEquals("&lt;script&gt;&amp;&quot;", OfflineStudyPage.escape("<script>&\""));
+    }
+
+    @Test
     @DisplayName("El zip trae guía, material, contenido, LEEME y manifest")
     void packageHasExpectedEntries() throws IOException {
         var entries = build(files(StudyPackageBuilder.sha256(materialBytes)));
 
         assertEquals(List.of("guia-de-estudio.pdf", "materiales/parada-01-Lectura-Retablo-Nano.pdf", "contenido.json",
-                "LEEME.txt", "manifest.json"), List.copyOf(entries.keySet()));
+                "ABRIR.html", "LEEME.txt", "manifest.json"), List.copyOf(entries.keySet()));
         assertArrayEquals(materialBytes, entries.get("materiales/parada-01-Lectura-Retablo-Nano.pdf"));
     }
 
@@ -105,7 +121,7 @@ class StudyPackageBuilderTest {
         JsonNode manifest = StudyPackageBuilder.JSON.readTree(entries.get("manifest.json"));
 
         assertEquals("rupi-paquete-unidad", manifest.get("formato").asString());
-        assertEquals(4, manifest.get("archivos").size());
+        assertEquals(5, manifest.get("archivos").size());
         for (JsonNode file : manifest.get("archivos")) {
             byte[] bytes = entries.get(file.get("ruta").asString());
             assertNotNull(bytes, file.toString());

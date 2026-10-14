@@ -385,7 +385,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
         </span>
       </div>
 
-      <UnitDownloadPanel route={route} />
+      <UnitDownloadPanel key={route.versionRouteId} route={route} />
     </section>
   )
 }
