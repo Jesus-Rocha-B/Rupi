@@ -163,27 +163,20 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
   // Bandas curriculares por unidad del MINEDU (HU-04)
   const unitBands = useMemo(() => unitBandsByNode(route), [route])
 
-  // Separación vertical fija de 145px entre paradas
+  // Separación vertical fija de 145px entre paradas a lo largo del sendero
   const STOP_VERTICAL_GAP = 145
   const TOP_OFFSET = 75
-  const UNIT_BAND_GAP = 124
 
-  // Cada banda de unidad empuja hacia abajo las paradas que le siguen
-  const bandsBefore = useMemo(() => {
-    let count = 0
-    return route.nodes.map(node => (unitBands.has(node.id) ? ++count : count))
-  }, [route.nodes, unitBands])
   const totalMapHeight = useMemo(() => {
-    const bands = bandsBefore.length ? bandsBefore[bandsBefore.length - 1] : 0
-    return Math.max(800, TOP_OFFSET + (route.nodes.length - 1) * STOP_VERTICAL_GAP + bands * UNIT_BAND_GAP + 100)
-  }, [route.nodes.length, bandsBefore])
+    return Math.max(760, TOP_OFFSET + (route.nodes.length - 1) * STOP_VERTICAL_GAP + 120)
+  }, [route.nodes.length])
 
   // Coordenadas con etiquetas dirigidas al exterior del camino
   const points = useMemo(() => {
     return route.nodes.map((_, index) => {
       const isGoal = index === route.nodes.length - 1
       const xPercent = isGoal ? 50 : index % 2 ? 34 : 66
-      const yPixel = TOP_OFFSET + index * STOP_VERTICAL_GAP + bandsBefore[index] * UNIT_BAND_GAP
+      const yPixel = TOP_OFFSET + index * STOP_VERTICAL_GAP
       const yPercent = (yPixel / totalMapHeight) * 100
       return {
         x: xPercent,
@@ -191,7 +184,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
         pixelY: yPixel,
       }
     })
-  }, [route.nodes, totalMapHeight, bandsBefore])
+  }, [route.nodes, totalMapHeight])
 
   const trailPath = useMemo(() => createTrailPath(points), [points])
 
@@ -235,6 +228,21 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
     return () => clearTimeout(timer)
   }, [route.versionRouteId, route.enrollment?.lastVisitedNodeId])
 
+  // Unidad activa según el nivel actual del estudiante en el sendero
+  const activeNode = route.nodes[activeIndex]
+  const currentUnit = useMemo(() => {
+    const units = route.curriculum?.units ?? []
+    if (!units.length) return null
+    if (activeNode) {
+      for (const u of units) {
+        if (u.nodeIds?.includes(activeNode.id) || u.nodes?.some(n => n.id === activeNode.id)) {
+          return u
+        }
+      }
+    }
+    return units[0]
+  }, [route.curriculum, activeNode])
+
   const handleGuideAction = () => {
     setRupiMood((prev) => (prev === 'jumping' ? 'cheering' : 'jumping'))
     if (guideMessage) {
@@ -249,13 +257,32 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
   return (
     <section className="map-panel" id="explorar" aria-labelledby="roadmap-title">
-      <header className="unit-heading">
-        <span className="unit-number"><MapPin aria-hidden="true" /></span>
+      <header className="unit-heading" role="region" aria-label="Unidad escolar y avance de paradas">
+        <span className="unit-number">
+          {currentUnit ? <BookOpen size={18} aria-hidden="true" /> : <MapPin aria-hidden="true" />}
+        </span>
         <div className="unit-copy">
-          <span className="eyebrow">Sendero de paradas</span>
+          <div className="unit-eyebrow-row">
+            <span className="unit-badge-tag">
+              {currentUnit?.code ? currentUnit.code : 'Unidad de Aprendizaje'}
+            </span>
+            <span className="unit-progress-pill">
+              <Award size={12} aria-hidden="true" />
+              <span>
+                {currentUnit
+                  ? `${currentUnit.completedNodes ?? route.progress.completedNodes} de ${currentUnit.totalNodes ?? route.progress.totalNodes} paradas`
+                  : `${route.progress.completedNodes} de ${route.progress.totalNodes} paradas`}
+              </span>
+            </span>
+          </div>
           <h3 id="roadmap-title">
-            {route.progress.completedNodes} de {route.progress.totalNodes} paradas completadas
+            {currentUnit ? currentUnit.title : `${route.progress.completedNodes} de ${route.progress.totalNodes} paradas completadas`}
           </h3>
+          {currentUnit?.competencies && currentUnit.competencies.length > 0 && (
+            <span className="unit-competencies-text">
+              {currentUnit.competencies.map(c => c.name).join(' · ')}
+            </span>
+          )}
         </div>
         {guideMessage && (
           <button
@@ -304,34 +331,9 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
           const isActive = index === activeIndex
           const isGoal = index === route.nodes.length - 1
           const ThemeIcon = getStopThemeIcon(node, route.area?.code)
-          const unitBand = unitBands.get(node.id)
 
           return (
             <Fragment key={node.id}>
-              {/* Banda de encabezado de unidad curricular MINEDU (HU-04) */}
-              {unitBand && (
-                <div
-                  className="unit-band"
-                  style={{ top: `${posY - UNIT_BAND_GAP - 20}px` }}
-                  role="region"
-                  aria-label={`Unidad curricular: ${unitBand.unit.title}`}
-                >
-                  <div className="unit-band-text">
-                    <span className="unit-band-title">
-                      {unitBand.unit.title}
-                    </span>
-                    {unitBand.unit.competencies.length > 0 && (
-                      <span className="unit-band-competencies">
-                        Currículo MINEDU: {unitBand.unit.competencies.map((c) => c.name).join(' · ')}
-                      </span>
-                    )}
-                  </div>
-                  <span className="unit-band-progress">
-                    <Award size={13} aria-hidden="true" />
-                    <span>{unitBand.completed} de {unitBand.total}</span>
-                  </span>
-                </div>
-              )}
               <div
                 className={`trail-stop ${cssClass} ${isActive ? 'is-current-active' : ''} ${isGoal ? 'is-final-goal' : ''}`}
                 id={node.sequence === 3 ? 'retos' : undefined}

@@ -31,6 +31,11 @@ export function unitBandsByNode(route: RouteDetail): Map<string, UnitBand> {
   for (const node of route.nodes) {
     const unit = unitOfNode.get(node.id)
     if (unit && unit !== previous) {
+      // Nunca renderizar bandas para paradas huérfanas o contenedores ficticios
+      if (unit.code === 'OTRAS' || !unit.id || unit.title.toLowerCase().includes('otras paradas')) {
+        previous = unit
+        continue
+      }
       const allIds = unit.nodeIds ?? unit.nodes?.map(n => n.id) ?? []
       const total = unit.totalNodes ?? allIds.length
       const completed = unit.completedNodes ?? allIds.filter(id => stateOf.get(id) === 'COMPLETADO').length

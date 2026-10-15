@@ -24,6 +24,15 @@ SET estado = 'PUBLICADO',
     publicado_en = COALESCE(publicado_en, UTC_TIMESTAMP(6))
 WHERE id IN ('41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'c51711e8-4ed9-49ca-8efd-f9bb88846b97');
 
+-- 2.1 Vincular parada inicial a la unidad curricular para conformar una unidad única y unificada
+UPDATE aprendizaje_nodo_ruta
+SET unidad_id = 'd2000000-0000-4000-8000-000000000302'
+WHERE version_ruta_id = '41581fe2-4b60-4a7d-8d3e-d2224780fbae' AND numero_secuencia = 1;
+
+UPDATE aprendizaje_nodo_ruta
+SET unidad_id = 'd2000000-0000-4000-8000-000000000062'
+WHERE version_ruta_id = 'c51711e8-4ed9-49ca-8efd-f9bb88846b97' AND numero_secuencia = 1;
+
 -- 3. Paradas pedagógicas para "Taller de Cuentos y Mitos Andinos" (41581fe2-4b60-4a7d-8d3e-d2224780fbae)
 -- Actividades
 INSERT INTO aprendizaje_actividad (id, tipo, creado_por) VALUES
