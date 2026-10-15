@@ -1,43 +1,51 @@
-/* Bandas de unidad curricular sobre el mapa (HU-04). Colores de la paleta oficial de Rupi. */
+/* =============================================================================
+   Hito de Unidad Curricular MINEDU (HU-04)
+   Diseño artesanal, centrado y cálido según human-crafted-frontend.
+   Paleta: Pergamino #fffefa, Verde bosque #173e30, Amarillo maíz #ffd26a, Verde hoja #31724b.
+   ============================================================================= */
+
 .unit-band {
   position: absolute;
-  left: 4%;
-  right: 4%;
-  z-index: 2;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 560px;
+  z-index: 3;
   display: flex;
-  min-height: 48px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 18px;
+  border: 2px solid #173e30;
+  border-radius: 16px;
+  background: #fffefa;
+  color: #173e30;
+  box-shadow: 0 4px 0 #173e30;
+  border-top: 5px solid #ffd26a;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.unit-band-header {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 16px;
-  border: 2px solid #173e30;
-  border-radius: 14px;
+}
+
+.unit-band-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
   background: #ffd26a;
   color: #173e30;
-  box-shadow: 0 4px 0 #173e30;
-}
-
-.unit-band-text {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.unit-band-title {
   font-family: var(--display-font, 'Nunito', sans-serif);
-  font-weight: 900;
-  font-size: 15px;
-  line-height: 1.25;
-}
-
-.unit-band-competencies {
-  font-family: var(--body-font, 'Nunito', sans-serif);
-  font-weight: 700;
-  font-size: 13px;
-  line-height: 1.3;
-  color: #173e30;
-  opacity: 0.9;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid #173e30;
 }
 
 .unit-band-progress {
@@ -49,9 +57,32 @@
   font-family: var(--display-font, 'Nunito', sans-serif);
   font-weight: 800;
   font-size: 12px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.unit-band-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.unit-band-title {
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 900;
+  font-size: 15px;
+  line-height: 1.3;
+  color: #173e30;
+}
+
+.unit-band-competencies {
+  font-family: var(--body-font, 'Nunito', sans-serif);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #31724b;
 }
 
 .curriculum-note {
@@ -74,13 +105,11 @@
 
 @media (max-width: 768px) {
   .unit-band {
-    left: 2%;
-    right: 2%;
-    padding: 6px 12px;
-    font-size: 13px;
+    width: calc(100% - 24px);
+    padding: 10px 14px;
   }
   .unit-band-title {
-    font-size: 13px;
+    font-size: 14px;
   }
   .unit-band-competencies {
     font-size: 11px;
@@ -89,17 +118,7 @@
 
 @media (max-width: 640px) {
   .unit-band {
-    position: relative;
-    z-index: 1;
-    top: auto !important;
-    left: auto;
-    right: auto;
-    width: 100%;
-    padding: 8px 12px;
-  }
-
-  /* El conector punteado no debe seguir hasta la banda: la banda abre otro tramo */
-  .trail-stop:has(+ .unit-band)::before {
-    display: none;
+    width: calc(100% - 16px);
+    padding: 10px 12px;
   }
 }

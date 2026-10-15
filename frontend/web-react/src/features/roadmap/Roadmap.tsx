@@ -308,7 +308,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
           return (
             <Fragment key={node.id}>
-              {/* Banda de encabezado de unidad curricular MINEDU (HU-04) */}
+              {/* Hito de encabezado de unidad curricular MINEDU (HU-04) */}
               {unitBand && (
                 <div
                   className="unit-band"
@@ -316,20 +316,26 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                   role="region"
                   aria-label={`Unidad curricular: ${unitBand.unit.title}`}
                 >
+                  <div className="unit-band-header">
+                    <span className="unit-band-badge">
+                      <BookOpen size={13} aria-hidden="true" />
+                      <span>Unidad de Aprendizaje</span>
+                    </span>
+                    <span className="unit-band-progress">
+                      <Award size={13} aria-hidden="true" />
+                      <span>{unitBand.completed} de {unitBand.total} paradas</span>
+                    </span>
+                  </div>
                   <div className="unit-band-text">
                     <span className="unit-band-title">
                       {unitBand.unit.title}
                     </span>
                     {unitBand.unit.competencies.length > 0 && (
                       <span className="unit-band-competencies">
-                        Currículo MINEDU: {unitBand.unit.competencies.map((c) => c.name).join(' · ')}
+                        Competencias: {unitBand.unit.competencies.map((c) => c.name).join(' · ')}
                       </span>
                     )}
                   </div>
-                  <span className="unit-band-progress">
-                    <Award size={13} aria-hidden="true" />
-                    <span>{unitBand.completed} de {unitBand.total}</span>
-                  </span>
                 </div>
               )}
               <div
