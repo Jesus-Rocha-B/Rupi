@@ -4,7 +4,7 @@ Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las 
 
 ## 2026-10-14 · HU-13 y HU-14 demostrables, paneles de error visibles y perfil a 375 px
 
-- **`V16__docente_demo_responsable_aula.sql`:** el docente demo pasa a ser responsable de las aulas activas del alumno demo. El aula se busca por membresía, no por id, porque las bases armadas con seeds anteriores usan `au000000-…`. Sin esto, el calendario devolvía `classrooms: []` y no había recordatorios. Es idempotente y no reemplaza a un docente ya asignado.
+- **`V16__docente_demo_responsable_aula.sql`:** el docente demo pasa a ser responsable de las aulas activas del alumno demo. El aula se busca por membresía, no por id, porque las bases armadas con seeds anteriores usan `au000000-…`. Sin esto, el calendario devolvía `classrooms: []` y no había recordatorios. Es idempotente y no reemplaza a un docente ya asignado. **Cada integrante debe aplicarla en su base local** después del pull (pasos en [`README-CAMBIOS-2026-10-14.md`](README-CAMBIOS-2026-10-14.md), sección 3).
 - **`App.tsx`:**
   - Los paneles «No pudimos consultar tu progreso» y «Esta ruta ya no está disponible» salen del bloque `isRoadmapAvailable`, donde nunca se mostraban.
   - «Ruta en preparación» aparece solo cuando no hay error.

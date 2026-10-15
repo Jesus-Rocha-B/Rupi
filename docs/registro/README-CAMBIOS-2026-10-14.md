@@ -75,7 +75,7 @@ Pruebas nuevas: `CalendarServiceTest`, `ReminderServiceTest`, `ReminderRepositor
 ## 3. Cómo poner al día una copia local
 
 1. Ejecuta `git pull --ff-only`.
-2. Aplica las migraciones nuevas en orden: V13, V14 y V15.
+2. Aplica las migraciones nuevas en orden: V13, V14, V15 y **V16** (agregada en `5c3c262`). V16 hace al docente demo responsable del aula del alumno demo; sin ella, el calendario de `profesor.demo` aparece sin aulas y no se generan recordatorios. Todas se pueden repetir sin riesgo.
 3. Vuelve a ejecutar V09 y V10, que son idempotentes, para recibir las tildes corregidas. Si la base ya las tenía aplicadas, no las recibe de otro modo.
 4. Vuelve a ejecutar `database/mysql/grants-spring-boot.sql` con `SET @api_usuario = '<usuario>'`. Los permisos se otorgan por prefijo de tabla, así que cubren `escuela_planificacion_ruta` y `escuela_recordatorio_evaluacion`. Sin ellos, el calendario responde 503 y el proceso de recordatorios registra un error en cada ciclo.
 5. Reconstruye la API (`mvn -f backend/api-spring-boot/pom.xml package`) y el frontend (`npm install && npm run build` en `frontend/web-react`).
