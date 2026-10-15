@@ -28,6 +28,7 @@ import {
 import { RupiCharacter } from '../../components/RupiCharacter'
 import { speakText } from '../../utils/speech'
 import './LessonScreenView.css'
+import { NodeReinforcement } from '../reinforcement/NodeReinforcement'
 
 function safeResource(value: string | null) {
   if (!value) return null
@@ -136,6 +137,10 @@ export function LessonScreenView({
     }
   }
 
+  const reinforcementPanel = <NodeReinforcement key={`${route.versionRouteId}:${node.id}`}
+    routeId={route.versionRouteId} nodeId={node.id}
+    revision={Object.entries(feedbackMap).map(([id, feedback]) => `${id}:${feedback.isCorrect}`).join(',')} />
+
   // 1. ESTADO DE CARGA
   if (loading) {
     return (
@@ -211,6 +216,8 @@ export function LessonScreenView({
               </div>
             </div>
           )}
+
+          {reinforcementPanel}
 
           {/* Siguiente parada desbloqueada */}
           {completionResult.nextUnlockedNode && (
@@ -621,6 +628,7 @@ export function LessonScreenView({
           </div>
         </section>
       )}
+      {reinforcementPanel}
     </div>
   )
 }
