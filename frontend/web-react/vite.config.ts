@@ -18,5 +18,9 @@ export default defineConfig({
         changeOrigin: false,
       },
     },
+    watch: {
+      usePolling: true,
+      interval: 300,
+    },
   },
 })
