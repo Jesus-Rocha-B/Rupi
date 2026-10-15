@@ -61,3 +61,26 @@
 .student-overview .report-actions { margin-bottom: 20px; }
 .student-overview .report-actions a { border: 2px solid #31724b; border-radius: 12px; padding: 10px 14px; box-sizing: border-box; box-shadow: 0 3px 0 #d7e4cc; }
 .student-overview a:active { transform: translateY(2px); }
+.student-roadmap { margin: 20px 0; }
+.student-roadmap-summary p { margin: 10px 0 0; }
+.student-roadmap-bar { height: 14px; border: 2px solid #173e30; border-radius: 999px; background: #f3efe6; overflow: hidden; }
+.student-roadmap-bar span { display: block; height: 100%; background: #31724b; }
+.student-roadmap-stops { list-style: none; margin: 16px 0 0; padding: 0 0 0 4px; }
+.student-overview .roadmap-stop { position: relative; display: flex; align-items: center; gap: 14px; margin: 0; padding: 12px 0; }
+.roadmap-stop + .roadmap-stop::before { content: ''; position: absolute; left: 19px; top: -12px; height: 24px; border-left: 3px dashed #c9d6bf; }
+.roadmap-stop.is-completado + .roadmap-stop::before { border-left-style: solid; border-left-color: #31724b; }
+.roadmap-stop-marker { flex: 0 0 auto; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #173e30; background: #f3efe6; color: #5b6b60; box-shadow: 0 3px 0 #173e30; z-index: 1; }
+.is-completado .roadmap-stop-marker { background: #31724b; color: #ffffff; }
+.is-en_curso .roadmap-stop-marker { background: #f95738; color: #ffffff; }
+.is-disponible .roadmap-stop-marker { background: #ffffff; color: #246a91; border-color: #246a91; box-shadow: 0 3px 0 #246a91; }
+.roadmap-stop-body { flex: 1 1 auto; display: grid; gap: 2px; min-width: 0; }
+.roadmap-stop-body small { color: #43614c; }
+.roadmap-stop-state { font-size: 0.92rem; font-weight: 800; color: #173e30; }
+.is-bloqueado .roadmap-stop-state { color: #5b6b60; }
+.roadmap-stop-grade { flex: 0 0 auto; padding: 6px 12px; border: 2px solid #173e30; border-radius: 12px; background: #ffd26a; color: #173e30; font-weight: 800; white-space: nowrap; }
+.roadmap-stop-grade b { font-size: 1.1rem; }
+.roadmap-stop-grade.is-empty { background: transparent; border-style: dashed; border-color: #8a9a8e; color: #5b6b60; font-weight: 700; }
+@media (max-width: 480px) {
+  .student-overview .roadmap-stop { flex-wrap: wrap; }
+  .roadmap-stop-grade { margin-left: 54px; }
+}

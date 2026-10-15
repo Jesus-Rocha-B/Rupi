@@ -31,4 +31,14 @@ export interface StudentOverview {
   units: { id: string; title: string; status: StudentResult['status']; average: { value: number; letter: string } | null }[]
   activities: { id: string; title: string; answered: number; correct: number }[]
   reinforcements: { id: string; nodeTitle: string; title: string; url: string | null; linkedAt: string; completedAt: string | null }[]
+  roadmap: RoadmapStop[]
+  overallAverage: { value: number; letter: string } | null
+}
+export interface RoadmapStop {
+  id: string; sequence: number; title: string; unitId: string | null; unitTitle: string; optional: boolean
+  /** null cuando el estudiante no está inscrito en la ruta. */
+  state: 'BLOQUEADO' | 'DISPONIBLE' | 'EN_CURSO' | 'COMPLETADO' | null
+  completedAt: string | null
+  grade: { value: number; letter: string } | null
+  gradedAt: string | null
 }

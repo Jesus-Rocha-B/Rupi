@@ -65,7 +65,8 @@ interface Props {
   schoolName: string
   onLogout: () => void
   onSwitchToStudentView: (targetRouteId?: string, gradeNum?: number, areaCode?: string) => void
-  onOpenReports: (routeId?: string) => void
+  /** Abre los reportes de una versión de ruta; el grado permite elegir el aula que corresponde. */
+  onOpenReports: (versionRouteId?: string, gradeNum?: number) => void
 }
 
 const CNEB_AREAS = [
@@ -944,7 +945,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                   <button
                     type="button"
                     className="roadmap-big-action-btn reports"
-                    onClick={() => onOpenReports(activeRouteDetail.routeId)}
+                    onClick={() => onOpenReports(activeRouteDetail.versionRouteId, activeRouteDetail.grade.number)}
                     title="Ver reportes de resultados de este roadmap escolar"
                   >
                     <FileText size={20} aria-hidden="true" />

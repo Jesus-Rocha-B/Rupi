@@ -77,11 +77,12 @@ function ClassroomReports({ room, view, onViewChange, initialRouteId }: { room: 
     <div id="report-detail" tabIndex={-1}>{view === 'grades' ? <GradesReportView key={`${route}:${student}`} room={room} route={route} student={student} /> : <ReportResults key={`${route}:${student}`} room={room} route={route} student={student} />}</div></>
 }
 
-export function TeacherReportsView({ onBack, onLogout, initialRouteId }: { onBack: () => void; onLogout: () => void; initialRouteId?: string }) {
+export function TeacherReportsView({ onBack, onLogout, initialRouteId, initialGrade }: { onBack: () => void; onLogout: () => void; initialRouteId?: string; initialGrade?: number }) {
   const [view, setView] = useState('results')
   const { data: rooms, error, retry } = useReportData<ReportClassroom[]>('/classrooms')
   const [selected, setSelected] = useState('')
-  const room = rooms?.some(r => r.id === selected) ? selected : rooms?.[0]?.id
+  // Al llegar desde un roadmap se abre el aula de su grado: la primera aula podía ser de otro grado y no tener esa ruta.
+  const room = rooms?.some(r => r.id === selected) ? selected : (rooms?.find(r => r.grade === initialGrade) ?? rooms?.[0])?.id
   return <main className="teacher-reports">
     <header className="report-header"><div><span className="report-eyebrow"><BookOpen size={20} aria-hidden="true" /> Cuaderno docente · Rupi</span><h1>Reportes de resultados</h1><p>Observa el avance de tus estudiantes y encuentra dónde acompañarlos.</p></div>
       <nav aria-label="Navegación docente"><button type="button" onClick={onBack}><ArrowLeft size={20} aria-hidden="true" /> Volver a mis rutas</button><button type="button" onClick={onLogout}><LogOut size={20} aria-hidden="true" /> Salir</button></nav></header>

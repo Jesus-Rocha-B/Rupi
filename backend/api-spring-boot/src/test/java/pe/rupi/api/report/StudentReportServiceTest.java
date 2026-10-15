@@ -34,6 +34,19 @@ class StudentReportServiceTest {
         assertEquals("Sumas",result.activities().getFirst().title());
         verify(repo,times(1)).data("room","route","s");verify(grades,times(1)).attempts("room","route","s");
     }
+    @Test void roadmapShowsStateAndLatestValidGradePerStop() {
+        when(repo.data("room","route","s")).thenReturn(data("e"));
+        when(links.roadmap("route","s")).thenReturn(List.of(
+            new StudentReportRepository.Stop("n",1,"Sumas","a","u","Números",false,"COMPLETADO","2026-10-15T10:00:00Z"),
+            new StudentReportRepository.Stop("n2",2,"Restas","b","u2","Repaso",false,"DISPONIBLE",null)));
+        when(grades.attempts("room","route","s")).thenReturn(List.of(
+            new GradesRepository.Attempt("i2","s","a","Sumas","2026-10-15T11:00:00Z",new BigDecimal("2"),new BigDecimal("2"),2,2,0,0),
+            new GradesRepository.Attempt("i1","s","a","Sumas","2026-10-15T10:00:00Z",BigDecimal.ZERO,new BigDecimal("2"),2,2,0,0)));
+        var result=service.overview("t","room","route","s");
+        assertEquals(2,result.roadmap().size());assertEquals("COMPLETADO",result.roadmap().getFirst().state());
+        assertEquals(new BigDecimal("20.0"),result.roadmap().getFirst().grade().value());assertEquals("AD",result.roadmap().getFirst().grade().letter());
+        assertNull(result.roadmap().get(1).grade());assertEquals("AD",result.overallAverage().letter());
+    }
     @Test void missingEnrollmentIsNotAZeroGrade() {
         when(repo.data("room","route","s")).thenReturn(data(null));
         var result=service.overview("t","room","route","s");assertNull(result.enrollmentState());assertEquals(0,result.answered());

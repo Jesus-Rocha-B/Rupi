@@ -122,7 +122,7 @@ function App() {
   const [slowLoading, setSlowLoading] = useState(false)
   const [currentView, setCurrentView] = useState<AppView>('camino')
   const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview' | 'reports'>('authoring')
-  const [reportsInitialRouteId, setReportsInitialRouteId] = useState<string | null>(null)
+  const [reportsTarget, setReportsTarget] = useState<{ routeId?: string; grade?: number }>({})
 
   const [errorType, setErrorType] = useState<Failure>(null)
   const [guideIndex, setGuideIndex] = useState(0)
@@ -270,7 +270,9 @@ function App() {
 
         // Sin inscripciones no se inscribe a nadie al cargar: el alumno elige su ruta en «Explorar» o con un código de clase.
         setRoutes(currentList)
-        if (!currentList.length) {
+        // Con una ruta pedida (vista previa docente o código de clase) se carga aunque aún no haya inscripciones:
+        // antes el docente sin inscripciones veía «Ruta en preparación» en vez del roadmap que abrió.
+        if (!currentList.length && !routeId) {
           setErrorType('EMPTY')
           setLoading(false)
           return
@@ -534,9 +536,10 @@ function App() {
   if (student.role === 'DOCENTE' && teacherViewMode === 'reports') {
     return (
       <TeacherReportsView
-        initialRouteId={reportsInitialRouteId || undefined}
+        initialRouteId={reportsTarget.routeId}
+        initialGrade={reportsTarget.grade}
         onBack={() => {
-          setReportsInitialRouteId(null)
+          setReportsTarget({})
           setTeacherViewMode('authoring')
         }}
         onLogout={handleLogout}
@@ -548,8 +551,8 @@ function App() {
   if (student.role === 'DOCENTE' && teacherViewMode === 'authoring') {
     return (
       <TeacherAuthoringView
-        onOpenReports={(targetRouteId) => {
-          setReportsInitialRouteId(targetRouteId || null)
+        onOpenReports={(versionRouteId, gradeNum) => {
+          setReportsTarget({ routeId: versionRouteId, grade: gradeNum })
           setTeacherViewMode('reports')
         }}
         teacherName={student.name}
@@ -558,6 +561,8 @@ function App() {
         onSwitchToStudentView={(targetRouteId, gradeNum, areaCode) => {
           setTeacherViewMode('student_preview')
           if (targetRouteId) {
+            // Carga nueva aunque la ruta sea la misma de la vista previa anterior: sin esto quedaba la ruta vieja o el esqueleto.
+            resetView()
             setRouteId(targetRouteId)
             if (gradeNum) setSelectedGrade(gradeNum)
             if (areaCode) {

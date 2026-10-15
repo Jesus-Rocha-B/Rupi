@@ -1,5 +1,6 @@
 import { reportQuery, type StudentOverview } from '../../services/reportsApi'
 import { useReportData } from './useReportData'
+import { StudentRoadmapProgress } from './StudentRoadmapProgress'
 export function StudentOverviewView({ room, route, student, onViewChange }: { room: string; route: string; student: string; onViewChange: (view: string) => void }) {
   const { data, error, retry } = useReportData<StudentOverview>('/student-overview' + reportQuery(room, route, student))
   if (error) return <div className="report-error" role="alert"><p>{error}</p><button type="button" onClick={retry}>Reintentar resumen</button></div>
@@ -13,6 +14,7 @@ export function StudentOverviewView({ room, route, student, onViewChange }: { ro
       <div><dt>Preguntas respondidas</dt><dd>{data.answered} / {data.totalQuestions}</dd></div>
       <div><dt>Aciertos</dt><dd>{data.answered === 0 ? 'Sin respuestas' : `${data.correct} / ${data.answered}`}</dd></div>
       <div><dt>Unidades por revisar</dt><dd>{attention.length}</dd></div></dl>
+    <StudentRoadmapProgress data={data} />
     <h3>Unidades que requieren acompañamiento</h3>
     {attention.length ? <ul>{attention.map(u => <li key={u.id}>{u.title}</li>)}</ul> : <p>{data.answered === 0 ? 'Aún no hay evidencia para identificar dificultades.' : 'Sin alertas con la evidencia disponible.'}</p>}
     <p className="report-note">Las alertas orientan tu revisión; no equivalen a una evaluación oficial de competencias.</p>
