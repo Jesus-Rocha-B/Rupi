@@ -1,13 +1,13 @@
 # Estado actual · RUPI
 
-Actualizado: 2026-10-13 · rama `main` · historia 12 del backlog (descarga offline por unidad) sobre `bf25c2d`.
+Actualizado: 2026-10-14 · rama `main` · después de integrar HU-12 a HU-14 del equipo (`75a62b4`) y las correcciones de `0f8b83a` y `5719fb8`. Resumen de ese bloque en [`README-CAMBIOS-2026-10-14.md`](README-CAMBIOS-2026-10-14.md).
 
 ## Cómo retomar (5 minutos)
 
 1. Leer este archivo y `CONTEXTO.md`. Si se va a tocar código, también `MAPA-DE-CODIGO.md`.
 2. Levantar el entorno: `./iniciar-rupi.sh` (MySQL 3307, API 8081, web 5173). Cuenta demo: `estudiante.demo` / `123456`.
 3. Comprobar que todo sigue en verde (comandos en `CONTEXTO.md`, sección Verificaciones).
-4. Si la base local se ve rara (rutas que dan 500, ids viejos), reconstruirla con el orden de `docs/implementacion/entorno-linux.md` (schema → V04 → seed-hu01 → V06 → seed-hu02 → V07 a V11 → `grants-spring-boot.sql`). El script usado el 2026-10-12 quedó en `~/reconstruir-bd-rupi.sh`, y el respaldo previo en `~/rupi-respaldo-2026-10-12.sql`.
+4. Si la base local se ve rara (rutas que dan 500, ids viejos), reconstruirla con el orden de `docs/implementacion/entorno-linux.md` (schema → V04 → seed-hu01 → V06 → seed-hu02 → V07 a V16 → `grants-spring-boot.sql`). V12 falla sobre `schema.sql` (ver Fallos conocidos). Para una base existente basta con aplicar V13 a V16, repetir V09 y V10 y volver a otorgar los permisos. El script usado el 2026-10-12 quedó en `~/reconstruir-bd-rupi.sh`, y el respaldo previo en `~/rupi-respaldo-2026-10-12.sql`.
 
 ## Fuente de verdad del alcance
 
@@ -30,27 +30,41 @@ La numeración HU-xx del repo coincide con el backlog solo en **HU-01 a HU-04** 
 | HU-09 | Búsqueda de roadmaps por materia con FTS y autocompletado | Completada y verificada |
 | HU-10 | Filtros por grado y materia con URL sincronizada | Completada y verificada |
 | HU-11 | Unirse a un roadmap con código de clase docente | Completada y verificada |
-| HU-12 | Descargar una unidad (guía PDF, materiales y ejercicios en zip) para estudiar sin conexión. Cierra la épica 3 | Completada y verificada (`Verificar-HU12-Descarga.ps1`, `verify_hu12_pantalla.mjs`) |
+| HU-12 | Descargar una unidad (guía PDF, materiales y ejercicios en zip) para estudiar sin conexión. Cierra la épica 3. El equipo agregó la biblioteca MINEDU por grado y la descarga por nodo | Completada y verificada (`Verificar-HU12-Descarga.ps1`, `verify_hu12_pantalla.mjs`) |
+| HU-13 | Calendario: el docente asigna fechas a unidades y evaluaciones por aula (`escuela_planificacion_ruta`, V13) | Completada. Verificada de punta a punta el 2026-10-14 con el docente demo como responsable del aula (V16). Solo el autor de la ruta puede calendarizarla |
+| HU-14 | Recordatorio automático 24 h antes de cada evaluación, sin duplicados (`escuela_recordatorio_evaluacion`, V14) | Completada. Verificada el 2026-10-14: el alumno recibe el aviso en el siguiente ciclo (60 s) |
 
 «Verificada» significa probada contra la API Spring Boot, MySQL y frontend React reales.
 
 ## Qué sigue
 
-1. **Continuar con las Historias 7 y 8 de la Épica Docente:**
-   - Historia 7: Subida de archivos PDF, PPT y enlaces externos a nodos específicos (verificar si se requiere algún ajuste o validación adicional a lo ya construido).
-   - Historia 8: Gestión de publicación, visibilidad y asignación a aulas escolares.
-2. **Corregir los fallos conocidos** de la sección siguiente: hoy impiden abrir lecciones y subir materiales sobre una base armada desde `schema.sql`.
-3. **Calendario y planificación presencial** (historias 13 y 14) y reportes de aula (17 a 20).
+1. **Historia 8 de la épica docente: asignar rutas a aulas.** Hoy la ruta se publica, pero no se asigna a un aula. Es la misma pieza que falta para que un docente calendarice rutas oficiales (HU-13 exige ser el autor).
+2. **Decisiones con el equipo:**
+   - No volver a editar migraciones publicadas (V09 y V10 se editaron).
+   - Clasificar Oficial o Comunidad por rol o columna, no por el nombre de usuario `profesor%`.
+   - Escritor único en `identidad_*`.
+3. **Reportes de aula** (historias 17 a 20).
 
 Decisión abierta: qué rutas del catálogo serán públicas cuando existan rutas privadas del docente. Hoy cualquier ruta publicada se puede abrir con `POST /enroll`.
 
-## Fallos conocidos (2026-10-13)
+## Fallos conocidos (2026-10-14)
 
-- **Abrir una lección responde 503** sobre una base armada desde `schema.sql`: `ActivityService` lee `m.url_almacenamiento` de `recurso_archivo_multimedia`, columna que no existe (el esquema tiene `clave_almacenamiento` y `url_externa`). Viene de `f280e73`.
-- **Subir materiales responde 503**: `MaterialStorageService` inserta `tamanio_bytes` y `url_almacenamiento`; el esquema tiene `tamano_bytes` y exige `clave_almacenamiento` o `url_externa` (CHECK). Además guarda el archivo antes del `INSERT`, así que un fallo deja un archivo huérfano en `uploads/materials/`. `MaterialStorageService.findById` lee las mismas columnas.
-- **`V12__rol_docente_autoria_hu05.sql` no corre sobre `schema.sql`**: inserta `es_sistema` y `creado_en` en `identidad_rol`, columnas que no existen. Su paso 6 usa el aula `e3000000-…`, que solo existe con el `seed-hu01.sql` actual. V12 también escribe `identidad_*` desde el lado Spring (escritor único: Django).
-- Crear una parada como docente (`POST /teacher/learning-routes/{routeId}/nodes`) no devolvió `nodeId` en la prueba del 2026-10-13; sin investigar.
-- A 375 px la página tiene desplazamiento horizontal por `search-submit-btn` (HU-09) y `mascot-badge`.
+- **`V12__rol_docente_autoria_hu05.sql` no corre sobre `schema.sql`:**
+  - Inserta `es_sistema` y `creado_en` en `identidad_rol`, columnas que no existen.
+  - Su paso 6 usa el aula `e3000000-…`, que no existe en bases armadas con los seeds anteriores (allí el aula es `au000000-…`). V16 cubre la asignación del docente demo sin depender del id.
+  - V12 también escribe `identidad_*` desde el lado Spring (escritor único: Django).
+  - Su `CREATE TABLE recurso_archivo_multimedia` tiene columnas distintas a `schema.sql`; no tiene efecto, pero confunde.
+- **Subir materiales guarda el archivo antes del `INSERT`:** si el `INSERT` falla, queda un archivo huérfano en `uploads/materials/` (`MaterialStorageService.java`).
+- **Grado de la sesión:** 2.° por defecto si el alumno no tiene aula, y no determinista si tiene varias aulas activas (`StudentSessionService`).
+- **A 375 px**, la barra superior del aula queda apretada: la pestaña activa («Mi Perfil») se corta. La página ya no tiene desplazamiento horizontal.
+- **Iniciar sesión cierra las sesiones anteriores de la misma cuenta.** Dos pestañas o dos pruebas con `estudiante.demo` a la vez se expulsan entre sí (401).
+
+Resueltos el 2026-10-14:
+- Abrir lecciones y subir materiales ya no responden 503: el equipo alineó las columnas.
+- Crear una parada devuelve `nodeId`.
+- Mi Perfil ya no desborda a 375 px.
+- Los paneles de error del aula se muestran.
+- Entrar a un roadmap ya no se queda en el esqueleto.
 
 La historia 12 no depende de esas consultas: lee `tamano_bytes` y calcula la ruta del archivo con `MaterialStorageService.diskPathFor`.
 
@@ -71,6 +85,16 @@ La historia 12 no depende de esas consultas: lee `tamano_bytes` y calcula la rut
 - El endpoint de unirse a clase acepta peticiones sin cabecera `Origin`; decidir si es intencional.
 
 ## Última evidencia de pruebas
+
+2026-10-14 (base local con V13 a V16 aplicadas, API recompilada en `75a62b4`):
+
+- `mvn test` correcto. En el frontend, `npm run build`, `npm run lint` y `npm test` (21 de Node) correctos.
+- **App real con Playwright y Firefox:**
+  - Ingreso a roadmaps: «Continuar mi aventura», grado + materia y repetir la misma ruta desde Explorar.
+  - Conexión lenta: aparece «Reintentar» y nunca el login.
+  - Error 500 en la ruta: se muestra el panel de error de red y «Reintentar» recupera el mapa.
+  - A 375 px no hay desplazamiento horizontal en Mi Camino, Explorar y Mi Perfil.
+- **Flujo docente por API:** crear ruta, crear parada, subir PDF, adjuntar, publicar, poner fecha a una evaluación (HU-13) y recibir el recordatorio como alumno (HU-14). La ruta de prueba «Prueba revisión 14-oct» quedó en la base local.
 
 2026-10-13 (historia 12, base local del 2026-10-12 con las tablas de V12):
 

@@ -2,6 +2,17 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-14 · HU-13 y HU-14 demostrables, paneles de error visibles y perfil a 375 px
+
+- **`V16__docente_demo_responsable_aula.sql`:** el docente demo pasa a ser responsable de las aulas activas del alumno demo. El aula se busca por membresía, no por id, porque las bases armadas con seeds anteriores usan `au000000-…`. Sin esto, el calendario devolvía `classrooms: []` y no había recordatorios. Es idempotente y no reemplaza a un docente ya asignado.
+- **`App.tsx`:**
+  - Los paneles «No pudimos consultar tu progreso» y «Esta ruta ya no está disponible» salen del bloque `isRoadmapAvailable`, donde nunca se mostraban.
+  - «Ruta en preparación» aparece solo cuando no hay error.
+  - Se retira el panel «Aún no tienes rutas», que nunca se mostraba: «Ruta en preparación» ya ofrece explorar y el código de clase.
+- **`StudentProfileView.css`:** debajo de 820 px, las tarjetas de XP, insignias y rutas bajan de línea en vez de desbordar (antes la página medía 424 px a 375 px).
+- **`ESTADO.md`:** puesto al día con HU-13 y HU-14, los fallos resueltos y los que siguen abiertos.
+- **Verificado:** el flujo docente completo por API (ruta, parada, PDF, publicación, fecha y recordatorio al alumno) y en la app (error 500 con «Reintentar», sin desplazamiento a 375 px).
+
 ## 2026-10-14 · Revisión de `48a9357..75a62b4` y correcciones de grado y carga
 
 - **Revisión:** 12 commits del equipo (HU-12 biblioteca MINEDU, HU-13 calendario, HU-14 recordatorios, roadmaps Oficial/Comunidad, perfil y lección). Detalle completo, pasos para poner al día la copia local y errores pendientes en [`README-CAMBIOS-2026-10-14.md`](README-CAMBIOS-2026-10-14.md).

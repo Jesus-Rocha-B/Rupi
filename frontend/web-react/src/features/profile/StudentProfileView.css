@@ -134,7 +134,14 @@
 @media (max-width: 820px) {
   .profile-stats-grid {
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
+    min-width: 0;
+  }
+  /* En fila, las tres tarjetas no caben a 375 px: bajan a la línea siguiente en vez de desbordar. */
+  .profile-stats-grid .stat-card {
+    flex: 1 1 140px;
+    min-width: 0;
   }
 }
 

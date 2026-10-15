@@ -10,7 +10,6 @@ import {
   GraduationCap,
   Heart,
   House,
-  Inbox,
   KeyRound,
   Lock,
   LogOut,
@@ -818,6 +817,37 @@ function App() {
               </button>
             </nav>
 
+            {/* Los errores se muestran fuera de los casos A y B: cuando fallan, no hay ruta cargada
+                y antes quedaban ocultos tras «Ruta en preparación», sin opción de reintentar. */}
+            {errorType === 'NETWORK' && (
+              <section className="status-panel" role="alert">
+                <div className="status-panel-icon error">
+                  <AlertTriangle aria-hidden="true" />
+                </div>
+                <h2>No pudimos consultar tu progreso</h2>
+                <p>Tu avance sigue guardado. Espera un momento y vuelve a intentarlo.</p>
+                <button className="status-action-btn" onClick={retry}>
+                  <RefreshCw aria-hidden="true" />Reintentar
+                </button>
+              </section>
+            )}
+
+            {errorType === 'NOT_FOUND' && (
+              <section className="status-panel" role="alert">
+                <h2>Esta ruta ya no está disponible</h2>
+                <p>Puede haber cambiado tu inscripción. Consulta tus rutas de nuevo.</p>
+                <button
+                  className="status-action-btn"
+                  onClick={() => {
+                    resetView()
+                    setRouteId('')
+                  }}
+                >
+                  Volver a mis rutas
+                </button>
+              </section>
+            )}
+
             {/* CASO A: Roadmap Habilitado para la materia y grado */}
             {isRoadmapAvailable && (
               <>
@@ -829,49 +859,6 @@ function App() {
                     onSelect={handleOpenNode}
                     onOpenBadges={() => setCurrentView('perfil')}
                   />
-                )}
-
-                {errorType === 'NETWORK' && (
-                  <section className="status-panel" role="alert">
-                    <div className="status-panel-icon error">
-                      <AlertTriangle aria-hidden="true" />
-                    </div>
-                    <h2>No pudimos consultar tu progreso</h2>
-                    <p>Tu avance sigue guardado. Espera un momento y vuelve a intentarlo.</p>
-                    <button className="status-action-btn" onClick={retry}>
-                      <RefreshCw aria-hidden="true" />Reintentar
-                    </button>
-                  </section>
-                )}
-
-                {errorType === 'NOT_FOUND' && (
-                  <section className="status-panel" role="alert">
-                    <h2>Esta ruta ya no está disponible</h2>
-                    <p>Puede haber cambiado tu inscripción. Consulta tus rutas de nuevo.</p>
-                    <button
-                      className="status-action-btn"
-                      onClick={() => {
-                        resetView()
-                        setRouteId('')
-                        setReloadKey(value => value + 1)
-                      }}
-                    >
-                      Volver a mis rutas
-                    </button>
-                  </section>
-                )}
-
-                {errorType === 'EMPTY' && (
-                  <section className="status-panel" role="status">
-                    <div className="status-panel-icon empty">
-                      <Inbox aria-hidden="true" />
-                    </div>
-                    <h2>Aún no tienes rutas asignadas</h2>
-                    <p>Pide a tu docente que te inscriba en una ruta para comenzar tu aventura.</p>
-                    <button className="status-action-btn" onClick={retry}>
-                      <RefreshCw aria-hidden="true" />Consultar mis inscripciones
-                    </button>
-                  </section>
                 )}
 
                 {selectedRoute && (
@@ -903,8 +890,8 @@ function App() {
               </>
             )}
 
-            {/* CASO B: Sin roadmap directo para la materia y grado */}
-            {!isRoadmapAvailable && (
+            {/* CASO B: Sin roadmap directo para la materia y grado (también sin inscripciones: ofrece explorar o usar un código) */}
+            {!isRoadmapAvailable && errorType !== 'NETWORK' && errorType !== 'NOT_FOUND' && (
               <section className="course-locked-panel" role="region" aria-labelledby="locked-course-title">
                 <div className="course-locked-card">
                   <div className="course-locked-mascot" aria-hidden="true">
