@@ -10,6 +10,7 @@ public class ResultsReportRepository {
     public ResultsReportRepository(NamedParameterJdbcTemplate jdbc) { this.jdbc=jdbc; }
     public record Classroom(String id,String name,int grade) {}
     public record Route(String id,String title,int version,String state) {}
+    public record Member(String id,String name,String schoolUsername) {}
     public record Student(String id,String name,String enrollment,String enrollmentState) {}
     public record Node(String id,String activity,String unit,String unitTitle) {}
     public record Competency(String unit,String code,String name) {}
@@ -21,10 +22,10 @@ public class ResultsReportRepository {
     private static final String MEMBERS = """
         FROM escuela_membresia_aula m
         JOIN identidad_cuenta_usuario account ON account.id=m.usuario_id AND account.estado='ACTIVO'
-        WHERE m.aula_id=:room AND m.rol='ESTUDIANTE' AND m.estado='ACTIVO'
+        WHERE m.aula_id=:room AND m.rol='ESTUDIANTE' AND m.estado='ACTIVO' AND (:student IS NULL OR m.usuario_id=:student)
         """;
     private MapSqlParameterSource params(String room,String route) {
-        return new MapSqlParameterSource("room",room).addValue("route",route);
+        return new MapSqlParameterSource("room",room).addValue("route",route).addValue("student",null);
     }
     public List<Classroom> classrooms(String teacher) {
         return jdbc.query("""
@@ -44,8 +45,20 @@ public class ResultsReportRepository {
             """+MEMBERS+") ORDER BY r.titulo,v.numero_version,v.id",params(room,null),
             (rs,n)->new Route(rs.getString(1),rs.getString(2),rs.getInt(3),rs.getString(4)));
     }
-    public Data data(String room,String route) {
-        var p=params(room,route);
+    public List<Member> members(String room) {
+        return jdbc.query("""
+            SELECT account.id,COALESCE(NULLIF(TRIM(CONCAT_WS(' ',profile.nombre,profile.apellido)),''),account.nombre_usuario) name,
+                account.nombre_usuario
+            FROM escuela_membresia_aula m
+            JOIN identidad_cuenta_usuario account ON account.id=m.usuario_id AND account.estado='ACTIVO'
+            LEFT JOIN identidad_perfil_usuario profile ON profile.usuario_id=account.id
+            WHERE m.aula_id=:room AND m.rol='ESTUDIANTE' AND m.estado='ACTIVO'
+            ORDER BY name,account.id
+            """,Map.of("room",room),(rs,n)->new Member(rs.getString(1),rs.getString(2),rs.getString(3)));
+    }
+    public Data data(String room,String route) {return data(room,route,null);}
+    public Data data(String room,String route,String student) {
+        var p=params(room,route).addValue("student",student);
         var students=jdbc.query("""
             SELECT account.id,COALESCE(NULLIF(TRIM(CONCAT_WS(' ',profile.nombre,profile.apellido)),''),account.nombre_usuario) name,
                    i.id enrollment,i.estado enrollment_state
@@ -53,7 +66,7 @@ public class ResultsReportRepository {
             JOIN identidad_cuenta_usuario account ON account.id=m.usuario_id AND account.estado='ACTIVO'
             LEFT JOIN identidad_perfil_usuario profile ON profile.usuario_id=account.id
             LEFT JOIN aprendizaje_inscripcion_ruta i ON i.estudiante_id=account.id AND i.version_ruta_id=:route
-            WHERE m.aula_id=:room AND m.rol='ESTUDIANTE' AND m.estado='ACTIVO'
+            WHERE m.aula_id=:room AND m.rol='ESTUDIANTE' AND m.estado='ACTIVO' AND (:student IS NULL OR m.usuario_id=:student)
             ORDER BY name,account.id
             """,p,(rs,n)->new Student(rs.getString(1),rs.getString(2),rs.getString(3),rs.getString(4)));
         var nodes=jdbc.query("""

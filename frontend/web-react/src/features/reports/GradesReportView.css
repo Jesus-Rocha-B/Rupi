@@ -1,0 +1,35 @@
+.grade-sort { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.grade-sort .report-filter { flex: 1 1 240px; }
+.grade-table { max-height: 65vh; overflow: auto; }
+.grade-table table { border-collapse: separate; border-spacing: 0; }
+.grade-table thead th { position: sticky; top: 0; z-index: 2; min-width: 210px; }
+.grade-table tr > :first-child { position: sticky; left: 0; background: var(--paper, #faf8f5); z-index: 1; min-width: 160px; max-width: 230px; }
+.grade-table thead tr > :first-child { z-index: 3; background: #edf4e9; }
+.grade-table td { min-width: 210px; background: white; }
+.teacher-reports .grade-cell-button { display: flex; flex-wrap: wrap; width: 100%; text-align: left; box-shadow: 0 2px 0 #d7e4cc; }
+.grade-cell-button small { flex-basis: 100%; }
+.grade-letter { display: inline-flex; align-items: center; justify-content: center; min-width: 42px; padding: 5px 9px; border: 1px solid currentColor; border-radius: 9px; font-weight: 900; box-sizing: border-box; }
+.grade-AD, .grade-A { background: #edf4e9; color: var(--ink, #173e30); }
+.grade-B { background: #fff2cc; color: #5c3000; }
+.grade-C { background: #ffede5; color: #8b2c16; }
+.grade-cards { display: none; }
+.grade-value { display: flex; align-items: center; gap: 12px; font-size: 1.2rem; font-weight: 800; }
+.grade-dialog { width: min(640px, calc(100vw - 32px)); max-height: 85dvh; box-sizing: border-box; overflow: auto; padding: 24px; border: 3px solid var(--ink, #173e30); border-radius: 18px; background: var(--paper, #faf8f5); color: var(--ink, #173e30); }
+.grade-dialog::backdrop { background: rgb(23 62 48 / 55%); }
+.grade-dialog-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.grade-dialog-heading h2 { margin: 0; }
+.grade-detail-list { padding-left: 24px; }
+.grade-detail-list li { border-bottom: 1px solid var(--line, #d7e4cc); padding: 12px 0; }
+.grade-detail-list h3 { margin: 0; }
+.grades-report .report-criteria summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; font-weight: 800; }
+.teacher-reports button[aria-pressed='true'] { background: var(--gold, #ffd26a); border-color: var(--ink, #173e30); }
+@media (max-width: 600px) {
+  .grade-table { display: none; }
+  .grade-cards { display: block; }
+  .grade-cards h3 { margin: 16px; }
+  .grade-cards dl { padding: 0 16px; }
+  .grade-cards dl > div { padding: 14px 0; border-bottom: 1px solid var(--line, #d7e4cc); }
+  .grade-cards dt { font-weight: 800; margin-bottom: 12px; }
+  .grade-cards dd { margin: 0; }
+  .grade-dialog { padding: 16px; }
+}

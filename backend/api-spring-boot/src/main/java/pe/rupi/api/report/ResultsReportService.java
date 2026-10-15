@@ -23,11 +23,25 @@ public class ResultsReportService {
             .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
     public List<Route> routes(String teacher,String room) {classroom(teacher,room);return repo.routes(room);}
-    public Report report(String teacher,String room,String route) {
+    public List<Member> members(String teacher,String room) {classroom(teacher,room);return repo.members(room);}
+    Member authorizeStudent(String room,String student) {
+        return repo.members(room).stream().filter(m->m.id().equals(student)).findFirst()
+            .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+    record Selection(Classroom classroom, Route route) {}
+    Selection authorize(String teacher,String room,String route) {
         var classroom=classroom(teacher,room);
         var selected=repo.routes(room).stream().filter(r->r.id().equals(route)).findFirst()
             .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
-        var data=repo.data(room,route);
+        return new Selection(classroom,selected);
+    }
+    public Report report(String teacher,String room,String route) {return report(teacher,room,route,null);}
+    public Report report(String teacher,String room,String route,String student) {
+        var selection=authorize(teacher,room,route);
+        var classroom=selection.classroom();
+        var selected=selection.route();
+        if(student!=null) authorizeStudent(room,student);
+        var data=repo.data(room,route,student);
         return new Report(classroom,selected,Instant.now().toString(),data.students().size(),summarize(data));
     }
     static List<Unit> summarize(Data data) {
