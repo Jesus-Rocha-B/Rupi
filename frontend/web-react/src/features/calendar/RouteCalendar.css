@@ -4,3 +4,154 @@
 .route-calendar button{cursor:pointer;box-shadow:0 3px 0 #173e30;font-weight:800}.route-calendar button:active{transform:translateY(2px);box-shadow:0 1px 0 #173e30}.route-calendar button:disabled{cursor:wait;opacity:.65}.route-calendar :focus-visible{outline:3px solid #246a91;outline-offset:3px}.route-calendar .calendar-save{background:#ffd26a}
 .calendar-month{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:18px 0;text-align:center}.calendar-month strong{text-transform:capitalize}.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}.calendar-grid>span{min-height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;border-radius:8px}.calendar-grid small{font-size:9px;line-height:10px}.calendar-grid .has-events{background:#ffd26a;color:#173e30;border:1px solid #31724b}
 .calendar-events{list-style:none;padding:0}.calendar-events li{padding:12px;border-left:5px solid #f95738;margin:12px 0;background:#fffefa;display:flex;flex-direction:column;gap:5px;overflow-wrap:anywhere}.calendar-kind{color:#31724b;font-size:13px;font-weight:900}.calendar-events time,.calendar-events li>span{font-size:14px}.calendar-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}.route-calendar form{border-top:2px dashed #31724b;margin-top:18px}.route-calendar form>button{margin:6px 8px 6px 0}
+
+/* =============================================================================
+   Modo compacto para el panel del roadmap (ubicado a la izquierda)
+   ============================================================================= */
+
+.calendar-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.route-calendar.is-compact {
+  padding: 14px 16px;
+  margin: 0;
+  border: 2px solid #31724b;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 0 #173e30;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.route-calendar.is-compact h3 {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #173e30;
+}
+
+.route-calendar.is-compact .refresh-dates-btn {
+  font-size: 0.74rem;
+  padding: 4px 10px;
+  min-height: 32px;
+  min-width: auto;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  box-shadow: 0 2px 0 #94a3b8;
+}
+
+.route-calendar.is-compact label {
+  margin: 6px 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.route-calendar.is-compact select {
+  min-height: 36px;
+  padding: 4px 8px;
+  font-size: 0.84rem;
+  border-radius: 8px;
+}
+
+.route-calendar.is-compact .calendar-month {
+  margin: 6px 0 8px 0;
+  gap: 4px;
+}
+
+.route-calendar.is-compact .calendar-month strong {
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.route-calendar.is-compact .calendar-month button {
+  min-height: 28px;
+  min-width: 28px;
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.route-calendar.is-compact .calendar-grid {
+  gap: 2px;
+}
+
+.route-calendar.is-compact .calendar-grid b {
+  font-size: 0.72rem;
+  padding: 1px 0;
+  color: #475569;
+}
+
+.route-calendar.is-compact .calendar-grid > span {
+  min-height: 26px;
+  font-size: 0.78rem;
+  border-radius: 4px;
+}
+
+.route-calendar.is-compact .calendar-key {
+  font-size: 0.72rem;
+  margin: 4px 0;
+  color: #64748b;
+}
+
+.route-calendar.is-compact .calendar-events {
+  margin: 6px 0 0 0;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.route-calendar.is-compact .calendar-events li {
+  padding: 6px 8px;
+  margin: 4px 0;
+  border-left-width: 3px;
+  border-radius: 0 4px 4px 0;
+}
+
+.route-calendar.is-compact .calendar-events strong {
+  font-size: 0.82rem;
+}
+
+.route-calendar.is-compact .calendar-events time,
+.route-calendar.is-compact .calendar-events li > span {
+  font-size: 0.74rem;
+}
+
+.route-calendar.is-compact .calendar-actions button {
+  min-height: 28px;
+  padding: 2px 6px;
+  font-size: 0.72rem;
+}
+
+.route-calendar.is-compact form {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1.5px dashed #cbd5e1;
+}
+
+.route-calendar.is-compact form h4 {
+  font-size: 0.85rem;
+  margin: 4px 0;
+}
+
+.route-calendar.is-compact form p {
+  font-size: 0.72rem;
+  margin: 3px 0;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.route-calendar.is-compact form input {
+  min-height: 32px;
+  padding: 4px 6px;
+  font-size: 0.78rem;
+}
+
+.route-calendar.is-compact form .calendar-save {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  box-shadow: 0 2px 0 #b32a10;
+}

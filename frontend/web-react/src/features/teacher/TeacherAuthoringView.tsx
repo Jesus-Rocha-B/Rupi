@@ -669,27 +669,32 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
       {/* 1. Barra de cabecera del docente con perfil e institución */}
       <header className="teacher-header">
         <div className="teacher-header-left">
-          <div className="teacher-role-emblem">
-            <GraduationCap size={22} className="teacher-icon" aria-hidden="true" />
-            <span className="teacher-role-tag">PANEL DOCENTE · GESTIÓN Y AUTORÍA</span>
+          <div className="teacher-brand-badge">
+            <GraduationCap size={24} className="teacher-icon" aria-hidden="true" />
+            <h1 className="teacher-brand-title">Panel de Docente</h1>
           </div>
         </div>
 
         <div className="teacher-header-right">
-          <div className="teacher-profile-widget">
-            <StudentAvatar role="DOCENTE" name={teacherName} size={42} />
-            <div className="teacher-profile-info">
-              <span className="teacher-name">{teacherName}</span>
-              <span className="teacher-school">{schoolName}</span>
-            </div>
+          <div className="profile-student-card teacher-profile-card">
+            <StudentAvatar
+              name={teacherName}
+              role="DOCENTE"
+              size="sm"
+              showBadge
+            />
+            <span className="profile-text-col">
+              <b className="profile-student-name">{teacherName}</b>
+              <small className="profile-school-name">{schoolName}</small>
+            </span>
           </div>
           <button
             type="button"
-            className="teacher-logout-btn"
+            className="profile-logout-btn teacher-logout-btn"
             onClick={onLogout}
             title="Cerrar sesión"
           >
-            <LogOut size={18} aria-hidden="true" />
+            <LogOut size={16} aria-hidden="true" />
             <span>Salir</span>
           </button>
         </div>
@@ -722,7 +727,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                 onClick={() => setShowCreateModal(true)}
               >
                 <Plus size={20} aria-hidden="true" />
-                <span>+ Diseñar Nuevo Roadmap</span>
+                <span>Diseñar Nuevo Roadmap</span>
               </button>
             </div>
 
@@ -855,36 +860,6 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                 <span>Volver a Mis Roadmaps</span>
               </button>
 
-              <div className="editor-nav-linked-actions">
-                <button
-                  type="button"
-                  className="editor-nav-btn secondary"
-                  onClick={() => onOpenReports(activeRouteDetail.routeId)}
-                  title="Ver reportes de resultados de este roadmap escolar"
-                >
-                  <FileText size={17} aria-hidden="true" />
-                  <span>Reportes de resultados</span>
-                </button>
-                <button
-                  type="button"
-                  className="editor-nav-btn secondary"
-                  onClick={() => onSwitchToStudentView(activeRouteDetail.versionRouteId, activeRouteDetail.grade.number, activeRouteDetail.area.code)}
-                  title="Ver cómo experimentan tus estudiantes este roadmap"
-                >
-                  <Eye size={17} aria-hidden="true" />
-                  <span>Vista de Estudiante</span>
-                </button>
-                <button
-                  type="button"
-                  className="editor-nav-btn danger-outline"
-                  onClick={() => setRouteToDelete({ routeId: activeRouteDetail.routeId, title: activeRouteDetail.title })}
-                  title="Eliminar este roadmap"
-                >
-                  <Trash2 size={16} aria-hidden="true" />
-                  <span>Eliminar Roadmap</span>
-                </button>
-              </div>
-
               <div className="editor-status-box">
                 <span className={`state-pill ${activeRouteDetail.state.toLowerCase()}`}>
                   {activeRouteDetail.state === 'PUBLICADO' ? '✓ Publicado para Alumnos' : stateLabel(activeRouteDetail.state)}
@@ -912,43 +887,47 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
               </div>
             </div>
 
-            {/* Calendario del aula en bloque colapsable no invasivo */}
-            <details className="editor-calendar-collapsible">
-              <summary className="editor-calendar-summary">
-                <Calendar size={18} aria-hidden="true" />
-                <span>Programación y Calendario del Aula</span>
-              </summary>
-              <div className="editor-calendar-body">
-                <RouteCalendar key={activeRouteDetail.versionRouteId} routeId={activeRouteDetail.versionRouteId} teacher />
+            {/* SECCIÓN PRINCIPAL: CALENDARIO COMPACTO (IZQUIERDA) Y ACCIONES VINCULADAS (DERECHA) */}
+            <div className="roadmap-hero-panel">
+              {/* Columna Izquierda: Calendario del aula en formato compacto */}
+              <div className="roadmap-calendar-col">
+                <RouteCalendar
+                  key={activeRouteDetail.versionRouteId}
+                  routeId={activeRouteDetail.versionRouteId}
+                  teacher
+                  compact
+                />
               </div>
-            </details>
 
-            {/* Cabecera del roadmap activo */}
-            <div className="editor-header-card">
-              <div className="editor-header-info">
-                <div className="editor-tags-row">
-                  <span className="area-tag">{activeRouteDetail.area.name}</span>
-                  <span className="grade-tag">{activeRouteDetail.grade.name}</span>
+              {/* Columna Derecha: Acciones principales al costado del calendario */}
+              <div className="roadmap-actions-col">
+                <div className="roadmap-identity-box">
+                  <div className="roadmap-tags-row">
+                    <span className="area-tag">{activeRouteDetail.area.name}</span>
+                    <span className="grade-tag">{activeRouteDetail.grade.name}</span>
+                  </div>
+                  <h2 className="roadmap-hero-title">{activeRouteDetail.title}</h2>
+                  <p className="roadmap-hero-desc">{activeRouteDetail.description || 'Sin descripción curricular.'}</p>
                 </div>
-                <h2 className="editor-title">{activeRouteDetail.title}</h2>
-                <p className="editor-desc">{activeRouteDetail.description}</p>
 
-                {/* Código de clase en el editor */}
+                {/* Código de clase e inscripción escolar */}
                 {activeRouteDetail.code && (
-                  <div className="editor-code-strip">
-                    <KeyRound size={16} className="code-key-icon" aria-hidden="true" />
-                    <span className="code-label">Código de inscripción para estudiantes:</span>
-                    <code className="code-value">{activeRouteDetail.code}</code>
+                  <div className="roadmap-code-banner">
+                    <div className="code-text-group">
+                      <KeyRound size={16} className="code-key-icon" aria-hidden="true" />
+                      <span className="code-title">Código de inscripción:</span>
+                      <code className="code-highlight">{activeRouteDetail.code}</code>
+                    </div>
                     <button
                       type="button"
-                      className="editor-copy-code-btn"
+                      className="copy-code-badge-btn"
                       onClick={() => handleCopyCode(activeRouteDetail.code!)}
                       title="Copiar código de clase"
                     >
                       {copiedCode === activeRouteDetail.code ? (
                         <>
                           <Check size={14} className="copied-check" />
-                          <span>¡Código Copiado!</span>
+                          <span>¡Copiado!</span>
                         </>
                       ) : (
                         <>
@@ -959,16 +938,58 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                     </button>
                   </div>
                 )}
-              </div>
 
-              <button
-                type="button"
-                className="add-node-btn"
-                onClick={() => setShowAddNodeModal(true)}
-              >
-                <Plus size={18} aria-hidden="true" />
-                <span>+ Agregar Parada al Mapa</span>
-              </button>
+                {/* Botones principales solicitados: Reportes de resultados y Vista de Estudiantes */}
+                <div className="roadmap-primary-buttons">
+                  <button
+                    type="button"
+                    className="roadmap-big-action-btn reports"
+                    onClick={() => onOpenReports(activeRouteDetail.routeId)}
+                    title="Ver reportes de resultados de este roadmap escolar"
+                  >
+                    <FileText size={20} aria-hidden="true" />
+                    <div className="action-btn-copy">
+                      <span className="action-btn-title">Reportes de resultados</span>
+                      <span className="action-btn-subtitle">Progreso y calificaciones del aula</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="roadmap-big-action-btn student-view"
+                    onClick={() => onSwitchToStudentView(activeRouteDetail.versionRouteId, activeRouteDetail.grade.number, activeRouteDetail.area.code)}
+                    title="Ver y explorar el mapa interactivo como tus estudiantes"
+                  >
+                    <Eye size={20} aria-hidden="true" />
+                    <div className="action-btn-copy">
+                      <span className="action-btn-title">Vista de Estudiantes</span>
+                      <span className="action-btn-subtitle">Probar aventura didáctica</span>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Acciones complementarias */}
+                <div className="roadmap-secondary-buttons">
+                  <button
+                    type="button"
+                    className="add-stop-hero-btn"
+                    onClick={() => setShowAddNodeModal(true)}
+                  >
+                    <Plus size={16} aria-hidden="true" />
+                    <span>Agregar Parada al Mapa</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="delete-roadmap-hero-btn"
+                    onClick={() => setRouteToDelete({ routeId: activeRouteDetail.routeId, title: activeRouteDetail.title })}
+                    title="Eliminar este roadmap"
+                  >
+                    <Trash2 size={16} aria-hidden="true" />
+                    <span>Eliminar Roadmap</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Cuerpo del editor: Paradas y Materiales */}
@@ -1127,7 +1148,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                   title="Agregar una nueva parada a esta ruta curricular"
                 >
                   <Plus size={16} aria-hidden="true" />
-                  <span>+ Agregar otra parada al camino</span>
+                  <span>Agregar otra parada al camino</span>
                 </button>
               </div>
 
@@ -1491,7 +1512,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                                   onClick={handleAddQuestion}
                                 >
                                   <Plus size={16} aria-hidden="true" />
-                                  <span>+ Agregar Pregunta</span>
+                                  <span>Agregar Pregunta</span>
                                 </button>
                               </div>
 
@@ -1621,7 +1642,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                                             onClick={() => handleAddOption(qIndex)}
                                           >
                                             <Plus size={14} aria-hidden="true" />
-                                            <span>+ Agregar opción de respuesta</span>
+                                            <span>Agregar opción de respuesta</span>
                                           </button>
                                         </div>
                                       </div>
@@ -1635,7 +1656,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                                       onClick={handleAddQuestion}
                                     >
                                       <Plus size={18} aria-hidden="true" />
-                                      <span>+ Agregar Otra Pregunta al Reto</span>
+                                      <span>Agregar Otra Pregunta al Reto</span>
                                     </button>
                                   </div>
                                 </div>

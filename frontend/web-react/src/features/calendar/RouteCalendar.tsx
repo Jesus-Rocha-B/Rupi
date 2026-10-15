@@ -6,7 +6,7 @@ import { limaInput, limaInstant, monthCells, occursOn, shiftMonth } from './cale
 import './RouteCalendar.css'
 
 const dateLabel = (iso: string) => new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Lima' }).format(new Date(iso))
-export function RouteCalendar({ routeId, teacher = false }: { routeId: string; teacher?: boolean }) {
+export function RouteCalendar({ routeId, teacher = false, compact = false }: { routeId: string; teacher?: boolean; compact?: boolean }) {
   const role = teacher ? 'teacher' : 'student'
   const [data, setData] = useState<Schedule | null>(null)
   const [error, setError] = useState('')
@@ -56,10 +56,12 @@ export function RouteCalendar({ routeId, teacher = false }: { routeId: string; t
     return null
   }
 
-  return <section className="route-calendar" aria-label="Calendario del aula">
-    <h3><CalendarDays aria-hidden="true" /> Calendario del aula</h3>
-    <p>Unidades y evaluaciones de nuestra ruta. Horarios de Perú.</p>
-    {data && <button type="button" disabled={busy} onClick={() => setRetry(r => r + 1)}>Actualizar fechas</button>}
+  return <section className={`route-calendar ${compact ? 'is-compact' : ''}`} aria-label="Calendario del aula">
+    <div className="calendar-title-bar">
+      <h3><CalendarDays aria-hidden="true" /> Calendario del aula</h3>
+      {data && <button type="button" className="refresh-dates-btn" disabled={busy} onClick={() => setRetry(r => r + 1)}>Actualizar fechas</button>}
+    </div>
+    {!compact && <p>Unidades y evaluaciones de nuestra ruta. Horarios de Perú.</p>}
     {error && <p role="alert">{error} {!data && <button type="button" onClick={() => setRetry(r => r + 1)}>Volver a intentar</button>}</p>}
     {message && <p role="status">{message}</p>}
     {!data && !error && <p role="status">Cargando las fechas…</p>}
