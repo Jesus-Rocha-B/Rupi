@@ -22,9 +22,22 @@ public class GradesService {
     public record Cell(String unitId,Average average,int totalActivities,List<Detail> details) {}
     public record Row(String studentId,String studentName,List<Cell> cells) {}
     public record Report(Classroom classroom,Route route,String generatedAt,List<Unit> units,List<Row> students,int unassignedNodes) {}
-    public Report report(String teacher,String room,String route) {
+    public Report report(String teacher,String room,String route) {return report(teacher,room,route,null);}
+    public Report report(String teacher,String room,String route,String student) {
         var selection=access.authorize(teacher,room,route);
-        return summarize(selection.classroom(),selection.route(),reports.data(room,route),grades.attempts(room,route));
+        if(student!=null) access.authorizeStudent(room,student);
+        return summarize(selection.classroom(),selection.route(),reports.data(room,route,student),grades.attempts(room,route,student));
+    }
+    static String csv(Report report) {
+        var out=new StringBuilder("\ufeffAula,Ruta,Version,Fecha UTC,Estudiante,Unidad,Promedio sobre 20,Letra orientativa Rupi,Actividades calificadas,Actividades totales\r\n");
+        for(var student:report.students()) for(var cell:student.cells()) {
+            var unit=report.units().stream().filter(u->u.id().equals(cell.unitId())).findFirst().orElseThrow();
+            var values=List.of(report.classroom().name(),report.route().title(),""+report.route().version(),report.generatedAt(),
+                student.studentName(),unit.title(),cell.average()==null?"":cell.average().value().toPlainString(),
+                cell.average()==null?"":cell.average().letter(),""+cell.details().size(),""+cell.totalActivities());
+            out.append(values.stream().map(ResultsReportService::cell).collect(java.util.stream.Collectors.joining(","))).append("\r\n");
+        }
+        return out.toString();
     }
     static Report summarize(Classroom classroom,Route route,Data data,List<GradesRepository.Attempt> attempts) {
         Map<String,Unit> units=new LinkedHashMap<>();

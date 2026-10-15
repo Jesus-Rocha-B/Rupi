@@ -19,4 +19,16 @@ export async function reportsResponse(path: string, signal?: AbortSignal) {
   if (!response.ok) throw new ApiError(response.status, 'No pudimos consultar los resultados. Verifica tu conexión y el acceso al aula.')
   return response
 }
-export const reportQuery = (room: string, route: string) => `?${new URLSearchParams({ classroomId: room, routeId: route })}`
+export const reportQuery = (room: string, route: string, student?: string) => {
+  const params = new URLSearchParams({ classroomId: room, routeId: route })
+  if (student) params.set('studentId', student)
+  return `?${params}`
+}
+export interface ReportMember { id: string; name: string; schoolUsername: string }
+export interface StudentOverview {
+  student: ReportMember; classroom: ReportClassroom; route: ReportRoute; enrollmentState: string | null
+  completedNodes: number; totalNodes: number; answered: number; totalQuestions: number; correct: number
+  units: { id: string; title: string; status: StudentResult['status']; average: { value: number; letter: string } | null }[]
+  activities: { id: string; title: string; answered: number; correct: number }[]
+  reinforcements: { id: string; nodeTitle: string; title: string; url: string | null; linkedAt: string; completedAt: string | null }[]
+}

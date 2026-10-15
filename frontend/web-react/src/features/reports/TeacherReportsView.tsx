@@ -1,8 +1,11 @@
+import { StudentFilter } from './StudentFilter'
+import { StudentOverviewView } from './StudentOverviewView'
+import { ReportDownload } from './ReportDownload'
 import { useReportData } from './useReportData'
 import { GradesReportView } from './GradesReportView'
 import { useState } from 'react'
-import { ArrowLeft, BookOpen, Download, LogOut } from 'lucide-react'
-import { reportsResponse, reportQuery, type ReportClassroom, type ReportRoute, type ResultsReport, type StudentResult } from '../../services/reportsApi'
+import { ArrowLeft, BookOpen, LogOut } from 'lucide-react'
+import { reportQuery, type ReportMember, type ReportClassroom, type ReportRoute, type ResultsReport, type StudentResult } from '../../services/reportsApi'
 import './TeacherReportsView.css'
 
 const labels: Record<StudentResult['status'], string> = {
@@ -12,21 +15,8 @@ const labels: Record<StudentResult['status'], string> = {
 function ReportError({ message, retry }: { message: string; retry: () => void }) {
   return <div className="report-error" role="alert"><p>{message}</p><button type="button" onClick={retry}>Volver a consultar</button></div>
 }
-function ReportResults({ room, route }: { room: string; route: string }) {
-  const { data, error, retry } = useReportData<ResultsReport>(reportQuery(room, route))
-  const [exporting, setExporting] = useState(false)
-  const [exportError, setExportError] = useState<string | null>(null)
-  async function download() {
-    setExporting(true); setExportError(null)
-    try {
-      const response = await reportsResponse('/export' + reportQuery(room, route))
-      const url = URL.createObjectURL(await response.blob())
-      const link = document.createElement('a'); link.href = url; link.download = 'rupi-resultados.csv'
-      document.body.appendChild(link); link.click(); link.remove()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-    } catch { setExportError('No pudimos descargar los resultados. Vuelve a intentarlo.') }
-    finally { setExporting(false) }
-  }
+function ReportResults({ room, route, student }: { room: string; route: string; student: string }) {
+  const { data, error, retry } = useReportData<ResultsReport>(reportQuery(room, route, student))
   if (error) return <ReportError message={error} retry={retry} />
   if (!data) return <p role="status">Preparando los resultados del aula…</p>
   const attention = new Set(data.units.flatMap(unit => unit.students.filter(row => row.status === 'REQUIERE_ATENCION').map(row => row.studentId))).size
@@ -35,9 +25,8 @@ function ReportResults({ room, route }: { room: string; route: string }) {
       <div><h2>{data.route.title}</h2><p>{data.classroom.name} · {data.studentCount} {data.studentCount === 1 ? 'estudiante' : 'estudiantes'} · {attention} con unidades por revisar</p>
         <p className="report-note">Consultado: {new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Lima' }).format(new Date(data.generatedAt))} (Perú)</p></div>
       <div className="report-actions"><button type="button" onClick={retry}>Actualizar reporte</button>
-        <button type="button" onClick={() => void download()} disabled={exporting || data.units.length === 0}><Download size={20} aria-hidden="true" />{exporting ? 'Descargando…' : 'Descargar CSV'}</button></div>
+        <ReportDownload path={'/export' + reportQuery(room, route, student)} filename={student ? 'rupi-resultados-estudiante.csv' : 'rupi-resultados.csv'} available={data.units.some(u => u.students.some(s => s.answered > 0 || s.completedNodes > 0))} /></div>
     </div>
-    {exportError && <p role="alert">{exportError}</p>}
     <div className="report-criteria" id="report-criteria">
       <strong>Cómo leer los resultados</strong>
       <p>Se señala atención cuando hay al menos dos preguntas respondidas y menos del 70 % de aciertos. Una unidad sin respuestas no se considera de bajo rendimiento. El avance de paradas y los aciertos se muestran por separado.</p>
@@ -69,16 +58,23 @@ function ReportResults({ room, route }: { room: string; route: string }) {
     </details>)}
   </div>
 }
-function ClassroomReports({ room, view }: { room: string; view: string }) {
+function ClassroomReports({ room, view, onViewChange }: { room: string; view: string; onViewChange: (view: string) => void }) {
   const { data: routes, error, retry } = useReportData<ReportRoute[]>(`/classrooms/${encodeURIComponent(room)}/routes`)
   const [selected, setSelected] = useState('')
+  const [selectedStudent, setSelectedStudent] = useState('')
+  const { data: members, error: membersError, retry: retryMembers } = useReportData<ReportMember[]>(`/classrooms/${encodeURIComponent(room)}/students`)
+  if (membersError) return <ReportError message={membersError} retry={retryMembers} />
+  if (!members) return <p role="status">Buscando los estudiantes del aula…</p>
+  const student = members.some(m => m.id === selectedStudent) ? selectedStudent : ''
   if (error) return <ReportError message={error} retry={retry} />
   if (!routes) return <p role="status">Buscando las rutas de tus estudiantes…</p>
   if (!routes.length) return <p className="report-empty">Todavía no hay inscripciones en rutas del grado de esta aula. El reporte aparecerá cuando los estudiantes se inscriban.</p>
   const route = routes.some(r => r.id === selected) ? selected : routes[0].id
   return <><label className="report-filter">Ruta y versión<select value={route} onChange={event => setSelected(event.target.value)}>
     {routes.map(r => <option key={r.id} value={r.id}>{r.title} · v{r.version} · {r.state === 'PUBLICADO' ? 'Publicada' : 'No publicada'}</option>)}
-  </select></label>{view === 'grades' ? <GradesReportView key={route} room={room} route={route} /> : <ReportResults key={route} room={room} route={route} />}</>
+  </select></label><StudentFilter members={members} selected={student} onChange={setSelectedStudent} />
+    {student && <StudentOverviewView key={`${route}:${student}`} room={room} route={route} student={student} onViewChange={onViewChange} />}
+    <div id="report-detail" tabIndex={-1}>{view === 'grades' ? <GradesReportView key={`${route}:${student}`} room={room} route={route} student={student} /> : <ReportResults key={`${route}:${student}`} room={room} route={route} student={student} />}</div></>
 }
 export function TeacherReportsView({ onBack, onLogout }: { onBack: () => void; onLogout: () => void }) {
   const [view, setView] = useState('results')
@@ -94,6 +90,6 @@ export function TeacherReportsView({ onBack, onLogout }: { onBack: () => void; o
     {rooms && !rooms.length && <p className="report-empty">Aún no tienes aulas activas asignadas. Solicita que te registren como docente o responsable de tu aula para consultar sus resultados.</p>}
     {rooms && room && <><label className="report-filter">Aula<select value={room} onChange={event => setSelected(event.target.value)}>
       {rooms.map(r => <option key={r.id} value={r.id}>{r.name} · {r.grade}.º de primaria</option>)}
-    </select></label><ClassroomReports key={room} room={room} view={view} /></>}
+    </select></label><ClassroomReports key={room} room={room} view={view} onViewChange={setView} /></>}
   </main>
 }

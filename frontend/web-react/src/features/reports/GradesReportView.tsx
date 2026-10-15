@@ -1,3 +1,4 @@
+import { ReportDownload } from './ReportDownload'
 import { useEffect, useRef, useState } from 'react'
 import { reportQuery } from '../../services/reportsApi'
 import type { GradeCell, GradesReport } from '../../services/gradesTypes'
@@ -61,12 +62,12 @@ function GradesTable({ data }: { data: GradesReport }) {
     {selection && <GradeDetailDialog selection={selection} onClose={() => setSelection(null)} />}
   </>
 }
-export function GradesReportView({ room, route }: { room: string; route: string }) {
-  const { data, error, retry } = useReportData<GradesReport>('/grades' + reportQuery(room, route))
+export function GradesReportView({ room, route, student }: { room: string; route: string; student?: string }) {
+  const { data, error, retry } = useReportData<GradesReport>('/grades' + reportQuery(room, route, student))
   if (error) return <div className="report-error" role="alert"><p>{error}</p><button type="button" onClick={retry}>Volver a consultar</button></div>
   if (!data) return <p role="status">Preparando las calificaciones del aula…</p>
   return <section className="grades-report" aria-label="Calificaciones promedio">
-    <div className="report-summary"><h2>Calificaciones promedio</h2><p>{data.classroom.name} · {data.route.title} · v{data.route.version}</p><p className="report-note">Consultado: {date(data.generatedAt)} (Perú)</p><button type="button" onClick={retry}>Actualizar calificaciones</button></div>
+    <div className="report-summary"><h2>Calificaciones promedio</h2><p>{data.classroom.name} · {data.route.title} · v{data.route.version}</p><p className="report-note">Consultado: {date(data.generatedAt)} (Perú)</p><button type="button" onClick={retry}>Actualizar calificaciones</button><div className="report-actions"><ReportDownload path={'/grades/export' + reportQuery(room, route, student)} filename={student ? 'rupi-calificaciones-estudiante.csv' : 'rupi-calificaciones.csv'} available={data.students.some(s => s.cells.some(c => c.average !== null))} /></div></div>
     <div className="report-criteria" id="grade-criteria"><strong>Puntaje sobre 20 y letra orientativa de Rupi</strong>
       <p>AD: 18–20 · A: desde 14 hasta menos de 18 · B: desde 11 hasta menos de 14 · C: desde 0 hasta menos de 11.</p>
       <p>{Object.entries(labels).map(([letter, label]) => `${letter}: ${label}`).join(' · ')}.</p>

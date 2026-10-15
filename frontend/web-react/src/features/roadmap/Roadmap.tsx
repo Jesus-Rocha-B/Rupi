@@ -29,7 +29,6 @@ import {
 } from 'lucide-react'
 import { nodeStateLabels } from './nodeStates'
 import { RupiCharacter } from '../../components/RupiCharacter'
-import { unitBandsByNode } from './unitGroups'
 import { UnitDownloadPanel } from './UnitDownloadPanel'
 import { speakText } from '../../utils/speech'
 import type { RouteDetail, RouteNode } from '../../services/learningRoutesApi'
@@ -159,9 +158,6 @@ function getStopThemeIcon(node: RouteNode, areaCode?: string) {
 
 export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Props) {
   const [rupiMood, setRupiMood] = useState<'idle' | 'jumping' | 'cheering' | 'thinking'>('cheering')
-
-  // Bandas curriculares por unidad del MINEDU (HU-04)
-  const unitBands = useMemo(() => unitBandsByNode(route), [route])
 
   // Separación vertical fija de 145px entre paradas a lo largo del sendero
   const STOP_VERTICAL_GAP = 145
