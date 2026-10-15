@@ -122,6 +122,7 @@ function App() {
   const [slowLoading, setSlowLoading] = useState(false)
   const [currentView, setCurrentView] = useState<AppView>('camino')
   const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview' | 'reports'>('authoring')
+  const [reportsInitialRouteId, setReportsInitialRouteId] = useState<string | null>(null)
 
   const [errorType, setErrorType] = useState<Failure>(null)
   const [guideIndex, setGuideIndex] = useState(0)
@@ -529,8 +530,6 @@ function App() {
       />
     )
   }
-
-  const [reportsInitialRouteId, setReportsInitialRouteId] = useState<string | null>(null)
 
   if (student.role === 'DOCENTE' && teacherViewMode === 'reports') {
     return (
