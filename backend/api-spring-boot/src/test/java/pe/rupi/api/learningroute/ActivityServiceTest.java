@@ -12,6 +12,8 @@ class ActivityServiceTest {
     final pe.rupi.api.evaluation.EvaluationService evaluationService = mock(pe.rupi.api.evaluation.EvaluationService.class);
     final ActivityService service = new ActivityService(jdbc, evaluationService);
     final UUID student = UUID.randomUUID(), route = UUID.randomUUID(), node = UUID.randomUUID();
+    /** Escrituras de estado; excluye el INSERT IGNORE que solo crea filas de progreso faltantes. */
+    static String stateWrite() { return argThat(sql -> sql != null && !sql.contains("INSERT IGNORE INTO aprendizaje_progreso_nodo")); }
     void fixture(String state, String instructions, List<ActivityService.Block> blocks) {
         doAnswer(call -> {
             String sql = call.getArgument(0);
@@ -21,18 +23,18 @@ class ActivityServiceTest {
     @Test void unavailableEnrollmentDoesNotWrite() {
         doReturn(List.of()).when(jdbc).query(anyString(), any(SqlParameterSource.class), any(RowMapper.class));
         assertEquals(404, assertThrows(ResponseStatusException.class, () -> service.start(student, route, node)).getStatusCode().value());
-        verify(jdbc, never()).update(anyString(), any(SqlParameterSource.class));
+        verify(jdbc, never()).update(stateWrite(), any(SqlParameterSource.class));
     }
     @Test void blockedActivityDoesNotWriteOrReturnContent() {
         fixture("BLOQUEADO", "Contenido", List.of());
         assertEquals(403, assertThrows(ResponseStatusException.class, () -> service.start(student, route, node)).getStatusCode().value());
-        verify(jdbc, never()).update(anyString(), any(SqlParameterSource.class));
+        verify(jdbc, never()).update(stateWrite(), any(SqlParameterSource.class));
         verify(jdbc, times(1)).query(anyString(), any(SqlParameterSource.class), any(RowMapper.class));
     }
     @Test void emptyActivityDoesNotPretendToStart() {
         fixture("DISPONIBLE", null, List.of());
         assertEquals(409, assertThrows(ResponseStatusException.class, () -> service.start(student, route, node)).getStatusCode().value());
-        verify(jdbc, never()).update(anyString(), any(SqlParameterSource.class));
+        verify(jdbc, never()).update(stateWrite(), any(SqlParameterSource.class));
     }
     @Test void availableActivityStartsAndReturnsItsContent() {
         var blocks = List.of(new ActivityService.Block("block", "TEXTO", "Dos más dos", null, null));
@@ -40,7 +42,7 @@ class ActivityServiceTest {
         var result = service.start(student, route, node);
         assertEquals("EN_CURSO", result.state()); assertEquals(blocks, result.blocks());
         assertEquals(node.toString(), result.nodeId());
-        verify(jdbc, times(2)).update(anyString(), any(SqlParameterSource.class));
+        verify(jdbc, times(2)).update(stateWrite(), any(SqlParameterSource.class));
     }
     @Test void reopeningCompletedActivityPreservesCompletion() {
         fixture("COMPLETADO", "Repaso", List.of());

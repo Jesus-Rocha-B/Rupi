@@ -16,6 +16,12 @@ public class CalendarRepository {
             WHERE v.id=? AND r.propietario_id=? AND r.archivado_en IS NULL
             """, Integer.class, route, teacher) > 0;
     }
+    public boolean isPublished(String route) {
+        return jdbc.queryForObject("""
+            SELECT COUNT(*) FROM aprendizaje_version_ruta v JOIN aprendizaje_ruta r ON r.id=v.ruta_id
+            WHERE v.id=? AND v.estado='PUBLICADO' AND r.archivado_en IS NULL
+            """, Integer.class, route) > 0;
+    }
     public List<Classroom> classrooms(String user, String route, boolean teacher) {
         String access = teacher ? "(a.docente_responsable_id=? OR EXISTS (SELECT 1 FROM escuela_membresia_aula m WHERE m.aula_id=a.id AND m.usuario_id=? AND m.rol='DOCENTE' AND m.estado='ACTIVO'))"
             : "EXISTS (SELECT 1 FROM escuela_membresia_aula m WHERE m.aula_id=a.id AND m.usuario_id=? AND m.rol='ESTUDIANTE' AND m.estado='ACTIVO')";

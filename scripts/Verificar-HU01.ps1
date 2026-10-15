@@ -66,7 +66,11 @@ try {
     if (($response.Content | ConvertFrom-Json).items.Count -ne 0) { throw 'Expected empty routes' }
     $null = Request "student/learning-routes/$route" 404 $auth
     Sql "INSERT INTO aprendizaje_inscripcion_ruta (id,version_ruta_id,estudiante_id,estado) VALUES ('$enrollment','$route','$student','ACTIVO');"
-    $null = Request "student/learning-routes/$route" 503 $auth
+    # Una inscripción sin filas de progreso ya no es un error (503): la primera parada se muestra DISPONIBLE y la API
+    # crea las filas que falten al abrir o completar una actividad (V17 repara las inscripciones antiguas).
+    $response = Request "student/learning-routes/$route" 200 $auth
+    $first = (($response.Content | ConvertFrom-Json).nodes | Sort-Object sequence | Select-Object -First 1)
+    if ($first.state -ne 'DISPONIBLE') { throw "Expected first node DISPONIBLE without progress rows, got $($first.state)" }
     Sql "INSERT INTO aprendizaje_progreso_nodo (inscripcion_id,version_ruta_id,nodo_ruta_id,estado) SELECT '$enrollment',version_ruta_id,id,'BLOQUEADO' FROM aprendizaje_nodo_ruta WHERE version_ruta_id='$route';"
     $response = Request "student/learning-routes/$route" 200 $auth
     $detail = $response.Content | ConvertFrom-Json

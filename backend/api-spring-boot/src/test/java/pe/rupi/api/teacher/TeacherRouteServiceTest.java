@@ -105,6 +105,75 @@ class TeacherRouteServiceTest {
     }
 
     @Test
+    @DisplayName("Rechaza un tipo de actividad fuera del catálogo con 400, sin tocar la base")
+    void addNodeRejectsUnknownActivityType() {
+        var req = new TeacherDtos.CreateNodeRequest("Parada válida", null, "VIDEOJUEGO", 10, null, null, null);
+
+        var ex = assertThrows(ResponseStatusException.class, () -> service.addNode("profesor-1", "r-1", req));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    @DisplayName("Rechaza enlaces javascript:, data: o relativos que el alumno abriría")
+    void attachResourceRejectsUnsafeUrls() {
+        for (String url : List.of("javascript:alert(1)", "data:text/html,hola", "/otra/ruta", "ftp://servidor/x.pdf", "https://")) {
+            var req = new TeacherDtos.AttachResourceRequest("ENLACE", "Enlace", url, null);
+            var ex = assertThrows(ResponseStatusException.class, () -> service.attachResource("profesor-1", "node-1", req), url);
+            assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode(), url);
+        }
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    @DisplayName("Acepta enlaces web y descargas de materiales de RUPI")
+    void attachResourceAcceptsWebAndRupiMaterialUrls() {
+        assertTrue(TeacherRouteService.isSafeResourceUrl("https://www.perueduca.pe/recurso"));
+        assertTrue(TeacherRouteService.isSafeResourceUrl("http://localhost:8081/doc.pdf"));
+        assertTrue(TeacherRouteService.isSafeResourceUrl("/api/v1/materials/d5785bf3-50df-4ec2-a9bc-4874c52e04f7/download"));
+    }
+
+    @Test
+    @DisplayName("Rechaza un tipo de material fuera del catálogo con 400")
+    void attachResourceRejectsUnknownType() {
+        var req = new TeacherDtos.AttachResourceRequest("VIDEO", "Video", "https://www.youtube.com/watch?v=1", null);
+
+        var ex = assertThrows(ResponseStatusException.class, () -> service.attachResource("profesor-1", "node-1", req));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Historia 8: pausa un roadmap publicado")
+    void pauseRouteSuccess() {
+        var expected = new TeacherDtos.PublishRouteResponse("r-1", "vr-1", "PAUSADO", "2026-10-13T12:00:00Z", "En pausa");
+        when(repository.pauseRoute("profesor-1", "r-1")).thenReturn(expected);
+
+        assertEquals("PAUSADO", service.pauseRoute("profesor-1", "r-1").state());
+    }
+
+    @Test
+    @DisplayName("Historia 8: pausar una ruta que no está publicada responde 409")
+    void pauseRouteNotPublishedIsConflict() {
+        when(repository.pauseRoute("profesor-1", "r-1")).thenThrow(new IllegalStateException("Solo se puede pausar un roadmap publicado."));
+
+        var ex = assertThrows(ResponseStatusException.class, () -> service.pauseRoute("profesor-1", "r-1"));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Historia 8: pausar una ruta ajena responde 404")
+    void pauseForeignRouteIsNotFound() {
+        when(repository.pauseRoute("profesor-1", "ajena")).thenThrow(new IllegalArgumentException("Ruta no encontrada o no pertenece al docente."));
+
+        var ex = assertThrows(ResponseStatusException.class, () -> service.pauseRoute("profesor-1", "ajena"));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+    }
+
+    @Test
     @DisplayName("Publica roadmap exitosamente")
     void publishRouteSuccess() {
         var expectedResponse = new TeacherDtos.PublishRouteResponse("r-1", "vr-1", "PUBLICADO", "2026-10-13T12:00:00Z", "Publicado");

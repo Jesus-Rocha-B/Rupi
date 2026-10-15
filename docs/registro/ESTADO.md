@@ -7,7 +7,7 @@ Actualizado: 2026-10-14 · rama `main` · después de integrar HU-12 a HU-14 del
 1. Leer este archivo y `CONTEXTO.md`. Si se va a tocar código, también `MAPA-DE-CODIGO.md`.
 2. Levantar el entorno: `./iniciar-rupi.sh` (MySQL 3307, API 8081, web 5173). Cuenta demo: `estudiante.demo` / `123456`.
 3. Comprobar que todo sigue en verde (comandos en `CONTEXTO.md`, sección Verificaciones).
-4. Si la base local se ve rara (rutas que dan 500, ids viejos), reconstruirla con el orden de `docs/implementacion/entorno-linux.md` (schema → V04 → seed-hu01 → V06 → seed-hu02 → V07 a V16 → `grants-spring-boot.sql`). Para una base existente basta con aplicar V13 a V16, repetir V09 y V10 y volver a otorgar los permisos. El script usado el 2026-10-12 quedó en `~/reconstruir-bd-rupi.sh`, y el respaldo previo en `~/rupi-respaldo-2026-10-12.sql`.
+4. Si la base local se ve rara (rutas que dan 500, ids viejos), reconstruirla con el orden de `docs/implementacion/entorno-linux.md` (schema → V04 → seed-hu01 → V06 → seed-hu02 → V07 a V17 → `grants-spring-boot.sql`). Para una base existente basta con aplicar V13 a V17, repetir V09 y V10 y volver a otorgar los permisos. El script usado el 2026-10-12 quedó en `~/reconstruir-bd-rupi.sh`, y el respaldo previo en `~/rupi-respaldo-2026-10-12.sql`.
 
 ## Fuente de verdad del alcance
 
@@ -26,24 +26,27 @@ La numeración HU-xx del repo coincide con el backlog solo en **HU-01 a HU-04** 
 | HU-05 | **Autoría y Gestión de Roadmaps Docente** (Scrum Backlog): Rol docente, creación de roadmaps personalizados por grado CNEB (1.° a 6.°) y materia | **Completada y verificada** (`Verificar-HU05-Docente.ps1`) |
 | HU-06 | **Reorganizar Secuencia de Aprendizaje con Drag & Drop** (Scrum Backlog): Reordenamiento interactivo de paradas pedagógicas por el profesor | **Completada y verificada** (`Verificar-HU06-Reordenamiento.ps1`) |
 | HU-07 | **Subida y vinculación de materiales educativos (PDF, PPT, enlaces) a nodos** (Scrum Backlog) / Insignias formativas | **Completada y verificada** |
-| HU-08 | Fin de ruta y vitrina de insignias de perfil escolar / Publicación docente | Completada y verificada |
+| HU-08 | Repo: fin de ruta y vitrina de insignias. **Backlog (historia 8): publicar o pausar la visibilidad de una ruta** | Completada. Pausa agregada el 2026-10-14 (`POST /teacher/learning-routes/{id}/pause`, interruptor en el panel docente); verificado que el alumno pierde el acceso al instante y lo recupera al volver a publicar |
 | HU-09 | Búsqueda de roadmaps por materia con FTS y autocompletado | Completada y verificada |
 | HU-10 | Filtros por grado y materia con URL sincronizada | Completada y verificada |
 | HU-11 | Unirse a un roadmap con código de clase docente | Completada y verificada |
 | HU-12 | Descargar una unidad (guía PDF, materiales y ejercicios en zip) para estudiar sin conexión. Cierra la épica 3. El equipo agregó la biblioteca MINEDU por grado y la descarga por nodo | Completada y verificada (`Verificar-HU12-Descarga.ps1`, `verify_hu12_pantalla.mjs`) |
-| HU-13 | Calendario: el docente asigna fechas a unidades y evaluaciones por aula (`escuela_planificacion_ruta`, V13) | Completada. Verificada de punta a punta el 2026-10-14 con el docente demo como responsable del aula (V16). Solo el autor de la ruta puede calendarizarla |
+| HU-13 | Calendario: el docente asigna fechas a unidades y evaluaciones por aula (`escuela_planificacion_ruta`, V13) | Completada. Verificada de punta a punta el 2026-10-14 con el docente demo como responsable del aula (V16). Desde el 2026-10-14 también calendariza el docente con un aula activa del grado en cualquier ruta publicada (roadmap institucional), siempre solo para sus aulas |
 | HU-14 | Recordatorio automático 24 h antes de cada evaluación, sin duplicados (`escuela_recordatorio_evaluacion`, V14) | Completada. Verificada el 2026-10-14: el alumno recibe el aviso en el siguiente ciclo (60 s) |
 
 «Verificada» significa probada contra la API Spring Boot, MySQL y frontend React reales.
 
 ## Qué sigue
 
-1. **Historia 8 de la épica docente: asignar rutas a aulas.** Hoy la ruta se publica, pero no se asigna a un aula. Es la misma pieza que falta para que un docente calendarice rutas oficiales (HU-13 exige ser el autor).
-2. **Decisiones con el equipo:**
+Las historias 1 a 14 del backlog están completas y verificadas (revisión modular del 2026-10-14). Siguen:
+
+1. **Historia 15:** nivel de asistencia del tutor IA por aula. No hay nada de IA en el repo; el equipo debe decidir el motor.
+2. **Historia 16:** actividades complementarias MINEDU donde los alumnos tienen bajo rendimiento.
+3. **Decisiones con el equipo:**
    - No volver a editar migraciones publicadas (V09 y V10 se editaron).
    - Clasificar Oficial o Comunidad por rol o columna, no por el nombre de usuario `profesor%`.
    - Escritor único en `identidad_*`.
-3. **Reportes de aula** (historias 17 a 20).
+4. **Reportes de aula** (historias 17 a 20).
 
 Decisión abierta: qué rutas del catálogo serán públicas cuando existan rutas privadas del docente. Hoy cualquier ruta publicada se puede abrir con `POST /enroll`.
 
@@ -51,7 +54,9 @@ Decisión abierta: qué rutas del catálogo serán públicas cuando existan ruta
 
 - **Grado por defecto:** un alumno sin aula activa recibe 2.° de primaria (`StudentSessionService`). Con varias aulas, la elección ya es determinista.
 - **A 320 px**, la pestaña «Mi Perfil» queda parcialmente fuera del menú. Se alcanza deslizando el menú. A 375 px y más caben las tres pestañas.
-- **Iniciar sesión cierra las sesiones anteriores de la misma cuenta.** Dos pestañas o dos pruebas con `estudiante.demo` a la vez se expulsan entre sí (401).
+- **Iniciar sesión cierra las sesiones anteriores de la misma cuenta.** Es intencional: lo pide la historia 43 (sesión única). Dos pestañas o dos pruebas con `estudiante.demo` a la vez se expulsan entre sí (401).
+- **Descargar un material** (`GET /api/v1/materials/{id}/download`) no exige sesión: basta con conocer el id (UUID). Decidir si debe exigir alumno inscrito o docente.
+- Los enlaces externos adjuntados **antes** del 2026-10-14 siguen sin botón para el alumno (la URL solo está en el texto): hay que volver a adjuntarlos.
 - **V12 escribe `identidad_*` desde una migración del lado Spring** (escritor único: Django). Pendiente de decidir con el equipo.
 
 Resueltos el 2026-10-14:
@@ -64,6 +69,12 @@ Resueltos el 2026-10-14:
 - Subir un material ya no deja archivos huérfanos: si el `INSERT` falla, se borra el archivo (prueba `deletesFileWhenInsertFails`).
 - La sesión elige siempre el mismo rol (DOCENTE primero) y la misma aula (la activa más reciente).
 - Barra superior a 375 px: las tres pestañas caben y «Mi Camino» ya no queda fuera de la pantalla.
+- **Revisión modular de las historias 1 a 14:**
+  - **Progreso:** una parada agregada después de inscribirse quedaba bloqueada para siempre (no tenía fila de progreso y el desbloqueo era un `UPDATE` sin efecto). Además, abrir la parada 1 sin fila funcionaba, pero completarla respondía 403. Ahora la API crea las filas que falten al agregar la parada y al abrir o completar una actividad, y V17 repara los datos anteriores.
+  - **Autoría (historias 5 a 7):** ruta ajena o inexistente al agregar parada o publicar → 404 (antes 500); tipo de actividad o de material fuera del catálogo → 400 (antes 500); secuencia ocupada → la parada va al final (antes 500); área inexistente → 400 (antes tomaba un área cualquiera); título de más de 180 caracteres → 400.
+  - **Materiales y enlaces (historia 7):** solo se aceptan enlaces `http(s)://` o descargas de RUPI (antes cualquier texto, incluido `javascript:`); el material adjunto debe ser del mismo docente; los enlaces externos llegan al alumno con botón «Abrir enlace» (antes la URL quedaba solo en el texto).
+  - **Pausa (historia 8)** y **calendario institucional (historia 13):** ver la tabla de historias.
+  - **Scripts:** `Verificar-HU05-Docente.ps1` y `Verificar-HU06-Reordenamiento.ps1` llamaban a `mvn.cmd` (solo Windows); `Verificar-HU01.ps1` esperaba el 503 anterior; `verify_hu12_resources.py` fallaba con rutas sin unidades.
 
 La historia 12 no depende de esas consultas: lee `tamano_bytes` y calcula la ruta del archivo con `MaterialStorageService.diskPathFor`.
 
@@ -84,6 +95,12 @@ La historia 12 no depende de esas consultas: lee `tamano_bytes` y calcula la rut
 - El endpoint de unirse a clase acepta peticiones sin cabecera `Origin`; decidir si es intencional.
 
 ## Última evidencia de pruebas
+
+2026-10-14, revisión modular de las historias 1 a 14 (base local con V17):
+
+- 134 pruebas Java (9 omitidas, de MySQL); en el frontend, build, lint y 21 pruebas de Node.
+- Los 14 scripts del repo pasan en Linux con PowerShell 7.6: `Verificar-Auth`, `HU01`, `HU02-HU05`, `HU05-Docente`, `HU06-Reordenamiento`, `HU08`, `HU09`, `HU10`, `HU11`, `HU12-Descarga`, `Rendimiento-HU09`, `verify_learning_flow.py` (29), `verify_hu04_content.py` y `verify_hu12_resources.py`.
+- 22 comprobaciones de punta a punta contra la API (Playwright): validaciones de autoría, enlaces, progreso con paradas agregadas después, pausa y reanudación, y calendario institucional. El interruptor de pausa se probó también en el panel docente.
 
 2026-10-14 (base local con V13 a V16 aplicadas, API recompilada en `75a62b4`):
 

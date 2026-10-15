@@ -97,6 +97,18 @@ public class TeacherRouteController {
         return service.publishRoute(teacherId, routeId);
     }
 
+    /** Historia 8: pausa la visibilidad; los alumnos dejan de ver y abrir la ruta hasta que se vuelva a publicar. */
+    @PostMapping("/{routeId}/pause")
+    public TeacherDtos.PublishRouteResponse pauseRoute(
+            @PathVariable("routeId") String routeId,
+            HttpServletRequest request,
+            Principal principal
+    ) {
+        var teacher = requireTeacher(request);
+        String teacherId = principal != null ? principal.getName() : teacher.id();
+        return service.pauseRoute(teacherId, routeId);
+    }
+
     @PutMapping("/{routeId}/nodes/reorder")
     public TeacherDtos.TeacherRouteDetail reorderNodes(
             @PathVariable("routeId") String routeId,

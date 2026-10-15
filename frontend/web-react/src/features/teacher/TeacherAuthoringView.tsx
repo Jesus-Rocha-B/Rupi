@@ -21,6 +21,7 @@ import {
   Check,
   RotateCcw,
   ArrowUpDown,
+  PauseCircle,
 } from 'lucide-react'
 import {
   fetchTeacherRoutes,
@@ -29,6 +30,7 @@ import {
   createTeacherNode,
   attachResourceToNode,
   publishTeacherRoute,
+  pauseTeacherRoute,
   reorderTeacherNodes,
   type TeacherRouteSummary,
   type TeacherRouteDetail,
@@ -52,6 +54,12 @@ const CNEB_AREAS = [
   { code: 'SOC', name: 'Personal Social' },
   { code: 'ART', name: 'Arte y Cultura' },
 ]
+
+function stateLabel(state: string) {
+  if (state === 'PUBLICADO') return '✓ Publicado'
+  if (state === 'PAUSADO') return '❚❚ En pausa'
+  return '✎ Borrador'
+}
 
 export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwitchToStudentView }: Props) {
   const [routes, setRoutes] = useState<TeacherRouteSummary[]>([])
@@ -295,6 +303,20 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
     }
   }
 
+  async function handlePauseRoute() {
+    if (!selectedRouteId) return
+    try {
+      const res = await pauseTeacherRoute(selectedRouteId)
+      setBanner({ type: 'success', message: res.message })
+      const detail = await fetchTeacherRouteDetail(selectedRouteId)
+      setActiveRouteDetail(detail)
+      loadRoutes()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'No se pudo pausar la ruta.'
+      setBanner({ type: 'error', message: msg })
+    }
+  }
+
   return (
     <div className="teacher-authoring-view">
       {/* 1. Barra de cabecera del docente */}
@@ -403,7 +425,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                     <article key={r.routeId} className="teacher-route-card">
                       <div className="card-top-row">
                         <span className={`state-pill ${r.state.toLowerCase()}`}>
-                          {r.state === 'PUBLICADO' ? '✓ Publicado' : '✎ Borrador'}
+                          {stateLabel(r.state)}
                         </span>
                         <span className="grade-badge">{r.gradeName}</span>
                       </div>
@@ -452,16 +474,26 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
 
               <div className="editor-status-box">
                 <span className={`state-pill ${activeRouteDetail.state.toLowerCase()}`}>
-                  {activeRouteDetail.state === 'PUBLICADO' ? '✓ Publicado para Alumnos' : '✎ En Borrador'}
+                  {activeRouteDetail.state === 'PUBLICADO' ? '✓ Publicado para Alumnos' : stateLabel(activeRouteDetail.state)}
                 </span>
-                {activeRouteDetail.state !== 'PUBLICADO' && (
+                {activeRouteDetail.state === 'PUBLICADO' ? (
+                  <button
+                    type="button"
+                    className="pause-cta-btn"
+                    onClick={handlePauseRoute}
+                    title="Tus estudiantes dejan de ver la ruta hasta que la vuelvas a publicar. Su avance se conserva."
+                  >
+                    <PauseCircle size={16} aria-hidden="true" />
+                    <span>Pausar para mis Estudiantes</span>
+                  </button>
+                ) : (
                   <button
                     type="button"
                     className="publish-cta-btn"
                     onClick={handlePublishRoute}
                   >
                     <Send size={16} aria-hidden="true" />
-                    <span>Publicar para mis Estudiantes</span>
+                    <span>{activeRouteDetail.state === 'PAUSADO' ? 'Volver a publicar' : 'Publicar para mis Estudiantes'}</span>
                   </button>
                 )}
               </div>

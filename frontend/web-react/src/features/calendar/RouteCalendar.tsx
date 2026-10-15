@@ -49,7 +49,7 @@ export function RouteCalendar({ routeId, teacher = false }: { routeId: string; t
     try {
       await calendarRequest('teacher', routeId, `/${encodeURIComponent(event.id)}?classroomId=${encodeURIComponent(event.classroomId)}`, {method: 'DELETE'})
       setData(prev => prev ? {...prev, events: prev.events.filter(e => e.id !== event.id)} : prev); reset(); setMessage('Fecha retirada del calendario.')
-    } catch { setError('No se pudo retirar la fecha. Inténtalo otra vez.') }
+    } catch (err) { setError(err instanceof Error ? err.message : 'No se pudo retirar la fecha. Inténtalo otra vez.') }
     finally { setBusy(false) }
   }
   return <section className="route-calendar" aria-label="Calendario del aula">

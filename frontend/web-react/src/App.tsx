@@ -871,7 +871,7 @@ function App() {
                         onGuideClick={() => setGuideIndex(index => (index + 1) % guideMessages.length)}
                         onSelectNode={handleOpenNode}
                       />
-                      <RouteCompanion route={selectedRoute} onSelect={handleOpenNode} />
+                      <RouteCompanion route={selectedRoute} onSelect={handleOpenNode} teacher={student.role === 'DOCENTE'} />
                     </div>
                   ) : (
                     <section className="status-panel" role="status">

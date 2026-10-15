@@ -12,13 +12,13 @@ public class CalendarService {
     private final LearningRouteService routes;
     public CalendarService(CalendarRepository repository, LearningRouteService routes) {this.repository=repository;this.routes=routes;}
     public Schedule read(String user, String route, boolean teacher) {
-        if (teacher) requireOwner(user,route); else routes.getForStudent(UUID.fromString(user),UUID.fromString(route));
+        if (teacher) requireManager(user,route); else routes.getForStudent(UUID.fromString(user),UUID.fromString(route));
         var rooms=repository.classrooms(user,route,teacher);
         return new Schedule(rooms,teacher ? repository.targets(route) : java.util.List.of(),repository.events(route,rooms));
     }
     @Transactional
     public Schedule save(String user, String route, Dates dates) {
-        requireOwner(user,route);
+        requireManager(user,route);
         validate(dates);
         requireClassroom(user,route,dates.classroomId());
         var target=repository.targets(route).stream().filter(t->t.id().equals(dates.targetId()) && t.type().equals(dates.type()))
@@ -28,11 +28,18 @@ public class CalendarService {
     }
     @Transactional
     public void delete(String user,String route,String classroom,String event) {
-        requireOwner(user,route);requireClassroom(user,route,classroom);
+        requireManager(user,route);requireClassroom(user,route,classroom);
         if (repository.delete(route,classroom,event)==0) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"La fecha ya no existe en esta aula.");
     }
-    private void requireOwner(String user,String route) {
-        if(!repository.owns(user,route)) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No puedes gestionar el calendario de esta ruta.");
+    /**
+     * HU-13 habla del «roadmap institucional»: además del autor, puede calendarizar el docente con un aula activa del
+     * grado de la ruta, si la ruta está publicada (p. ej., las rutas oficiales de RUPI). Las fechas siguen siendo
+     * por aula: cada docente solo guarda o retira eventos de sus propias aulas (requireClassroom).
+     */
+    private void requireManager(String user,String route) {
+        boolean manages = repository.owns(user,route)
+                || (repository.isPublished(route) && !repository.classrooms(user,route,true).isEmpty());
+        if(!manages) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No puedes gestionar el calendario de esta ruta.");
     }
     private void requireClassroom(String user,String route,String room) {
         if(repository.classrooms(user,route,true).stream().noneMatch(a->a.id().equals(room)))

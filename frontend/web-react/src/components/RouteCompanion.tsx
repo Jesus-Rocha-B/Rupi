@@ -26,6 +26,8 @@ import type { CulturalContext, CulturalFact, RouteDetail, RouteNode } from '../s
 type Props = {
   route: RouteDetail
   onSelect?: (node: RouteNode) => void
+  /** Docente en vista de alumno: el calendario permite gestionar las fechas de sus aulas (HU-13, ruta institucional). */
+  teacher?: boolean
 }
 
 // Catálogo de íconos SVG de Lucide para resolver dinámicamente según la BD (¡Cero emojis!)
@@ -51,7 +53,7 @@ const FACT_ICONS: Record<
   'map-pin': MapPin,
 }
 
-export function RouteCompanion({ route }: Props) {
+export function RouteCompanion({ route, teacher = false }: Props) {
   // Identificar la parada actual (EN_CURSO o primera DISPONIBLE)
   const currentNode = useMemo(() => {
     return (
@@ -97,7 +99,7 @@ export function RouteCompanion({ route }: Props) {
             </div>
           </div>
         </section>
-      <RouteCalendar key={route.versionRouteId} routeId={route.versionRouteId} />
+      <RouteCalendar key={route.versionRouteId} routeId={route.versionRouteId} teacher={teacher} />
       </aside>
     )
   }
@@ -220,7 +222,7 @@ export function RouteCompanion({ route }: Props) {
           </span>
         </footer>
       </section>
-    <RouteCalendar key={route.versionRouteId} routeId={route.versionRouteId} />
+    <RouteCalendar key={route.versionRouteId} routeId={route.versionRouteId} teacher={teacher} />
       </aside>
   )
 }

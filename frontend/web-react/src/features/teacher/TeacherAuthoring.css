@@ -302,6 +302,44 @@
   border: 1px solid #fde68a;
 }
 
+.state-pill.pausado {
+  background: #e6f0f6;
+  color: #1b5273;
+  border: 1px solid #9cc3da;
+}
+
+/* Historia 8: pausar la visibilidad. Azul cielo de la paleta, distinto del verde de «Publicar». */
+.pause-cta-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 18px;
+  background: #246a91;
+  color: #ffffff;
+  border: 2px solid #173e30;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #173e30;
+  transition: all 0.12s ease;
+}
+
+.pause-cta-btn:hover {
+  background: #1d5a7c;
+}
+
+.pause-cta-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+.pause-cta-btn:focus-visible {
+  outline: 3px solid #ffd26a;
+  outline-offset: 2px;
+}
+
 .grade-badge {
   font-size: 0.8rem;
   font-weight: 800;

@@ -75,7 +75,7 @@ Pruebas nuevas: `CalendarServiceTest`, `ReminderServiceTest`, `ReminderRepositor
 ## 3. Cómo poner al día una copia local
 
 1. Ejecuta `git pull --ff-only`.
-2. Aplica las migraciones nuevas en orden: V13, V14, V15 y **V16** (agregada en `5c3c262`). V16 hace al docente demo responsable del aula del alumno demo; sin ella, el calendario de `profesor.demo` aparece sin aulas y no se generan recordatorios. Todas se pueden repetir sin riesgo.
+2. Aplica las migraciones nuevas en orden: V13, V14, V15, **V16** y **V17** (filas de progreso faltantes; ver `ESTADO.md`) (agregada en `5c3c262`). V16 hace al docente demo responsable del aula del alumno demo; sin ella, el calendario de `profesor.demo` aparece sin aulas y no se generan recordatorios. Todas se pueden repetir sin riesgo.
 3. Vuelve a ejecutar **V12**, corregida en el commit «fix: V12 desde cero…» (posterior a `c5e186b`). Ahora corre sobre `schema.sql` y agrega al docente demo como miembro DOCENTE del aula del alumno demo. Es seguro repetirla.
 4. Vuelve a ejecutar V09 y V10, que son idempotentes, para recibir las tildes corregidas. Si la base ya las tenía aplicadas, no las recibe de otro modo.
 5. Vuelve a ejecutar `database/mysql/grants-spring-boot.sql` con `SET @api_usuario = '<usuario>'`. Los permisos se otorgan por prefijo de tabla, así que cubren `escuela_planificacion_ruta` y `escuela_recordatorio_evaluacion`. Sin ellos, el calendario responde 503 y el proceso de recordatorios registra un error en cada ciclo.
@@ -106,7 +106,7 @@ Verificado en la app real (Firefox con Playwright, API recompilada y migraciones
 
 | # | Problema | Propuesta |
 |---|---|---|
-| 6 | La categoría Comunidad se decide por `r.codigo LIKE 'RO-DOC-%' OR nombre_usuario LIKE 'profesor%'` (`LearningRouteRepository`, duplicado en dos consultas). | Usar el rol del propietario o una columna `origen` en `aprendizaje_ruta` (migración V17). |
+| 6 | La categoría Comunidad se decide por `r.codigo LIKE 'RO-DOC-%' OR nombre_usuario LIKE 'profesor%'` (`LearningRouteRepository`, duplicado en dos consultas). | Usar el rol del propietario o una columna `origen` en `aprendizaje_ruta` (migración V18). |
 | 7 | La sesión asigna 2.° de primaria al alumno sin aula. Si el alumno tiene varias aulas activas, el grado y el colegio se toman de una fila cualquiera. | **Resuelto en parte el 2026-10-14:** la sesión elige siempre la misma aula (la activa más reciente) y el mismo rol (DOCENTE primero). Sigue el 2.° por defecto para el alumno sin aula. |
 | 8 | V09 y V10 se editaron después de publicarse. V12 define `recurso_archivo_multimedia` con columnas distintas a `schema.sql`; su `CREATE IF NOT EXISTS` no tiene efecto, pero confunde. | **V12 resuelta el 2026-10-14:** se alineó con `schema.sql` y ahora corre desde cero (probado con una base nueva, dos veces). Sigue pendiente acordar en el equipo no editar migraciones publicadas; V12 fue una excepción, porque fallaba antes de aplicar nada. |
 | 9 | HU-13: solo el autor de la ruta puede asignar fechas, así que un docente no puede calendarizar una ruta oficial para su aula. | Decisión de producto pendiente con el equipo. |
@@ -122,6 +122,7 @@ Verificado en la app real (Firefox con Playwright, API recompilada y migraciones
 | `5c3c262` | V16 (docente demo responsable del aula: HU-13 y HU-14 demostrables), paneles de error visibles (pendiente 10) y Mi Perfil sin desborde a 375 px. |
 | `c5e186b` | V16 incluida en los pasos de actualización. |
 | posterior a `c5e186b` («fix: V12 desde cero…») | V12 corre desde `schema.sql`, subir materiales ya no deja archivos huérfanos, la sesión es determinista (pendiente 7 en parte, pendiente 8 en lo que toca a V12) y la barra superior funciona en celular. |
+| posterior a `d57d720` («fix: revisión modular de las historias 1 a 14…») | Progreso de paradas agregadas después de inscribirse (V17), validaciones de autoría, enlaces seguros y visibles para el alumno, pausa de rutas (historia 8), calendario del roadmap institucional (historia 13) y scripts de verificación portables. |
 
 ### Detalle del último bloque
 
@@ -138,4 +139,32 @@ Verificado en la app real (Firefox con Playwright, API recompilada y migraciones
   - Las etiquetas del menú pasan a 12 px solo en ese ancho.
   - A 375 y 414 px caben las tres pestañas; a 320 px el menú se desliza.
 - **Verificación:** 124 pruebas Java (9 omitidas, de MySQL); en el frontend, build, lint y 21 pruebas de Node. En la app real se probaron el ingreso a roadmaps, el error 500 con «Reintentar», 375 px sin desplazamiento horizontal y las sesiones del alumno (ESTUDIANTE, 2.°) y del docente (DOCENTE).
+
+## 6. Revisión modular de las historias 1 a 14
+
+Contrastada con el backlog del curso (`GLAB-S06-2026-01`). Cada módulo se revisó con los scripts del repo, leyendo el código y con pruebas de punta a punta contra la API local.
+
+| Módulo (historias) | Fallos encontrados | Corrección |
+|---|---|---|
+| Progreso del alumno (2, 3, 5, 7) | Una parada agregada después de inscribirse quedaba **bloqueada para siempre** (sin fila de progreso; el desbloqueo era un `UPDATE` sin efecto). Sin filas, la parada 1 se abría pero completarla daba 403. | La API crea las filas faltantes al agregar la parada y al abrir o completar una actividad. **V17** repara los datos anteriores. |
+| Autoría docente (5, 6) | Ruta ajena o inexistente → 500. Tipo de actividad inválido, título largo o secuencia ocupada → 500. Área inexistente → se tomaba **otra materia cualquiera**. | 404 y 400 con mensajes claros; la secuencia ocupada manda la parada al final. |
+| Materiales y enlaces (7) | Se aceptaba cualquier enlace, incluido `javascript:`. Se podía adjuntar un material de otro docente. Los enlaces externos llegaban al alumno **sin botón** (la URL solo estaba en el texto). | Solo `http(s)://` o descargas de RUPI, y solo materiales propios. Los enlaces se registran como recurso y el alumno ve «Abrir enlace». |
+| Publicar o pausar (8) | **No se podía pausar** una ruta. | `POST /teacher/learning-routes/{id}/pause` y botón «Pausar para mis Estudiantes / Volver a publicar». El alumno pierde el acceso al instante y lo recupera con su avance. |
+| Búsqueda, filtros, código (9–11) | Sin fallos. | — |
+| Descarga sin conexión (12) | El script de verificación fallaba con rutas sin unidades (la app ya ofrecía la descarga por parada). | El script omite esas rutas. |
+| Calendario y recordatorios (13, 14) | Solo el autor de la ruta podía calendarizar, aunque la historia habla del **roadmap institucional**. | También calendariza el docente con un aula activa del grado en cualquier ruta publicada, solo para sus aulas. En la vista de alumno del docente, el calendario abre en modo docente. |
+| Scripts | `Verificar-HU05-Docente.ps1` y `Verificar-HU06-Reordenamiento.ps1` usaban `mvn.cmd` (solo Windows). `Verificar-HU01.ps1` esperaba un 503 ya retirado. | `mvn` fuera de Windows (PowerShell 5.1 y 7+). HU-01 comprueba que la primera parada aparece DISPONIBLE. |
+
+**Para poner al día tu copia:** aplica **V17** (`database/mysql/migrations/V17__progreso_paradas_faltantes.sql`), que se puede repetir sin riesgo, y recompila la API.
+
+**Verificación:**
+- 134 pruebas Java (10 nuevas; 9 omitidas, de MySQL); en el frontend, build, lint y 21 pruebas de Node.
+- Los 14 scripts del repo pasan en Linux con PowerShell 7.6.
+- 22 de 22 comprobaciones de punta a punta contra la API.
+- El interruptor de pausa se probó en el panel docente.
+
+**Pendiente (anotado en `ESTADO.md`):**
+- La descarga de materiales no exige sesión.
+- Los enlaces adjuntados antes de este cambio siguen sin botón: hay que volver a adjuntarlos.
+- Las historias 15 y 16 quedan para más adelante.
 

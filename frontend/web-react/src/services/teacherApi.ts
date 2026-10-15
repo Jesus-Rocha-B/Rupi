@@ -166,6 +166,16 @@ export const publishTeacherRoute = (routeId: string) =>
     }
   )
 
+/** Historia 8: pausa la visibilidad; se reanuda con publishTeacherRoute. */
+export const pauseTeacherRoute = (routeId: string) =>
+  teacherRequest<{ routeId: string; versionRouteId: string; state: string; publishedAt: string; message: string }>(
+    `teacher/learning-routes/${encodeURIComponent(routeId)}/pause`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    }
+  )
+
 export const reorderTeacherNodes = (routeId: string, nodeIds: string[]) =>
   teacherRequest<TeacherRouteDetail>(
     `teacher/learning-routes/${encodeURIComponent(routeId)}/nodes/reorder`,

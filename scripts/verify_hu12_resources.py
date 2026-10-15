@@ -30,7 +30,9 @@ def main():
         sources=get(base+'/study-resources')
         assert len(sources)==1 and sources[0]['grade']==grade and sources[0]['areaCode']==area
         detail=get(base);units=detail['curriculum']['units']
-        unit=next(u for u in units if u.get('totalNodes',0)>0 or u.get('nodes') or u.get('nodeIds'))
+        unit=next((u for u in units if u.get('totalNodes',0)>0 or u.get('nodes') or u.get('nodeIds')),None)
+        # Las rutas creadas por docentes pueden no tener unidades: se descargan parada por parada (otra verificación).
+        if unit is None: continue
         with request(base+'/units/'+(unit.get('id') or 'otras')+'/package') as response:
             content=response.read();assert hashlib.sha256(content).hexdigest()==response.headers['X-Rupi-Paquete-Sha256']
         with zipfile.ZipFile(io.BytesIO(content)) as pack:

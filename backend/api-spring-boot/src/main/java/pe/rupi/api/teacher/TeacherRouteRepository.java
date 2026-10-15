@@ -167,21 +167,30 @@ public class TeacherRouteRepository {
         );
     }
 
-    @Transactional
-    public String addNodeToRoute(String teacherId, String routeId, TeacherDtos.CreateNodeRequest req) {
-        String versionRouteId = jdbc.queryForObject("""
+    /**
+     * Última versión de una ruta del docente. Con queryForObject, una ruta ajena o inexistente lanzaba
+     * EmptyResultDataAccessException y la API respondía 500 en vez de 404.
+     */
+    private String latestOwnedVersionId(String teacherId, String routeId) {
+        return jdbc.query("""
                 SELECT vr.id
                 FROM aprendizaje_version_ruta vr
                 JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
                 WHERE r.id = ? AND r.propietario_id = ?
                 ORDER BY vr.numero_version DESC LIMIT 1
-                """, String.class, routeId, teacherId);
+                """, (rs, rowNum) -> rs.getString("id"), routeId, teacherId)
+                .stream().findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Ruta no encontrada o no pertenece al docente."));
+    }
 
-        if (versionRouteId == null) {
-            throw new IllegalArgumentException("Ruta no encontrada o no pertenece al docente.");
-        }
+    @Transactional
+    public String addNodeToRoute(String teacherId, String routeId, TeacherDtos.CreateNodeRequest req) {
+        String versionRouteId = latestOwnedVersionId(teacherId, routeId);
 
-        int sequence = req.sequence() != null && req.sequence() > 0 ? req.sequence() : getNextNodeSequence(versionRouteId);
+        // Una secuencia ya ocupada chocaba con la clave única uq_nodo_orden (500): la parada se agrega al final.
+        int sequence = req.sequence() != null && req.sequence() > 0 && !isSequenceTaken(versionRouteId, req.sequence())
+                ? req.sequence()
+                : getNextNodeSequence(versionRouteId);
 
         String activityId = UUID.randomUUID().toString();
         String versionActividadId = UUID.randomUUID().toString();
@@ -219,7 +228,41 @@ public class TeacherRouteRepository {
                 ) VALUES (?, ?, ?, ?, ?, ?, FALSE)
                 """, nodeId, versionRouteId, versionActividadId, sequence, mapX, mapY);
 
+        createProgressForEnrolledStudents(versionRouteId, nodeId, sequence);
+
         return nodeId;
+    }
+
+    /**
+     * El progreso por parada se crea al inscribirse. Una parada agregada después (la ruta puede estar publicada)
+     * no tenía fila para los alumnos ya inscritos, y al completar la anterior el desbloqueo no encontraba qué
+     * actualizar: la parada quedaba bloqueada para siempre. Aquí nace DISPONIBLE si la parada anterior ya está
+     * completada (o si es la primera), y BLOQUEADA en otro caso.
+     */
+    private void createProgressForEnrolledStudents(String versionRouteId, String nodeId, int sequence) {
+        jdbc.update("""
+                INSERT IGNORE INTO aprendizaje_progreso_nodo
+                    (inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en)
+                SELECT i.id, i.version_ruta_id, ?,
+                       CASE WHEN prev.id IS NULL OR pp.estado = 'COMPLETADO' THEN 'DISPONIBLE' ELSE 'BLOQUEADO' END,
+                       CASE WHEN prev.id IS NULL OR pp.estado = 'COMPLETADO' THEN UTC_TIMESTAMP(6) ELSE NULL END
+                FROM aprendizaje_inscripcion_ruta i
+                LEFT JOIN aprendizaje_nodo_ruta prev
+                       ON prev.version_ruta_id = i.version_ruta_id
+                      AND prev.numero_secuencia = (
+                          SELECT MAX(x.numero_secuencia) FROM aprendizaje_nodo_ruta x
+                          WHERE x.version_ruta_id = i.version_ruta_id AND x.numero_secuencia < ?)
+                LEFT JOIN aprendizaje_progreso_nodo pp
+                       ON pp.inscripcion_id = i.id AND pp.nodo_ruta_id = prev.id
+                WHERE i.version_ruta_id = ?
+                """, nodeId, sequence, versionRouteId);
+    }
+
+    private boolean isSequenceTaken(String versionRouteId, int sequence) {
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM aprendizaje_nodo_ruta WHERE version_ruta_id = ? AND numero_secuencia = ?
+                """, Integer.class, versionRouteId, sequence);
+        return count != null && count > 0;
     }
 
     @Transactional
@@ -237,14 +280,32 @@ public class TeacherRouteRepository {
         }
 
         String resourceId = UUID.randomUUID().toString();
-        String type = req.type() != null && !req.type().isBlank() ? req.type().toUpperCase() : "DOCUMENTO";
+        String type = req.type() != null && !req.type().isBlank() ? req.type().trim().toUpperCase(Locale.ROOT) : "DOCUMENTO";
+        String multimediaId = req.multimediaId() != null && !req.multimediaId().isBlank() ? req.multimediaId().trim() : null;
+
+        if (multimediaId != null) {
+            // Solo materiales subidos por el mismo docente: antes un id ajeno se enlazaba y uno inexistente daba 500.
+            Integer owned = jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM recurso_archivo_multimedia WHERE id = ? AND creado_por = ?
+                    """, Integer.class, multimediaId, teacherId);
+            if (owned == null || owned == 0) {
+                throw new IllegalArgumentException("El material indicado no existe o no fue subido por usted.");
+            }
+        } else {
+            // Un enlace externo no tenía registro multimedia: el bloque del alumno quedaba sin URL y sin botón para
+            // abrirlo (la dirección solo aparecía dentro del texto). Se registra como recurso con url_externa.
+            multimediaId = UUID.randomUUID().toString();
+            jdbc.update("""
+                    INSERT INTO recurso_archivo_multimedia (id, creado_por, url_externa, nombre_original, tipo_mime, creado_en)
+                    VALUES (?, ?, ?, ?, 'text/uri-list', UTC_TIMESTAMP(6))
+                    """, multimediaId, teacherId, req.url().trim(), req.title().trim());
+        }
 
         jdbc.update("""
                 INSERT INTO aprendizaje_nodo_recurso (
                     id, nodo_id, tipo, titulo, url_recurso, archivo_multimedia_id, creado_en
                 ) VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6))
-                """, resourceId, nodeId, type, req.title().trim(), req.url().trim(),
-                (req.multimediaId() != null && !req.multimediaId().isBlank()) ? req.multimediaId() : null);
+                """, resourceId, nodeId, type, req.title().trim(), req.url().trim(), multimediaId);
 
         // Enlazar también un bloque de contenido en la versión de actividad de la parada
         String versionActividadId = jdbc.queryForObject("""
@@ -265,8 +326,7 @@ public class TeacherRouteRepository {
                     INSERT INTO aprendizaje_bloque_contenido (
                         id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo, archivo_multimedia_id
                     ) VALUES (?, ?, ?, 'ADJUNTO', ?, ?)
-                    """, blockId, versionActividadId, nextSeq, linkText,
-                    (req.multimediaId() != null && !req.multimediaId().isBlank()) ? req.multimediaId() : null);
+                    """, blockId, versionActividadId, nextSeq, linkText, multimediaId);
         }
 
         return resourceId;
@@ -274,17 +334,7 @@ public class TeacherRouteRepository {
 
     @Transactional
     public TeacherDtos.PublishRouteResponse publishRoute(String teacherId, String routeId) {
-        String versionRouteId = jdbc.queryForObject("""
-                SELECT vr.id
-                FROM aprendizaje_version_ruta vr
-                JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
-                WHERE r.id = ? AND r.propietario_id = ?
-                ORDER BY vr.numero_version DESC LIMIT 1
-                """, String.class, routeId, teacherId);
-
-        if (versionRouteId == null) {
-            throw new IllegalArgumentException("Ruta no encontrada o no pertenece al docente.");
-        }
+        String versionRouteId = latestOwnedVersionId(teacherId, routeId);
 
         Integer nodeCount = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM aprendizaje_nodo_ruta WHERE version_ruta_id = ?
@@ -294,9 +344,10 @@ public class TeacherRouteRepository {
             throw new IllegalStateException("Para publicar un roadmap, debe contener al menos una parada pedagógica.");
         }
 
+        // Reanudar una ruta pausada usa este mismo paso; publicado_en conserva la fecha de la primera publicación.
         jdbc.update("""
                 UPDATE aprendizaje_version_ruta
-                SET estado = 'PUBLICADO', publicado_en = UTC_TIMESTAMP(6)
+                SET estado = 'PUBLICADO', publicado_en = COALESCE(publicado_en, UTC_TIMESTAMP(6))
                 WHERE id = ?
                 """, versionRouteId);
 
@@ -304,8 +355,33 @@ public class TeacherRouteRepository {
                 routeId,
                 versionRouteId,
                 "PUBLICADO",
-                formatTimestamp(new java.sql.Timestamp(System.currentTimeMillis())),
+                formatTimestamp(jdbc.queryForObject(
+                        "SELECT publicado_en FROM aprendizaje_version_ruta WHERE id = ?", java.sql.Timestamp.class, versionRouteId)),
                 "¡El roadmap ha sido publicado exitosamente! Ahora está disponible para sus estudiantes."
+        );
+    }
+
+    /**
+     * Historia 8: pausa una ruta publicada. Todas las consultas del alumno exigen estado PUBLICADO, así que
+     * deja de aparecer en sus rutas, en la búsqueda y en las descargas, y abrir o completar paradas responde 404.
+     */
+    @Transactional
+    public TeacherDtos.PublishRouteResponse pauseRoute(String teacherId, String routeId) {
+        String versionRouteId = latestOwnedVersionId(teacherId, routeId);
+        int updated = jdbc.update("""
+                UPDATE aprendizaje_version_ruta SET estado = 'PAUSADO'
+                WHERE id = ? AND estado = 'PUBLICADO'
+                """, versionRouteId);
+        if (updated == 0) {
+            throw new IllegalStateException("Solo se puede pausar un roadmap publicado.");
+        }
+        return new TeacherDtos.PublishRouteResponse(
+                routeId,
+                versionRouteId,
+                "PAUSADO",
+                formatTimestamp(jdbc.queryForObject(
+                        "SELECT publicado_en FROM aprendizaje_version_ruta WHERE id = ?", java.sql.Timestamp.class, versionRouteId)),
+                "El roadmap quedó en pausa: tus estudiantes no podrán verlo hasta que lo vuelvas a publicar."
         );
     }
 
@@ -397,13 +473,8 @@ public class TeacherRouteRepository {
                     LIMIT 1
                     """, String.class, areaCode, "%" + areaCode + "%", catalogId);
         } catch (EmptyResultDataAccessException e) {
-            try {
-                return jdbc.queryForObject("""
-                        SELECT id FROM curriculo_area LIMIT 1
-                        """, String.class);
-            } catch (EmptyResultDataAccessException ex) {
-                throw new IllegalArgumentException("Área curricular no encontrada: " + areaCode);
-            }
+            // Antes se tomaba un área cualquiera: la ruta quedaba en una materia que el docente no eligió.
+            throw new IllegalArgumentException("Área curricular no encontrada: " + areaCode);
         }
     }
 

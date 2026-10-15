@@ -85,7 +85,9 @@ Write-Host "`n3. Verificando Backend Spring Boot (Maven JUnit Tests)..." -Foregr
 $backendDir = Join-Path $root "backend\api-spring-boot"
 if (Test-Path $backendDir) {
     $pomPath = Join-Path $backendDir "pom.xml"
-    $mvnOutput = & mvn.cmd -f $pomPath test "-Dtest=TeacherRouteServiceTest,MaterialStorageServiceTest,ActivityServiceTest" 2>&1
+    # mvn.cmd solo existe en Windows; en Linux y macOS el ejecutable es mvn (PowerShell 5.1 y 7+).
+    $mvnExe = if ($PSVersionTable.PSVersion.Major -lt 6 -or $IsWindows) { 'mvn.cmd' } else { 'mvn' }
+    $mvnOutput = & $mvnExe -f $pomPath test "-Dtest=TeacherRouteServiceTest,MaterialStorageServiceTest,ActivityServiceTest" 2>&1
     $mvnStr = ($mvnOutput | Out-String)
     if ($mvnStr -match 'BUILD SUCCESS' -or $LASTEXITCODE -eq 0) {
         Report-Pass "Pruebas JUnit backend (TeacherRouteServiceTest, MaterialStorageServiceTest, ActivityServiceTest) aprobadas al 100%"

@@ -2,6 +2,34 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-14 · Revisión modular de las historias 1 a 14
+
+Contrastado con el backlog (`GLAB-S06-2026-01`). Los fallos se encontraron con los scripts del repo y con pruebas de punta a punta contra la API.
+
+- **Progreso (historias 2, 3, 5 y 7):** una parada agregada después de inscribirse quedaba bloqueada para siempre, y abrir la parada 1 sin fila de progreso funcionaba, pero completarla respondía 403.
+  - `TeacherRouteRepository.addNodeToRoute` crea el progreso de los alumnos ya inscritos.
+  - `ActivityService` crea las filas que falten antes de abrir o completar.
+  - `V17__progreso_paradas_faltantes.sql` repara los datos existentes.
+- **Autoría (historias 5 a 7):**
+  - 404 en vez de 500 para rutas ajenas o inexistentes.
+  - 400 en vez de 500 para tipos de actividad o de material desconocidos y títulos de más de 180 caracteres.
+  - Una secuencia ocupada manda la parada al final.
+  - Un área inexistente da 400 (antes se tomaba un área cualquiera).
+- **Enlaces (historia 7):**
+  - Solo `http(s)://` o descargas de RUPI.
+  - El material adjunto debe ser del mismo docente.
+  - Los enlaces externos se registran en `recurso_archivo_multimedia` (`url_externa`), así que el alumno ve el botón para abrirlos.
+- **Historia 8:**
+  - `POST /api/v1/teacher/learning-routes/{id}/pause` e interruptor «Pausar / Volver a publicar» en el panel docente.
+  - Las consultas del alumno ya exigían `PUBLICADO`.
+  - Volver a publicar conserva `publicado_en`.
+- **Historia 13 (roadmap institucional):** además del autor, calendariza el docente con un aula activa del grado si la ruta está publicada; las fechas siguen siendo por aula. En la vista de alumno del docente, el calendario abre en modo docente.
+- **Scripts:**
+  - `Verificar-HU05-Docente.ps1` y `Verificar-HU06-Reordenamiento.ps1` usan `mvn` fuera de Windows.
+  - `Verificar-HU01.ps1` espera la primera parada DISPONIBLE en lugar del 503 anterior.
+  - `verify_hu12_resources.py` omite las rutas sin unidades.
+- **Pruebas:** 10 nuevas (TeacherRouteServiceTest y CalendarServiceTest); 134 en total. Los 14 scripts pasan y hay 22 comprobaciones de punta a punta.
+
 ## 2026-10-14 · V12 desde cero, materiales sin huérfanos, sesión determinista y barra superior en celular
 
 - **`V12__rol_docente_autoria_hu05.sql`:** corregida en el mismo archivo, porque fallaba antes de aplicar nada sobre `schema.sql`.

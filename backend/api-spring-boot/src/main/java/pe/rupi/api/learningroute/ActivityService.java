@@ -46,11 +46,41 @@ public class ActivityService {
     ) {}
     record Access(String enrollmentId, String activityId, String title, String instructions, String state) {}
 
+    /**
+     * Crea las filas de progreso que falten en la inscripción (paradas agregadas después de inscribirse o
+     * inscripciones antiguas sin filas). Sin fila, abrir la parada 1 funcionaba pero completarla respondía 403,
+     * y desbloquear la siguiente era un UPDATE sin efecto. Una parada nace DISPONIBLE si es la primera o si la
+     * anterior ya está completada. INSERT IGNORE: nunca toca filas existentes.
+     */
+    private void ensureProgressRows(MapSqlParameterSource params) {
+        jdbc.update("""
+                INSERT IGNORE INTO aprendizaje_progreso_nodo
+                    (inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en)
+                SELECT i.id, i.version_ruta_id, n.id,
+                       CASE WHEN prev.id IS NULL OR pp.estado = 'COMPLETADO' THEN 'DISPONIBLE' ELSE 'BLOQUEADO' END,
+                       CASE WHEN prev.id IS NULL OR pp.estado = 'COMPLETADO' THEN UTC_TIMESTAMP(6) ELSE NULL END
+                FROM aprendizaje_inscripcion_ruta i
+                JOIN aprendizaje_nodo_ruta n ON n.version_ruta_id = i.version_ruta_id
+                LEFT JOIN aprendizaje_nodo_ruta prev
+                       ON prev.version_ruta_id = i.version_ruta_id
+                      AND prev.numero_secuencia = (
+                          SELECT MAX(x.numero_secuencia) FROM aprendizaje_nodo_ruta x
+                          WHERE x.version_ruta_id = i.version_ruta_id AND x.numero_secuencia < n.numero_secuencia)
+                LEFT JOIN aprendizaje_progreso_nodo pp
+                       ON pp.inscripcion_id = i.id AND pp.nodo_ruta_id = prev.id
+                WHERE i.estudiante_id = :student
+                  AND i.version_ruta_id = :route
+                  AND i.estado IN ('ACTIVO', 'COMPLETADO')
+                """, params);
+    }
+
     @Transactional
     public Activity start(UUID studentId, UUID routeId, UUID nodeId) {
         var params = new MapSqlParameterSource("student", studentId.toString())
                 .addValue("route", routeId.toString())
                 .addValue("node", nodeId.toString());
+
+        ensureProgressRows(params);
 
         // Lock the enrollment and progress together. Repeated starts preserve first access and completion.
         var access = jdbc.query("""
@@ -137,6 +167,8 @@ public class ActivityService {
                 .addValue("node", nodeId.toString());
 
         record NodeAccess(String enrollmentId, String activityVersionId, int sequence, String currentState) {}
+
+        ensureProgressRows(params);
 
         var nodeAccess = jdbc.query("""
                 SELECT i.id AS enrollment_id, n.version_actividad_id, n.numero_secuencia,
