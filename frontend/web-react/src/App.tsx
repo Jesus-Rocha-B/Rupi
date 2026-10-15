@@ -789,22 +789,40 @@ function App() {
                     </div>
                   )}
 
-                  <button
-                    type="button"
-                    className="change-grade-btn"
-                    onClick={() => {
-                      setSelectedGrade(null)
-                      setSelectedCourse(null)
-                      setRouteId('')
-                      clearStoredNavigation()
-                      resetView()
-                    }}
-                    title="Cambiar de grado o sección escolar"
-                    aria-label="Cambiar de grado o sección escolar"
-                  >
-                    <Compass size={16} aria-hidden="true" />
-                    <span>Cambiar grado</span>
-                  </button>
+                  {(() => {
+                    const isCommunity = Boolean(
+                      selectedRoute && (
+                        routes.find(r => r.versionRouteId === selectedRoute.versionRouteId)?.category === 'COMUNIDAD' ||
+                        (selectedRoute as { category?: string }).category === 'COMUNIDAD' ||
+                        routes.find(r => r.versionRouteId === selectedRoute.versionRouteId)?.authorName?.toUpperCase().includes('PROFESOR') ||
+                        routes.find(r => r.versionRouteId === selectedRoute.versionRouteId)?.authorName?.toUpperCase().includes('CARLOS') ||
+                        !['COM', 'MAT', 'CYT'].includes(selectedRoute.area?.code || '')
+                      )
+                    )
+
+                    return (
+                      <button
+                        type="button"
+                        className="change-grade-btn"
+                        onClick={() => {
+                          if (isCommunity) {
+                            setCurrentView('explorar')
+                          } else {
+                            setSelectedGrade(null)
+                            setSelectedCourse(null)
+                            setRouteId('')
+                            clearStoredNavigation()
+                            resetView()
+                          }
+                        }}
+                        title={isCommunity ? 'Explorar otros roadmaps de la comunidad o docentes' : 'Cambiar de grado o sección escolar'}
+                        aria-label={isCommunity ? 'Cambiar de roadmap' : 'Cambiar de grado o sección escolar'}
+                      >
+                        <Compass size={16} aria-hidden="true" />
+                        <span>{isCommunity ? 'Cambiar roadmap' : 'Cambiar grado'}</span>
+                      </button>
+                    )
+                  })()}
                 </div>
               </div>
             </section>
