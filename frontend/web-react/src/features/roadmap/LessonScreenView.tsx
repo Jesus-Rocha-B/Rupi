@@ -5,26 +5,27 @@ import {
   Award,
   CheckCircle2,
   Download,
+  ExternalLink,
   Feather,
   FileText,
   Paperclip,
   Presentation,
+  RotateCcw,
   Sparkles,
   Video,
   Volume2,
 } from 'lucide-react'
-import type {
-  ActivityCompleteResult,
-  ActivityContent,
-  AnswerFeedbackResponse,
-  QuestionDto,
-  RouteDetail,
-  RouteNode,
-} from '../../services/learningRoutesApi'
 import {
+  type ActivityCompleteResult,
+  type ActivityContent,
+  type AnswerFeedbackResponse,
+  type QuestionDto,
+  type RouteDetail,
+  type RouteNode,
   completeActivity,
   submitQuestionAnswer,
 } from '../../services/learningRoutesApi'
+import { resolveEducationalVideo, getYouTubeEmbedUrl } from '../../utils/educationalVideos'
 import { RupiCharacter } from '../../components/RupiCharacter'
 import { speakText } from '../../utils/speech'
 import './LessonScreenView.css'
@@ -35,27 +36,6 @@ function safeResource(value: string | null) {
   try {
     const url = new URL(value, window.location.origin)
     return ['http:', 'https:'].includes(url.protocol) ? url.href : null
-  } catch {
-    return null
-  }
-}
-
-function getYouTubeEmbedUrl(urlStr: string | null): string | null {
-  if (!urlStr) return null
-  try {
-    const url = new URL(urlStr)
-    if (url.hostname.includes('youtube.com')) {
-      if (url.pathname.startsWith('/embed/')) {
-        return `https://www.youtube-nocookie.com/embed/${url.pathname.replace('/embed/', '')}`
-      }
-      const v = url.searchParams.get('v')
-      if (v) return `https://www.youtube-nocookie.com/embed/${v}`
-    }
-    if (url.hostname.includes('youtu.be')) {
-      const id = url.pathname.replace('/', '')
-      if (id) return `https://www.youtube-nocookie.com/embed/${id}`
-    }
-    return null
   } catch {
     return null
   }
@@ -96,9 +76,15 @@ export function LessonScreenView({
   const hasQuestions = questions.length > 0
   const answeredCount = Object.keys(feedbackMap).length
 
-  // Extraer el primer video de YouTube si existe en los bloques
+  // Resolver siempre un video educativo real y verificado de YouTube
+  const resolvedVideo = resolveEducationalVideo(
+    activity?.blocks,
+    activity?.title || node.title,
+    node.sequence,
+    route.area?.code
+  )
+  const youtubeUrl = resolvedVideo.embedUrl
   const firstVideoBlock = activity?.blocks.find(b => getYouTubeEmbedUrl(b.url) !== null)
-  const youtubeUrl = firstVideoBlock ? getYouTubeEmbedUrl(firstVideoBlock.url) : null
 
   // Manejar envío de respuesta a una pregunta
   async function handleAnswerSubmit(question: QuestionDto) {
@@ -328,7 +314,7 @@ export function LessonScreenView({
         </div>
       </header>
 
-      {/* Indicador de pasos pedagógicos (Video/Explicación vs Práctica/Preguntas) */}
+      {/* Indicador de pasos pedagógicos (Video vs Práctica) */}
       <div className="lesson-stepper-bar" role="tablist" aria-label="Etapas de la lección">
         <button
           type="button"
@@ -339,8 +325,8 @@ export function LessonScreenView({
         >
           <span className="step-num">1</span>
           <div className="step-text-col">
-            <strong className="step-title">Video y Explicación</strong>
-            <small className="step-sub">Aprende antes de responder</small>
+            <strong className="step-title">Video de la lección</strong>
+            <small className="step-sub">Aprende el tema</small>
           </div>
         </button>
 
@@ -370,20 +356,44 @@ export function LessonScreenView({
           {youtubeUrl ? (
             <div className="lesson-video-card">
               <div className="video-card-header">
-                <Video size={20} className="video-header-icon" aria-hidden="true" />
-                <div className="video-header-text">
-                  <h3>Video didáctico explicativo</h3>
-                  <p>Observa el video con atención antes de comenzar tu reto.</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                  <Video size={22} className="video-header-icon" aria-hidden="true" />
+                  <div className="video-header-text">
+                    <h3>{resolvedVideo.title || 'Video de la lección'}</h3>
+                    <p>{resolvedVideo.description || 'Míralo las veces que necesites antes de tu reto.'}</p>
+                  </div>
                 </div>
+                <a
+                  href={resolvedVideo.watchUrl || `https://www.youtube.com/watch?v=${resolvedVideo.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-open-youtube-direct"
+                  title="Abrir video directamente en YouTube (nueva pestaña)"
+                >
+                  <ExternalLink size={16} aria-hidden="true" />
+                  <span>Ver en YouTube</span>
+                </a>
               </div>
               <div className="video-embed-wrapper">
-                <iframe
-                  src={youtubeUrl}
-                  title={activity.title || 'Video didáctico de la lección'}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="lesson-iframe-video"
-                />
+                {resolvedVideo.isDirectVideo ? (
+                  <video
+                    src={resolvedVideo.embedUrl}
+                    controls
+                    className="lesson-iframe-video"
+                    style={{ background: '#000', objectFit: 'contain', width: '100%', height: '100%' }}
+                  >
+                    Tu navegador no soporta reproducción de video.
+                  </video>
+                ) : (
+                  <iframe
+                    src={youtubeUrl}
+                    title={resolvedVideo.title || activity.title || 'Video didáctico de la lección'}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    className="lesson-iframe-video"
+                  />
+                )}
               </div>
             </div>
           ) : (
@@ -466,8 +476,8 @@ export function LessonScreenView({
             <div className="cta-mascot-group">
               <RupiCharacter mood="cheering" role="mathematician" className="cta-rupi" />
               <div className="cta-text-group">
-                <h4>¿Ya revisaste el video y la explicación?</h4>
-                <p>¡Es momento de poner a prueba lo aprendido y ganar tus puntos de experiencia!</p>
+                <h4>¿Listo para tu reto?</h4>
+                <p>Pon a prueba lo que aprendiste y gana puntos de experiencia.</p>
               </div>
             </div>
 
@@ -477,7 +487,7 @@ export function LessonScreenView({
               onClick={() => setStep('preguntas_practica')}
               autoFocus
             >
-              <span>¡Listo, a practicar! (Comenzar preguntas)</span>
+              <span>¡A practicar!</span>
               <ArrowRight size={22} aria-hidden="true" />
             </button>
           </div>
@@ -497,7 +507,7 @@ export function LessonScreenView({
               onClick={() => setStep('video_preparacion')}
             >
               <Video size={16} aria-hidden="true" />
-              <span>← Repasar el video o explicación</span>
+              <span>← Repasar video</span>
             </button>
 
             <span className="practice-progress-pill">
@@ -598,7 +608,28 @@ export function LessonScreenView({
                         </div>
                         <div className="feedback-text-col">
                           <strong>{feedback.isCorrect ? '¡Excelente trabajo!' : '¡Buen intento! Sigamos aprendiendo'}</strong>
-                          <p>{feedback.feedbackMessage || feedback.explanation || (feedback.isCorrect ? '¡Has acertado la respuesta correcta!' : 'Revisa la explicación e inténtalo en la siguiente parada.')}</p>
+                          <p>{feedback.feedbackMessage || feedback.explanation || (feedback.isCorrect ? '¡Has acertado la respuesta correcta!' : 'Revisa la explicación e inténtalo de nuevo.')}</p>
+                          {!feedback.isCorrect && (
+                            <button
+                              type="button"
+                              className="btn-retry-question"
+                              onClick={() => {
+                                setFeedbackMap(prev => {
+                                  const next = { ...prev }
+                                  delete next[question.id]
+                                  return next
+                                })
+                                setSelectedOptions(prev => {
+                                  const next = { ...prev }
+                                  delete next[question.id]
+                                  return next
+                                })
+                              }}
+                            >
+                              <RotateCcw size={16} aria-hidden="true" />
+                              <span>Volver a intentar</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -628,7 +659,6 @@ export function LessonScreenView({
           </div>
         </section>
       )}
-      {reinforcementPanel}
     </div>
   )
 }

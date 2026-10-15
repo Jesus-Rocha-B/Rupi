@@ -52,6 +52,10 @@ export function RouteCalendar({ routeId, teacher = false }: { routeId: string; t
     } catch (err) { setError(err instanceof Error ? err.message : 'No se pudo retirar la fecha. Inténtalo otra vez.') }
     finally { setBusy(false) }
   }
+  if (!teacher && data && data.classrooms.length === 0) {
+    return null
+  }
+
   return <section className="route-calendar" aria-label="Calendario del aula">
     <h3><CalendarDays aria-hidden="true" /> Calendario del aula</h3>
     <p>Unidades y evaluaciones de nuestra ruta. Horarios de Perú.</p>

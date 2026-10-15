@@ -17,6 +17,23 @@ export interface AttachedResource {
   createdAt: string
 }
 
+export interface TeacherOption {
+  id?: string
+  sequence?: number
+  text: string
+  isCorrect: boolean
+}
+
+export interface TeacherQuestion {
+  id?: string
+  sequence?: number
+  type?: string
+  statement: string
+  explanation?: string
+  points?: number
+  options: TeacherOption[]
+}
+
 export interface TeacherNode {
   id: string
   sequence: number
@@ -26,7 +43,37 @@ export interface TeacherNode {
   estimatedMinutes: number | null
   mapX: number | null
   mapY: number | null
+  availableFrom?: string | null
+  lockedFrom?: string | null
+  videoUrl?: string | null
   resources: AttachedResource[]
+}
+
+export interface TeacherNodeDetail {
+  id: string
+  sequence: number
+  title: string
+  instructions: string | null
+  activityType: string
+  estimatedMinutes: number | null
+  mapX: number | null
+  mapY: number | null
+  availableFrom: string | null
+  lockedFrom: string | null
+  videoUrl: string | null
+  questions: TeacherQuestion[]
+  resources: AttachedResource[]
+}
+
+export interface UpdateNodePayload {
+  title?: string
+  instructions?: string
+  activityType?: string
+  estimatedMinutes?: number
+  availableFrom?: string | null
+  lockedFrom?: string | null
+  videoUrl?: string | null
+  questions?: TeacherQuestion[]
 }
 
 export interface TeacherRouteSummary {
@@ -213,3 +260,18 @@ export const uploadTeacherMaterial = async (file: File): Promise<UploadMaterialR
 
   return (await res.json()) as UploadMaterialResult
 }
+
+export const fetchTeacherNodeDetail = (routeId: string, nodeId: string) =>
+  teacherRequest<TeacherNodeDetail>(
+    `teacher/learning-routes/${encodeURIComponent(routeId)}/nodes/${encodeURIComponent(nodeId)}`
+  )
+
+export const updateTeacherNode = (routeId: string, nodeId: string, payload: UpdateNodePayload) =>
+  teacherRequest<{ nodeId: string; message: string }>(
+    `teacher/learning-routes/${encodeURIComponent(routeId)}/nodes/${encodeURIComponent(nodeId)}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }
+  )

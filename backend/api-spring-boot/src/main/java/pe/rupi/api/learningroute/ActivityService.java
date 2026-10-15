@@ -44,7 +44,11 @@ public class ActivityService {
             List<Block> blocks,
             List<QuestionDto> questions
     ) {}
-    record Access(String enrollmentId, String activityId, String title, String instructions, String state) {}
+    record Access(String enrollmentId, String activityId, String title, String instructions, String state, java.sql.Timestamp availableFrom, java.sql.Timestamp lockedFrom) {
+        Access(String enrollmentId, String activityId, String title, String instructions, String state) {
+            this(enrollmentId, activityId, title, instructions, state, null, null);
+        }
+    }
 
     /**
      * Crea las filas de progreso que falten en la inscripción (paradas agregadas después de inscribirse o
@@ -85,7 +89,8 @@ public class ActivityService {
         // Lock the enrollment and progress together. Repeated starts preserve first access and completion.
         var access = jdbc.query("""
                 SELECT i.id AS enrollment_id, va.id AS activity_id, va.titulo, va.instrucciones,
-                       COALESCE(p.estado, CASE WHEN n.numero_secuencia = 1 THEN 'DISPONIBLE' ELSE 'BLOQUEADO' END) AS estado
+                       COALESCE(p.estado, CASE WHEN n.numero_secuencia = 1 THEN 'DISPONIBLE' ELSE 'BLOQUEADO' END) AS estado,
+                       n.disponible_desde, n.bloqueado_desde
                 FROM aprendizaje_inscripcion_ruta i
                 JOIN aprendizaje_version_ruta vr ON vr.id = i.version_ruta_id
                 JOIN aprendizaje_nodo_ruta n ON n.id = :node AND n.version_ruta_id = vr.id
@@ -105,11 +110,21 @@ public class ActivityService {
                 rs.getString("activity_id"),
                 rs.getString("titulo"),
                 rs.getString("instrucciones"),
-                rs.getString("estado")
+                rs.getString("estado"),
+                rs.getTimestamp("disponible_desde"),
+                rs.getTimestamp("bloqueado_desde")
         )).stream().findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         if (!List.of("DISPONIBLE", "EN_CURSO", "COMPLETADO").contains(access.state())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El nivel solicitado aún está bloqueado.");
+        }
+
+        java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+        if (access.availableFrom() != null && now.before(access.availableFrom())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Esta parada aún no está disponible según la programación del docente.");
+        }
+        if (access.lockedFrom() != null && now.after(access.lockedFrom())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El plazo para acceder a esta parada ha concluido.");
         }
 
         var blocks = jdbc.query("""
@@ -266,6 +281,13 @@ public class ActivityService {
                         """, new MapSqlParameterSource("enrollment", nodeAccess.enrollmentId())
                         .addValue("nodeId", next.id().toString()));
             }
+            jdbc.update("""
+                    UPDATE aprendizaje_inscripcion_ruta
+                    SET ultimo_nodo_visitado_id = :nextNodeId,
+                        ultima_visita_en = UTC_TIMESTAMP(6)
+                    WHERE id = :enrollment
+                    """, new MapSqlParameterSource("enrollment", nodeAccess.enrollmentId())
+                    .addValue("nextNodeId", next.id().toString()));
             nextUnlocked = new NextUnlockedNode(next.id(), next.sequence(), next.title());
         } else {
             // Si no hay más nodos, la ruta completa queda como COMPLETADA (HU-08)

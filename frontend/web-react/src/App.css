@@ -884,6 +884,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   font-weight: 900;
   color: #173e30;
   line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-item span:last-child {
@@ -1646,6 +1647,7 @@ body, button, input, select, textarea {
 .xp-count-badge b {
   font-size: 13px;
   color: #944b05;
+  font-variant-numeric: tabular-nums;
 }
 
 .stars-track {
@@ -2265,37 +2267,57 @@ body, button, input, select, textarea {
   position: relative;
   z-index: 4;
   display: flex !important;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 16px 24px !important;
-  padding: 14px 20px !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 16px 28px !important;
+  padding: 16px 24px !important;
   border-top: 2px solid #e4e7d7 !important;
   background: #ffffff !important;
-  font-size: 15px !important;
 }
 
 .legend-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 800;
-  color: #173e30;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: #173e30 !important;
 }
 
-.legend-icon-badge {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  color: #ffffff;
+.legend-node-mini {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 2px solid #ffffff !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
 }
 
-.legend-icon-badge.done { background: var(--green); }
-.legend-icon-badge.now { background: var(--red); }
-.legend-icon-badge.available { background: #1c5f87; }
-.legend-icon-badge.locked { background: #557552; }
+.legend-node-mini.complete {
+  background: var(--green, #31724b) !important;
+  color: #ffffff !important;
+}
+
+.legend-node-mini.active {
+  background: #f95738 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 3px #ffd26a, 0 3px 6px rgba(249, 87, 56, 0.4) !important;
+}
+
+.legend-node-mini.available {
+  background: #ffffff !important;
+  border: 2.5px solid #1c5f87 !important;
+  color: #1c5f87 !important;
+}
+
+.legend-node-mini.locked {
+  background: #c7d3bc !important;
+  border-color: #ffffff !important;
+  color: #53714b !important;
+}
 
 /* 7. RouteCompanion con botón interactivo y Modal */
 .card-kicker-row {
@@ -4639,6 +4661,300 @@ body, button, input, select, textarea {
 
 
 
+
+/* Nuevo HUD simplificado de curso (cero redundancia) */
+.course-grade-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.course-stats-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #e2ddd3;
+  box-shadow: 0 2px 4px rgba(23, 62, 48, 0.06);
+}
+
+.course-stats-chip .stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #173e30;
+}
+
+.course-stats-chip .stat-pill.stars strong {
+  color: #b47500;
+  font-size: 15px;
+}
+
+.course-stats-chip .stat-sep {
+  color: #b3a998;
+  font-weight: 600;
+}
+
+.course-stats-chip .stat-pill.xp {
+  color: #d94828;
+  padding-left: 6px;
+  border-left: 1.5px solid #ebd9c8;
+}
+
+.course-stats-chip .stat-pill.xp strong {
+  font-size: 14px;
+}
+
+/* Pestañas de materia sin badges redundantes */
+.course-switch-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.course-switch-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 20px;
+  background: #ffffff;
+  color: #173e30 !important;
+  border: 2px solid #d5dfd3;
+  border-radius: 14px;
+  font-family: var(--display-font);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #c2cfbf;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.12s ease;
+  white-space: nowrap;
+}
+
+.course-switch-tab span {
+  color: #173e30 !important;
+  font-weight: 800 !important;
+}
+
+.course-switch-tab svg {
+  color: #173e30 !important;
+  stroke: #173e30 !important;
+}
+
+.course-switch-tab:hover {
+  background: #f7faf5;
+  border-color: #31724b;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #c2cfbf;
+}
+
+.course-switch-tab:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #c2cfbf;
+}
+
+.course-switch-tab.active {
+  border-color: transparent !important;
+}
+
+.course-switch-tab.active span {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.course-switch-tab.active svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.course-switch-tab.active.comunicacion {
+  background: #246a91 !important;
+  box-shadow: 0 4px 0 #13445e !important;
+}
+
+.course-switch-tab.active.matematica {
+  background: #d97706 !important;
+  box-shadow: 0 4px 0 #92400e !important;
+}
+
+.course-switch-tab.active.cyt {
+  background: #235838 !important;
+  box-shadow: 0 4px 0 #133320 !important;
+}
+
+.course-switch-tab:focus-visible {
+  outline: 3px solid #f95738;
+  outline-offset: 3px;
+}
+
+/* Enlaces y botones de Biblioteca Escolar MINEDU: contraste nítido y legible */
+.official-study {
+  margin: 18px 0;
+  padding: 18px;
+  background: #ffffff;
+  border: 2px solid #dce7d5;
+  border-radius: 16px;
+  box-shadow: 0 3px 6px rgba(23, 62, 48, 0.04);
+}
+
+.official-study h5 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px !important;
+  font-size: 16px !important;
+  font-family: var(--display-font);
+  color: #173e30 !important;
+}
+
+.official-study p {
+  margin: 0 0 12px !important;
+  font-size: 14px !important;
+  color: #4a6356 !important;
+}
+
+.official-study ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.official-study li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f7faf5;
+  border: 1.5px solid #d4dfd1;
+  border-radius: 12px;
+}
+
+.official-study-link {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 48px !important;
+  padding: 10px 18px !important;
+  background: #246a91 !important;
+  color: #ffffff !important;
+  border: 2px solid #1a5170 !important;
+  border-radius: 12px !important;
+  font-family: var(--display-font);
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+  box-shadow: 0 3px 0 #12374c !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.12s ease !important;
+  cursor: pointer;
+}
+
+.official-study-link span {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.official-study-link svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.official-study-link:hover {
+  background: #1b5271 !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 5px 0 #12374c !important;
+}
+
+.official-study-link:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #12374c !important;
+}
+
+/* Rupi INSIDE the active lesson node circle (Player token on the game board) */
+.lesson-node.is-current-player-node {
+  width: 74px !important;
+  height: 74px !important;
+  background: radial-gradient(circle at 35% 35%, #ff7a5c, #f95738 75%) !important;
+  border: 4px solid #ffffff !important;
+  box-shadow:
+    0 0 0 6px #ffd26a,
+    0 7px 0 #b32a10,
+    0 12px 24px rgba(249, 87, 56, 0.45) !important;
+  animation: current-player-pulse 2.4s ease-in-out infinite !important;
+  z-index: 10 !important;
+}
+
+.lesson-node.is-current-player-node:hover {
+  transform: translate(-50%, -50%) scale(1.1) !important;
+  filter: brightness(1.08);
+}
+
+.lesson-node.is-current-player-node:active {
+  transform: translate(-50%, -50%) translateY(4px) !important;
+  box-shadow:
+    0 0 0 6px #ffd26a,
+    0 3px 0 #b32a10,
+    0 6px 12px rgba(249, 87, 56, 0.35) !important;
+}
+
+@keyframes current-player-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 6px #ffd26a,
+      0 7px 0 #b32a10,
+      0 12px 24px rgba(249, 87, 56, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 0 0 10px #ffe599,
+      0 7px 0 #b32a10,
+      0 16px 30px rgba(249, 87, 56, 0.55);
+  }
+}
+
+.node-rupi-inside {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: visible;
+  pointer-events: none;
+  position: relative;
+}
+
+.node-rupi-inside .node-rupi-svg {
+  width: 60px;
+  height: 60px;
+  transform: translateY(-2px);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  transition: transform 0.2s ease;
+}
+
+.lesson-node.is-current-player-node:hover .node-rupi-svg {
+  transform: translateY(-4px) scale(1.06);
+}
+
+/* Badge de número en el nodo del jugador */
+.lesson-node.is-current-player-node .node-seq-badge {
+  background: #ffd26a !important;
+  color: #173e30 !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+}
 
 /* Barra superior en celulares y tabletas pequeñas (≤ 520 px).
    El menú se centraba con justify-content: center dentro de un contenedor con desplazamiento: cuando no cabía,

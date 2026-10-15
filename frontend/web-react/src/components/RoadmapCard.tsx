@@ -50,6 +50,15 @@ export function RoadmapCard({
     <article
       className={`roadmap-card-toy ${isTeacherRoute ? 'theme-community' : isMat ? 'theme-math' : isCyt ? 'theme-cyt' : 'theme-com'}`}
       aria-label={`Roadmap de ${title}, ${gradeNumber}.° de Primaria`}
+      role="button"
+      tabIndex={0}
+      onClick={onAction}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onAction()
+        }
+      }}
     >
       {/* Ilustración de portada temática según la materia */}
       <div className="card-illustration-header" aria-hidden="true">
@@ -197,10 +206,13 @@ export function RoadmapCard({
         <div className="card-toy-footer">
           <button
             type="button"
-            className={`card-toy-btn ${isEnrolled ? 'btn-toy-continue' : 'btn-toy-start'}`}
+            className={`card-toy-btn ${isEnrolled ? 'btn-toy-continue' : isTeacherRoute ? 'btn-toy-join' : 'btn-toy-start'}`}
             disabled={isBusy}
-            onClick={onAction}
-            aria-label={`${isEnrolled ? 'Continuar ruta' : 'Empezar aventura'}: ${title}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              onAction()
+            }}
+            aria-label={`${isEnrolled ? 'Continuar ruta' : isTeacherRoute ? 'Unirme a este roadmap' : 'Empezar aventura'}: ${title}`}
           >
             {isBusy ? (
               <span>Preparando lección...</span>
@@ -208,6 +220,11 @@ export function RoadmapCard({
               <>
                 <span>Continuar mi aventura</span>
                 <ArrowRight size={18} aria-hidden="true" />
+              </>
+            ) : isTeacherRoute ? (
+              <>
+                <span>Unirme a este roadmap</span>
+                <Users size={18} aria-hidden="true" />
               </>
             ) : (
               <>

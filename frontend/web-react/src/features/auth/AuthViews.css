@@ -2777,3 +2777,369 @@
   letter-spacing: 0.06em;
 }
 
+/* ==========================================================================
+   SELECCIÓN PRINCIPAL DE SECCIÓN: ROADMAPS RUPI vs COMUNIDAD Y PROFESORES
+   (Flujo de entrada del estudiante: 2 Botones principales con identidad andina)
+   ========================================================================== */
+.section-two-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin: 12px 0 20px;
+}
+
+@media (max-width: 768px) {
+  .section-two-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+.section-card {
+  background: #ffffff;
+  border-radius: 26px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 340px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+  user-select: none;
+}
+
+/* 1. Tarjeta Roadmaps RUPI (Verde Bosque y Naranja Rupi) */
+.section-card.card-rupi {
+  border: 3px solid #31724b;
+  background: linear-gradient(180deg, #ffffff 0%, #f4faf6 100%);
+  box-shadow: 0 8px 0 #1e4a30;
+}
+
+.section-card.card-rupi:hover {
+  transform: translateY(-4px);
+  border-color: #173e30;
+  box-shadow: 0 12px 0 #1e4a30;
+}
+
+.section-card.card-rupi:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #1e4a30;
+}
+
+/* 2. Tarjeta Comunidad y Profesores (Azul Cielo Andino y Amarillo Maíz) */
+.section-card.card-comunidad {
+  border: 3px solid #246a91;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f7fb 100%);
+  box-shadow: 0 8px 0 #174b6a;
+}
+
+.section-card.card-comunidad:hover {
+  transform: translateY(-4px);
+  border-color: #154561;
+  box-shadow: 0 12px 0 #174b6a;
+}
+
+.section-card.card-comunidad:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #174b6a;
+}
+
+.section-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.section-card-icon-disc {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card-rupi .section-card-icon-disc {
+  background: #fff4ea;
+  border: 2.5px solid #ffd26a;
+  color: #f95738;
+}
+
+.card-comunidad .section-card-icon-disc {
+  background: #e2f1fa;
+  border: 2.5px solid #246a91;
+  color: #246a91;
+}
+
+.section-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+.card-rupi .section-card-badge {
+  background: #fdf6ec;
+  border: 1.5px solid #ffd26a;
+  color: #9e592d;
+}
+
+.card-comunidad .section-card-badge {
+  background: #e6f3fa;
+  border: 1.5px solid #246a91;
+  color: #174b6a;
+}
+
+.section-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.section-card-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.25;
+  color: #173e30;
+}
+
+.card-rupi .section-card-title {
+  color: #173e30;
+}
+
+.card-comunidad .section-card-title {
+  color: #154561;
+}
+
+.section-card-desc {
+  margin: 0;
+  font-size: 14px;
+  color: #43614c;
+  line-height: 1.45;
+}
+
+.section-card-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.section-feature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.04);
+  color: #2c4434;
+}
+
+.card-rupi .section-feature-pill {
+  background: #eaf5ee;
+  color: #235538;
+}
+
+.card-comunidad .section-feature-pill {
+  background: #e2f1fa;
+  color: #1b5373;
+}
+
+.section-enter-btn {
+  width: 100%;
+  min-height: 52px;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #ffffff;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.btn-rupi {
+  background: #31724b;
+  box-shadow: 0 4px 0 #1e4a30;
+}
+
+.btn-rupi:hover {
+  background: #285f3d;
+}
+
+.btn-rupi:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #1e4a30;
+}
+
+.btn-comunidad {
+  background: #246a91;
+  box-shadow: 0 4px 0 #174b6a;
+}
+
+.btn-comunidad:hover {
+  background: #1b5373;
+}
+
+.btn-comunidad:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #174b6a;
+}
+
+/* Botón para volver a la pantalla de 2 secciones */
+.back-to-sections-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 2px solid #dbe8d2;
+  border-radius: 14px;
+  padding: 8px 16px;
+  min-height: 48px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #173e30;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #cbd8c3;
+  transition: transform 0.08s ease, background 0.12s, color 0.12s, box-shadow 0.08s ease;
+}
+
+.back-to-sections-btn:hover {
+  background: #f4f8f4;
+  color: #173e30;
+}
+
+.back-to-sections-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #cbd8c3;
+}
+
+/* Tarjeta para ingresar código de clase en la sección Comunidad */
+.community-join-card {
+  background: #fffdf5;
+  border: 2px dashed #f6d165;
+  border-radius: 20px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 0 #e8d08e;
+}
+
+@media (max-width: 640px) {
+  .community-join-card {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+}
+
+.community-join-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.community-join-icon-wrap {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  background: #ffd26a;
+  border: 2px solid #173e30;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #173e30;
+}
+
+.community-join-text h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 900;
+  color: #173e30;
+}
+
+.community-join-text p {
+  margin: 0;
+  font-size: 13px;
+  color: #556c60;
+}
+
+.community-join-action-btn {
+  background: #ffd26a;
+  border: 2px solid #173e30;
+  border-radius: 12px;
+  padding: 10px 18px;
+  min-height: 48px;
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #173e30;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #173e30;
+  transition: transform 0.08s ease, background 0.12s, box-shadow 0.08s ease;
+  white-space: nowrap;
+}
+
+.community-join-action-btn:hover {
+  background: #ffc740;
+}
+
+.community-join-action-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+/* Estado vacío en comunidad si no hay rutas aún */
+.community-empty-card {
+  background: #ffffff;
+  border: 2px solid #dbe8d2;
+  border-radius: 20px;
+  padding: 36px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  box-shadow: 0 4px 0 #d1ded4;
+}
+
+.community-empty-card h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #173e30;
+}
+
+.community-empty-card p {
+  margin: 0;
+  font-size: 14px;
+  color: #556c60;
+  max-width: 480px;
+}
+
+

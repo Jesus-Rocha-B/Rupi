@@ -36,7 +36,7 @@ public class TeacherRouteRepository {
                 JOIN aprendizaje_version_ruta vr ON vr.ruta_id = r.id
                 JOIN curriculo_grado g ON g.id = vr.grado_id
                 JOIN curriculo_area a ON a.id = vr.area_id
-                WHERE r.propietario_id = ?
+                WHERE r.propietario_id = ? AND r.archivado_en IS NULL
                 ORDER BY vr.creado_en DESC
                 """, (rs, rowNum) -> mapRouteSummary(rs), teacherId);
     }
@@ -58,7 +58,7 @@ public class TeacherRouteRepository {
                 JOIN aprendizaje_version_ruta vr ON vr.ruta_id = r.id
                 JOIN curriculo_grado g ON g.id = vr.grado_id
                 JOIN curriculo_area a ON a.id = vr.area_id
-                WHERE r.id = ? AND r.propietario_id = ?
+                WHERE r.id = ? AND r.propietario_id = ? AND r.archivado_en IS NULL
                 """, (rs, rowNum) -> {
             String rId = rs.getString("route_id");
             String vId = rs.getString("version_route_id");
@@ -94,7 +94,14 @@ public class TeacherRouteRepository {
                        a.tipo AS activity_type,
                        va.minutos_estimados,
                        n.mapa_x,
-                       n.mapa_y
+                       n.mapa_y,
+                       n.disponible_desde,
+                       n.bloqueado_desde,
+                       (SELECT COALESCE(m.url_externa, m.clave_almacenamiento, '')
+                        FROM aprendizaje_bloque_contenido b
+                        LEFT JOIN recurso_archivo_multimedia m ON m.id = b.archivo_multimedia_id
+                        WHERE b.version_actividad_id = va.id AND (b.tipo = 'VIDEO' OR b.archivo_multimedia_id IS NOT NULL)
+                        ORDER BY b.numero_secuencia ASC LIMIT 1) AS video_url
                 FROM aprendizaje_nodo_ruta n
                 JOIN aprendizaje_version_actividad va ON va.id = n.version_actividad_id
                 JOIN aprendizaje_actividad a ON a.id = va.actividad_id
@@ -109,6 +116,9 @@ public class TeacherRouteRepository {
                 rs.getObject("minutos_estimados", Integer.class),
                 rs.getObject("mapa_x", Double.class),
                 rs.getObject("mapa_y", Double.class),
+                formatTimestamp(rs.getTimestamp("disponible_desde")),
+                formatTimestamp(rs.getTimestamp("bloqueado_desde")),
+                rs.getString("video_url"),
                 new ArrayList<>()
         ), versionRouteId);
 
@@ -176,7 +186,7 @@ public class TeacherRouteRepository {
                 SELECT vr.id
                 FROM aprendizaje_version_ruta vr
                 JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
-                WHERE r.id = ? AND r.propietario_id = ?
+                WHERE r.id = ? AND r.propietario_id = ? AND r.archivado_en IS NULL
                 ORDER BY vr.numero_version DESC LIMIT 1
                 """, (rs, rowNum) -> rs.getString("id"), routeId, teacherId)
                 .stream().findFirst()
@@ -509,6 +519,277 @@ public class TeacherRouteRepository {
                 formatTimestamp(rs.getTimestamp("creado_en")),
                 formatTimestamp(rs.getTimestamp("publicado_en"))
         );
+    }
+
+    public Optional<TeacherDtos.TeacherNodeDetailDto> findNodeDetail(String teacherId, String routeId, String nodeId) {
+        List<TeacherDtos.TeacherNodeDetailDto> list = jdbc.query("""
+                SELECT n.id,
+                       n.numero_secuencia,
+                       va.id AS version_actividad_id,
+                       va.titulo,
+                       va.instrucciones,
+                       a.tipo AS activity_type,
+                       va.minutos_estimados,
+                       n.mapa_x,
+                       n.mapa_y,
+                       n.disponible_desde,
+                       n.bloqueado_desde,
+                       (SELECT COALESCE(m.url_externa, m.clave_almacenamiento, '')
+                        FROM aprendizaje_bloque_contenido b
+                        LEFT JOIN recurso_archivo_multimedia m ON m.id = b.archivo_multimedia_id
+                        WHERE b.version_actividad_id = va.id AND (b.tipo = 'VIDEO' OR b.archivo_multimedia_id IS NOT NULL)
+                        ORDER BY b.numero_secuencia ASC LIMIT 1) AS video_url
+                FROM aprendizaje_nodo_ruta n
+                JOIN aprendizaje_version_ruta vr ON vr.id = n.version_ruta_id
+                JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
+                JOIN aprendizaje_version_actividad va ON va.id = n.version_actividad_id
+                JOIN aprendizaje_actividad a ON a.id = va.actividad_id
+                WHERE n.id = ? AND r.id = ? AND r.propietario_id = ? AND r.archivado_en IS NULL
+                """, (rs, rowNum) -> {
+            String id = rs.getString("id");
+            int seq = rs.getInt("numero_secuencia");
+            String versionActividadId = rs.getString("version_actividad_id");
+            String title = rs.getString("titulo");
+            String instructions = rs.getString("instrucciones");
+            String activityType = rs.getString("activity_type");
+            Integer minutes = rs.getObject("minutos_estimados", Integer.class);
+            Double mapX = rs.getObject("mapa_x", Double.class);
+            Double mapY = rs.getObject("mapa_y", Double.class);
+            String availableFrom = formatTimestamp(rs.getTimestamp("disponible_desde"));
+            String lockedFrom = formatTimestamp(rs.getTimestamp("bloqueado_desde"));
+            String videoUrl = rs.getString("video_url");
+
+            List<TeacherDtos.TeacherResourceDto> resources = jdbc.query("""
+                    SELECT id, tipo, titulo, url_recurso, archivo_multimedia_id, creado_en
+                    FROM aprendizaje_nodo_recurso
+                    WHERE nodo_id = ?
+                    ORDER BY creado_en ASC
+                    """, (rRes, rNum) -> new TeacherDtos.TeacherResourceDto(
+                    rRes.getString("id"),
+                    rRes.getString("tipo"),
+                    rRes.getString("titulo"),
+                    rRes.getString("url_recurso"),
+                    rRes.getString("archivo_multimedia_id"),
+                    formatTimestamp(rRes.getTimestamp("creado_en"))
+            ), id);
+
+            List<TeacherDtos.TeacherQuestionDto> questions = findQuestionsWithAnswers(versionActividadId);
+
+            return new TeacherDtos.TeacherNodeDetailDto(
+                    id, seq, title, instructions, activityType, minutes, mapX, mapY,
+                    availableFrom, lockedFrom, videoUrl, questions, resources
+            );
+        }, nodeId, routeId, teacherId);
+
+        return list.stream().findFirst();
+    }
+
+    public List<TeacherDtos.TeacherQuestionDto> findQuestionsWithAnswers(String versionActividadId) {
+        List<TeacherDtos.TeacherQuestionDto> questions = jdbc.query("""
+                SELECT id, numero_secuencia, tipo, enunciado, explicacion, puntos
+                FROM evaluacion_pregunta
+                WHERE version_actividad_id = ?
+                ORDER BY numero_secuencia ASC
+                """, (rs, rowNum) -> new TeacherDtos.TeacherQuestionDto(
+                rs.getString("id"),
+                rs.getInt("numero_secuencia"),
+                rs.getString("tipo"),
+                rs.getString("enunciado"),
+                rs.getString("explicacion"),
+                rs.getDouble("puntos"),
+                new ArrayList<>()
+        ), versionActividadId);
+
+        for (var q : questions) {
+            List<TeacherDtos.TeacherOptionDto> options = jdbc.query("""
+                    SELECT id, numero_secuencia, texto, es_correcta
+                    FROM evaluacion_opcion_respuesta
+                    WHERE pregunta_id = ?
+                    ORDER BY numero_secuencia ASC
+                    """, (rs, rowNum) -> new TeacherDtos.TeacherOptionDto(
+                    rs.getString("id"),
+                    rs.getInt("numero_secuencia"),
+                    rs.getString("texto"),
+                    rs.getBoolean("es_correcta")
+            ), q.id());
+            q.options().addAll(options);
+        }
+
+        return questions;
+    }
+
+    @Transactional
+    public void updateNode(String teacherId, String routeId, String nodeId, TeacherDtos.UpdateNodeRequest req) {
+        String versionActividadId = jdbc.query("""
+                SELECT n.version_actividad_id
+                FROM aprendizaje_nodo_ruta n
+                JOIN aprendizaje_version_ruta vr ON vr.id = n.version_ruta_id
+                JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
+                WHERE n.id = ? AND r.id = ? AND r.propietario_id = ? AND r.archivado_en IS NULL
+                """, (rs, rowNum) -> rs.getString("version_actividad_id"), nodeId, routeId, teacherId)
+                .stream().findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Parada no encontrada o no pertenece al docente."));
+
+        if (req.title() != null && !req.title().isBlank()) {
+            jdbc.update("""
+                    UPDATE aprendizaje_version_actividad
+                    SET titulo = ?,
+                        instrucciones = ?,
+                        minutos_estimados = COALESCE(?, minutos_estimados)
+                    WHERE id = ?
+                    """, req.title().trim(),
+                    req.instructions() != null ? req.instructions().trim() : null,
+                    req.estimatedMinutes(), versionActividadId);
+        } else if (req.instructions() != null || req.estimatedMinutes() != null) {
+            jdbc.update("""
+                    UPDATE aprendizaje_version_actividad
+                    SET instrucciones = COALESCE(?, instrucciones),
+                        minutos_estimados = COALESCE(?, minutos_estimados)
+                    WHERE id = ?
+                    """, req.instructions() != null ? req.instructions().trim() : null,
+                    req.estimatedMinutes(), versionActividadId);
+        }
+
+        if (req.activityType() != null && !req.activityType().isBlank()) {
+            jdbc.update("""
+                    UPDATE aprendizaje_actividad a
+                    JOIN aprendizaje_version_actividad va ON va.actividad_id = a.id
+                    SET a.tipo = ?
+                    WHERE va.id = ?
+                    """, req.activityType().trim().toUpperCase(Locale.ROOT), versionActividadId);
+        }
+
+        java.sql.Timestamp availableFrom = parseTimestamp(req.availableFrom());
+        java.sql.Timestamp lockedFrom = parseTimestamp(req.lockedFrom());
+
+        jdbc.update("""
+                UPDATE aprendizaje_nodo_ruta
+                SET disponible_desde = ?,
+                    bloqueado_desde = ?
+                WHERE id = ?
+                """, availableFrom, lockedFrom, nodeId);
+
+        if (req.videoUrl() != null) {
+            String trimmedUrl = req.videoUrl().trim();
+            if (!trimmedUrl.isEmpty()) {
+                List<String> videoBlocks = jdbc.query("""
+                        SELECT b.id FROM aprendizaje_bloque_contenido b
+                        WHERE b.version_actividad_id = ? AND b.tipo = 'VIDEO'
+                        ORDER BY b.numero_secuencia ASC LIMIT 1
+                        """, (rs, rowNum) -> rs.getString("id"), versionActividadId);
+
+                if (!videoBlocks.isEmpty()) {
+                    String blockId = videoBlocks.getFirst();
+                    List<String> multiList = jdbc.query("""
+                            SELECT archivo_multimedia_id FROM aprendizaje_bloque_contenido WHERE id = ?
+                            """, (rs, rowNum) -> rs.getString("archivo_multimedia_id"), blockId);
+                    String multimediaId = !multiList.isEmpty() ? multiList.getFirst() : null;
+
+                    if (multimediaId != null) {
+                        jdbc.update("""
+                                UPDATE recurso_archivo_multimedia
+                                SET url_externa = ?, nombre_original = ?
+                                WHERE id = ?
+                                """, trimmedUrl, req.title() != null ? req.title().trim() : "Video de lección", multimediaId);
+                    } else {
+                        String newMultiId = UUID.randomUUID().toString();
+                        jdbc.update("""
+                                INSERT INTO recurso_archivo_multimedia (id, creado_por, url_externa, nombre_original, tipo_mime, creado_en)
+                                VALUES (?, ?, ?, ?, 'text/uri-list', UTC_TIMESTAMP(6))
+                                """, newMultiId, teacherId, trimmedUrl, req.title() != null ? req.title().trim() : "Video de lección");
+                        jdbc.update("""
+                                UPDATE aprendizaje_bloque_contenido SET archivo_multimedia_id = ? WHERE id = ?
+                                """, newMultiId, blockId);
+                    }
+                    jdbc.update("""
+                            UPDATE aprendizaje_bloque_contenido SET texto_cuerpo = ? WHERE id = ?
+                            """, req.title() != null ? req.title().trim() : "Video de lección", blockId);
+                } else {
+                    String newMultiId = UUID.randomUUID().toString();
+                    jdbc.update("""
+                            INSERT INTO recurso_archivo_multimedia (id, creado_por, url_externa, nombre_original, tipo_mime, creado_en)
+                            VALUES (?, ?, ?, ?, 'text/uri-list', UTC_TIMESTAMP(6))
+                            """, newMultiId, teacherId, trimmedUrl, req.title() != null ? req.title().trim() : "Video de lección");
+                    String newBlockId = UUID.randomUUID().toString();
+                    jdbc.update("""
+                            INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secuencia, tipo, texto_cuerpo, archivo_multimedia_id)
+                            VALUES (?, ?, 1, 'VIDEO', ?, ?)
+                            """, newBlockId, versionActividadId, req.title() != null ? req.title().trim() : "Video de lección", newMultiId);
+                }
+            } else {
+                jdbc.update("""
+                        DELETE FROM aprendizaje_bloque_contenido WHERE version_actividad_id = ? AND tipo = 'VIDEO'
+                        """, versionActividadId);
+            }
+        }
+
+        if (req.questions() != null) {
+            updateQuestionsForActivity(versionActividadId, req.questions());
+        }
+    }
+
+    private void updateQuestionsForActivity(String versionActividadId, List<TeacherDtos.TeacherQuestionDto> questions) {
+        List<String> oldQuestionIds = jdbc.query("""
+                SELECT id FROM evaluacion_pregunta WHERE version_actividad_id = ?
+                """, (rs, rowNum) -> rs.getString("id"), versionActividadId);
+
+        for (String qId : oldQuestionIds) {
+            jdbc.update("DELETE FROM evaluacion_respuesta_opcion WHERE pregunta_id = ?", qId);
+            jdbc.update("DELETE FROM evaluacion_respuesta WHERE pregunta_id = ?", qId);
+            jdbc.update("DELETE FROM evaluacion_opcion_respuesta WHERE pregunta_id = ?", qId);
+        }
+        jdbc.update("DELETE FROM evaluacion_pregunta WHERE version_actividad_id = ?", versionActividadId);
+
+        int qSeq = 1;
+        for (var q : questions) {
+            String qId = q.id() != null && !q.id().isBlank() ? q.id() : UUID.randomUUID().toString();
+            String statement = q.statement() != null ? q.statement().trim() : "Pregunta didáctica";
+            String explanation = q.explanation() != null ? q.explanation().trim() : "¡Buen esfuerzo repasando los conceptos!";
+            double points = q.points() != null && q.points() > 0 ? q.points() : 1.0;
+            String qType = q.type() != null && !q.type().isBlank() ? q.type() : "OPCION_UNICA";
+
+            jdbc.update("""
+                    INSERT INTO evaluacion_pregunta (id, version_actividad_id, numero_secuencia, tipo, enunciado, explicacion, puntos)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, qId, versionActividadId, qSeq++, qType, statement, explanation, points);
+
+            int optSeq = 1;
+            boolean hasCorrect = false;
+            if (q.options() != null) {
+                for (var opt : q.options()) {
+                    String optId = opt.id() != null && !opt.id().isBlank() ? opt.id() : UUID.randomUUID().toString();
+                    String optText = opt.text() != null ? opt.text().trim() : "Opción " + optSeq;
+                    boolean isCorrect = Boolean.TRUE.equals(opt.isCorrect());
+                    if (isCorrect) hasCorrect = true;
+
+                    jdbc.update("""
+                            INSERT INTO evaluacion_opcion_respuesta (id, pregunta_id, numero_secuencia, texto, es_correcta)
+                            VALUES (?, ?, ?, ?, ?)
+                            """, optId, qId, optSeq++, optText, isCorrect);
+                }
+            }
+            if (!hasCorrect && q.options() != null && !q.options().isEmpty()) {
+                jdbc.update("""
+                        UPDATE evaluacion_opcion_respuesta SET es_correcta = TRUE WHERE pregunta_id = ? AND numero_secuencia = 1
+                        """, qId);
+            }
+        }
+    }
+
+    private static java.sql.Timestamp parseTimestamp(String isoDate) {
+        if (isoDate == null || isoDate.isBlank()) return null;
+        try {
+            java.time.Instant instant = java.time.Instant.parse(isoDate);
+            return java.sql.Timestamp.from(instant);
+        } catch (Exception e1) {
+            try {
+                String cleaned = isoDate.replace("T", " ");
+                if (cleaned.length() == 16) cleaned += ":00";
+                return java.sql.Timestamp.valueOf(cleaned);
+            } catch (Exception e2) {
+                return null;
+            }
+        }
     }
 
     private static String formatTimestamp(java.sql.Timestamp ts) {

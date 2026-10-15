@@ -10,6 +10,12 @@
   box-shadow: 0 5px 0 #173e30;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   position: relative;
+  cursor: pointer;
+}
+
+.roadmap-card-toy:focus-visible {
+  outline: 3px solid #f95738;
+  outline-offset: 4px;
 }
 
 .roadmap-card-toy:hover {
@@ -272,4 +278,13 @@
 
 .card-toy-btn.btn-toy-start:hover:not(:disabled) {
   background-color: #ff6e52;
+}
+
+.card-toy-btn.btn-toy-join {
+  background-color: #246a91;
+  color: #ffffff;
+}
+
+.card-toy-btn.btn-toy-join:hover:not(:disabled) {
+  background-color: #2e7ca8;
 }

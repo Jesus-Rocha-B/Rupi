@@ -1,38 +1,47 @@
-.teacher-reports { max-width: 1200px; margin: 0 auto; padding: clamp(16px, 4vw, 40px); color: #173e30; background: #faf8f5; min-height: 100vh; box-sizing: border-box; overflow-wrap: anywhere; }
+.teacher-reports { max-width: 1200px; margin: 0 auto; padding: clamp(16px, 4vw, 40px); color: #173e30; background: #faf8f5; min-height: 100vh; box-sizing: border-box; overflow-wrap: anywhere; font-family: var(--body-font, 'Nunito', sans-serif); }
 .report-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 24px; border-bottom: 3px solid #31724b; margin-bottom: 24px; }
-.report-header h1 { margin: 12px 0; font-size: clamp(1.6rem, 4vw, 2.2rem); }
-.report-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-weight: 900; color: #246a91; }
+.report-header h1 { margin: 12px 0; font-size: clamp(1.6rem, 4vw, 2.2rem); font-family: var(--display-font, 'Nunito', sans-serif); font-weight: 900; letter-spacing: -0.02em; }
+.report-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-weight: 900; color: #246a91; font-size: 0.88rem; }
 .report-header nav, .report-actions { display: flex; flex-wrap: wrap; gap: 12px; }
-.teacher-reports button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 48px; min-height: 48px; border: 2px solid #31724b; border-radius: 12px; padding: 10px 16px; background: white; color: #173e30; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 3px 0 #31724b; }
-.teacher-reports button:active { transform: translateY(2px); box-shadow: 0 1px 0 #31724b; }
+.teacher-reports button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 48px; min-height: 48px; border: 2px solid #31724b; border-radius: 14px; padding: 10px 18px; background: white; color: #173e30; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #245838; transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.12s ease, background-color 0.12s ease; }
+.teacher-reports button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 #245838; background-color: #f7faf8; }
+.teacher-reports button:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #245838; }
 .teacher-reports button:disabled { cursor: wait; opacity: .65; }
 .teacher-reports :focus-visible { outline: 3px solid #246a91; outline-offset: 3px; }
-.report-filter { display: grid; gap: 8px; margin: 16px 0; font-weight: 800; max-width: 100%; }
-.report-filter select { width: 100%; min-width: 0; max-width: 100%; min-height: 48px; padding: 12px; border: 2px solid #31724b; border-radius: 10px; background: white; color: #173e30; font: inherit; text-overflow: ellipsis; }
+.report-filter { display: grid; gap: 8px; margin: 16px 0; font-weight: 800; max-width: 100%; font-size: 0.95rem; }
+.report-filter select { width: 100%; min-width: 0; max-width: 100%; min-height: 48px; padding: 12px 16px; border: 2px solid #31724b; border-radius: 12px; background: white; color: #173e30; font: inherit; font-weight: 700; box-shadow: 0 2px 0 #d7e4cc; text-overflow: ellipsis; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.report-filter select:hover { border-color: #173e30; }
 .report-summary { margin: 24px 0; }
-.report-summary h2 { margin-bottom: 8px; }
+.report-summary h2 { margin-bottom: 8px; font-family: var(--display-font, 'Nunito', sans-serif); font-weight: 900; }
 .report-actions { margin-top: 16px; }
-.report-actions button:last-child { background: #ffd26a; }
+.report-actions button:last-child { background: #ffd26a; border-color: #173e30; color: #173e30; box-shadow: 0 4px 0 #173e30; }
+.report-actions button:last-child:hover:not(:disabled) { background: #ffdb85; box-shadow: 0 6px 0 #173e30; }
+.report-actions button:last-child:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #173e30; }
 .teacher-reports p { line-height: 1.6; }
-.report-note, .teacher-reports small { font-size: .9rem; }
-.report-criteria { background: #fff; border-left: 5px solid #246a91; padding: 16px 20px; margin: 24px 0; }
-.report-unit { border: 2px solid #31724b; border-radius: 16px; margin: 20px 0; background: white; min-width: 0; }
-.report-unit summary { min-height: 48px; padding: 18px; cursor: pointer; font-weight: 900; }
+.report-note, .teacher-reports small { font-size: .9rem; color: #43614c; }
+.report-criteria { background: #fff; border-radius: 14px; border: 1.5px solid #d7e4cc; border-left: 6px solid #246a91; box-shadow: 0 3px 0 #d7e4cc; padding: 16px 20px; margin: 24px 0; }
+.report-criteria strong { font-size: 1.05rem; display: block; margin-bottom: 4px; color: #173e30; }
+.report-unit { border: 2.5px solid #173e30; border-radius: 18px; margin: 20px 0; background: white; min-width: 0; box-shadow: 0 4px 0 #173e30; overflow: hidden; }
+.report-unit summary { min-height: 48px; padding: 18px 20px; cursor: pointer; font-weight: 900; font-family: var(--display-font, 'Nunito', sans-serif); background: #fdfbf7; border-bottom: 2px solid transparent; transition: background-color 0.15s ease; }
+.report-unit summary:hover { background: #f7f3ea; }
+.report-unit[open] summary { border-bottom-color: #e2ece5; }
 .report-unit summary span { margin-right: 12px; }
-.report-unit-content { padding: 0 16px 20px; }
-.report-competencies { border-left: 5px solid #f95738; padding: 12px 16px; margin-bottom: 20px; background: #fff6e3; }
-.report-competencies h3 { margin-top: 0; }
-.report-competencies li { margin: 12px 0; line-height: 1.5; }
-.report-attention { display: inline-block; padding: 6px 10px; border-radius: 8px; background: #fff0cd; color: #663709; font-weight: 800; }
-.report-table-scroll { overflow-x: auto; max-width: 100%; border: 1px solid #d7e4cc; border-radius: 8px; }
+.report-unit-content { padding: 16px 20px 20px; }
+.report-competencies { border-radius: 12px; border: 1.5px solid #ffd26a; border-left: 6px solid #f95738; padding: 14px 18px; margin-bottom: 20px; background: #fff6e3; }
+.report-competencies h3 { margin-top: 0; font-family: var(--display-font, 'Nunito', sans-serif); font-size: 1.15rem; color: #a33800; }
+.report-competencies li { margin: 10px 0; line-height: 1.5; }
+.report-attention { display: inline-block; padding: 6px 12px; border-radius: 8px; border: 1px solid #ffd26a; background: #fff2cc; color: #5c3000; font-weight: 800; font-variant-numeric: tabular-nums; }
+.report-table-scroll { overflow-x: auto; max-width: 100%; border: 1.5px solid #d7e4cc; border-radius: 12px; }
 .teacher-reports table { width: 100%; min-width: 680px; border-collapse: collapse; text-align: left; }
-.teacher-reports caption { text-align: left; padding: 14px; font-weight: 900; }
+.teacher-reports caption { text-align: left; padding: 14px; font-weight: 900; font-family: var(--display-font, 'Nunito', sans-serif); }
 .teacher-reports th, .teacher-reports td { padding: 14px; border-bottom: 1px solid #d7e4cc; }
-.teacher-reports thead th { background: #edf4e9; }
-.teacher-reports tbody th { min-width: 150px; }
-.teacher-reports small { display: block; margin-top: 5px; font-weight: 400; }
-.report-error, .report-empty { padding: 18px; border: 2px solid #d7e4cc; background: white; border-radius: 14px; }
+.teacher-reports td { font-variant-numeric: tabular-nums; }
+.teacher-reports thead th { background: #edf4e9; font-weight: 800; color: #173e30; }
+.teacher-reports tbody th { min-width: 150px; font-weight: 800; }
+.teacher-reports small { display: block; margin-top: 5px; font-weight: 500; }
+.report-error, .report-empty { padding: 18px; border: 2px solid #d7e4cc; background: white; border-radius: 14px; box-shadow: 0 3px 0 #d7e4cc; }
 @media (max-width: 520px) { .report-unit-content { padding: 0 10px 14px; } .report-unit summary span { display: block; margin-top: 8px; } .report-criteria { padding: 14px; } }
 
 .report-mobile-hint { display: none; }
-@media (max-width: 760px) { .report-mobile-hint { display: block; font-size: .9rem; } }
+@media (max-width: 760px) { .report-mobile-hint { display: block; font-size: .9rem; color: #43614c; margin-bottom: 10px; } }
+

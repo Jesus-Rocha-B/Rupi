@@ -1,5 +1,5 @@
 import { RouteCalendar } from '../calendar/RouteCalendar'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Compass,
   Plus,
@@ -22,6 +22,15 @@ import {
   RotateCcw,
   ArrowUpDown,
   PauseCircle,
+  Video,
+  HelpCircle,
+  Trash2,
+  Upload,
+  Calendar,
+  AlertCircle,
+  CheckCircle2,
+  Play,
+  Paperclip,
 } from 'lucide-react'
 import {
   fetchTeacherRoutes,
@@ -32,12 +41,18 @@ import {
   publishTeacherRoute,
   pauseTeacherRoute,
   reorderTeacherNodes,
+  uploadTeacherMaterial,
+  fetchTeacherNodeDetail,
+  updateTeacherNode,
   type TeacherRouteSummary,
   type TeacherRouteDetail,
   type TeacherNode,
   type AttachResourcePayload,
+  type TeacherQuestion,
+  type UpdateNodePayload,
 } from '../../services/teacherApi'
 import { MaterialUploadZone } from '../../components/MaterialUploadZone'
+import { resolveEducationalVideo } from '../../utils/educationalVideos'
 import './TeacherAuthoring.css'
 
 interface Props {
@@ -60,6 +75,23 @@ function stateLabel(state: string) {
   if (state === 'PUBLICADO') return '✓ Publicado'
   if (state === 'PAUSADO') return '❚❚ En pausa'
   return '✎ Borrador'
+}
+
+function toDatetimeLocal(iso: string | null | undefined): string {
+  if (!iso) return ''
+  try {
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const yyyy = d.getFullYear()
+    const mm = pad(d.getMonth() + 1)
+    const dd = pad(d.getDate())
+    const hh = pad(d.getHours())
+    const mi = pad(d.getMinutes())
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`
+  } catch {
+    return ''
+  }
 }
 
 export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwitchToStudentView, onOpenReports }: Props) {
@@ -87,7 +119,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
   const [newNodeType, setNewNodeType] = useState<string>('LECCION')
   const [savingNode, setSavingNode] = useState(false)
 
-  // Notificaciones
+  // Notificaciones principales
   const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   // Estados de reorganización y Drag & Drop (HU-06)
@@ -96,6 +128,24 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
   const [savingReorder, setSavingReorder] = useState(false)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+
+  // Estados de edición del nodo seleccionado
+  type NodeTab = 'detalles' | 'video' | 'preguntas' | 'materiales'
+  const [activeNodeTab, setActiveNodeTab] = useState<NodeTab>('detalles')
+  const [loadingNodeDetail, setLoadingNodeDetail] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editInstructions, setEditInstructions] = useState('')
+  const [editMinutes, setEditMinutes] = useState<number>(15)
+  const [editActivityType, setEditActivityType] = useState<string>('LECCION')
+  const [editNoDateLimit, setEditNoDateLimit] = useState(true)
+  const [editAvailableFrom, setEditAvailableFrom] = useState('')
+  const [editLockedFrom, setEditLockedFrom] = useState('')
+  const [editVideoUrl, setEditVideoUrl] = useState('')
+  const [editQuestions, setEditQuestions] = useState<TeacherQuestion[]>([])
+  const [savingNodeChanges, setSavingNodeChanges] = useState(false)
+  const [uploadingVideo, setUploadingVideo] = useState(false)
+  const [nodeSaveBanner, setNodeSaveBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const videoInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     loadRoutes()
@@ -127,6 +177,232 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
       }
     } catch {
       setBanner({ type: 'error', message: 'No se pudo cargar el detalle del roadmap.' })
+    }
+  }
+
+  useEffect(() => {
+    if (selectedRouteId && selectedNode?.id) {
+      loadSelectedNodeDetail(selectedRouteId, selectedNode.id)
+    }
+  }, [selectedRouteId, selectedNode?.id])
+
+  async function loadSelectedNodeDetail(routeId: string, nodeId: string) {
+    setLoadingNodeDetail(true)
+    setNodeSaveBanner(null)
+    try {
+      const detail = await fetchTeacherNodeDetail(routeId, nodeId)
+      setEditTitle(detail.title || '')
+      setEditInstructions(detail.instructions || '')
+      setEditActivityType(detail.activityType || 'LECCION')
+      setEditMinutes(detail.estimatedMinutes || 15)
+      setEditVideoUrl(detail.videoUrl || '')
+
+      const hasLimit = Boolean(detail.availableFrom || detail.lockedFrom)
+      setEditNoDateLimit(!hasLimit)
+      setEditAvailableFrom(toDatetimeLocal(detail.availableFrom))
+      setEditLockedFrom(toDatetimeLocal(detail.lockedFrom))
+
+      setEditQuestions(detail.questions || [])
+    } catch (err: unknown) {
+      console.error('Error cargando detalle del nodo:', err)
+      setNodeSaveBanner({ type: 'error', message: 'No se pudo cargar el detalle completo de la parada.' })
+    } finally {
+      setLoadingNodeDetail(false)
+    }
+  }
+
+  function handleAddQuestion() {
+    const newQ: TeacherQuestion = {
+      sequence: editQuestions.length + 1,
+      type: 'OPCION_UNICA',
+      statement: '',
+      explanation: '',
+      points: 10,
+      options: [
+        { sequence: 1, text: '', isCorrect: true },
+        { sequence: 2, text: '', isCorrect: false },
+        { sequence: 3, text: '', isCorrect: false },
+      ],
+    }
+    setEditQuestions((prev) => [...prev, newQ])
+  }
+
+  function handleRemoveQuestion(index: number) {
+    setEditQuestions((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  function handleQuestionStatementChange(index: number, statement: string) {
+    setEditQuestions((prev) => {
+      const copy = [...prev]
+      copy[index] = { ...copy[index], statement }
+      return copy
+    })
+  }
+
+  function handleQuestionExplanationChange(index: number, explanation: string) {
+    setEditQuestions((prev) => {
+      const copy = [...prev]
+      copy[index] = { ...copy[index], explanation }
+      return copy
+    })
+  }
+
+  function handleQuestionPointsChange(index: number, points: number) {
+    setEditQuestions((prev) => {
+      const copy = [...prev]
+      copy[index] = { ...copy[index], points }
+      return copy
+    })
+  }
+
+  function handleSetCorrectOption(qIndex: number, optIndex: number) {
+    setEditQuestions((prev) => {
+      const copy = [...prev]
+      const q = { ...copy[qIndex] }
+      q.options = q.options.map((opt, i) => ({
+        ...opt,
+        isCorrect: i === optIndex,
+      }))
+      copy[qIndex] = q
+      return copy
+    })
+  }
+
+  function handleOptionTextChange(qIndex: number, optIndex: number, text: string) {
+    setEditQuestions((prev) => {
+      const copy = [...prev]
+      const q = { ...copy[qIndex] }
+      const opts = [...q.options]
+      opts[optIndex] = { ...opts[optIndex], text }
+      q.options = opts
+      copy[qIndex] = q
+      return copy
+    })
+  }
+
+  function handleAddOption(qIndex: number) {
+    setEditQuestions((prev) => {
+      const copy = [...prev]
+      const q = { ...copy[qIndex] }
+      q.options = [
+        ...q.options,
+        { sequence: q.options.length + 1, text: '', isCorrect: false },
+      ]
+      copy[qIndex] = q
+      return copy
+    })
+  }
+
+  function handleRemoveOption(qIndex: number, optIndex: number) {
+    setEditQuestions((prev) => {
+      const copy = [...prev]
+      const q = { ...copy[qIndex] }
+      if (q.options.length <= 2) return prev
+      const wasCorrect = q.options[optIndex].isCorrect
+      const newOpts = q.options.filter((_, i) => i !== optIndex)
+      if (wasCorrect && newOpts.length > 0) {
+        newOpts[0].isCorrect = true
+      }
+      q.options = newOpts
+      copy[qIndex] = q
+      return copy
+    })
+  }
+
+  function setQuickDateRange(days: number) {
+    const now = new Date()
+    const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
+    setEditAvailableFrom(toDatetimeLocal(now.toISOString()))
+    setEditLockedFrom(toDatetimeLocal(end.toISOString()))
+    setEditNoDateLimit(false)
+  }
+
+  async function handleVideoFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('video/')) {
+      setNodeSaveBanner({
+        type: 'error',
+        message: 'Por favor selecciona un archivo de video válido (.mp4, .webm).',
+      })
+      return
+    }
+
+    setUploadingVideo(true)
+    setNodeSaveBanner(null)
+    try {
+      const uploaded = await uploadTeacherMaterial(file)
+      setEditVideoUrl(uploaded.downloadUrl)
+      setNodeSaveBanner({
+        type: 'success',
+        message: `¡Video "${file.name}" cargado exitosamente! Recuerda guardar la parada para aplicar los cambios.`,
+      })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al subir el archivo de video.'
+      setNodeSaveBanner({ type: 'error', message: msg })
+    } finally {
+      setUploadingVideo(false)
+      if (e.target) e.target.value = ''
+    }
+  }
+
+  async function handleSaveNodeChanges() {
+    if (!selectedRouteId || !selectedNode) return
+    if (!editTitle.trim()) {
+      setNodeSaveBanner({ type: 'error', message: 'El título de la parada no puede estar vacío.' })
+      setActiveNodeTab('detalles')
+      return
+    }
+
+    for (let i = 0; i < editQuestions.length; i++) {
+      const q = editQuestions[i]
+      if (!q.statement.trim()) {
+        setNodeSaveBanner({ type: 'error', message: `La pregunta #${i + 1} no tiene enunciado escrito.` })
+        setActiveNodeTab('preguntas')
+        return
+      }
+      const hasCorrect = q.options.some((o) => o.isCorrect)
+      if (!hasCorrect) {
+        setNodeSaveBanner({ type: 'error', message: `Marca cuál es la respuesta correcta en la pregunta #${i + 1}.` })
+        setActiveNodeTab('preguntas')
+        return
+      }
+      const emptyOpt = q.options.some((o) => !o.text.trim())
+      if (emptyOpt) {
+        setNodeSaveBanner({ type: 'error', message: `Hay opciones vacías en la pregunta #${i + 1}. Completa el texto de cada opción.` })
+        setActiveNodeTab('preguntas')
+        return
+      }
+    }
+
+    setSavingNodeChanges(true)
+    setNodeSaveBanner(null)
+
+    try {
+      const payload: UpdateNodePayload = {
+        title: editTitle.trim(),
+        instructions: editInstructions.trim() || undefined,
+        activityType: editActivityType,
+        estimatedMinutes: editMinutes,
+        videoUrl: editVideoUrl.trim() || null,
+        availableFrom: editNoDateLimit ? null : (editAvailableFrom ? new Date(editAvailableFrom).toISOString() : null),
+        lockedFrom: editNoDateLimit ? null : (editLockedFrom ? new Date(editLockedFrom).toISOString() : null),
+        questions: editQuestions,
+      }
+
+      const res = await updateTeacherNode(selectedRouteId, selectedNode.id, payload)
+      setNodeSaveBanner({ type: 'success', message: res.message || '¡Parada didáctica actualizada exitosamente!' })
+
+      const detail = await fetchTeacherRouteDetail(selectedRouteId)
+      setActiveRouteDetail(detail)
+      setOrderedNodes(detail.nodes)
+      const updated = detail.nodes.find((n) => n.id === selectedNode.id)
+      if (updated) setSelectedNode(updated)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al guardar los cambios de la parada.'
+      setNodeSaveBanner({ type: 'error', message: msg })
+    } finally {
+      setSavingNodeChanges(false)
     }
   }
 
@@ -621,6 +897,16 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                                 <FileText size={12} aria-hidden="true" />
                                 {n.resources.length} recursos
                               </span>
+                              {n.videoUrl && (
+                                <span className="stop-meta-pill video" title="Tiene video configurado">
+                                  <Video size={11} aria-hidden="true" /> Video
+                                </span>
+                              )}
+                              {(n.availableFrom || n.lockedFrom) && (
+                                <span className="stop-meta-pill date" title="Acceso con fechas programadas">
+                                  <Calendar size={11} aria-hidden="true" /> Fechas
+                                </span>
+                              )}
                             </div>
                           </div>
 
@@ -653,20 +939,561 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                 )}
               </div>
 
-              {/* Columna Derecha: Materiales y Recursos de la parada seleccionada */}
-              <div className="editor-materials-panel">
+              {/* Columna Derecha: Taller de Edición Integral de la Parada Seleccionada */}
+              <div className="editor-stop-workspace">
                 {selectedNode ? (
-                  <MaterialUploadZone
-                    nodeId={selectedNode.id}
-                    nodeTitle={selectedNode.title}
-                    resources={selectedNode.resources}
-                    onResourceAttached={handleResourceAttached}
-                  />
+                  <div className="stop-editor-card">
+                    {/* Cabecera de la parada */}
+                    <div className="stop-editor-header">
+                      <div className="stop-header-identity">
+                        <span className="stop-seq-pill">Parada didáctica #{selectedNode.sequence}</span>
+                        <h3 className="stop-editor-title">{editTitle || selectedNode.title}</h3>
+                      </div>
+                      <div className="stop-header-status">
+                        <span className="stop-type-pill">{editActivityType === 'LECCION' ? 'Lección Interactiva' : 'Reto Pedagógico'}</span>
+                        <span className="stop-time-pill">{editMinutes} min estimados</span>
+                      </div>
+                    </div>
+
+                    {/* Barra de pestañas segmentadas */}
+                    <nav className="stop-nav-tabs" role="tablist" aria-label="Secciones de edición de parada">
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeNodeTab === 'detalles'}
+                        className={`stop-nav-tab ${activeNodeTab === 'detalles' ? 'is-active' : ''}`}
+                        onClick={() => setActiveNodeTab('detalles')}
+                      >
+                        <FileText size={16} aria-hidden="true" />
+                        <span>1. Detalles y Acceso</span>
+                        {!editNoDateLimit && <span className="tab-dot-badge" title="Fechas programadas">•</span>}
+                      </button>
+
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeNodeTab === 'video'}
+                        className={`stop-nav-tab ${activeNodeTab === 'video' ? 'is-active' : ''}`}
+                        onClick={() => setActiveNodeTab('video')}
+                      >
+                        <Video size={16} aria-hidden="true" />
+                        <span>2. Video de la Lección</span>
+                        {editVideoUrl.trim() && <span className="tab-pill-green">✓ Video</span>}
+                      </button>
+
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeNodeTab === 'preguntas'}
+                        className={`stop-nav-tab ${activeNodeTab === 'preguntas' ? 'is-active' : ''}`}
+                        onClick={() => setActiveNodeTab('preguntas')}
+                      >
+                        <HelpCircle size={16} aria-hidden="true" />
+                        <span>3. Preguntas del Reto ({editQuestions.length})</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeNodeTab === 'materiales'}
+                        className={`stop-nav-tab ${activeNodeTab === 'materiales' ? 'is-active' : ''}`}
+                        onClick={() => setActiveNodeTab('materiales')}
+                      >
+                        <Paperclip size={16} aria-hidden="true" />
+                        <span>4. Fichas y Recursos ({selectedNode.resources.length})</span>
+                      </button>
+                    </nav>
+
+                    {/* Cuerpo del editor */}
+                    <div className="stop-editor-body">
+                      {loadingNodeDetail ? (
+                        <div className="stop-loading-box">
+                          <RefreshCw size={24} className="spinning" aria-hidden="true" />
+                          <p>Cargando información y preguntas de la parada…</p>
+                        </div>
+                      ) : (
+                        <>
+                          {/* PESTAÑA 1: DETALLES Y ACCESO TEMPORAL */}
+                          {activeNodeTab === 'detalles' && (
+                            <div className="tab-content-panel" role="tabpanel">
+                              <div className="form-card-section">
+                                <h4 className="section-subtitle">Datos Pedagógicos de la Parada</h4>
+                                <div className="form-group">
+                                  <label htmlFor="edit-node-title">Título de la parada didáctica *</label>
+                                  <input
+                                    id="edit-node-title"
+                                    type="text"
+                                    className="editor-form-input"
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    placeholder="Ej. Parada 1: Cuentos andinos y tradición oral"
+                                    required
+                                  />
+                                </div>
+
+                                <div className="form-row-two">
+                                  <div className="form-group">
+                                    <label htmlFor="edit-node-type">Modalidad didáctica</label>
+                                    <select
+                                      id="edit-node-type"
+                                      className="editor-form-select"
+                                      value={editActivityType}
+                                      onChange={(e) => setEditActivityType(e.target.value)}
+                                    >
+                                      <option value="LECCION">Lección explicativa y formativa</option>
+                                      <option value="RETO">Reto evaluativo con preguntas</option>
+                                    </select>
+                                  </div>
+
+                                  <div className="form-group">
+                                    <label htmlFor="edit-node-minutes">Tiempo estimado (minutos)</label>
+                                    <input
+                                      id="edit-node-minutes"
+                                      type="number"
+                                      min={5}
+                                      max={120}
+                                      className="editor-form-input"
+                                      value={editMinutes}
+                                      onChange={(e) => setEditMinutes(Number(e.target.value))}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="form-group">
+                                  <label htmlFor="edit-node-instructions">Instrucciones para los estudiantes</label>
+                                  <textarea
+                                    id="edit-node-instructions"
+                                    rows={3}
+                                    className="editor-form-textarea"
+                                    value={editInstructions}
+                                    onChange={(e) => setEditInstructions(e.target.value)}
+                                    placeholder="Explica a los estudiantes qué aprenderán, qué video observar o qué reto resolverán en esta parada."
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Bloque de Acceso Temporal (Fechas) */}
+                              <div className="form-card-section dates-config-section">
+                                <div className="dates-header-row">
+                                  <div className="dates-title-box">
+                                    <Calendar size={20} className="icon-calendar" aria-hidden="true" />
+                                    <div>
+                                      <h4 className="section-subtitle">Disponibilidad y Límite de Acceso</h4>
+                                      <p className="section-subdesc">
+                                        Controla si esta parada está abierta permanentemente o si requiere una ventana de calendario escolar.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <label className="date-limit-toggle-card">
+                                  <input
+                                    type="checkbox"
+                                    checked={editNoDateLimit}
+                                    onChange={(e) => setEditNoDateLimit(e.target.checked)}
+                                  />
+                                  <div className="toggle-text-block">
+                                    <strong className="toggle-label-main">
+                                      Acceso continuo e ilimitado (Sin límite de fechas)
+                                    </strong>
+                                    <span className="toggle-label-sub">
+                                      Recomendado para el inicio del curso: los alumnos pueden acceder a esta parada en cualquier momento según su propio avance.
+                                    </span>
+                                  </div>
+                                </label>
+
+                                {!editNoDateLimit && (
+                                  <div className="date-pickers-container">
+                                    <div className="date-picker-row">
+                                      <div className="form-group">
+                                        <label htmlFor="edit-node-available-from">Disponible a partir de:</label>
+                                        <input
+                                          id="edit-node-available-from"
+                                          type="datetime-local"
+                                          className="editor-form-input"
+                                          value={editAvailableFrom}
+                                          onChange={(e) => setEditAvailableFrom(e.target.value)}
+                                        />
+                                        <small className="field-hint">Antes de esta fecha la parada estará en espera.</small>
+                                      </div>
+
+                                      <div className="form-group">
+                                        <label htmlFor="edit-node-locked-from">Bloquear acceso a partir de:</label>
+                                        <input
+                                          id="edit-node-locked-from"
+                                          type="datetime-local"
+                                          className="editor-form-input"
+                                          value={editLockedFrom}
+                                          onChange={(e) => setEditLockedFrom(e.target.value)}
+                                        />
+                                        <small className="field-hint">Después de esta fecha el nodo ya no permitirá nuevos intentos.</small>
+                                      </div>
+                                    </div>
+
+                                    <div className="quick-dates-row">
+                                      <span className="quick-dates-label">Programación rápida:</span>
+                                      <button
+                                        type="button"
+                                        className="btn-quick-date"
+                                        onClick={() => setQuickDateRange(7)}
+                                      >
+                                        Esta semana (+7 días)
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn-quick-date"
+                                        onClick={() => setQuickDateRange(30)}
+                                      >
+                                        Este mes (+30 días)
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn-quick-date reset"
+                                        onClick={() => setEditNoDateLimit(true)}
+                                      >
+                                        Restablecer a Sin Límite
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* PESTAÑA 2: VIDEO DE LA LECCIÓN */}
+                          {activeNodeTab === 'video' && (
+                            <div className="tab-content-panel" role="tabpanel">
+                              <div className="form-card-section">
+                                <h4 className="section-subtitle">Video Educativo para la Parada</h4>
+                                <p className="section-subdesc">
+                                  Ingresa un enlace de YouTube o sube un archivo de video local (.mp4 o .webm) que se reproducirá directamente para los estudiantes.
+                                </p>
+
+                                <div className="video-input-controls">
+                                  <div className="form-group flex-1">
+                                    <label htmlFor="edit-node-video-url">Enlace o URL del video</label>
+                                    <input
+                                      id="edit-node-video-url"
+                                      type="text"
+                                      className="editor-form-input"
+                                      value={editVideoUrl}
+                                      onChange={(e) => setEditVideoUrl(e.target.value)}
+                                      placeholder="https://www.youtube.com/watch?v=... o URL de video"
+                                    />
+                                  </div>
+
+                                  <div className="video-action-buttons">
+                                    <input
+                                      type="file"
+                                      ref={videoInputRef}
+                                      accept="video/mp4,video/webm"
+                                      style={{ display: 'none' }}
+                                      onChange={handleVideoFileUpload}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="btn-upload-file-video"
+                                      onClick={() => videoInputRef.current?.click()}
+                                      disabled={uploadingVideo}
+                                      title="Subir video desde mi computadora"
+                                    >
+                                      <Upload size={16} aria-hidden="true" />
+                                      <span>{uploadingVideo ? 'Subiendo video…' : 'Subir video (.mp4/.webm)'}</span>
+                                    </button>
+
+                                    {editVideoUrl.trim() && (
+                                      <button
+                                        type="button"
+                                        className="btn-remove-video"
+                                        onClick={() => setEditVideoUrl('')}
+                                        title="Quitar video de esta parada"
+                                      >
+                                        <Trash2 size={16} aria-hidden="true" />
+                                        <span>Quitar</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Vista previa en vivo del video */}
+                              <div className="video-preview-box">
+                                {editVideoUrl.trim() ? (
+                                  (() => {
+                                    const videoInfo = resolveEducationalVideo(
+                                      [{ url: editVideoUrl.trim(), type: 'VIDEO', text: editTitle || selectedNode.title }],
+                                      editTitle || selectedNode.title,
+                                      selectedNode.sequence,
+                                      activeRouteDetail?.area?.code
+                                    )
+
+                                    return (
+                                      <div className="video-preview-player-container">
+                                        <div className="preview-top-bar">
+                                          <div className="preview-title-box">
+                                            <Play size={16} className="play-icon" aria-hidden="true" />
+                                            <strong>{videoInfo.title}</strong>
+                                          </div>
+                                          {videoInfo.isDirectVideo ? (
+                                            <span className="direct-badge">Video Subido / Local</span>
+                                          ) : (
+                                            <span className="youtube-badge">YouTube Verificado</span>
+                                          )}
+                                        </div>
+
+                                        <div className="video-player-frame">
+                                          {videoInfo.isDirectVideo ? (
+                                            <video
+                                              controls
+                                              className="authoring-video-player"
+                                              src={videoInfo.watchUrl}
+                                            />
+                                          ) : (
+                                            <iframe
+                                              className="authoring-video-iframe"
+                                              src={videoInfo.embedUrl}
+                                              title={videoInfo.title}
+                                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                              allowFullScreen
+                                            />
+                                          )}
+                                        </div>
+                                      </div>
+                                    )
+                                  })()
+                                ) : (
+                                  <div className="video-empty-state">
+                                    <Video size={40} className="empty-video-icon" aria-hidden="true" />
+                                    <h5>Sin video asignado</h5>
+                                    <p>Pega un enlace de YouTube o sube un video para enriquecer el aprendizaje de tus estudiantes en esta parada.</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* PESTAÑA 3: PREGUNTAS DEL RETO */}
+                          {activeNodeTab === 'preguntas' && (
+                            <div className="tab-content-panel" role="tabpanel">
+                              <div className="questions-intro-card">
+                                <div>
+                                  <h4 className="section-subtitle">Preguntas de Evaluación Didáctica ({editQuestions.length})</h4>
+                                  <p className="section-subdesc">
+                                    Configura las preguntas interactivas. Marca cuál es la respuesta correcta usando el selector verde de cada opción.
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn-add-question-cta"
+                                  onClick={handleAddQuestion}
+                                >
+                                  <Plus size={16} aria-hidden="true" />
+                                  <span>+ Agregar Pregunta</span>
+                                </button>
+                              </div>
+
+                              {editQuestions.length === 0 ? (
+                                <div className="questions-empty-card">
+                                  <HelpCircle size={40} className="empty-q-icon" aria-hidden="true" />
+                                  <h5>Esta parada didáctica no tiene preguntas configuradas</h5>
+                                  <p>Agrega retos de opción múltiple para que los estudiantes comprueben su aprendizaje y ganen estrellas.</p>
+                                  <button
+                                    type="button"
+                                    className="btn-create-first-q"
+                                    onClick={handleAddQuestion}
+                                  >
+                                    <Plus size={18} aria-hidden="true" />
+                                    <span>Crear Primera Pregunta Interactiva</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="questions-list-stack">
+                                  {editQuestions.map((q, qIndex) => (
+                                    <article key={q.id || `q-${qIndex}`} className="question-authoring-card">
+                                      <div className="q-card-header">
+                                        <div className="q-header-left">
+                                          <span className="q-seq-badge">Pregunta #{qIndex + 1}</span>
+                                          <div className="q-points-box">
+                                            <label htmlFor={`q-points-${qIndex}`}>Puntos:</label>
+                                            <input
+                                              id={`q-points-${qIndex}`}
+                                              type="number"
+                                              min={1}
+                                              max={100}
+                                              className="q-points-input"
+                                              value={q.points || 10}
+                                              onChange={(e) => handleQuestionPointsChange(qIndex, Number(e.target.value))}
+                                            />
+                                            <span>XP</span>
+                                          </div>
+                                        </div>
+
+                                        <button
+                                          type="button"
+                                          className="btn-delete-question"
+                                          onClick={() => handleRemoveQuestion(qIndex)}
+                                          title="Eliminar esta pregunta"
+                                        >
+                                          <Trash2 size={16} aria-hidden="true" />
+                                          <span>Eliminar</span>
+                                        </button>
+                                      </div>
+
+                                      <div className="q-card-fields">
+                                        <div className="form-group">
+                                          <label htmlFor={`q-stmt-${qIndex}`}>Enunciado de la pregunta *</label>
+                                          <input
+                                            id={`q-stmt-${qIndex}`}
+                                            type="text"
+                                            className="editor-form-input q-statement-input"
+                                            value={q.statement}
+                                            onChange={(e) => handleQuestionStatementChange(qIndex, e.target.value)}
+                                            placeholder="Ej. ¿Qué descubrieron los niños en el cuento tradicional andino?"
+                                            required
+                                          />
+                                        </div>
+
+                                        <div className="form-group">
+                                          <label htmlFor={`q-exp-${qIndex}`}>Explicación didáctica (retroalimentación pedagógica)</label>
+                                          <textarea
+                                            id={`q-exp-${qIndex}`}
+                                            rows={2}
+                                            className="editor-form-textarea q-explanation-input"
+                                            value={q.explanation || ''}
+                                            onChange={(e) => handleQuestionExplanationChange(qIndex, e.target.value)}
+                                            placeholder="Pista o explicación que se mostrará al niño tras responder para reforzar el aprendizaje."
+                                          />
+                                        </div>
+
+                                        {/* Opciones de respuesta */}
+                                        <div className="q-options-container">
+                                          <div className="options-title-row">
+                                            <span className="options-title">Opciones de respuesta (marca la correcta):</span>
+                                            <span className="options-hint">Los niños verán estas opciones al resolver la parada.</span>
+                                          </div>
+
+                                          <div className="options-list-grid">
+                                            {q.options.map((opt, optIndex) => (
+                                              <div
+                                                key={opt.id || `opt-${optIndex}`}
+                                                className={`option-row-card ${opt.isCorrect ? 'is-correct-option' : ''}`}
+                                              >
+                                                <label className="option-radio-selector">
+                                                  <input
+                                                    type="radio"
+                                                    name={`correct-answer-for-q-${qIndex}`}
+                                                    checked={opt.isCorrect}
+                                                    onChange={() => handleSetCorrectOption(qIndex, optIndex)}
+                                                  />
+                                                  <span className={`option-status-tag ${opt.isCorrect ? 'correct' : 'incorrect'}`}>
+                                                    {opt.isCorrect ? '✓ Correcta' : 'Incorrecta'}
+                                                  </span>
+                                                </label>
+
+                                                <input
+                                                  type="text"
+                                                  className="option-text-input"
+                                                  value={opt.text}
+                                                  onChange={(e) => handleOptionTextChange(qIndex, optIndex, e.target.value)}
+                                                  placeholder={`Escribe el texto de la opción ${optIndex + 1}`}
+                                                  required
+                                                />
+
+                                                <button
+                                                  type="button"
+                                                  className="btn-remove-opt-item"
+                                                  onClick={() => handleRemoveOption(qIndex, optIndex)}
+                                                  disabled={q.options.length <= 2}
+                                                  title={q.options.length <= 2 ? 'Mínimo 2 opciones requeridas' : 'Eliminar opción'}
+                                                >
+                                                  ✕
+                                                </button>
+                                              </div>
+                                            ))}
+                                          </div>
+
+                                          <button
+                                            type="button"
+                                            className="btn-add-opt-item"
+                                            onClick={() => handleAddOption(qIndex)}
+                                          >
+                                            <Plus size={14} aria-hidden="true" />
+                                            <span>+ Agregar opción de respuesta</span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </article>
+                                  ))}
+
+                                  <div className="questions-bottom-action">
+                                    <button
+                                      type="button"
+                                      className="btn-add-question-cta"
+                                      onClick={handleAddQuestion}
+                                    >
+                                      <Plus size={18} aria-hidden="true" />
+                                      <span>+ Agregar Otra Pregunta al Reto</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* PESTAÑA 4: FICHAS Y MATERIALES ADJUNTOS */}
+                          {activeNodeTab === 'materiales' && (
+                            <div className="tab-content-panel" role="tabpanel">
+                              <MaterialUploadZone
+                                nodeId={selectedNode.id}
+                                nodeTitle={selectedNode.title}
+                                resources={selectedNode.resources}
+                                onResourceAttached={handleResourceAttached}
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Barra de Guardado Permanente al Pie de la Parada */}
+                    <div className="stop-editor-footer-bar">
+                      <div className="footer-status-box">
+                        {nodeSaveBanner && (
+                          <div className={`node-save-alert ${nodeSaveBanner.type}`} role="alert">
+                            {nodeSaveBanner.type === 'success' ? (
+                              <CheckCircle2 size={18} aria-hidden="true" />
+                            ) : (
+                              <AlertCircle size={18} aria-hidden="true" />
+                            )}
+                            <span>{nodeSaveBanner.message}</span>
+                          </div>
+                        )}
+                        {!nodeSaveBanner && (
+                          <span className="footer-hint-text">
+                            Edición en vivo de la Parada #{selectedNode.sequence}: <strong>"{editTitle || selectedNode.title}"</strong>
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="footer-actions-group">
+                        <button
+                          type="button"
+                          className="btn-save-node-changes"
+                          onClick={handleSaveNodeChanges}
+                          disabled={savingNodeChanges || loadingNodeDetail}
+                          title="Guardar todos los cambios (detalles, fechas, video y preguntas) en la base de datos"
+                        >
+                          <Check size={18} aria-hidden="true" />
+                          <span>{savingNodeChanges ? 'Guardando parada…' : 'Guardar Cambios en la Parada'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <div className="select-stop-prompt">
-                    <Sparkles size={32} className="sparkle-icon" aria-hidden="true" />
-                    <h4>Selecciona una parada</h4>
-                    <p>Elige una parada del camino a la izquierda para subir fichas de lectura, diapositivas y enlaces web.</p>
+                    <Sparkles size={36} className="sparkle-icon" aria-hidden="true" />
+                    <h4>Selecciona una parada del camino</h4>
+                    <p>Elige una parada en la columna de la izquierda para editar su título, configurar fechas de acceso, asignar video y diseñar sus preguntas interactivas.</p>
                   </div>
                 )}
               </div>

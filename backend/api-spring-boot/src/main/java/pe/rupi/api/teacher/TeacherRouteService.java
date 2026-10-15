@@ -147,4 +147,31 @@ public class TeacherRouteService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+
+    public TeacherDtos.TeacherNodeDetailDto getNodeDetail(String teacherId, String routeId, String nodeId) {
+        return repository.findNodeDetail(teacherId, routeId, nodeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La parada didáctica no existe o no pertenece a su autoría."));
+    }
+
+    public void updateNode(String teacherId, String routeId, String nodeId, TeacherDtos.UpdateNodeRequest req) {
+        if (req == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Los datos de actualización son requeridos.");
+        }
+        if (req.title() != null && req.title().trim().length() < 3) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El título de la parada debe tener al menos 3 caracteres.");
+        }
+        if (req.activityType() != null && !req.activityType().isBlank()
+                && !ACTIVITY_TYPES.contains(req.activityType().trim().toUpperCase(Locale.ROOT))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de actividad no válido.");
+        }
+        if (req.videoUrl() != null && !req.videoUrl().isBlank() && !isSafeResourceUrl(req.videoUrl().trim())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El enlace del video debe empezar con https:// o http://, o ser un material subido a RUPI.");
+        }
+
+        try {
+            repository.updateNode(teacherId, routeId, nodeId, req);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
 }

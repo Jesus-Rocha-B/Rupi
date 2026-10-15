@@ -45,6 +45,23 @@ public class TeacherDtos {
             String createdAt
     ) {}
 
+    public record TeacherOptionDto(
+            String id,
+            Integer sequence,
+            String text,
+            Boolean isCorrect
+    ) {}
+
+    public record TeacherQuestionDto(
+            String id,
+            Integer sequence,
+            String type,
+            String statement,
+            String explanation,
+            Double points,
+            List<TeacherOptionDto> options
+    ) {}
+
     public record TeacherNodeDto(
             String id,
             int sequence,
@@ -54,7 +71,51 @@ public class TeacherDtos {
             Integer estimatedMinutes,
             Double mapX,
             Double mapY,
+            String availableFrom,
+            String lockedFrom,
+            String videoUrl,
             List<TeacherResourceDto> resources
+    ) {
+        public TeacherNodeDto(
+                String id,
+                int sequence,
+                String title,
+                String instructions,
+                String activityType,
+                Integer estimatedMinutes,
+                Double mapX,
+                Double mapY,
+                List<TeacherResourceDto> resources
+        ) {
+            this(id, sequence, title, instructions, activityType, estimatedMinutes, mapX, mapY, null, null, null, resources);
+        }
+    }
+
+    public record TeacherNodeDetailDto(
+            String id,
+            int sequence,
+            String title,
+            String instructions,
+            String activityType,
+            Integer estimatedMinutes,
+            Double mapX,
+            Double mapY,
+            String availableFrom,
+            String lockedFrom,
+            String videoUrl,
+            List<TeacherQuestionDto> questions,
+            List<TeacherResourceDto> resources
+    ) {}
+
+    public record UpdateNodeRequest(
+            String title,
+            String instructions,
+            String activityType,
+            Integer estimatedMinutes,
+            String availableFrom,
+            String lockedFrom,
+            String videoUrl,
+            List<TeacherQuestionDto> questions
     ) {}
 
     public record TeacherRouteSummary(

@@ -120,4 +120,30 @@ public class TeacherRouteController {
         String teacherId = principal != null ? principal.getName() : teacher.id();
         return service.reorderNodes(teacherId, routeId, body);
     }
+
+    @GetMapping("/{routeId}/nodes/{nodeId}")
+    public TeacherDtos.TeacherNodeDetailDto getNodeDetail(
+            @PathVariable("routeId") String routeId,
+            @PathVariable("nodeId") String nodeId,
+            HttpServletRequest request,
+            Principal principal
+    ) {
+        var teacher = requireTeacher(request);
+        String teacherId = principal != null ? principal.getName() : teacher.id();
+        return service.getNodeDetail(teacherId, routeId, nodeId);
+    }
+
+    @PutMapping("/{routeId}/nodes/{nodeId}")
+    public Map<String, String> updateNode(
+            @PathVariable("routeId") String routeId,
+            @PathVariable("nodeId") String nodeId,
+            @RequestBody TeacherDtos.UpdateNodeRequest body,
+            HttpServletRequest request,
+            Principal principal
+    ) {
+        var teacher = requireTeacher(request);
+        String teacherId = principal != null ? principal.getName() : teacher.id();
+        service.updateNode(teacherId, routeId, nodeId, body);
+        return Map.of("nodeId", nodeId, "message", "Parada pedagógica actualizada exitosamente.");
+    }
 }

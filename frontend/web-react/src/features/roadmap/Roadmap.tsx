@@ -1,30 +1,38 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import {
   Check,
-  Star,
+  Compass,
   Sparkles,
   MapPin,
   Volume2,
   Trophy,
   Flag,
-  HelpCircle,
-  Landmark,
-  Palette,
-  Store,
-  Coins,
-  Layers,
-  Mountain,
-  Boxes,
-  Bell,
-  Footprints,
-  Sun,
-  Compass,
+  Lock,
   Award,
+  Eye,
+  Ear,
+  Flower2,
+  Heart,
+  Apple,
+  Droplets,
+  Sun,
+  Microscope,
+  FlaskConical,
+  Binary,
+  Shapes,
+  Ruler,
+  Lightbulb,
+  Calculator,
+  PenTool,
+  MessageSquare,
+  BookOpen,
 } from 'lucide-react'
 import { nodeStateLabels } from './nodeStates'
 import { RupiCharacter } from '../../components/RupiCharacter'
 import { unitBandsByNode } from './unitGroups'
 import { UnitDownloadPanel } from './UnitDownloadPanel'
+import { speakText } from '../../utils/speech'
+import type { RouteDetail, RouteNode } from '../../services/learningRoutesApi'
 import './UnitBands.css'
 
 function createTrailPath(points: { x: number; y: number }[]): string {
@@ -47,8 +55,6 @@ function createTrailPath(points: { x: number; y: number }[]): string {
     return `${path} C ${controlOne.x} ${controlOne.y}, ${controlTwo.x} ${controlTwo.y}, ${point.x} ${point.y}`
   }, '')
 }
-import { speakText } from '../../utils/speech'
-import type { RouteDetail, RouteNode } from '../../services/learningRoutesApi'
 
 type Props = {
   route: RouteDetail
@@ -71,30 +77,83 @@ function getNodeDisplayState(state: RouteNode['state']): { cssClass: string; lab
   }
 }
 
-function getStopThemeIcon(sequence: number) {
-  switch (sequence) {
-    case 1:
-      return Landmark
-    case 2:
-      return Palette
-    case 3:
-      return Store
-    case 4:
-      return Coins
-    case 5:
-      return Layers
-    case 6:
-      return Mountain
-    case 7:
-      return Boxes
-    case 8:
-      return Bell
-    case 9:
-      return Footprints
-    case 10:
-      return Trophy
-    default:
-      return Sparkles
+function getStopThemeIcon(node: RouteNode, areaCode?: string) {
+  const t = (node.title || '').toLowerCase()
+  const area = (areaCode || '').toUpperCase()
+
+  // 1. Ciencia y Tecnología: sentidos, naturaleza, cuerpo, energía
+  if (
+    area.includes('CYT') ||
+    t.includes('sentido') ||
+    t.includes('vista') ||
+    t.includes('ojo') ||
+    t.includes('oído') ||
+    t.includes('oido') ||
+    t.includes('tacto') ||
+    t.includes('gusto') ||
+    t.includes('olfato') ||
+    t.includes('cuerpo') ||
+    t.includes('planta') ||
+    t.includes('flora') ||
+    t.includes('animal') ||
+    t.includes('ave') ||
+    t.includes('fauna') ||
+    t.includes('ambiente') ||
+    t.includes('energ')
+  ) {
+    if (t.includes('vista') || t.includes('ojo') || t.includes('sentido') || t.includes('observa')) return Eye
+    if (t.includes('oído') || t.includes('oido') || t.includes('sonido') || t.includes('escucha') || t.includes('cantar')) return Ear
+    if (t.includes('cuerpo') || t.includes('salud') || t.includes('piel') || t.includes('tacto') || t.includes('vida')) return Heart
+    if (t.includes('gusto') || t.includes('fruto') || t.includes('alimento') || t.includes('nutri') || t.includes('papa')) return Apple
+    if (t.includes('planta') || t.includes('flor') || t.includes('semilla') || t.includes('biohuerto') || t.includes('olfato') || t.includes('chacra') || t.includes('suelo')) return Flower2
+    if (t.includes('agua') || t.includes('río') || t.includes('lluvia') || t.includes('nube')) return Droplets
+    if (t.includes('sol') || t.includes('luz') || t.includes('energía') || t.includes('energia')) return Sun
+    if (t.includes('experimento') || t.includes('laboratorio') || t.includes('materia')) return Microscope
+    return FlaskConical
+  }
+
+  // 2. Matemática: números, figuras, medidas, problemas
+  if (
+    area.includes('MAT') ||
+    t.includes('número') ||
+    t.includes('numero') ||
+    t.includes('conteo') ||
+    t.includes('suma') ||
+    t.includes('resta') ||
+    t.includes('geomet') ||
+    t.includes('figura') ||
+    t.includes('fracci') ||
+    t.includes('patr')
+  ) {
+    if (t.includes('número') || t.includes('numero') || t.includes('conteo') || t.includes('secuencia') || t.includes('patr') || t.includes('quipu')) return Binary
+    if (t.includes('geomet') || t.includes('figura') || t.includes('forma') || t.includes('triángulo') || t.includes('cuadrilátero') || t.includes('cuerpo')) return Shapes
+    if (t.includes('medida') || t.includes('metro') || t.includes('longitud') || t.includes('regla') || t.includes('medimos')) return Ruler
+    if (t.includes('solución') || t.includes('problema') || t.includes('reto')) return Lightbulb
+    return Calculator
+  }
+
+  // 3. Comunicación: lectura, escritura, relatos, diálogos
+  if (
+    area.includes('COM') ||
+    t.includes('lectura') ||
+    t.includes('leer') ||
+    t.includes('cuento') ||
+    t.includes('fábula') ||
+    t.includes('fabula') ||
+    t.includes('leyenda') ||
+    t.includes('texto') ||
+    t.includes('escrib')
+  ) {
+    if (t.includes('escritura') || t.includes('escrib') || t.includes('redact') || t.includes('carta')) return PenTool
+    if (t.includes('oral') || t.includes('diálogo') || t.includes('habla') || t.includes('convers') || t.includes('adivinanza')) return MessageSquare
+    return BookOpen
+  }
+
+  // Fallback armónico
+  switch (node.sequence % 3) {
+    case 1: return BookOpen
+    case 2: return Calculator
+    default: return FlaskConical
   }
 }
 
@@ -136,17 +195,33 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
   const trailPath = useMemo(() => createTrailPath(points), [points])
 
-  // Identificar el nodo activo (priorizando el último visitado guardado en BD, HU-03)
+  // Identificar el nodo activo (el nivel actual del jugador para que Rupi avance)
   const lastVisitedNodeId = route.enrollment?.lastVisitedNodeId
   const activeIndex = useMemo(() => {
+    // 1. Si hay un nodo 'EN_CURSO', el jugador está jugando ese nivel
+    const inProgressIdx = route.nodes.findIndex((n) => n.state === 'EN_CURSO')
+    if (inProgressIdx !== -1) return inProgressIdx
+
+    // 2. Si el último visitado no está completado ni bloqueado, usarlo
     if (lastVisitedNodeId) {
       const lastIdx = route.nodes.findIndex((n) => n.id === lastVisitedNodeId)
-      if (lastIdx !== -1) return lastIdx
+      if (lastIdx !== -1 && route.nodes[lastIdx].state !== 'COMPLETADO' && route.nodes[lastIdx].state !== 'BLOQUEADO') {
+        return lastIdx
+      }
     }
-    const idx = route.nodes.findIndex((n) => n.state === 'EN_CURSO')
-    if (idx !== -1) return idx
-    const availIdx = route.nodes.findIndex((n) => n.state === 'DISPONIBLE')
-    return availIdx !== -1 ? availIdx : 0
+
+    // 3. Primer nodo DISPONIBLE para jugar (el siguiente nivel a superar)
+    const firstAvailableIdx = route.nodes.findIndex((n) => n.state === 'DISPONIBLE')
+    if (firstAvailableIdx !== -1) return firstAvailableIdx
+
+    // 4. Si toda la ruta está completada, Rupi se coloca en la meta final
+    const allCompleted = route.nodes.length > 0 && route.nodes.every((n) => n.state === 'COMPLETADO')
+    if (allCompleted) {
+      return route.nodes.length - 1
+    }
+
+    // 5. Respaldo: primer nodo
+    return 0
   }, [route.nodes, lastVisitedNodeId])
 
   // Desplazar suavemente el mapa al nodo activo al cargar la ruta (HU-03)
@@ -162,6 +237,9 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
   const handleGuideAction = () => {
     setRupiMood((prev) => (prev === 'jumping' ? 'cheering' : 'jumping'))
+    if (guideMessage) {
+      speakText(guideMessage)
+    }
     onGuideClick()
   }
 
@@ -174,22 +252,27 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
       <header className="unit-heading">
         <span className="unit-number"><MapPin aria-hidden="true" /></span>
         <div className="unit-copy">
-          <span className="eyebrow">Camino de aventuras</span>
-          <h3 id="roadmap-title">{route.title}</h3>
-          <span className="unit-subtitle">
-            {route.progress.totalNodes} paradas para descubrir y aprender ({route.area.name} · {route.grade.name})
-          </span>
+          <span className="eyebrow">Sendero de paradas</span>
+          <h3 id="roadmap-title">
+            {route.progress.completedNodes} de {route.progress.totalNodes} paradas completadas
+          </h3>
         </div>
+        {guideMessage && (
+          <button
+            type="button"
+            className="listen-guide-btn"
+            onClick={handleGuideAction}
+            title={`Escuchar a Rupi: "${guideMessage}"`}
+            aria-label="Escuchar consejo de Rupi"
+          >
+            <Volume2 size={16} aria-hidden="true" />
+            <span>Escuchar a Rupi</span>
+          </button>
+        )}
         <span className="unit-status">
-          {route.enrollment.state === 'ACTIVO' ? 'EN AVENTURA' : route.enrollment.state}
+          {route.progress.completedNodes === route.progress.totalNodes ? '¡Ruta completada!' : 'En marcha'}
         </span>
       </header>
-
-      {route.curriculum && route.curriculum.status !== 'COMPLETA' && route.curriculum.message && (
-        <p className={`curriculum-note ${route.curriculum.status.toLowerCase()}`} role="status">
-          {route.curriculum.message}
-        </p>
-      )}
 
       <div
         className="map-area"
@@ -220,7 +303,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
           const labelSide = posX >= 50 ? 'right' : 'left'
           const isActive = index === activeIndex
           const isGoal = index === route.nodes.length - 1
-          const ThemeIcon = getStopThemeIcon(node.sequence)
+          const ThemeIcon = getStopThemeIcon(node, route.area?.code)
           const unitBand = unitBands.get(node.id)
 
           return (
@@ -263,14 +346,20 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                   </div>
                 )}
 
-                {/* Nodo circular con ícono temático y número legible en insignia */}
+                {/* Nodo circular con Rupi adentro si es el nivel actual del jugador */}
                 <button
-                  className={`lesson-node ${cssClass} ${isGoal ? 'is-goal-node' : ''}`}
+                  className={`lesson-node ${cssClass} ${isGoal ? 'is-goal-node' : ''} ${isActive ? 'is-current-player-node' : ''}`}
                   type="button"
                   onClick={() => handleNodeInteraction(node)}
                   aria-label={`Parada ${node.sequence}: ${node.title}. Estado: ${stateLabel}. ${canOpen ? 'Toca para abrir' : 'Aún no disponible'}`}
                 >
-                  <ThemeIcon className="node-theme-icon" aria-hidden="true" />
+                  {isActive ? (
+                    <div className="node-rupi-inside" aria-hidden="true">
+                      <RupiCharacter mood={rupiMood} className="node-rupi-svg" />
+                    </div>
+                  ) : (
+                    <ThemeIcon className="node-theme-icon" aria-hidden="true" />
+                  )}
                   <span className="node-seq-badge" aria-hidden="true">
                     {node.state === 'COMPLETADO' ? (
                       <Check size={14} strokeWidth={3.5} />
@@ -282,7 +371,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
                 {/* Etiqueta compacta hacia el exterior con conector al nodo */}
                 <div
-                  className={`node-label-pill ${labelSide} ${cssClass} ${isGoal ? 'is-goal-pill' : ''}`}
+                  className={`node-label-pill ${labelSide} ${cssClass} ${isGoal ? 'is-goal-pill' : ''} ${isActive ? 'active-player-pill' : ''}`}
                   onClick={() => handleNodeInteraction(node)}
                   role="button"
                   tabIndex={0}
@@ -293,6 +382,12 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                     }
                   }}
                 >
+                  {isActive && (
+                    <span className="player-here-badge">
+                      <span className="player-dot-pulse" aria-hidden="true" />
+                      ¡Nivel actual con Rupi!
+                    </span>
+                  )}
                   {isGoal && (
                     <span className="goal-kicker-tag">
                       <Trophy size={14} aria-hidden="true" />
@@ -302,45 +397,6 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                   <b className="stop-title-text">{node.title}</b>
                   <span className={`pill-state ${cssClass}`}>{nodeStateLabels[node.state]}</span>
                 </div>
-
-                {/* Rupi (el gallito de las rocas) posicionado directamente en el nivel actual del estudiante */}
-                {isActive && (
-                  <div
-                    className="rupi-perched-current-node"
-                    onClick={handleGuideAction}
-                    role="button"
-                    tabIndex={0}
-                    title="¡Rupi está aquí contigo en este nivel! Toca para escuchar tu consejo"
-                    aria-label={`Rupi está en tu nivel actual: ${node.title}. Toca para escuchar.`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        handleGuideAction()
-                      }
-                    }}
-                  >
-                    <div className="rupi-perched-sprite-box">
-                      <RupiCharacter mood={rupiMood} className="avatar-perched" />
-                      <div className="rupi-feet-shadow" aria-hidden="true" />
-                    </div>
-                    <div className="rupi-level-badge">
-                      <span className="rupi-badge-pulse" aria-hidden="true" />
-                      <span>¡Tu nivel actual!</span>
-                      <button
-                        type="button"
-                        className="rupi-mini-listen-btn"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          speakText(guideMessage)
-                        }}
-                        aria-label="Escuchar consejo de Rupi"
-                        title="Escuchar"
-                      >
-                        <Volume2 size={13} aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             </Fragment>
           )
@@ -350,32 +406,32 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
         <Sparkles className="map-decoration sparkle sparkle-two" aria-hidden="true" />
       </div>
 
-      {/* Leyenda única y uniforme */}
+      {/* Leyenda única y uniforme con mini-nodos idénticos al mapa */}
       <div className="map-legend" id="logros" aria-label="Significado de los símbolos del mapa">
-        <span className="legend-chip">
-          <span className="legend-icon-badge done">
-            <Check size={16} strokeWidth={3} aria-hidden="true" />
-          </span>
-          <b>¡Lo lograste!</b>
-        </span>
-        <span className="legend-chip">
-          <span className="legend-icon-badge now">
-            <Star size={16} fill="currentColor" aria-hidden="true" />
-          </span>
-          <b>¡Sigue por aquí!</b>
-        </span>
-        <span className="legend-chip">
-          <span className="legend-icon-badge available">
-            <Flag size={16} fill="currentColor" aria-hidden="true" />
-          </span>
-          <b>¡Puedes entrar!</b>
-        </span>
-        <span className="legend-chip">
-          <span className="legend-icon-badge locked">
-            <HelpCircle size={16} strokeWidth={2.5} aria-hidden="true" />
-          </span>
-          <b>Aún no</b>
-        </span>
+        <div className="legend-chip">
+          <div className="legend-node-mini complete" aria-hidden="true">
+            <Check size={14} strokeWidth={3.5} />
+          </div>
+          <span>Completada</span>
+        </div>
+        <div className="legend-chip">
+          <div className="legend-node-mini active" aria-hidden="true">
+            <Sparkles size={14} />
+          </div>
+          <span>Tu nivel actual (con Rupi)</span>
+        </div>
+        <div className="legend-chip">
+          <div className="legend-node-mini available" aria-hidden="true">
+            <Flag size={14} />
+          </div>
+          <span>Disponible para jugar</span>
+        </div>
+        <div className="legend-chip">
+          <div className="legend-node-mini locked" aria-hidden="true">
+            <Lock size={13} />
+          </div>
+          <span>Bloqueada</span>
+        </div>
       </div>
 
       <UnitDownloadPanel key={route.versionRouteId} route={route} />

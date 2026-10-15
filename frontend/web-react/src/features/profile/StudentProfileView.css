@@ -108,19 +108,29 @@
 .btn-change-grade-pill {
   background: none;
   border: 1.5px dashed #246a91;
-  border-radius: 10px;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.82rem;
-  font-weight: 700;
+  border-radius: 12px;
+  padding: 0.5rem 0.9rem;
+  min-height: 48px;
+  min-width: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.84rem;
+  font-weight: 800;
   color: #246a91;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.12s ease;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.12s ease, border-color 0.12s ease;
 }
 
 .btn-change-grade-pill:hover {
   background-color: #eaf3f8;
   border-style: solid;
+  transform: translateY(-1px);
+}
+
+.btn-change-grade-pill:active {
+  transform: translateY(1px);
 }
 
 /* Grilla de métricas */
@@ -195,6 +205,7 @@
   font-weight: 900;
   color: #173e30;
   line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
@@ -247,15 +258,15 @@
   background-color: #f3f6f4;
   border: 2px solid #173e30;
   border-radius: 12px;
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 1.1rem;
   font-size: 0.88rem;
   font-weight: 800;
   font-family: inherit;
   color: #173e30;
   cursor: pointer;
   box-shadow: 0 3px 0 #173e30;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
-  min-height: 44px;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.12s ease, background-color 0.12s ease;
+  min-height: 48px;
 }
 
 .btn-speak-summary:hover {

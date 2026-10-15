@@ -84,7 +84,7 @@ final class RouteCurriculum {
                     "El catálogo curricular de esta ruta ya no está vigente. Consulta con tu docente.", groups);
         }
         if (!loose.isEmpty()) {
-            return new Curriculum(PARTIAL, "Algunas paradas no tienen unidad y aparecen al final.", groups);
+            return new Curriculum(PARTIAL, null, groups);
         }
         return new Curriculum(COMPLETE, null, groups);
     }

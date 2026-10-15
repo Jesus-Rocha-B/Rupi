@@ -10,10 +10,14 @@ import {
   FlaskConical,
   Filter,
   RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
 } from 'lucide-react'
 import {
   searchAlternativeRoutes,
   enrollInRoute,
+  joinRouteByCode,
   type RouteSearchResult,
   type RouteSummary,
 } from '../../services/learningRoutesApi'
@@ -32,27 +36,26 @@ interface ExploreRoadmapsViewProps {
 type CategoryTab = 'OFICIAL' | 'COMUNIDAD'
 
 export function ExploreRoadmapsView({
-  currentGrade,
-  currentCourse,
+  currentGrade: _currentGrade,
+  currentCourse: _currentCourse,
   enrolledRoutes,
   onSelectRoute,
   onOpenJoinModal,
 }: ExploreRoadmapsViewProps) {
   const [activeTab, setActiveTab] = useState<CategoryTab>('OFICIAL')
   const [searchQuery, setSearchQuery] = useState('')
-  const [filterGrade, setFilterGrade] = useState<number | null>(currentGrade)
-  const [filterArea, setFilterArea] = useState<string>(() => {
-    if (!currentCourse) return 'TODAS'
-    const c = currentCourse.toUpperCase()
-    if (c.includes('COM')) return 'COM'
-    if (c.includes('MAT')) return 'MAT'
-    if (c.includes('CYT')) return 'CYT'
-    return 'TODAS'
-  })
+  const [filterGrade, setFilterGrade] = useState<number | null>(null)
+  const [filterArea, setFilterArea] = useState<string>('TODAS')
   const [results, setResults] = useState<RouteSearchResult[]>([])
   const [loading, setLoading] = useState(true)
   const [enrollingId, setEnrollingId] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  // Estado para unirse a rutas con código de profesor directamente desde Comunidad
+  const [inlineCode, setInlineCode] = useState('')
+  const [inlineJoining, setInlineJoining] = useState(false)
+  const [inlineError, setInlineError] = useState<string | null>(null)
+  const [inlineSuccess, setInlineSuccess] = useState<string | null>(null)
 
   // Mapa de rutas inscritas para búsqueda O(1) de progreso
   const enrolledMap = useMemo(() => {
@@ -78,10 +81,10 @@ export function ExploreRoadmapsView({
             query: searchQuery.trim(),
             gradeNumber: filterGrade,
             area: areaParam,
-            limit: 40,
+            limit: 50,
           },
           undefined,
-          40,
+          50,
           controller.signal
         )
         if (!isCancelled) {
@@ -109,22 +112,18 @@ export function ExploreRoadmapsView({
     }
   }, [searchQuery, filterGrade, filterArea])
 
-  // Filtrar según la pestaña activa (Por Defecto RUPI vs Comunidad / Docentes)
+  // Filtrar según la pestaña activa (Roadmaps RUPI oficiales vs Comunidad / Profesores)
   const filteredRoutes = useMemo(() => {
     if (activeTab === 'OFICIAL') {
-      // Rutas por defecto creadas por nosotros (RUPI)
+      // Rutas oficiales creadas por RUPI (1.° a 6.° de primaria)
       return results.filter((r) => r.category !== 'COMUNIDAD')
     } else {
-      // En Comunidad: rutas de profesores a las que el estudiante ya se unió mediante código de clase
-      return results.filter((r) => {
-        const isComunidad = r.category === 'COMUNIDAD' || (r.authorName && !r.authorName.includes('RUPI'))
-        const isEnrolled = Boolean(r.isEnrolled || enrolledMap.has(r.versionRouteId))
-        return isComunidad && isEnrolled
-      })
+      // En Comunidad: todos los roadmaps comunitarios creados por docentes y comunidad educativa
+      return results.filter((r) => r.category === 'COMUNIDAD' || (r.authorName && !r.authorName.includes('RUPI')))
     }
-  }, [results, activeTab, enrolledMap])
+  }, [results, activeTab])
 
-  // Manejar click en una tarjeta de ruta
+  // Manejar click en una tarjeta de ruta (si no está inscrita, inscribir primero y luego abrir)
   async function handleActionClick(route: RouteSearchResult) {
     const isEnrolled = route.isEnrolled || enrolledMap.has(route.versionRouteId)
     if (isEnrolled) {
@@ -132,16 +131,55 @@ export function ExploreRoadmapsView({
       return
     }
 
-    // Si no está inscrita, inscribir primero
     setEnrollingId(route.versionRouteId)
     try {
-      await enrollInRoute(route.versionRouteId)
-      onSelectRoute(route.versionRouteId, route.gradeNumber, route.areaCode)
+      const detail = await enrollInRoute(route.versionRouteId)
+      // Actualizar estado local para que la tarjeta se marque como inscrita de inmediato
+      setResults((prev) =>
+        prev.map((r) =>
+          r.versionRouteId === route.versionRouteId ? { ...r, isEnrolled: true } : r
+        )
+      )
+      onSelectRoute(detail.versionRouteId, detail.grade?.number || route.gradeNumber, detail.area?.code || route.areaCode)
     } catch {
       // Si falla la inscripción en red, intentar navegar directamente
       onSelectRoute(route.versionRouteId, route.gradeNumber, route.areaCode)
     } finally {
       setEnrollingId(null)
+    }
+  }
+
+  // Manejar ingreso de código de profesor directamente en la vista
+  async function handleInlineCodeSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = inlineCode.trim().toUpperCase()
+    if (!trimmed || trimmed.length < 3) {
+      setInlineError('Ingresa un código de clase válido (mínimo 3 letras o números).')
+      return
+    }
+    setInlineJoining(true)
+    setInlineError(null)
+    setInlineSuccess(null)
+    try {
+      const res = await joinRouteByCode(trimmed)
+      setInlineSuccess(`¡Bienvenido a tu clase! Te has unido a: ${res.routeTitle}`)
+      // Actualizar resultados locales si la ruta está presente
+      setResults((prev) =>
+        prev.map((r) =>
+          r.versionRouteId === res.versionRouteId ? { ...r, isEnrolled: true } : r
+        )
+      )
+      setTimeout(() => {
+        onSelectRoute(res.versionRouteId, res.grade?.number, res.area?.code)
+      }, 1000)
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : 'No encontramos un roadmap con este código. Revisa las letras o consulta con tu profesor.'
+      setInlineError(msg)
+    } finally {
+      setInlineJoining(false)
     }
   }
 
@@ -181,8 +219,8 @@ export function ExploreRoadmapsView({
         >
           <GraduationCap size={20} aria-hidden="true" />
           <div className="tab-text-group">
-            <strong className="tab-title">Por Defecto (RUPI)</strong>
-            <small className="tab-desc">Rutas oficiales de 1.° a 6.° de primaria en Costa, Sierra y Selva</small>
+            <strong className="tab-title">Roadmaps RUPI</strong>
+            <small className="tab-desc">Rutas oficiales de 1.° a 6.° de primaria según el Currículo Nacional</small>
           </div>
         </button>
 
@@ -303,21 +341,85 @@ export function ExploreRoadmapsView({
           )}
         </div>
 
-        {/* Banner de acceso rápido a código en pestaña Comunidad si ya tiene rutas */}
-        {activeTab === 'COMUNIDAD' && filteredRoutes.length > 0 && (
-          <div className="community-join-banner" role="region" aria-label="Unirse a otra clase">
-            <div className="community-banner-text">
-              <KeyRound size={18} className="banner-icon" aria-hidden="true" />
-              <span>¿Tu profesor te asignó un nuevo código de clase?</span>
+        {/* Sección interactiva destacada para ingresar código de profesor en la pestaña Comunidad */}
+        {activeTab === 'COMUNIDAD' && (
+          <div className="teacher-code-join-card" role="region" aria-label="Ingresar código de profesor">
+            <div className="teacher-code-header">
+              <div className="teacher-code-icon-badge" aria-hidden="true">
+                <KeyRound size={26} />
+              </div>
+              <div className="teacher-code-titles">
+                <h2 className="teacher-code-title">¿Tienes un código de tu profesor?</h2>
+                <p className="teacher-code-desc">
+                  Ingresa el código que te dio tu maestro o maestra para desbloquear y entrar a su roadmap escolar (ejemplos: <strong>PROFCARLOS</strong>, <strong>DOCENTE2026</strong> o <strong>WARI2026</strong>).
+                </p>
+              </div>
             </div>
-            <button
-              type="button"
-              className="btn-join-code-highlight"
-              onClick={onOpenJoinModal}
-            >
-              <KeyRound size={16} aria-hidden="true" />
-              <span>Ingresar otro código</span>
-            </button>
+
+            <form className="teacher-code-form" onSubmit={handleInlineCodeSubmit}>
+              <div className="teacher-code-input-wrap">
+                <KeyRound size={20} className="code-input-icon" aria-hidden="true" />
+                <input
+                  type="text"
+                  className="teacher-code-input"
+                  placeholder="Escribe el código (ej. PROFCARLOS)..."
+                  value={inlineCode}
+                  onChange={(e) => {
+                    setInlineCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''))
+                    setInlineError(null)
+                  }}
+                  maxLength={30}
+                  aria-label="Código de clase del profesor"
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  spellCheck="false"
+                />
+                {inlineCode && (
+                  <button
+                    type="button"
+                    className="clear-code-btn"
+                    onClick={() => {
+                      setInlineCode('')
+                      setInlineError(null)
+                    }}
+                    aria-label="Borrar código escrito"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="btn-join-code-action"
+                disabled={inlineJoining || !inlineCode.trim()}
+              >
+                {inlineJoining ? (
+                  <>
+                    <RefreshCw size={18} className="spin-icon" aria-hidden="true" />
+                    <span>Verificando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={18} aria-hidden="true" />
+                    <span>Unirme al Roadmap</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {inlineSuccess && (
+              <div className="code-feedback-alert success" role="alert">
+                <CheckCircle2 size={18} aria-hidden="true" />
+                <span>{inlineSuccess}</span>
+              </div>
+            )}
+            {inlineError && (
+              <div className="code-feedback-alert error" role="alert">
+                <AlertCircle size={18} aria-hidden="true" />
+                <span>{inlineError}</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -327,24 +429,34 @@ export function ExploreRoadmapsView({
             <RupiCharacter mood={activeTab === 'COMUNIDAD' ? 'cheering' : 'thinking'} role="default" className="explore-empty-rupi" />
             {activeTab === 'COMUNIDAD' ? (
               <>
-                <h3>¡Aún no te has unido a rutas de tus profesores!</h3>
+                <h3>¡Explora las rutas de tu comunidad escolar!</h3>
                 <p>
-                  Cuando tu profesor o profesora te entregue un código de clase para tu aula, ingrésalo aquí para desbloquear su roadmap escolar y avanzar juntos.
+                  No encontramos roadmaps publicados con los filtros actuales. Prueba seleccionando "Todos los grados" o ingresa el código de tu profesor en la casilla superior para acceder a su aula.
                 </p>
                 <div className="empty-actions">
-                  <button
-                    type="button"
-                    className="btn-join-code-highlight"
-                    onClick={onOpenJoinModal}
-                  >
-                    <KeyRound size={18} aria-hidden="true" />
-                    <span>Ingresar código de clase</span>
-                  </button>
+                  {filterGrade !== null && (
+                    <button
+                      type="button"
+                      className="btn-reset-filters"
+                      onClick={() => setFilterGrade(null)}
+                    >
+                      Ver todos los grados
+                    </button>
+                  )}
+                  {filterArea !== 'TODAS' && (
+                    <button
+                      type="button"
+                      className="btn-reset-filters"
+                      onClick={() => setFilterArea('TODAS')}
+                    >
+                      Ver todas las materias
+                    </button>
+                  )}
                 </div>
               </>
             ) : (
               <>
-                <h3>No encontramos roadmaps por defecto con estos filtros</h3>
+                <h3>No encontramos roadmaps con estos filtros</h3>
                 <p>Intenta seleccionando "Todos los grados" o borrando el texto de búsqueda.</p>
                 <div className="empty-actions">
                   {searchQuery && (

@@ -268,6 +268,54 @@
   color: #556c60;
 }
 
+.btn-open-youtube-direct {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #ffffff;
+  color: #ad3319;
+  border: 1.5px solid #f6b5a8;
+  border-radius: 12px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-decoration: none;
+  min-height: 40px;
+  box-shadow: 0 2px 0 #f6b5a8;
+  transition: transform 0.08s ease, background-color 0.12s;
+  white-space: nowrap;
+}
+
+.btn-open-youtube-direct:hover {
+  background-color: #fff4ea;
+  border-color: #f95738;
+  color: #8c3216;
+}
+
+.btn-open-youtube-direct:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #f6b5a8;
+}
+
+.video-player-footer {
+  padding: 0.6rem 1.25rem;
+  background-color: #f7faf8;
+  border-top: 1.5px solid #173e30;
+  font-size: 0.82rem;
+  color: #556c60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.video-player-footer a {
+  color: #ad3319;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
 .video-embed-wrapper {
   position: relative;
   width: 100%;
@@ -826,6 +874,32 @@
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.4;
+}
+
+.btn-retry-question {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+  background-color: #ffffff;
+  color: #ad3319;
+  border: 2px solid #f95738;
+  border-radius: 12px;
+  padding: 0.55rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #cc3a1d;
+  transition: transform 0.08s ease, background 0.12s;
+}
+
+.btn-retry-question:hover {
+  background-color: #fff4ea;
+}
+
+.btn-retry-question:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #cc3a1d;
 }
 
 /* Barra inferior para culminar la parada */

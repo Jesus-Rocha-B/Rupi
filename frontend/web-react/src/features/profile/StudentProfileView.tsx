@@ -184,9 +184,8 @@ export function StudentProfileView({
           <div className="profile-grade-row">
             <span className="profile-grade-badge">
               <GraduationCap size={15} aria-hidden="true" />
-              <span>{enrolledGrade ? `${enrolledGrade}.° de Primaria` : 'Primaria'}</span>
+              <span>{enrolledGrade ? `${enrolledGrade}.° de Primaria (Matriculado)` : 'Primaria'}</span>
             </span>
-            <span className="profile-enrolled-tag">Grado matriculado</span>
 
             <button
               type="button"
