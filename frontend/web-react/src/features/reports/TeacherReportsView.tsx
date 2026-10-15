@@ -83,18 +83,18 @@ function ReportResults({ room, route }: { room: string; route: string }) {
     </details>)}
   </div>
 }
-function ClassroomReports({ room }: { room: string }) {
+function ClassroomReports({ room, initialRouteId }: { room: string; initialRouteId?: string }) {
   const { data: routes, error, retry } = useReportData<ReportRoute[]>(`/classrooms/${encodeURIComponent(room)}/routes`)
-  const [selected, setSelected] = useState('')
+  const [selected, setSelected] = useState(initialRouteId || '')
   if (error) return <ReportError message={error} retry={retry} />
   if (!routes) return <p role="status">Buscando las rutas de tus estudiantes…</p>
   if (!routes.length) return <p className="report-empty">Todavía no hay inscripciones en rutas del grado de esta aula. El reporte aparecerá cuando los estudiantes se inscriban.</p>
-  const route = routes.some(r => r.id === selected) ? selected : routes[0].id
+  const route = routes.some(r => r.id === selected) ? selected : (initialRouteId && routes.some(r => r.id === initialRouteId) ? initialRouteId : routes[0].id)
   return <><label className="report-filter">Ruta y versión<select value={route} onChange={event => setSelected(event.target.value)}>
     {routes.map(r => <option key={r.id} value={r.id}>{r.title} · v{r.version} · {r.state === 'PUBLICADO' ? 'Publicada' : 'No publicada'}</option>)}
   </select></label><ReportResults key={route} room={room} route={route} /></>
 }
-export function TeacherReportsView({ onBack, onLogout }: { onBack: () => void; onLogout: () => void }) {
+export function TeacherReportsView({ onBack, onLogout, initialRouteId }: { onBack: () => void; onLogout: () => void; initialRouteId?: string }) {
   const { data: rooms, error, retry } = useReportData<ReportClassroom[]>('/classrooms')
   const [selected, setSelected] = useState('')
   const room = rooms?.some(r => r.id === selected) ? selected : rooms?.[0]?.id
@@ -106,6 +106,6 @@ export function TeacherReportsView({ onBack, onLogout }: { onBack: () => void; o
     {rooms && !rooms.length && <p className="report-empty">Aún no tienes aulas activas asignadas. Solicita que te registren como docente o responsable de tu aula para consultar sus resultados.</p>}
     {rooms && room && <><label className="report-filter">Aula<select value={room} onChange={event => setSelected(event.target.value)}>
       {rooms.map(r => <option key={r.id} value={r.id}>{r.name} · {r.grade}.º de primaria</option>)}
-    </select></label><ClassroomReports key={room} room={room} /></>}
+    </select></label><ClassroomReports key={room} room={room} initialRouteId={initialRouteId} /></>}
   </main>
 }

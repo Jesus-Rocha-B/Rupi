@@ -79,6 +79,7 @@ public final class LearningRouteDtos {
 
     public record RouteDetailResponse(
             UUID versionRouteId,
+            String code,
             String title,
             Grade grade,
             Area area,
@@ -96,9 +97,23 @@ public final class LearningRouteDtos {
                 Enrollment enrollment,
                 Progress progress,
                 List<RouteNode> nodes,
+                CulturalContext culturalContext,
+                Curriculum curriculum
+        ) {
+            this(versionRouteId, null, title, grade, area, enrollment, progress, nodes, culturalContext, curriculum);
+        }
+
+        public RouteDetailResponse(
+                UUID versionRouteId,
+                String title,
+                Grade grade,
+                Area area,
+                Enrollment enrollment,
+                Progress progress,
+                List<RouteNode> nodes,
                 CulturalContext culturalContext
         ) {
-            this(versionRouteId, title, grade, area, enrollment, progress, nodes, culturalContext, null);
+            this(versionRouteId, null, title, grade, area, enrollment, progress, nodes, culturalContext, null);
         }
 
         public RouteDetailResponse(
@@ -110,7 +125,7 @@ public final class LearningRouteDtos {
                 Progress progress,
                 List<RouteNode> nodes
         ) {
-            this(versionRouteId, title, grade, area, enrollment, progress, nodes, null, null);
+            this(versionRouteId, null, title, grade, area, enrollment, progress, nodes, null, null);
         }
     }
 

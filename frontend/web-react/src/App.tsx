@@ -530,22 +530,50 @@ function App() {
     )
   }
 
+  const [reportsInitialRouteId, setReportsInitialRouteId] = useState<string | null>(null)
+
   if (student.role === 'DOCENTE' && teacherViewMode === 'reports') {
-    return <TeacherReportsView onBack={() => setTeacherViewMode('authoring')} onLogout={handleLogout} />
+    return (
+      <TeacherReportsView
+        initialRouteId={reportsInitialRouteId || undefined}
+        onBack={() => {
+          setReportsInitialRouteId(null)
+          setTeacherViewMode('authoring')
+        }}
+        onLogout={handleLogout}
+      />
+    )
   }
 
   // 1.5 Panel de Autoría para Docentes (HU-05)
   if (student.role === 'DOCENTE' && teacherViewMode === 'authoring') {
     return (
       <TeacherAuthoringView
-        onOpenReports={() => setTeacherViewMode('reports')}
+        onOpenReports={(targetRouteId) => {
+          setReportsInitialRouteId(targetRouteId || null)
+          setTeacherViewMode('reports')
+        }}
         teacherName={student.name}
         schoolName={student.schoolName || student.institutionName || 'I.E. 38001 Mariscal Sucre'}
         onLogout={handleLogout}
-        onSwitchToStudentView={() => {
+        onSwitchToStudentView={(targetRouteId, gradeNum, areaCode) => {
           setTeacherViewMode('student_preview')
-          if (selectedGrade === null) setSelectedGrade(2)
-          if (selectedCourse === null) setSelectedCourse('MATEMATICA')
+          if (targetRouteId) {
+            setRouteId(targetRouteId)
+            if (gradeNum) setSelectedGrade(gradeNum)
+            if (areaCode) {
+              const code = areaCode.toUpperCase()
+              let normalized = code
+              if (code.includes('COM')) normalized = 'COMUNICACION'
+              else if (code.includes('CYT')) normalized = 'CYT'
+              else if (code.includes('MAT')) normalized = 'MATEMATICA'
+              setSelectedCourse(normalized)
+            }
+            setCurrentView('camino')
+          } else {
+            if (selectedGrade === null) setSelectedGrade(2)
+            if (selectedCourse === null) setSelectedCourse('MATEMATICA')
+          }
         }}
       />
     )

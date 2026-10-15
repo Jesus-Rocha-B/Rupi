@@ -61,6 +61,27 @@
   border: 1px solid #173e30;
 }
 
+.unit-code-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #f0fdf4;
+  color: #173e30;
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  border: 1.5px solid #31724b;
+}
+
+.unit-code-pill strong {
+  color: #f95738;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
 .unit-progress-pill {
   display: inline-flex;
   align-items: center;

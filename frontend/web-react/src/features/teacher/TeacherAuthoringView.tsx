@@ -31,6 +31,8 @@ import {
   CheckCircle2,
   Play,
   Paperclip,
+  KeyRound,
+  Copy,
 } from 'lucide-react'
 import {
   fetchTeacherRoutes,
@@ -44,6 +46,8 @@ import {
   uploadTeacherMaterial,
   fetchTeacherNodeDetail,
   updateTeacherNode,
+  deleteTeacherNode,
+  deleteTeacherRoute,
   type TeacherRouteSummary,
   type TeacherRouteDetail,
   type TeacherNode,
@@ -51,6 +55,7 @@ import {
   type TeacherQuestion,
   type UpdateNodePayload,
 } from '../../services/teacherApi'
+import { StudentAvatar } from '../../components/StudentAvatar'
 import { MaterialUploadZone } from '../../components/MaterialUploadZone'
 import { resolveEducationalVideo } from '../../utils/educationalVideos'
 import './TeacherAuthoring.css'
@@ -59,8 +64,8 @@ interface Props {
   teacherName: string
   schoolName: string
   onLogout: () => void
-  onSwitchToStudentView: () => void
-  onOpenReports: () => void
+  onSwitchToStudentView: (targetRouteId?: string, gradeNum?: number, areaCode?: string) => void
+  onOpenReports: (routeId?: string) => void
 }
 
 const CNEB_AREAS = [
@@ -146,6 +151,71 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
   const [uploadingVideo, setUploadingVideo] = useState(false)
   const [nodeSaveBanner, setNodeSaveBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const videoInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Estados para confirmación de borrado (paradas y roadmaps)
+  const [nodeToDelete, setNodeToDelete] = useState<TeacherNode | null>(null)
+  const [deletingNode, setDeletingNode] = useState(false)
+  const [routeToDelete, setRouteToDelete] = useState<{ routeId: string; title: string } | null>(null)
+  const [deletingRoute, setDeletingRoute] = useState(false)
+
+  // Copiado de código de clase al portapapeles
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+
+  function handleCopyCode(code: string) {
+    if (!code) return
+    navigator.clipboard.writeText(code).then(() => {
+      setCopiedCode(code)
+      setTimeout(() => setCopiedCode(null), 2500)
+    }).catch(() => {
+      setCopiedCode(code)
+      setTimeout(() => setCopiedCode(null), 2500)
+    })
+  }
+
+  async function handleConfirmDeleteNode() {
+    if (!selectedRouteId || !nodeToDelete) return
+    setDeletingNode(true)
+    try {
+      const res = await deleteTeacherNode(selectedRouteId, nodeToDelete.id)
+      setBanner({ type: 'success', message: res.message || 'Parada eliminada exitosamente del roadmap.' })
+      setNodeToDelete(null)
+
+      const detail = await fetchTeacherRouteDetail(selectedRouteId)
+      setActiveRouteDetail(detail)
+      setOrderedNodes(detail.nodes)
+      setIsReorderDirty(false)
+      if (selectedNode?.id === nodeToDelete.id) {
+        setSelectedNode(detail.nodes[0] || null)
+      }
+      loadRoutes()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al eliminar la parada didáctica.'
+      setBanner({ type: 'error', message: msg })
+    } finally {
+      setDeletingNode(false)
+    }
+  }
+
+  async function handleConfirmDeleteRoute() {
+    if (!routeToDelete) return
+    setDeletingRoute(true)
+    try {
+      const res = await deleteTeacherRoute(routeToDelete.routeId)
+      setBanner({ type: 'success', message: res.message || 'Roadmap escolar eliminado exitosamente.' })
+      setRouteToDelete(null)
+      if (activeRouteDetail?.routeId === routeToDelete.routeId) {
+        setActiveRouteDetail(null)
+        setSelectedRouteId(null)
+        setSelectedNode(null)
+      }
+      await loadRoutes()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al eliminar el roadmap escolar.'
+      setBanner({ type: 'error', message: msg })
+    } finally {
+      setDeletingRoute(false)
+    }
+  }
 
   useEffect(() => {
     loadRoutes()
@@ -596,33 +666,26 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
 
   return (
     <div className="teacher-authoring-view">
-      {/* 1. Barra de cabecera del docente */}
+      {/* 1. Barra de cabecera del docente con perfil e institución */}
       <header className="teacher-header">
-        <div className="teacher-header-lead">
-          <div className="teacher-brand-badge">
-            <GraduationCap size={24} className="teacher-icon" aria-hidden="true" />
-            <div className="teacher-info-text">
-              <span className="teacher-role-tag">PANEL DOCENTE · GESTIÓN Y AUTORÍA</span>
-              <h1 className="teacher-title">{teacherName}</h1>
-              <span className="teacher-school">{schoolName}</span>
-            </div>
+        <div className="teacher-header-left">
+          <div className="teacher-role-emblem">
+            <GraduationCap size={22} className="teacher-icon" aria-hidden="true" />
+            <span className="teacher-role-tag">PANEL DOCENTE · GESTIÓN Y AUTORÍA</span>
           </div>
         </div>
 
-        <div className="teacher-header-actions">
-          <button type="button" className="teacher-action-btn secondary" onClick={onOpenReports}><FileText size={20} aria-hidden="true" /> Reportes de resultados</button>
+        <div className="teacher-header-right">
+          <div className="teacher-profile-widget">
+            <StudentAvatar role="DOCENTE" name={teacherName} size={42} />
+            <div className="teacher-profile-info">
+              <span className="teacher-name">{teacherName}</span>
+              <span className="teacher-school">{schoolName}</span>
+            </div>
+          </div>
           <button
             type="button"
-            className="teacher-action-btn secondary"
-            onClick={onSwitchToStudentView}
-            title="Ver aula virtual de estudiantes"
-          >
-            <Eye size={18} aria-hidden="true" />
-            <span>Vista de Estudiante</span>
-          </button>
-          <button
-            type="button"
-            className="teacher-action-btn danger"
+            className="teacher-logout-btn"
             onClick={onLogout}
             title="Cerrar sesión"
           >
@@ -713,6 +776,36 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                         {r.description || 'Sin descripción curricular.'}
                       </p>
 
+                      {/* Código de acceso e inscripción escolar */}
+                      {r.code && (
+                        <div className="card-code-strip">
+                          <KeyRound size={14} className="code-key-icon" aria-hidden="true" />
+                          <span className="card-code-label">Código:</span>
+                          <code className="card-code-value">{r.code}</code>
+                          <button
+                            type="button"
+                            className="card-code-copy-btn"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleCopyCode(r.code!)
+                            }}
+                            title="Copiar código de clase para tus estudiantes"
+                          >
+                            {copiedCode === r.code ? (
+                              <>
+                                <Check size={12} className="copied-check" />
+                                <span>Copiado</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={12} />
+                                <span>Copiar</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
                       <div className="card-meta-row">
                         <span className="area-pill">{r.areaName}</span>
                         <span className="stops-count">
@@ -728,7 +821,19 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                           onClick={() => handleOpenRouteDetail(r.routeId)}
                         >
                           <BookOpen size={16} aria-hidden="true" />
-                          <span>Editar y Adjuntar Materiales</span>
+                          <span>Editar Roadmap y Paradas</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="card-delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setRouteToDelete({ routeId: r.routeId, title: r.title })
+                          }}
+                          title="Eliminar este roadmap"
+                          aria-label={`Eliminar roadmap ${r.title}`}
+                        >
+                          <Trash2 size={16} aria-hidden="true" />
                         </button>
                       </div>
                     </article>
@@ -749,6 +854,36 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                 <ArrowLeft size={18} aria-hidden="true" />
                 <span>Volver a Mis Roadmaps</span>
               </button>
+
+              <div className="editor-nav-linked-actions">
+                <button
+                  type="button"
+                  className="editor-nav-btn secondary"
+                  onClick={() => onOpenReports(activeRouteDetail.routeId)}
+                  title="Ver reportes de resultados de este roadmap escolar"
+                >
+                  <FileText size={17} aria-hidden="true" />
+                  <span>Reportes de resultados</span>
+                </button>
+                <button
+                  type="button"
+                  className="editor-nav-btn secondary"
+                  onClick={() => onSwitchToStudentView(activeRouteDetail.versionRouteId, activeRouteDetail.grade.number, activeRouteDetail.area.code)}
+                  title="Ver cómo experimentan tus estudiantes este roadmap"
+                >
+                  <Eye size={17} aria-hidden="true" />
+                  <span>Vista de Estudiante</span>
+                </button>
+                <button
+                  type="button"
+                  className="editor-nav-btn danger-outline"
+                  onClick={() => setRouteToDelete({ routeId: activeRouteDetail.routeId, title: activeRouteDetail.title })}
+                  title="Eliminar este roadmap"
+                >
+                  <Trash2 size={16} aria-hidden="true" />
+                  <span>Eliminar Roadmap</span>
+                </button>
+              </div>
 
               <div className="editor-status-box">
                 <span className={`state-pill ${activeRouteDetail.state.toLowerCase()}`}>
@@ -777,7 +912,17 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
               </div>
             </div>
 
-            <RouteCalendar key={activeRouteDetail.versionRouteId} routeId={activeRouteDetail.versionRouteId} teacher />
+            {/* Calendario del aula en bloque colapsable no invasivo */}
+            <details className="editor-calendar-collapsible">
+              <summary className="editor-calendar-summary">
+                <Calendar size={18} aria-hidden="true" />
+                <span>Programación y Calendario del Aula</span>
+              </summary>
+              <div className="editor-calendar-body">
+                <RouteCalendar key={activeRouteDetail.versionRouteId} routeId={activeRouteDetail.versionRouteId} teacher />
+              </div>
+            </details>
+
             {/* Cabecera del roadmap activo */}
             <div className="editor-header-card">
               <div className="editor-header-info">
@@ -787,6 +932,33 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                 </div>
                 <h2 className="editor-title">{activeRouteDetail.title}</h2>
                 <p className="editor-desc">{activeRouteDetail.description}</p>
+
+                {/* Código de clase en el editor */}
+                {activeRouteDetail.code && (
+                  <div className="editor-code-strip">
+                    <KeyRound size={16} className="code-key-icon" aria-hidden="true" />
+                    <span className="code-label">Código de inscripción para estudiantes:</span>
+                    <code className="code-value">{activeRouteDetail.code}</code>
+                    <button
+                      type="button"
+                      className="editor-copy-code-btn"
+                      onClick={() => handleCopyCode(activeRouteDetail.code!)}
+                      title="Copiar código de clase"
+                    >
+                      {copiedCode === activeRouteDetail.code ? (
+                        <>
+                          <Check size={14} className="copied-check" />
+                          <span>¡Código Copiado!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} />
+                          <span>Copiar Código</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
 
               <button
@@ -931,12 +1103,32 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                             >
                               <ChevronDown size={16} aria-hidden="true" />
                             </button>
+                            <button
+                              type="button"
+                              className="delete-node-btn"
+                              onClick={() => setNodeToDelete(n)}
+                              title={`Eliminar parada "${n.title}"`}
+                              aria-label={`Eliminar parada ${n.title}`}
+                            >
+                              <Trash2 size={15} aria-hidden="true" />
+                            </button>
                           </div>
                         </div>
                       )
                     })}
                   </div>
                 )}
+
+                {/* Botón rápido para agregar otra parada al final de la secuencia */}
+                <button
+                  type="button"
+                  className="add-stop-bottom-btn"
+                  onClick={() => setShowAddNodeModal(true)}
+                  title="Agregar una nueva parada a esta ruta curricular"
+                >
+                  <Plus size={16} aria-hidden="true" />
+                  <span>+ Agregar otra parada al camino</span>
+                </button>
               </div>
 
               {/* Columna Derecha: Taller de Edición Integral de la Parada Seleccionada */}
@@ -949,9 +1141,20 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                         <span className="stop-seq-pill">Parada didáctica #{selectedNode.sequence}</span>
                         <h3 className="stop-editor-title">{editTitle || selectedNode.title}</h3>
                       </div>
-                      <div className="stop-header-status">
-                        <span className="stop-type-pill">{editActivityType === 'LECCION' ? 'Lección Interactiva' : 'Reto Pedagógico'}</span>
-                        <span className="stop-time-pill">{editMinutes} min estimados</span>
+                      <div className="stop-header-actions-group">
+                        <div className="stop-header-status">
+                          <span className="stop-type-pill">{editActivityType === 'LECCION' ? 'Lección Interactiva' : 'Reto Pedagógico'}</span>
+                          <span className="stop-time-pill">{editMinutes} min estimados</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="delete-current-node-btn"
+                          onClick={() => setNodeToDelete(selectedNode)}
+                          title="Eliminar esta parada didáctica del roadmap"
+                        >
+                          <Trash2 size={15} aria-hidden="true" />
+                          <span>Eliminar parada</span>
+                        </button>
                       </div>
                     </div>
 
@@ -1680,6 +1883,98 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Confirmar Eliminar Parada Didáctica */}
+      {nodeToDelete && (
+        <div className="teacher-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="teacher-modal-card confirm-delete-modal">
+            <div className="modal-header">
+              <h3>¿Eliminar parada didáctica?</h3>
+              <button
+                type="button"
+                className="close-modal-btn"
+                onClick={() => setNodeToDelete(null)}
+                disabled={deletingNode}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="confirm-delete-body">
+              <AlertCircle size={36} className="delete-warning-icon" aria-hidden="true" />
+              <p>
+                ¿Estás seguro de que deseas eliminar la parada <strong>"{nodeToDelete.title}"</strong>?
+              </p>
+              <p className="confirm-delete-subtext">
+                Se eliminarán sus recursos, preguntas y actividades asociadas. Las paradas restantes se renumerarán automáticamente. Esta acción no se puede deshacer.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="modal-cancel-btn"
+                onClick={() => setNodeToDelete(null)}
+                disabled={deletingNode}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="modal-danger-btn"
+                onClick={handleConfirmDeleteNode}
+                disabled={deletingNode}
+              >
+                {deletingNode ? 'Eliminando…' : 'Sí, eliminar parada'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Confirmar Eliminar Roadmap */}
+      {routeToDelete && (
+        <div className="teacher-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="teacher-modal-card confirm-delete-modal">
+            <div className="modal-header">
+              <h3>¿Eliminar este roadmap escolar?</h3>
+              <button
+                type="button"
+                className="close-modal-btn"
+                onClick={() => setRouteToDelete(null)}
+                disabled={deletingRoute}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="confirm-delete-body">
+              <AlertCircle size={36} className="delete-warning-icon" aria-hidden="true" />
+              <p>
+                ¿Estás seguro de que deseas eliminar el roadmap <strong>"{routeToDelete.title}"</strong>?
+              </p>
+              <p className="confirm-delete-subtext">
+                El mapa se archivará, el código de acceso será revocado y tus alumnos ya no podrán ingresar a esta ruta. Esta acción no se puede deshacer.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="modal-cancel-btn"
+                onClick={() => setRouteToDelete(null)}
+                disabled={deletingRoute}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="modal-danger-btn"
+                onClick={handleConfirmDeleteRoute}
+                disabled={deletingRoute}
+              >
+                {deletingRoute ? 'Eliminando…' : 'Sí, eliminar roadmap'}
+              </button>
+            </div>
           </div>
         </div>
       )}

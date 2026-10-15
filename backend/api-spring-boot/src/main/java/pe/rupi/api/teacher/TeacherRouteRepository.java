@@ -22,6 +22,7 @@ public class TeacherRouteRepository {
         return jdbc.query("""
                 SELECT r.id AS route_id,
                        vr.id AS version_route_id,
+                       r.codigo AS code,
                        r.titulo,
                        r.descripcion,
                        g.numero_grado,
@@ -45,6 +46,7 @@ public class TeacherRouteRepository {
         List<TeacherDtos.TeacherRouteDetail> list = jdbc.query("""
                 SELECT r.id AS route_id,
                        vr.id AS version_route_id,
+                       r.codigo AS code,
                        r.titulo,
                        r.descripcion,
                        g.numero_grado,
@@ -62,6 +64,7 @@ public class TeacherRouteRepository {
                 """, (rs, rowNum) -> {
             String rId = rs.getString("route_id");
             String vId = rs.getString("version_route_id");
+            String code = rs.getString("code");
             String title = rs.getString("titulo");
             String desc = rs.getString("descripcion");
             int gNum = rs.getInt("numero_grado");
@@ -75,7 +78,7 @@ public class TeacherRouteRepository {
             List<TeacherDtos.TeacherNodeDto> nodes = findNodesByVersion(vId);
 
             return new TeacherDtos.TeacherRouteDetail(
-                    rId, vId, title, desc,
+                    rId, vId, code, title, desc,
                     new TeacherDtos.GradeInfo(gNum, gName),
                     new TeacherDtos.AreaInfo(aCode, aName),
                     state, nodes, created, published
@@ -168,12 +171,20 @@ public class TeacherRouteRepository {
                 ) VALUES (?, ?, ?, ?, ?, 1, 'BORRADOR', ?, UTC_TIMESTAMP(6))
                 """, versionRouteId, routeId, catalogId, gradeId, areaId, teacherId);
 
+        // Registrar código de acceso para que los estudiantes puedan ingresar directamente
+        jdbc.update("""
+                INSERT INTO aprendizaje_codigo_acceso_ruta (
+                    id, version_ruta_id, hash_codigo, creado_por, valido_desde, valido_hasta, maximo_usos
+                ) VALUES (?, ?, UNHEX(SHA2(?, 256)), ?, UTC_TIMESTAMP(6), DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 2 YEAR), 200)
+                """, UUID.randomUUID().toString(), versionRouteId, routeCode, teacherId);
+
         return new TeacherDtos.CreateRouteResponse(
                 routeId,
                 versionRouteId,
+                routeCode,
                 req.title().trim(),
                 "BORRADOR",
-                "Roadmap pedagógico creado exitosamente en modo borrador."
+                "Roadmap pedagógico creado exitosamente con código: " + routeCode
         );
     }
 
@@ -508,6 +519,7 @@ public class TeacherRouteRepository {
         return new TeacherDtos.TeacherRouteSummary(
                 rs.getString("route_id"),
                 rs.getString("version_route_id"),
+                rs.getString("code"),
                 rs.getString("titulo"),
                 rs.getString("descripcion"),
                 rs.getInt("numero_grado"),
@@ -790,6 +802,112 @@ public class TeacherRouteRepository {
                 return null;
             }
         }
+    }
+
+    @Transactional
+    public void deleteNode(String teacherId, String routeId, String nodeId) {
+        String versionRouteId = latestOwnedVersionId(teacherId, routeId);
+
+        List<Map<String, Object>> nodeRows = jdbc.queryForList("""
+                SELECT n.id, n.version_actividad_id, n.numero_secuencia
+                FROM aprendizaje_nodo_ruta n
+                WHERE n.id = ? AND n.version_ruta_id = ?
+                """, nodeId, versionRouteId);
+
+        if (nodeRows.isEmpty()) {
+            throw new IllegalArgumentException("La parada didáctica no existe o no pertenece a este roadmap.");
+        }
+
+        String versionActividadId = (String) nodeRows.get(0).get("version_actividad_id");
+
+        // 1. Limpiar progresos asociados a la parada
+        jdbc.update("DELETE FROM aprendizaje_progreso_nodo WHERE nodo_ruta_id = ?", nodeId);
+
+        // 2. Limpiar recursos adjuntos a la parada
+        jdbc.update("DELETE FROM aprendizaje_nodo_recurso WHERE nodo_id = ?", nodeId);
+
+        // 3. Limpiar preguntas de evaluación y bloques de contenido
+        if (versionActividadId != null) {
+            List<String> questionIds = jdbc.query("""
+                    SELECT id FROM evaluacion_pregunta WHERE version_actividad_id = ?
+                    """, (rs, rowNum) -> rs.getString("id"), versionActividadId);
+
+            for (String qId : questionIds) {
+                jdbc.update("DELETE FROM evaluacion_respuesta_opcion WHERE pregunta_id = ?", qId);
+                jdbc.update("DELETE FROM evaluacion_respuesta WHERE pregunta_id = ?", qId);
+                jdbc.update("DELETE FROM evaluacion_opcion_respuesta WHERE pregunta_id = ?", qId);
+            }
+            jdbc.update("DELETE FROM evaluacion_pregunta WHERE version_actividad_id = ?", versionActividadId);
+            jdbc.update("DELETE FROM aprendizaje_bloque_contenido WHERE version_actividad_id = ?", versionActividadId);
+        }
+
+        // 4. Eliminar el nodo de la ruta
+        jdbc.update("DELETE FROM aprendizaje_nodo_ruta WHERE id = ? AND version_ruta_id = ?", nodeId, versionRouteId);
+
+        // 5. Eliminar la versión de actividad y actividad si no están en uso por otras paradas
+        if (versionActividadId != null) {
+            Integer usedCount = jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM aprendizaje_nodo_ruta WHERE version_actividad_id = ?
+                    """, Integer.class, versionActividadId);
+            if (usedCount == null || usedCount == 0) {
+                try {
+                    String actId = jdbc.queryForObject("""
+                            SELECT actividad_id FROM aprendizaje_version_actividad WHERE id = ?
+                            """, String.class, versionActividadId);
+                    jdbc.update("DELETE FROM aprendizaje_version_actividad WHERE id = ?", versionActividadId);
+                    if (actId != null) {
+                        jdbc.update("DELETE FROM aprendizaje_actividad WHERE id = ?", actId);
+                    }
+                } catch (EmptyResultDataAccessException ignored) {}
+            }
+        }
+
+        // 6. Renumerar secuencias de los nodos restantes
+        List<String> remainingNodes = jdbc.query("""
+                SELECT id FROM aprendizaje_nodo_ruta
+                WHERE version_ruta_id = ?
+                ORDER BY numero_secuencia ASC
+                """, (rs, rowNum) -> rs.getString("id"), versionRouteId);
+
+        jdbc.update("UPDATE aprendizaje_nodo_ruta SET numero_secuencia = numero_secuencia + 1000 WHERE version_ruta_id = ?", versionRouteId);
+
+        for (int i = 0; i < remainingNodes.size(); i++) {
+            int newSeq = i + 1;
+            Double newMapX = calculateDefaultMapX(newSeq);
+            Double newMapY = calculateDefaultMapY(newSeq);
+            jdbc.update("""
+                    UPDATE aprendizaje_nodo_ruta
+                    SET numero_secuencia = ?, mapa_x = ?, mapa_y = ?
+                    WHERE id = ?
+                    """, newSeq, newMapX, newMapY, remainingNodes.get(i));
+        }
+    }
+
+    @Transactional
+    public void deleteRoute(String teacherId, String routeId) {
+        String versionRouteId = latestOwnedVersionId(teacherId, routeId);
+
+        int updated = jdbc.update("""
+                UPDATE aprendizaje_ruta
+                SET archivado_en = UTC_TIMESTAMP(6)
+                WHERE id = ? AND propietario_id = ? AND archivado_en IS NULL
+                """, routeId, teacherId);
+
+        if (updated == 0) {
+            throw new IllegalArgumentException("El roadmap no existe o no pertenece a su autoría.");
+        }
+
+        jdbc.update("""
+                UPDATE aprendizaje_version_ruta
+                SET estado = 'RETIRADO'
+                WHERE ruta_id = ?
+                """, routeId);
+
+        jdbc.update("""
+                UPDATE aprendizaje_codigo_acceso_ruta
+                SET revocado_en = UTC_TIMESTAMP(6)
+                WHERE version_ruta_id = ?
+                """, versionRouteId);
     }
 
     private static String formatTimestamp(java.sql.Timestamp ts) {

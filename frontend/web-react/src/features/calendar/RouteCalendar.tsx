@@ -64,7 +64,13 @@ export function RouteCalendar({ routeId, teacher = false }: { routeId: string; t
     {message && <p role="status">{message}</p>}
     {!data && !error && <p role="status">Cargando las fechas…</p>}
     {data && <>
-      {data.classrooms.length === 0 ? <p>No tienes un aula activa de este grado asociada. Consulta con tu institución para asignarla.</p> : <>
+      {data.classrooms.length === 0 ? (
+        <div className="calendar-no-classrooms-box">
+          <p className="calendar-no-classrooms-text">
+            Esta ruta curricular aún no tiene un aula activa asociada para este grado escolar. Puedes continuar planificando y editando tus paradas, preguntas y materiales didácticos con normalidad.
+          </p>
+        </div>
+      ) : <>
         <label>Aula<select aria-label="Aula" value={selectedRoom} disabled={busy} onChange={e => {setRoom(e.target.value); reset()}}>{data.classrooms.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
         {!teacher && <EvaluationReminders key={routeId} routeId={routeId} classroomId={selectedRoom} />}
         <div className="calendar-month"><button type="button" aria-label="Mes anterior" onClick={() => setMonth(m => shiftMonth(m, -1))}><ChevronLeft /></button><strong aria-live="polite">{new Intl.DateTimeFormat('es-PE', {month: 'long', year: 'numeric', timeZone: 'UTC'}).format(new Date(`${month}-01T12:00:00Z`))}</strong><button type="button" aria-label="Mes siguiente" onClick={() => setMonth(m => shiftMonth(m, 1))}><ChevronRight /></button></div>

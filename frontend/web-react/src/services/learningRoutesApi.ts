@@ -95,6 +95,7 @@ export interface Curriculum {
 
 export interface RouteDetail {
   versionRouteId: string
+  code?: string
   title: string
   grade: Grade
   area: Area

@@ -79,6 +79,7 @@ export interface UpdateNodePayload {
 export interface TeacherRouteSummary {
   routeId: string
   versionRouteId: string
+  code?: string
   title: string
   description: string | null
   gradeNumber: number
@@ -94,6 +95,7 @@ export interface TeacherRouteSummary {
 export interface TeacherRouteDetail {
   routeId: string
   versionRouteId: string
+  code?: string
   title: string
   description: string | null
   grade: TeacherGrade
@@ -275,3 +277,20 @@ export const updateTeacherNode = (routeId: string, nodeId: string, payload: Upda
       body: JSON.stringify(payload),
     }
   )
+
+export const deleteTeacherNode = (routeId: string, nodeId: string) =>
+  teacherRequest<{ nodeId: string; message: string }>(
+    `teacher/learning-routes/${encodeURIComponent(routeId)}/nodes/${encodeURIComponent(nodeId)}`,
+    {
+      method: 'DELETE',
+    }
+  )
+
+export const deleteTeacherRoute = (routeId: string) =>
+  teacherRequest<{ routeId: string; message: string }>(
+    `teacher/learning-routes/${encodeURIComponent(routeId)}`,
+    {
+      method: 'DELETE',
+    }
+  )
+

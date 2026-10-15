@@ -98,7 +98,7 @@ public class LearningRouteRepository {
 
     public Optional<RouteHeader> findRouteForStudent(UUID studentId, UUID versionRouteId) {
         String sql = """
-                SELECT vr.id AS version_route_id, r.id AS route_id, r.titulo AS route_title,
+                SELECT vr.id AS version_route_id, r.id AS route_id, r.codigo AS route_code, r.titulo AS route_title,
                        g.numero_grado, g.nombre AS grade_name,
                        a.codigo AS area_code, a.nombre AS area_name,
                        i.id AS enrollment_id, i.estado AS enrollment_state,
@@ -120,6 +120,7 @@ public class LearningRouteRepository {
             return Optional.of(new RouteHeader(
                     uuid(rs, "version_route_id"),
                     uuid(rs, "route_id"),
+                    rs.getString("route_code"),
                     rs.getString("route_title"),
                     new Grade(rs.getInt("numero_grado"), rs.getString("grade_name")),
                     new Area(rs.getString("area_code"), rs.getString("area_name")),
@@ -569,7 +570,7 @@ public class LearningRouteRepository {
                 JOIN aprendizaje_ruta r ON r.id = vr.ruta_id
                 JOIN curriculo_grado g ON g.id = vr.grado_id
                 JOIN curriculo_area a ON a.id = vr.area_id
-                WHERE c.hash_codigo = UNHEX(SHA2(:code, 256))
+                WHERE (c.hash_codigo = UNHEX(SHA2(:code, 256)) OR UPPER(r.codigo) = UPPER(:code))
                 """;
         var params = new MapSqlParameterSource("code", normalizedCode);
         return jdbc.query(sql, params, rs -> {
@@ -712,17 +713,29 @@ public class LearningRouteRepository {
     public record RouteHeader(
             UUID versionRouteId,
             UUID routeId,
+            String code,
             String title,
             Grade grade,
             Area area,
             Enrollment enrollment
     ) {
+        public RouteHeader(
+                UUID versionRouteId,
+                UUID routeId,
+                String title,
+                Grade grade,
+                Area area,
+                Enrollment enrollment
+        ) {
+            this(versionRouteId, routeId, null, title, grade, area, enrollment);
+        }
+
         public RouteDetailResponse toResponse(Progress progress, List<RouteNode> nodes) {
             return toResponse(progress, nodes, null, null);
         }
 
         public RouteDetailResponse toResponse(Progress progress, List<RouteNode> nodes, CulturalContext culturalContext, Curriculum curriculum) {
-            return new RouteDetailResponse(versionRouteId, title, grade, area, enrollment, progress, nodes, culturalContext, curriculum);
+            return new RouteDetailResponse(versionRouteId, code, title, grade, area, enrollment, progress, nodes, culturalContext, curriculum);
         }
     }
 }

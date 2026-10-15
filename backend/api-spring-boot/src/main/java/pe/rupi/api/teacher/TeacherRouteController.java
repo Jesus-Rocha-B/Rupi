@@ -146,4 +146,29 @@ public class TeacherRouteController {
         service.updateNode(teacherId, routeId, nodeId, body);
         return Map.of("nodeId", nodeId, "message", "Parada pedagógica actualizada exitosamente.");
     }
+
+    @DeleteMapping("/{routeId}/nodes/{nodeId}")
+    public Map<String, String> deleteNode(
+            @PathVariable("routeId") String routeId,
+            @PathVariable("nodeId") String nodeId,
+            HttpServletRequest request,
+            Principal principal
+    ) {
+        var teacher = requireTeacher(request);
+        String teacherId = principal != null ? principal.getName() : teacher.id();
+        service.deleteNode(teacherId, routeId, nodeId);
+        return Map.of("nodeId", nodeId, "message", "Parada didáctica eliminada exitosamente del roadmap.");
+    }
+
+    @DeleteMapping("/{routeId}")
+    public Map<String, String> deleteRoute(
+            @PathVariable("routeId") String routeId,
+            HttpServletRequest request,
+            Principal principal
+    ) {
+        var teacher = requireTeacher(request);
+        String teacherId = principal != null ? principal.getName() : teacher.id();
+        service.deleteRoute(teacherId, routeId);
+        return Map.of("routeId", routeId, "message", "Roadmap escolar eliminado exitosamente.");
+    }
 }

@@ -9,6 +9,7 @@ import {
   Flag,
   Lock,
   Award,
+  KeyRound,
   Eye,
   Ear,
   Flower2,
@@ -266,6 +267,12 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
             <span className="unit-badge-tag">
               {currentUnit?.code ? currentUnit.code : 'Unidad de Aprendizaje'}
             </span>
+            {route.code && (
+              <span className="unit-code-pill" title="Código de acceso para esta ruta didáctica">
+                <KeyRound size={12} aria-hidden="true" />
+                <span>Código: <strong>{route.code}</strong></span>
+              </span>
+            )}
             <span className="unit-progress-pill">
               <Award size={12} aria-hidden="true" />
               <span>

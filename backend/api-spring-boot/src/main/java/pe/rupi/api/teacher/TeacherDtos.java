@@ -121,6 +121,7 @@ public class TeacherDtos {
     public record TeacherRouteSummary(
             String routeId,
             String versionRouteId,
+            String code,
             String title,
             String description,
             int gradeNumber,
@@ -131,11 +132,29 @@ public class TeacherDtos {
             int totalNodes,
             String createdAt,
             String publishedAt
-    ) {}
+    ) {
+        public TeacherRouteSummary(
+                String routeId,
+                String versionRouteId,
+                String title,
+                String description,
+                int gradeNumber,
+                String gradeName,
+                String areaCode,
+                String areaName,
+                String state,
+                int totalNodes,
+                String createdAt,
+                String publishedAt
+        ) {
+            this(routeId, versionRouteId, null, title, description, gradeNumber, gradeName, areaCode, areaName, state, totalNodes, createdAt, publishedAt);
+        }
+    }
 
     public record TeacherRouteDetail(
             String routeId,
             String versionRouteId,
+            String code,
             String title,
             String description,
             GradeInfo grade,
@@ -144,15 +163,41 @@ public class TeacherDtos {
             List<TeacherNodeDto> nodes,
             String createdAt,
             String publishedAt
-    ) {}
+    ) {
+        public TeacherRouteDetail(
+                String routeId,
+                String versionRouteId,
+                String title,
+                String description,
+                GradeInfo grade,
+                AreaInfo area,
+                String state,
+                List<TeacherNodeDto> nodes,
+                String createdAt,
+                String publishedAt
+        ) {
+            this(routeId, versionRouteId, null, title, description, grade, area, state, nodes, createdAt, publishedAt);
+        }
+    }
 
     public record CreateRouteResponse(
             String routeId,
             String versionRouteId,
+            String code,
             String title,
             String state,
             String message
-    ) {}
+    ) {
+        public CreateRouteResponse(
+                String routeId,
+                String versionRouteId,
+                String title,
+                String state,
+                String message
+        ) {
+            this(routeId, versionRouteId, null, title, state, message);
+        }
+    }
 
     public record PublishRouteResponse(
             String routeId,
@@ -162,3 +207,5 @@ public class TeacherDtos {
             String message
     ) {}
 }
+
+

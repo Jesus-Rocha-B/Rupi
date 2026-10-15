@@ -2040,3 +2040,500 @@
     align-items: flex-start;
   }
 }
+
+/* =============================================================================
+   Estilos agregados: Header docente con perfil, codigos, borrado y calendario
+   ============================================================================= */
+
+.teacher-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.teacher-role-emblem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 210, 106, 0.3);
+}
+
+.teacher-role-emblem .teacher-icon {
+  color: #ffd26a;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.teacher-role-emblem .teacher-role-tag {
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #ffd26a;
+  text-transform: uppercase;
+}
+
+.teacher-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.teacher-profile-widget {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 6px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.teacher-profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-profile-info .teacher-name {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.teacher-profile-info .teacher-school {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.teacher-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 8px 16px;
+  background: #dc2626;
+  color: #ffffff;
+  border: 2px solid #991b1b;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #7f1d1d;
+  transition: all 0.12s ease;
+}
+
+.teacher-logout-btn:hover {
+  background: #ef4444;
+}
+
+.teacher-logout-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #7f1d1d;
+}
+
+/* Código de clase en tarjetas de roadmap */
+.card-code-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdf4;
+  border: 1.5px dashed #86efac;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin: 6px 0 10px 0;
+}
+
+.card-code-strip .code-key-icon {
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.card-code-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #166534;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card-code-value {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: #14532d;
+  background: #dcfce7;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.card-code-copy-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #ffffff;
+  border: 1.5px solid #86efac;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #15803d;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #bbf7d0;
+  transition: all 0.1s ease;
+}
+
+.card-code-copy-btn:hover {
+  background: #f0fdf4;
+  border-color: #22c55e;
+}
+
+.card-code-copy-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.card-code-copy-btn .copied-check {
+  color: #16a34a;
+}
+
+.card-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 2px solid #fca5a5;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #f87171;
+  transition: all 0.12s ease;
+}
+
+.card-delete-btn:hover {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.card-delete-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #f87171;
+}
+
+/* Acciones de vinculación en editor top nav */
+.editor-nav-linked-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.editor-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.editor-nav-btn.secondary {
+  background: #246a91;
+  color: #ffffff;
+  border: 2px solid #1a5170;
+  box-shadow: 0 3px 0 #12374c;
+}
+
+.editor-nav-btn.secondary:hover {
+  background: #2c7da8;
+}
+
+.editor-nav-btn.secondary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #12374c;
+}
+
+.editor-nav-btn.danger-outline {
+  background: #fff5f5;
+  color: #b91c1c;
+  border: 2px solid #fca5a5;
+  box-shadow: 0 3px 0 #f87171;
+}
+
+.editor-nav-btn.danger-outline:hover {
+  background: #fee2e2;
+}
+
+.editor-nav-btn.danger-outline:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #f87171;
+}
+
+/* Calendario colapsable y no invasivo */
+.editor-calendar-collapsible {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  margin: 16px 24px 0 24px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.editor-calendar-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #1e293b;
+  cursor: pointer;
+  background: #f8fafc;
+  border-bottom: 2px solid transparent;
+  user-select: none;
+  transition: background 0.12s ease;
+}
+
+.editor-calendar-summary:hover {
+  background: #f1f5f9;
+}
+
+.editor-calendar-collapsible[open] .editor-calendar-summary {
+  border-bottom-color: #e2e8f0;
+}
+
+.editor-calendar-body {
+  padding: 16px;
+}
+
+.calendar-no-classrooms-box {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 10px 0;
+}
+
+.calendar-no-classrooms-text {
+  font-size: 0.88rem;
+  color: #475569;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Código de clase dentro de editor-header-card */
+.editor-code-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 2px dashed #86efac;
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.editor-code-strip .code-key-icon {
+  color: #16a34a;
+}
+
+.editor-code-strip .code-label {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #166534;
+}
+
+.editor-code-strip .code-value {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #14532d;
+  background: #dcfce7;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.editor-copy-code-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  background: #16a34a;
+  color: #ffffff;
+  border: 2px solid #15803d;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #14532d;
+  transition: all 0.12s ease;
+}
+
+.editor-copy-code-btn:hover {
+  background: #15803d;
+}
+
+.editor-copy-code-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Botón para eliminar parada dentro de la tarjeta de la lista */
+.delete-node-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #fff5f5;
+  color: #dc2626;
+  border: 1.5px solid #fecaca;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.delete-node-btn:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+/* Botón inferior para agregar parada al camino */
+.add-stop-bottom-btn {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 2px dashed #31724b;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #31724b;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(49, 114, 75, 0.15);
+  transition: all 0.12s ease;
+}
+
+.add-stop-bottom-btn:hover {
+  background: #f0fdf4;
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.add-stop-bottom-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Acciones en la cabecera de la parada en el taller */
+.stop-header-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.delete-current-node-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  background: #fff5f5;
+  color: #b91c1c;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #f87171;
+  transition: all 0.12s ease;
+}
+
+.delete-current-node-btn:hover {
+  background: #fee2e2;
+}
+
+.delete-current-node-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Modales de confirmación de eliminación */
+.confirm-delete-modal {
+  max-width: 480px;
+}
+
+.confirm-delete-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.delete-warning-icon {
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 10px;
+  border-radius: 50%;
+  box-sizing: content-box;
+}
+
+.confirm-delete-body p {
+  font-size: 1rem;
+  color: #1e293b;
+  margin: 0;
+}
+
+.confirm-delete-subtext {
+  font-size: 0.85rem !important;
+  color: #64748b !important;
+  line-height: 1.5;
+}
+
+.modal-danger-btn {
+  min-height: 44px;
+  padding: 8px 20px;
+  background: #dc2626;
+  color: #ffffff;
+  border: 2px solid #b91c1c;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #991b1b;
+  transition: all 0.12s ease;
+}
+
+.modal-danger-btn:hover:not(:disabled) {
+  background: #ef4444;
+}
+
+.modal-danger-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #991b1b;
+}
+
+.modal-danger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

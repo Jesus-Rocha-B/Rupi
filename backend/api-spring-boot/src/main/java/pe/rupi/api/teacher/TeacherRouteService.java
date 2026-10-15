@@ -174,4 +174,21 @@ public class TeacherRouteService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
+
+    public void deleteNode(String teacherId, String routeId, String nodeId) {
+        try {
+            repository.deleteNode(teacherId, routeId, nodeId);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    public void deleteRoute(String teacherId, String routeId) {
+        try {
+            repository.deleteRoute(teacherId, routeId);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
 }
+
