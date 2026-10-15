@@ -76,9 +76,10 @@ Pruebas nuevas: `CalendarServiceTest`, `ReminderServiceTest`, `ReminderRepositor
 
 1. Ejecuta `git pull --ff-only`.
 2. Aplica las migraciones nuevas en orden: V13, V14, V15 y **V16** (agregada en `5c3c262`). V16 hace al docente demo responsable del aula del alumno demo; sin ella, el calendario de `profesor.demo` aparece sin aulas y no se generan recordatorios. Todas se pueden repetir sin riesgo.
-3. Vuelve a ejecutar V09 y V10, que son idempotentes, para recibir las tildes corregidas. Si la base ya las tenía aplicadas, no las recibe de otro modo.
-4. Vuelve a ejecutar `database/mysql/grants-spring-boot.sql` con `SET @api_usuario = '<usuario>'`. Los permisos se otorgan por prefijo de tabla, así que cubren `escuela_planificacion_ruta` y `escuela_recordatorio_evaluacion`. Sin ellos, el calendario responde 503 y el proceso de recordatorios registra un error en cada ciclo.
-5. Reconstruye la API (`mvn -f backend/api-spring-boot/pom.xml package`) y el frontend (`npm install && npm run build` en `frontend/web-react`).
+3. Vuelve a ejecutar **V12**, corregida en el commit «fix: V12 desde cero…» (posterior a `c5e186b`). Ahora corre sobre `schema.sql` y agrega al docente demo como miembro DOCENTE del aula del alumno demo. Es seguro repetirla.
+4. Vuelve a ejecutar V09 y V10, que son idempotentes, para recibir las tildes corregidas. Si la base ya las tenía aplicadas, no las recibe de otro modo.
+5. Vuelve a ejecutar `database/mysql/grants-spring-boot.sql` con `SET @api_usuario = '<usuario>'`. Los permisos se otorgan por prefijo de tabla, así que cubren `escuela_planificacion_ruta` y `escuela_recordatorio_evaluacion`. Sin ellos, el calendario responde 503 y el proceso de recordatorios registra un error en cada ciclo.
+6. Reconstruye la API (`mvn -f backend/api-spring-boot/pom.xml package`) y el frontend (`npm install && npm run build` en `frontend/web-react`).
 
 ## 4. Revisión: errores encontrados
 
@@ -105,9 +106,36 @@ Verificado en la app real (Firefox con Playwright, API recompilada y migraciones
 
 | # | Problema | Propuesta |
 |---|---|---|
-| 6 | La categoría Comunidad se decide por `r.codigo LIKE 'RO-DOC-%' OR nombre_usuario LIKE 'profesor%'` (`LearningRouteRepository`, duplicado en dos consultas). | Usar el rol del propietario o una columna `origen` en `aprendizaje_ruta` (migración V16). |
-| 7 | La sesión asigna 2.° de primaria al alumno sin aula. Si el alumno tiene varias aulas activas, el grado y el colegio se toman de una fila cualquiera. | Elegir la membresía con una regla fija y devolver `null` cuando no haya grado. |
-| 8 | V09 y V10 se editaron después de publicarse. V12 define `recurso_archivo_multimedia` con columnas distintas a `schema.sql`; su `CREATE IF NOT EXISTS` no tiene efecto, pero confunde. | No editar migraciones publicadas: cada corrección va en una V nueva. Alinear o retirar el bloque de V12. |
+| 6 | La categoría Comunidad se decide por `r.codigo LIKE 'RO-DOC-%' OR nombre_usuario LIKE 'profesor%'` (`LearningRouteRepository`, duplicado en dos consultas). | Usar el rol del propietario o una columna `origen` en `aprendizaje_ruta` (migración V17). |
+| 7 | La sesión asigna 2.° de primaria al alumno sin aula. Si el alumno tiene varias aulas activas, el grado y el colegio se toman de una fila cualquiera. | **Resuelto en parte el 2026-10-14:** la sesión elige siempre la misma aula (la activa más reciente) y el mismo rol (DOCENTE primero). Sigue el 2.° por defecto para el alumno sin aula. |
+| 8 | V09 y V10 se editaron después de publicarse. V12 define `recurso_archivo_multimedia` con columnas distintas a `schema.sql`; su `CREATE IF NOT EXISTS` no tiene efecto, pero confunde. | **V12 resuelta el 2026-10-14:** se alineó con `schema.sql` y ahora corre desde cero (probado con una base nueva, dos veces). Sigue pendiente acordar en el equipo no editar migraciones publicadas; V12 fue una excepción, porque fallaba antes de aplicar nada. |
 | 9 | HU-13: solo el autor de la ruta puede asignar fechas, así que un docente no puede calendarizar una ruta oficial para su aula. | Decisión de producto pendiente con el equipo. |
 | 10 | En `App.tsx`, los paneles de error «No pudimos consultar tu progreso», «Esta ruta ya no está disponible» y «Aún no tienes rutas» están dentro del bloque `isRoadmapAvailable &&`, así que nunca se muestran cuando no hay ruta cargada. Un error de red en el aula termina en el panel «Ruta en preparación», sin opción de reintentar. | **Resuelto el 2026-10-14:** los paneles salen del bloque y «Ruta en preparación» solo aparece sin error. Verificado con un 500 simulado: el panel se muestra y «Reintentar» recupera el mapa. |
 | 11 | Las contraseñas demo (`123456`) aparecen en `LoginView.tsx` y en los scripts `Probar-*.ps1`. | Mostrar el acceso demo solo si `demoAvailable` es verdadero y leer la clave de una variable de entorno. |
+
+## 5. Arreglos posteriores a la revisión
+
+| Commit | Qué se arregló |
+|---|---|
+| `0f8b83a` | El grado sale de la sesión, se borran las preferencias de la tableta al iniciar o cerrar sesión, ya no hay inscripción automática y se agrega `npm test` (errores 1, 3 y 5). |
+| `5719fb8` | Entrar a un roadmap ya no se queda en el esqueleto, y una carga cancelada ya no muestra el login (errores 2 y 4). |
+| `5c3c262` | V16 (docente demo responsable del aula: HU-13 y HU-14 demostrables), paneles de error visibles (pendiente 10) y Mi Perfil sin desborde a 375 px. |
+| `c5e186b` | V16 incluida en los pasos de actualización. |
+| posterior a `c5e186b` («fix: V12 desde cero…») | V12 corre desde `schema.sql`, subir materiales ya no deja archivos huérfanos, la sesión es determinista (pendiente 7 en parte, pendiente 8 en lo que toca a V12) y la barra superior funciona en celular. |
+
+### Detalle del último bloque
+
+- **V12** (`database/mysql/migrations/V12__rol_docente_autoria_hu05.sql`):
+  - Sin `es_sistema` ni `creado_en` en `identidad_rol`.
+  - Membresía DOCENTE en el aula del alumno demo, buscada por membresía (`e3000000-…` o `au000000-…`).
+  - `recurso_archivo_multimedia` con la misma definición que `schema.sql`.
+- **Materiales** (`MaterialStorageService.java`): si el `INSERT` falla, se borra el archivo guardado y se relanza el error. Prueba nueva `deletesFileWhenInsertFails`.
+- **Sesión** (`StudentSessionService.java`): rol y aula elegidos con subconsultas ordenadas. Antes, con dos roles o varias aulas, el grado, el colegio o el rol podían cambiar entre inicios de sesión.
+- **Barra superior ≤ 520 px** (`App.css`, `App.tsx`):
+  - «Mi Camino» quedaba fuera de la pantalla y no se podía pulsar incluso a 414 px: el menú se centraba con `justify-content: center` dentro de un contenedor con desplazamiento. Ahora se centra con márgenes automáticos.
+  - «Explorar Roadmaps» se abrevia a «Explorar» (el `aria-label` conserva el nombre completo).
+  - El nombre del alumno y la palabra «Salir» ceden su espacio; el botón de salir mantiene 48 px.
+  - Las etiquetas del menú pasan a 12 px solo en ese ancho.
+  - A 375 y 414 px caben las tres pestañas; a 320 px el menú se desliza.
+- **Verificación:** 124 pruebas Java (9 omitidas, de MySQL); en el frontend, build, lint y 21 pruebas de Node. En la app real se probaron el ingreso a roadmaps, el error 500 con «Reintentar», 375 px sin desplazamiento horizontal y las sesiones del alumno (ESTUDIANTE, 2.°) y del docente (DOCENTE).
+

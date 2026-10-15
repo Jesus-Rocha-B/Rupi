@@ -4639,3 +4639,21 @@ body, button, input, select, textarea {
 
 
 
+
+/* Barra superior en celulares y tabletas pequeñas (≤ 520 px).
+   El menú se centraba con justify-content: center dentro de un contenedor con desplazamiento: cuando no cabía,
+   «Mi Camino» quedaba en coordenadas negativas y no se podía alcanzar ni pulsar. Los márgenes automáticos centran
+   cuando hay espacio y, si no lo hay, el menú empieza en el borde y se desliza. Además, el nombre del alumno y la
+   palabra «Salir» ceden su espacio al menú (siguen en Mi Perfil y en el aria-label del botón). */
+@media (max-width: 520px) {
+  .main-nav { justify-content: flex-start; min-width: 0; gap: 0; margin-inline: 4px; }
+  .main-nav > .nav-item:first-child { margin-inline-start: auto; }
+  .main-nav > .nav-item:last-child { margin-inline-end: auto; }
+  .main-nav .nav-item { min-width: 52px; padding-inline: 4px; font-size: 12px !important; }
+  .nav-label-extra { display: none; }
+  .profile-top-group { gap: 4px; }
+  .profile-student-card { gap: 0; padding: 4px; }
+  .profile-text-col { display: none; }
+  .profile-logout-btn { min-width: 48px; min-height: 48px; justify-content: center; padding-inline: 0; }
+  .profile-logout-btn span { display: none; }
+}

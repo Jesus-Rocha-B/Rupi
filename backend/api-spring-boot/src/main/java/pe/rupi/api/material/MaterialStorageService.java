@@ -113,11 +113,21 @@ public class MaterialStorageService {
 
         String downloadUrl = "/api/v1/materials/" + materialId + "/download";
 
-        jdbc.update("""
-                INSERT INTO recurso_archivo_multimedia (
-                    id, nombre_original, tipo_mime, tamano_bytes, url_externa, hash_sha256, creado_por, creado_en
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6))
-                """, materialId, sanitizedName, mimeType, file.getSize(), downloadUrl, hash, userId);
+        try {
+            jdbc.update("""
+                    INSERT INTO recurso_archivo_multimedia (
+                        id, nombre_original, tipo_mime, tamano_bytes, url_externa, hash_sha256, creado_por, creado_en
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(6))
+                    """, materialId, sanitizedName, mimeType, file.getSize(), downloadUrl, hash, userId);
+        } catch (RuntimeException e) {
+            // Sin registro en la base nadie puede descargar el archivo: se borra para no dejarlo huérfano en disco.
+            try {
+                Files.deleteIfExists(targetPath);
+            } catch (IOException cleanupError) {
+                e.addSuppressed(cleanupError);
+            }
+            throw e;
+        }
 
         return new StoredMaterial(materialId, sanitizedName, mimeType, file.getSize(), downloadUrl, targetPath);
     }

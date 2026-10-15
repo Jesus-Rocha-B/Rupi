@@ -67,6 +67,22 @@ class MaterialStorageServiceTest {
     }
 
     @Test
+    @DisplayName("Si falla el registro en la base, no deja el archivo huérfano en disco")
+    void deletesFileWhenInsertFails() throws IOException {
+        Mockito.when(jdbc.update(Mockito.anyString(), Mockito.any(Object[].class)))
+                .thenThrow(new org.springframework.dao.DataIntegrityViolationException("CHECK falló"));
+        var file = new MockMultipartFile("file", "ficha.pdf", "application/pdf", "%PDF-1.4 ficha".getBytes());
+
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class, () ->
+                storage.storeFile(file, "profesor-1")
+        );
+
+        try (var stream = Files.list(tempDir)) {
+            assertEquals(0, stream.count(), "No debe quedar ningún archivo sin registro");
+        }
+    }
+
+    @Test
     @DisplayName("Rechaza archivos vacíos")
     void rejectEmptyFile() {
         var file = new MockMultipartFile("file", "vacio.pdf", "application/pdf", new byte[0]);

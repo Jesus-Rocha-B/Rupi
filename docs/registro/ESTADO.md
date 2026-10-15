@@ -7,7 +7,7 @@ Actualizado: 2026-10-14 · rama `main` · después de integrar HU-12 a HU-14 del
 1. Leer este archivo y `CONTEXTO.md`. Si se va a tocar código, también `MAPA-DE-CODIGO.md`.
 2. Levantar el entorno: `./iniciar-rupi.sh` (MySQL 3307, API 8081, web 5173). Cuenta demo: `estudiante.demo` / `123456`.
 3. Comprobar que todo sigue en verde (comandos en `CONTEXTO.md`, sección Verificaciones).
-4. Si la base local se ve rara (rutas que dan 500, ids viejos), reconstruirla con el orden de `docs/implementacion/entorno-linux.md` (schema → V04 → seed-hu01 → V06 → seed-hu02 → V07 a V16 → `grants-spring-boot.sql`). V12 falla sobre `schema.sql` (ver Fallos conocidos). Para una base existente basta con aplicar V13 a V16, repetir V09 y V10 y volver a otorgar los permisos. El script usado el 2026-10-12 quedó en `~/reconstruir-bd-rupi.sh`, y el respaldo previo en `~/rupi-respaldo-2026-10-12.sql`.
+4. Si la base local se ve rara (rutas que dan 500, ids viejos), reconstruirla con el orden de `docs/implementacion/entorno-linux.md` (schema → V04 → seed-hu01 → V06 → seed-hu02 → V07 a V16 → `grants-spring-boot.sql`). Para una base existente basta con aplicar V13 a V16, repetir V09 y V10 y volver a otorgar los permisos. El script usado el 2026-10-12 quedó en `~/reconstruir-bd-rupi.sh`, y el respaldo previo en `~/rupi-respaldo-2026-10-12.sql`.
 
 ## Fuente de verdad del alcance
 
@@ -49,15 +49,10 @@ Decisión abierta: qué rutas del catálogo serán públicas cuando existan ruta
 
 ## Fallos conocidos (2026-10-14)
 
-- **`V12__rol_docente_autoria_hu05.sql` no corre sobre `schema.sql`:**
-  - Inserta `es_sistema` y `creado_en` en `identidad_rol`, columnas que no existen.
-  - Su paso 6 usa el aula `e3000000-…`, que no existe en bases armadas con los seeds anteriores (allí el aula es `au000000-…`). V16 cubre la asignación del docente demo sin depender del id.
-  - V12 también escribe `identidad_*` desde el lado Spring (escritor único: Django).
-  - Su `CREATE TABLE recurso_archivo_multimedia` tiene columnas distintas a `schema.sql`; no tiene efecto, pero confunde.
-- **Subir materiales guarda el archivo antes del `INSERT`:** si el `INSERT` falla, queda un archivo huérfano en `uploads/materials/` (`MaterialStorageService.java`).
-- **Grado de la sesión:** 2.° por defecto si el alumno no tiene aula, y no determinista si tiene varias aulas activas (`StudentSessionService`).
-- **A 375 px**, la barra superior del aula queda apretada: la pestaña activa («Mi Perfil») se corta. La página ya no tiene desplazamiento horizontal.
+- **Grado por defecto:** un alumno sin aula activa recibe 2.° de primaria (`StudentSessionService`). Con varias aulas, la elección ya es determinista.
+- **A 320 px**, la pestaña «Mi Perfil» queda parcialmente fuera del menú. Se alcanza deslizando el menú. A 375 px y más caben las tres pestañas.
 - **Iniciar sesión cierra las sesiones anteriores de la misma cuenta.** Dos pestañas o dos pruebas con `estudiante.demo` a la vez se expulsan entre sí (401).
+- **V12 escribe `identidad_*` desde una migración del lado Spring** (escritor único: Django). Pendiente de decidir con el equipo.
 
 Resueltos el 2026-10-14:
 - Abrir lecciones y subir materiales ya no responden 503: el equipo alineó las columnas.
@@ -65,6 +60,10 @@ Resueltos el 2026-10-14:
 - Mi Perfil ya no desborda a 375 px.
 - Los paneles de error del aula se muestran.
 - Entrar a un roadmap ya no se queda en el esqueleto.
+- V12 corre sobre `schema.sql`: sin `es_sistema` ni `creado_en`, con el aula buscada por membresía y con `recurso_archivo_multimedia` alineada a `schema.sql`. Probado armando una base desde cero con todas las migraciones, dos veces.
+- Subir un material ya no deja archivos huérfanos: si el `INSERT` falla, se borra el archivo (prueba `deletesFileWhenInsertFails`).
+- La sesión elige siempre el mismo rol (DOCENTE primero) y la misma aula (la activa más reciente).
+- Barra superior a 375 px: las tres pestañas caben y «Mi Camino» ya no queda fuera de la pantalla.
 
 La historia 12 no depende de esas consultas: lee `tamano_bytes` y calcula la ruta del archivo con `MaterialStorageService.diskPathFor`.
 

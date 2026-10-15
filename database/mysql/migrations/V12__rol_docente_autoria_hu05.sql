@@ -5,13 +5,18 @@
 --   Spring Boot escribe aprendizaje_*, evaluacion_*, gamificacion_* y escuela_*.
 -- =============================================================================
 
+-- Corrección 2026-10-14: la versión original no corría sobre schema.sql (columnas es_sistema y creado_en
+-- inexistentes en identidad_rol, y aula e3000000-… fija). Se corrige aquí y no en una V nueva porque
+-- la migración fallaba antes de aplicar nada: ninguna base armada desde schema.sql pudo tenerla aplicada.
+
 USE rupi;
+SET NAMES utf8mb4;
 
 -- 1. Asegurar roles de sistema en identidad_rol
-INSERT INTO identidad_rol (id, codigo, nombre, descripcion, es_sistema, creado_en)
+INSERT INTO identidad_rol (id, codigo, nombre, descripcion)
 VALUES
-  ('b1000000-0000-4000-8000-000000000001', 'ESTUDIANTE', 'Estudiante de Primaria', 'Estudiante de primaria que realiza las rutas escolares', TRUE, UTC_TIMESTAMP(6)),
-  ('b1000000-0000-4000-8000-000000000002', 'DOCENTE', 'Profesor de Primaria', 'Docente responsable de aula y autor de rutas de aprendizaje', TRUE, UTC_TIMESTAMP(6))
+  ('b1000000-0000-4000-8000-000000000001', 'ESTUDIANTE', 'Estudiante de Primaria', 'Estudiante de primaria que realiza las rutas escolares'),
+  ('b1000000-0000-4000-8000-000000000002', 'DOCENTE', 'Profesor de Primaria', 'Docente responsable de aula y autor de rutas de aprendizaje')
 ON DUPLICATE KEY UPDATE
   nombre = VALUES(nombre),
   descripcion = VALUES(descripcion);
@@ -62,29 +67,42 @@ VALUES (
   UTC_TIMESTAMP(6)
 ) ON DUPLICATE KEY UPDATE asignado_en = VALUES(asignado_en);
 
--- 6. Asegurar aula y asignación de docente responsable (I.E. 38001 Mariscal Sucre)
+-- 6. Membresía DOCENTE en el aula del alumno demo (I.E. 38001 Mariscal Sucre).
+-- El aula se busca por la membresía del alumno: según el seed, su id es e3000000-… o au000000-….
 INSERT INTO escuela_membresia_aula (
   id, aula_id, usuario_id, rol, estado, ingreso_en
-) VALUES (
+)
+SELECT
   'e4000000-0000-4000-8000-000000000002',
-  'e3000000-0000-4000-8000-000000000001',
+  m.aula_id,
   '22222222-2222-4222-8222-222222222222',
   'DOCENTE',
   'ACTIVO',
   UTC_TIMESTAMP(6)
-) ON DUPLICATE KEY UPDATE rol = 'DOCENTE', estado = 'ACTIVO';
+FROM escuela_membresia_aula m
+WHERE m.usuario_id = '11111111-1111-4111-8111-111111111111'
+  AND m.rol = 'ESTUDIANTE'
+  AND m.estado = 'ACTIVO'
+ORDER BY m.ingreso_en, m.aula_id
+LIMIT 1
+ON DUPLICATE KEY UPDATE rol = 'DOCENTE', estado = 'ACTIVO', retiro_en = NULL;
 
--- 7. Asegurar tabla de recursos multimedia (archivos PDF, PPT, imágenes)
+-- 7. Tabla de recursos multimedia (archivos PDF, PPT, imágenes): misma definición que schema.sql.
+-- Solo crea la tabla si la base no la tiene; el código usa tamano_bytes, clave_almacenamiento y url_externa.
 CREATE TABLE IF NOT EXISTS recurso_archivo_multimedia (
   id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
-  nombre_original VARCHAR(255) NOT NULL,
-  tipo_mime VARCHAR(100) NOT NULL,
-  tamanio_bytes BIGINT UNSIGNED NOT NULL,
-  url_almacenamiento VARCHAR(500) NOT NULL,
-  hash_sha256 BINARY(32) NULL,
   creado_por CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  proveedor_almacenamiento VARCHAR(40) NULL,
+  clave_almacenamiento VARCHAR(500) NULL,
+  url_externa VARCHAR(1000) NULL,
+  nombre_original VARCHAR(255) NOT NULL,
+  tipo_mime VARCHAR(120) NOT NULL,
+  tamano_bytes BIGINT UNSIGNED NULL,
+  hash_sha256 BINARY(32) NULL,
+  texto_accesibilidad VARCHAR(500) NULL,
   creado_en DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-  FOREIGN KEY (creado_por) REFERENCES identidad_cuenta_usuario(id)
+  FOREIGN KEY (creado_por) REFERENCES identidad_cuenta_usuario(id),
+  CHECK ((clave_almacenamiento IS NOT NULL) <> (url_externa IS NOT NULL))
 ) ENGINE=InnoDB;
 
 -- 8. Tabla de recursos adjuntos de autoría vinculados a nodos de rutas

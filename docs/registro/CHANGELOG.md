@@ -2,6 +2,21 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-14 · V12 desde cero, materiales sin huérfanos, sesión determinista y barra superior en celular
+
+- **`V12__rol_docente_autoria_hu05.sql`:** corregida en el mismo archivo, porque fallaba antes de aplicar nada sobre `schema.sql`.
+  - Ya no inserta `es_sistema` ni `creado_en` en `identidad_rol`.
+  - La membresía DOCENTE se crea en el aula del alumno demo, buscada por membresía (`e3000000-…` o `au000000-…`).
+  - `recurso_archivo_multimedia` usa la misma definición que `schema.sql`.
+  - Probado armando una base nueva desde `schema.sql` con V04 a V16, dos veces.
+- **`MaterialStorageService`:** si el `INSERT` falla, se borra el archivo ya guardado y se relanza el error. Nueva prueba `deletesFileWhenInsertFails` (124 pruebas en total, 9 omitidas de MySQL).
+- **`StudentSessionService`:** rol y aula elegidos con subconsultas ordenadas (DOCENTE primero; aula activa más reciente). Antes, con dos roles o varias aulas, la sesión tomaba una fila cualquiera.
+- **Barra superior ≤ 520 px (`App.css`, `App.tsx`):**
+  - El menú usaba `justify-content: center` con desplazamiento, y «Mi Camino» quedaba en coordenadas negativas, inalcanzable incluso a 414 px. Ahora se centra con márgenes automáticos.
+  - «Explorar Roadmaps» se abrevia a «Explorar» (el `aria-label` conserva el nombre completo).
+  - El nombre del alumno y la palabra «Salir» ceden su espacio; el botón de salir mantiene 48 px.
+  - Las etiquetas del menú pasan a 12 px solo en ese ancho.
+
 ## 2026-10-14 · HU-13 y HU-14 demostrables, paneles de error visibles y perfil a 375 px
 
 - **`V16__docente_demo_responsable_aula.sql`:** el docente demo pasa a ser responsable de las aulas activas del alumno demo. El aula se busca por membresía, no por id, porque las bases armadas con seeds anteriores usan `au000000-…`. Sin esto, el calendario devolvía `classrooms: []` y no había recordatorios. Es idempotente y no reemplaza a un docente ya asignado. **Cada integrante debe aplicarla en su base local** después del pull (pasos en [`README-CAMBIOS-2026-10-14.md`](README-CAMBIOS-2026-10-14.md), sección 3).

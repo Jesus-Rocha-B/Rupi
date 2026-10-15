@@ -576,9 +576,10 @@ function App() {
             className={`nav-item ${currentView === 'explorar' ? 'selected' : ''}`}
             onClick={() => setCurrentView('explorar')}
             aria-current={currentView === 'explorar' ? 'page' : undefined}
+            aria-label="Explorar Roadmaps"
           >
             <Compass aria-hidden="true" />
-            <span>Explorar Roadmaps</span>
+            <span>Explorar<span className="nav-label-extra"> Roadmaps</span></span>
           </button>
           <button
             type="button"

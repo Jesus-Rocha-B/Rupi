@@ -29,6 +29,30 @@ import org.springframework.stereotype.Service;
 public class StudentSessionService {
     public static final String COOKIE = "rupi_session";
 
+    /**
+     * Un solo rol y una sola aula por usuario, elegidos siempre igual. Con un JOIN directo, un usuario con dos roles
+     * o varias aulas activas producía varias filas y la sesión tomaba una cualquiera: el grado, el colegio y hasta el
+     * rol podían cambiar entre inicios de sesión. Se prefiere DOCENTE (necesita el panel de autoría) y el aula activa
+     * a la que ingresó más recientemente.
+     */
+    private static final String ROLE_AND_CLASSROOM_JOINS = """
+            LEFT JOIN identidad_rol r ON r.id = (
+                SELECT ur.rol_id FROM identidad_usuario_rol ur
+                JOIN identidad_rol rr ON rr.id = ur.rol_id
+                WHERE ur.usuario_id = u.id
+                ORDER BY rr.codigo = 'DOCENTE' DESC, rr.codigo
+                LIMIT 1)
+            LEFT JOIN escuela_membresia_aula m ON m.id = (
+                SELECT ma.id FROM escuela_membresia_aula ma
+                JOIN escuela_aula aa ON aa.id = ma.aula_id AND aa.activa = TRUE
+                WHERE ma.usuario_id = u.id AND ma.estado = 'ACTIVO'
+                ORDER BY ma.ingreso_en DESC, ma.aula_id
+                LIMIT 1)
+            LEFT JOIN escuela_aula a ON a.id = m.aula_id
+            LEFT JOIN escuela_institucion inst ON inst.id = a.institucion_id
+            LEFT JOIN curriculo_grado g ON g.id = a.grado_id
+            """;
+
     private final JdbcTemplate jdbc;
     private final PasswordService passwordService;
     private final SecureRandom secureRandom = new SecureRandom();
@@ -133,12 +157,7 @@ public class StudentSessionService {
                 FROM identidad_sesion_usuario s
                 JOIN identidad_cuenta_usuario u ON u.id = s.usuario_id
                 LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
-                LEFT JOIN identidad_usuario_rol ur ON ur.usuario_id = u.id
-                LEFT JOIN identidad_rol r ON r.id = ur.rol_id
-                LEFT JOIN escuela_membresia_aula m ON m.usuario_id = u.id AND m.estado = 'ACTIVO'
-                LEFT JOIN escuela_aula a ON a.id = m.aula_id
-                LEFT JOIN escuela_institucion inst ON inst.id = a.institucion_id
-                LEFT JOIN curriculo_grado g ON g.id = a.grado_id
+                """ + ROLE_AND_CLASSROOM_JOINS + """
                 WHERE s.token_hash = ? AND s.revocada_en IS NULL
                   AND s.expira_en > UTC_TIMESTAMP(6) AND s.cliente = 'WEB_USUARIO'
                   AND u.estado = 'ACTIVO' AND u.desactivado_en IS NULL
@@ -201,12 +220,7 @@ public class StudentSessionService {
                        COALESCE(g.nombre, '2.° de primaria') AS grado_nombre
                 FROM identidad_cuenta_usuario u
                 LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
-                LEFT JOIN identidad_usuario_rol ur ON ur.usuario_id = u.id
-                LEFT JOIN identidad_rol r ON r.id = ur.rol_id
-                LEFT JOIN escuela_membresia_aula m ON m.usuario_id = u.id AND m.estado = 'ACTIVO'
-                LEFT JOIN escuela_aula a ON a.id = m.aula_id
-                LEFT JOIN escuela_institucion inst ON inst.id = a.institucion_id
-                LEFT JOIN curriculo_grado g ON g.id = a.grado_id
+                """ + ROLE_AND_CLASSROOM_JOINS + """
                 WHERE u.nombre_usuario = ?
                 """, (rs, rowNum) -> new UserAccount(
                 rs.getString("id"),
