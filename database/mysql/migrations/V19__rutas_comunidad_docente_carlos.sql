@@ -45,11 +45,11 @@ ON DUPLICATE KEY UPDATE titulo = VALUES(titulo), instrucciones = VALUES(instrucc
 
 -- Nodos de la ruta
 INSERT INTO aprendizaje_nodo_ruta (id, version_ruta_id, version_actividad_id, unidad_id, numero_secuencia, es_opcional, mapa_x, mapa_y) VALUES
-  ('en000000-0000-4000-8000-000003020002', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020002', 'd2000000-0000-4000-8000-000000000302', 2, FALSE, 28, 34),
-  ('en000000-0000-4000-8000-000003020003', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020003', 'd2000000-0000-4000-8000-000000000302', 3, FALSE, 72, 48),
-  ('en000000-0000-4000-8000-000003020004', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020004', 'd2000000-0000-4000-8000-000000000302', 4, FALSE, 34, 62),
-  ('en000000-0000-4000-8000-000003020005', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020005', 'd2000000-0000-4000-8000-000000000302', 5, FALSE, 66, 75),
-  ('en000000-0000-4000-8000-000003020006', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020006', 'd2000000-0000-4000-8000-000000000302', 6, FALSE, 50, 90)
+  ('ee000000-0000-4000-8000-000003020002', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020002', 'd2000000-0000-4000-8000-000000000302', 2, FALSE, 28, 34),
+  ('ee000000-0000-4000-8000-000003020003', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020003', 'd2000000-0000-4000-8000-000000000302', 3, FALSE, 72, 48),
+  ('ee000000-0000-4000-8000-000003020004', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020004', 'd2000000-0000-4000-8000-000000000302', 4, FALSE, 34, 62),
+  ('ee000000-0000-4000-8000-000003020005', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020005', 'd2000000-0000-4000-8000-000000000302', 5, FALSE, 66, 75),
+  ('ee000000-0000-4000-8000-000003020006', '41581fe2-4b60-4a7d-8d3e-d2224780fbae', 'ea000000-0000-4000-8000-000003020006', 'd2000000-0000-4000-8000-000000000302', 6, FALSE, 50, 90)
 ON DUPLICATE KEY UPDATE mapa_x = VALUES(mapa_x), mapa_y = VALUES(mapa_y);
 
 -- Bloques de contenido y preguntas
@@ -62,24 +62,24 @@ INSERT INTO aprendizaje_bloque_contenido (id, version_actividad_id, numero_secue
 ON DUPLICATE KEY UPDATE texto_cuerpo = VALUES(texto_cuerpo);
 
 INSERT INTO evaluacion_pregunta (id, version_actividad_id, numero_secuencia, tipo, enunciado, explicacion, puntos) VALUES
-  ('ep000000-0000-4000-8000-000003020002', 'ea000000-0000-4000-8000-000003020002', 1, 'OPCION_MULTIPLE', '¿Cuál es el hogar tradicional del majestuoso cóndor andino?', 'El cóndor habita en las cumbres andinas y los grandes cañones.', 10),
-  ('ep000000-0000-4000-8000-000003020003', 'ea000000-0000-4000-8000-000003020003', 1, 'OPCION_MULTIPLE', 'En la frase "La vicuña veloz corre en la pampa", ¿cuál es el adjetivo?', '"Veloz" nos dice cómo es la vicuña, por eso es el adjetivo.', 10),
-  ('ep000000-0000-4000-8000-000003020004', 'ea000000-0000-4000-8000-000003020004', 1, 'OPCION_MULTIPLE', '¿En qué parte de un cuento se resuelve el problema de los personajes?', 'El desenlace es el final donde todo se soluciona.', 10),
-  ('ep000000-0000-4000-8000-000003020005', 'ea000000-0000-4000-8000-000003020005', 1, 'OPCION_MULTIPLE', '¿Para qué usamos las rimas y canciones tradicionales?', 'Para disfrutar del ritmo y recordar historias con alegría.', 10),
-  ('ep000000-0000-4000-8000-000003020006', 'ea000000-0000-4000-8000-000003020006', 1, 'OPCION_MULTIPLE', '¿Qué cualidad demostró tener un buen narrador escolar?', 'Saber escuchar, ordenar sus ideas y compartir con entusiasmo.', 10)
+  ('ef000000-0000-4000-8000-000003020002', 'ea000000-0000-4000-8000-000003020002', 1, 'OPCION_MULTIPLE', '¿Cuál es el hogar tradicional del majestuoso cóndor andino?', 'El cóndor habita en las cumbres andinas y los grandes cañones.', 10),
+  ('ef000000-0000-4000-8000-000003020003', 'ea000000-0000-4000-8000-000003020003', 1, 'OPCION_MULTIPLE', 'En la frase "La vicuña veloz corre en la pampa", ¿cuál es el adjetivo?', '"Veloz" nos dice cómo es la vicuña, por eso es el adjetivo.', 10),
+  ('ef000000-0000-4000-8000-000003020004', 'ea000000-0000-4000-8000-000003020004', 1, 'OPCION_MULTIPLE', '¿En qué parte de un cuento se resuelve el problema de los personajes?', 'El desenlace es el final donde todo se soluciona.', 10),
+  ('ef000000-0000-4000-8000-000003020005', 'ea000000-0000-4000-8000-000003020005', 1, 'OPCION_MULTIPLE', '¿Para qué usamos las rimas y canciones tradicionales?', 'Para disfrutar del ritmo y recordar historias con alegría.', 10),
+  ('ef000000-0000-4000-8000-000003020006', 'ea000000-0000-4000-8000-000003020006', 1, 'OPCION_MULTIPLE', '¿Qué cualidad demostró tener un buen narrador escolar?', 'Saber escuchar, ordenar sus ideas y compartir con entusiasmo.', 10)
 ON DUPLICATE KEY UPDATE enunciado = VALUES(enunciado), explicacion = VALUES(explicacion);
 
 INSERT INTO evaluacion_opcion_respuesta (id, pregunta_id, numero_secuencia, texto, es_correcta) VALUES
-  ('er000000-0000-4000-8000-000003020211', 'ep000000-0000-4000-8000-000003020002', 1, 'Las altas cumbres de los Andes', TRUE),
-  ('er000000-0000-4000-8000-000003020212', 'ep000000-0000-4000-8000-000003020002', 2, 'El fondo del mar', FALSE),
-  ('er000000-0000-4000-8000-000003020311', 'ep000000-0000-4000-8000-000003020003', 1, 'Veloz', TRUE),
-  ('er000000-0000-4000-8000-000003020312', 'ep000000-0000-4000-8000-000003020003', 2, 'Pampa', FALSE),
-  ('er000000-0000-4000-8000-000003020411', 'ep000000-0000-4000-8000-000003020004', 1, 'En el desenlace', TRUE),
-  ('er000000-0000-4000-8000-000003020412', 'ep000000-0000-4000-8000-000003020004', 2, 'En el título', FALSE),
-  ('er000000-0000-4000-8000-000003020511', 'ep000000-0000-4000-8000-000003020005', 1, 'Para sentir el ritmo y gozar las palabras', TRUE),
-  ('er000000-0000-4000-8000-000003020512', 'ep000000-0000-4000-8000-000003020005', 2, 'Para dormir en silencio', FALSE),
-  ('er000000-0000-4000-8000-000003020611', 'ep000000-0000-4000-8000-000003020006', 1, 'Escuchar y ordenar sus ideas con claridad', TRUE),
-  ('er000000-0000-4000-8000-000003020612', 'ep000000-0000-4000-8000-000003020006', 2, 'Gritar muy fuerte sin pensar', FALSE)
+  ('ed000000-0000-4000-8000-000003020211', 'ef000000-0000-4000-8000-000003020002', 1, 'Las altas cumbres de los Andes', TRUE),
+  ('ed000000-0000-4000-8000-000003020212', 'ef000000-0000-4000-8000-000003020002', 2, 'El fondo del mar', FALSE),
+  ('ed000000-0000-4000-8000-000003020311', 'ef000000-0000-4000-8000-000003020003', 1, 'Veloz', TRUE),
+  ('ed000000-0000-4000-8000-000003020312', 'ef000000-0000-4000-8000-000003020003', 2, 'Pampa', FALSE),
+  ('ed000000-0000-4000-8000-000003020411', 'ef000000-0000-4000-8000-000003020004', 1, 'En el desenlace', TRUE),
+  ('ed000000-0000-4000-8000-000003020412', 'ef000000-0000-4000-8000-000003020004', 2, 'En el título', FALSE),
+  ('ed000000-0000-4000-8000-000003020511', 'ef000000-0000-4000-8000-000003020005', 1, 'Para sentir el ritmo y gozar las palabras', TRUE),
+  ('ed000000-0000-4000-8000-000003020512', 'ef000000-0000-4000-8000-000003020005', 2, 'Para dormir en silencio', FALSE),
+  ('ed000000-0000-4000-8000-000003020611', 'ef000000-0000-4000-8000-000003020006', 1, 'Escuchar y ordenar sus ideas con claridad', TRUE),
+  ('ed000000-0000-4000-8000-000003020612', 'ef000000-0000-4000-8000-000003020006', 2, 'Gritar muy fuerte sin pensar', FALSE)
 ON DUPLICATE KEY UPDATE texto = VALUES(texto);
 
 -- 4. Códigos de acceso de clase para ingresar directamente a las rutas del profesor

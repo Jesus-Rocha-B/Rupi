@@ -216,9 +216,15 @@ export function resolveEducationalVideo(
   areaCode?: string | null
 ): EducationalVideo {
   // 1. Buscar en los bloques si ya vino un enlace válido de YouTube o video directo
+  const t = (title || '').toLowerCase()
+  const isActuallyAddition = t.includes('sum') || t.includes('adici')
   if (blocks && blocks.length > 0) {
     for (const b of blocks) {
       const vidId = extractYouTubeId(b.url)
+      // Si el enlace en BD contiene el video genérico de suma pero la actividad trata de otro tema, preferir el clasificador temático
+      if (vidId === 'oexd_Dfic_Q' && !isActuallyAddition) {
+        continue
+      }
       if (vidId) {
         return {
           id: vidId,
@@ -242,7 +248,6 @@ export function resolveEducationalVideo(
   }
 
   // 2. Mapear por palabras clave específicas del tema
-  const t = (title || '').toLowerCase()
 
   // 2.1. Ciencia y Tecnología
   if (t.includes('sentido') || t.includes('vista') || t.includes('ojo') || t.includes('oído') || t.includes('oido') || t.includes('olfato') || t.includes('gusto') || t.includes('tacto') || t.includes('oreja')) {

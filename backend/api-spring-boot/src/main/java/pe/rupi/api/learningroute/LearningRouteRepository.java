@@ -1,6 +1,7 @@
 package pe.rupi.api.learningroute;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -252,13 +253,28 @@ public class LearningRouteRepository {
         );
     };
 
+    private static UUID parseUuid(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(value.trim());
+        } catch (IllegalArgumentException e) {
+            String sanitized = value.trim().toLowerCase().replaceAll("[^0-9a-f-]", "0");
+            try {
+                return UUID.fromString(sanitized);
+            } catch (Exception ex) {
+                return UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8));
+            }
+        }
+    }
+
     private static UUID uuid(ResultSet rs, String column) throws SQLException {
-        return UUID.fromString(rs.getString(column));
+        return parseUuid(rs.getString(column));
     }
 
     private static UUID nullableUuid(ResultSet rs, String column) throws SQLException {
-        String value = rs.getString(column);
-        return value == null ? null : UUID.fromString(value);
+        return parseUuid(rs.getString(column));
     }
 
     public Optional<CulturalContext> findCulturalContextForRoute(UUID routeId) {
