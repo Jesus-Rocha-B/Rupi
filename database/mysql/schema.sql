@@ -200,6 +200,8 @@ CREATE TABLE IF NOT EXISTS aprendizaje_nodo_ruta (
   version_ruta_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   version_actividad_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   unidad_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  disponible_desde DATETIME(6) NULL,
+  bloqueado_desde DATETIME(6) NULL,
   nodo_prerrequisito_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
   numero_secuencia SMALLINT UNSIGNED NOT NULL,
   mapa_x DECIMAL(5,2) NULL,

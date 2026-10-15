@@ -321,7 +321,7 @@ function App() {
         }
         if (detail.area?.code) {
           const code = detail.area.code.toUpperCase()
-          let normalized = 'MATEMATICA'
+          let normalized: string
           if (code.includes('COM')) normalized = 'COMUNICACION'
           else if (code.includes('CYT')) normalized = 'CYT'
           else if (code.includes('MAT')) normalized = 'MATEMATICA'
@@ -697,7 +697,7 @@ function App() {
               }
               if (areaCode) {
                 const code = areaCode.toUpperCase()
-                let normalized = 'MATEMATICA'
+                let normalized: string
                 if (code.includes('COM')) normalized = 'COMUNICACION'
                 else if (code.includes('CYT')) normalized = 'CYT'
                 else if (code.includes('MAT')) normalized = 'MATEMATICA'
@@ -727,7 +727,7 @@ function App() {
               }
               if (areaCode) {
                 const code = areaCode.toUpperCase()
-                let normalized = 'MATEMATICA'
+                let normalized: string
                 if (code.includes('COM')) normalized = 'COMUNICACION'
                 else if (code.includes('CYT')) normalized = 'CYT'
                 else if (code.includes('MAT')) normalized = 'MATEMATICA'
@@ -810,7 +810,7 @@ function App() {
             </section>
 
             {/* Barra interactiva de cambio ágil de materia escolar solo para rutas oficiales */}
-            {!Boolean(
+            {!(
               selectedRoute && (
                 routes.find(r => r.versionRouteId === selectedRoute.versionRouteId)?.category === 'COMUNIDAD' ||
                 (selectedRoute as { category?: string }).category === 'COMUNIDAD' ||

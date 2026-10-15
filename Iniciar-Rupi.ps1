@@ -30,15 +30,13 @@ if ($Recompilar -or !(Test-Path $jar)) {
     if ($LASTEXITCODE -ne 0) { throw 'No se pudo compilar la API.' }
 }
 if (!(Test-Port 8081)) {
+    # El proceso hereda las variables de entorno; no colocar secretos en sus argumentos.
+    # Start-Process concatena ArgumentList: las rutas con espacios deben ir entre comillas.
     $apiArgs = @(
-        "-Djdk.net.unixdomain.tmpdir=$PSScriptRoot/.local/sockets",
-        "-Djava.net.preferIPv4Stack=true",
-        "-Dspring.datasource.url=$env:RUPI_DB_URL",
-        "-Dspring.datasource.username=$env:RUPI_DB_USERNAME",
-        "-Dspring.datasource.password=$env:RUPI_DB_PASSWORD",
-        "-Drupi.auth.demo-session-token=$env:RUPI_DEMO_SESSION_TOKEN",
-        "-jar",
-        $jar
+        "`"-Djdk.net.unixdomain.tmpdir=$PSScriptRoot/.local/sockets`"",
+        '-Djava.net.preferIPv4Stack=true',
+        '-jar',
+        "`"$jar`""
     )
     $api = Start-Process (Get-Command java.exe).Source -ArgumentList $apiArgs -WindowStyle Hidden -PassThru -RedirectStandardOutput "$PSScriptRoot\.local\api.log" -RedirectStandardError "$PSScriptRoot\.local\api-error.log"
     $api.Id | Set-Content "$PSScriptRoot\.local\api.pid"

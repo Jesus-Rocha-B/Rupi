@@ -36,8 +36,6 @@ interface ExploreRoadmapsViewProps {
 type CategoryTab = 'OFICIAL' | 'COMUNIDAD'
 
 export function ExploreRoadmapsView({
-  currentGrade: _currentGrade,
-  currentCourse: _currentCourse,
   enrolledRoutes,
   onSelectRoute,
   onOpenJoinModal,
