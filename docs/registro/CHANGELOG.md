@@ -2,6 +2,14 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-14 · HU-17: reportes de resultados docentes
+
+- Resumen por estudiante y unidad con evidencia mínima y estados sin datos diferenciados.
+- Competencias asociadas a unidades por revisar, señaladas como evidencia indirecta.
+- Filtros por aula/ruta y exportación CSV con autorización docente y protección contra fórmulas.
+- Pantalla móvil accesible desde el panel docente; módulo de solo lectura sin migración nueva.
+- Detalle y validación: [HU-17](../implementacion/HU-17-reportes-resultados.md).
+
 ## 2026-10-14 · Revisión modular de las historias 1 a 14
 
 Contrastado con el backlog (`GLAB-S06-2026-01`). Los fallos se encontraron con los scripts del repo y con pruebas de punta a punta contra la API.

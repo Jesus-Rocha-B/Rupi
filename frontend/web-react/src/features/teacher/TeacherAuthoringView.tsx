@@ -45,6 +45,7 @@ interface Props {
   schoolName: string
   onLogout: () => void
   onSwitchToStudentView: () => void
+  onOpenReports: () => void
 }
 
 const CNEB_AREAS = [
@@ -61,7 +62,7 @@ function stateLabel(state: string) {
   return '✎ Borrador'
 }
 
-export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwitchToStudentView }: Props) {
+export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwitchToStudentView, onOpenReports }: Props) {
   const [routes, setRoutes] = useState<TeacherRouteSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
@@ -333,6 +334,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
         </div>
 
         <div className="teacher-header-actions">
+          <button type="button" className="teacher-action-btn secondary" onClick={onOpenReports}><FileText size={20} aria-hidden="true" /> Reportes de resultados</button>
           <button
             type="button"
             className="teacher-action-btn secondary"

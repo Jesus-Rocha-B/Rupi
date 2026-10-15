@@ -48,6 +48,7 @@ import { RupiCharacter } from './components/RupiCharacter'
 import { LessonScreenView } from './features/roadmap/LessonScreenView'
 import { StudentBadgesModal } from './components/StudentBadgesModal'
 import { JoinClassModal } from './components/JoinClassModal'
+import { TeacherReportsView } from './features/reports/TeacherReportsView'
 import { TeacherAuthoringView } from './features/teacher/TeacherAuthoringView'
 import { StudentAvatar } from './components/StudentAvatar'
 import { ExploreRoadmapsView } from './features/roadmap/ExploreRoadmapsView'
@@ -121,7 +122,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [slowLoading, setSlowLoading] = useState(false)
   const [currentView, setCurrentView] = useState<AppView>('camino')
-  const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview'>('authoring')
+  const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview' | 'reports'>('authoring')
 
   const [errorType, setErrorType] = useState<Failure>(null)
   const [guideIndex, setGuideIndex] = useState(0)
@@ -503,10 +504,15 @@ function App() {
     )
   }
 
+  if (student.role === 'DOCENTE' && teacherViewMode === 'reports') {
+    return <TeacherReportsView onBack={() => setTeacherViewMode('authoring')} onLogout={handleLogout} />
+  }
+
   // 1.5 Panel de Autoría para Docentes (HU-05)
   if (student.role === 'DOCENTE' && teacherViewMode === 'authoring') {
     return (
       <TeacherAuthoringView
+        onOpenReports={() => setTeacherViewMode('reports')}
         teacherName={student.name}
         schoolName={student.schoolName || student.institutionName || 'I.E. 38001 Mariscal Sucre'}
         onLogout={handleLogout}
