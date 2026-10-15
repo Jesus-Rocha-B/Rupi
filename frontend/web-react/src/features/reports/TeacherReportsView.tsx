@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useReportData } from './useReportData'
+import { GradesReportView } from './GradesReportView'
+import { useState } from 'react'
 import { ArrowLeft, BookOpen, Download, LogOut } from 'lucide-react'
 import { reportsResponse, reportQuery, type ReportClassroom, type ReportRoute, type ResultsReport, type StudentResult } from '../../services/reportsApi'
 import './TeacherReportsView.css'
@@ -6,22 +8,6 @@ import './TeacherReportsView.css'
 const labels: Record<StudentResult['status'], string> = {
   SIN_INSCRIPCION: 'Sin inscripción', SIN_RESPUESTAS: 'Sin respuestas',
   EVIDENCIA_INSUFICIENTE: 'Falta evidencia', REQUIERE_ATENCION: 'Requiere atención', EN_AVANCE: 'En avance',
-}
-function useReportData<T>(path: string) {
-  const [attempt, setAttempt] = useState(0)
-  const key = `${path}:${attempt}`
-  const [result, setResult] = useState<{ key: string; data?: T; error?: string } | null>(null)
-  useEffect(() => {
-    const controller = new AbortController()
-    reportsResponse(path, controller.signal).then(response => response.json()).then((data: T) => {
-      if (!controller.signal.aborted) setResult({ key, data })
-    }).catch(() => {
-      if (!controller.signal.aborted) setResult({ key, error: 'No pudimos consultar el reporte. Comprueba tu conexión y el acceso al aula.' })
-    })
-    return () => controller.abort()
-  }, [path, key])
-  return { data: result?.key === key ? result.data : undefined, error: result?.key === key ? result.error : undefined,
-    retry: () => setAttempt(value => value + 1) }
 }
 function ReportError({ message, retry }: { message: string; retry: () => void }) {
   return <div className="report-error" role="alert"><p>{message}</p><button type="button" onClick={retry}>Volver a consultar</button></div>
@@ -83,7 +69,7 @@ function ReportResults({ room, route }: { room: string; route: string }) {
     </details>)}
   </div>
 }
-function ClassroomReports({ room }: { room: string }) {
+function ClassroomReports({ room, view }: { room: string; view: string }) {
   const { data: routes, error, retry } = useReportData<ReportRoute[]>(`/classrooms/${encodeURIComponent(room)}/routes`)
   const [selected, setSelected] = useState('')
   if (error) return <ReportError message={error} retry={retry} />
@@ -92,20 +78,22 @@ function ClassroomReports({ room }: { room: string }) {
   const route = routes.some(r => r.id === selected) ? selected : routes[0].id
   return <><label className="report-filter">Ruta y versión<select value={route} onChange={event => setSelected(event.target.value)}>
     {routes.map(r => <option key={r.id} value={r.id}>{r.title} · v{r.version} · {r.state === 'PUBLICADO' ? 'Publicada' : 'No publicada'}</option>)}
-  </select></label><ReportResults key={route} room={room} route={route} /></>
+  </select></label>{view === 'grades' ? <GradesReportView key={route} room={room} route={route} /> : <ReportResults key={route} room={room} route={route} />}</>
 }
 export function TeacherReportsView({ onBack, onLogout }: { onBack: () => void; onLogout: () => void }) {
+  const [view, setView] = useState('results')
   const { data: rooms, error, retry } = useReportData<ReportClassroom[]>('/classrooms')
   const [selected, setSelected] = useState('')
   const room = rooms?.some(r => r.id === selected) ? selected : rooms?.[0]?.id
   return <main className="teacher-reports">
     <header className="report-header"><div><span className="report-eyebrow"><BookOpen size={20} aria-hidden="true" /> Cuaderno docente · Rupi</span><h1>Reportes de resultados</h1><p>Observa el avance de tus estudiantes y encuentra dónde acompañarlos.</p></div>
       <nav aria-label="Navegación docente"><button type="button" onClick={onBack}><ArrowLeft size={20} aria-hidden="true" /> Volver a mis rutas</button><button type="button" onClick={onLogout}><LogOut size={20} aria-hidden="true" /> Salir</button></nav></header>
+    <div className="report-actions" aria-label="Tipo de reporte"><button type="button" aria-pressed={view === 'results'} onClick={() => setView('results')}>Resultados y atención</button><button type="button" aria-pressed={view === 'grades'} onClick={() => setView('grades')}>Calificaciones promedio</button></div>
     {error && <ReportError message={error} retry={retry} />}
     {!rooms && !error && <p role="status">Buscando tus aulas…</p>}
     {rooms && !rooms.length && <p className="report-empty">Aún no tienes aulas activas asignadas. Solicita que te registren como docente o responsable de tu aula para consultar sus resultados.</p>}
     {rooms && room && <><label className="report-filter">Aula<select value={room} onChange={event => setSelected(event.target.value)}>
       {rooms.map(r => <option key={r.id} value={r.id}>{r.name} · {r.grade}.º de primaria</option>)}
-    </select></label><ClassroomReports key={room} room={room} /></>}
+    </select></label><ClassroomReports key={room} room={room} view={view} /></>}
   </main>
 }

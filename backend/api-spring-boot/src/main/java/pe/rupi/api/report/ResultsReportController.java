@@ -11,7 +11,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/v1/teacher/results-reports")
 public class ResultsReportController {
     private final ResultsReportService service;
-    public ResultsReportController(ResultsReportService service) {this.service=service;}
+    private final GradesService grades;
+    public ResultsReportController(ResultsReportService service,GradesService grades) {this.service=service;this.grades=grades;}
     private String teacher(Principal principal) {
         if(principal==null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         try {return UUID.fromString(principal.getName()).toString();}
@@ -24,6 +25,10 @@ public class ResultsReportController {
     @GetMapping
     public ResultsReportService.Report report(@RequestParam UUID classroomId,@RequestParam UUID routeId,Principal principal) {
         return service.report(teacher(principal),classroomId.toString(),routeId.toString());
+    }
+    @GetMapping("/grades")
+    public GradesService.Report grades(@RequestParam UUID classroomId,@RequestParam UUID routeId,Principal principal) {
+        return grades.report(teacher(principal),classroomId.toString(),routeId.toString());
     }
     @GetMapping(value="/export",produces="text/csv;charset=UTF-8")
     public ResponseEntity<byte[]> export(@RequestParam UUID classroomId,@RequestParam UUID routeId,Principal principal) {

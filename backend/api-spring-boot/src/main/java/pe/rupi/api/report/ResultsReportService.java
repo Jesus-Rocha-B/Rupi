@@ -23,10 +23,17 @@ public class ResultsReportService {
             .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
     public List<Route> routes(String teacher,String room) {classroom(teacher,room);return repo.routes(room);}
-    public Report report(String teacher,String room,String route) {
+    record Selection(Classroom classroom, Route route) {}
+    Selection authorize(String teacher,String room,String route) {
         var classroom=classroom(teacher,room);
         var selected=repo.routes(room).stream().filter(r->r.id().equals(route)).findFirst()
             .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return new Selection(classroom,selected);
+    }
+    public Report report(String teacher,String room,String route) {
+        var selection=authorize(teacher,room,route);
+        var classroom=selection.classroom();
+        var selected=selection.route();
         var data=repo.data(room,route);
         return new Report(classroom,selected,Instant.now().toString(),data.students().size(),summarize(data));
     }
