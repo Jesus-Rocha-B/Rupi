@@ -1,11 +1,11 @@
 @import './features/auth/AuthViews.css';
 
 :root {
-  /* Tokens de tipografía */
+  /* Tokens de tipografÃ­a */
   --body-font: 'Nunito', system-ui, -apple-system, sans-serif;
   --display-font: 'Nunito', system-ui, -apple-system, sans-serif;
 
-  /* Paleta cromática original Rupi */
+  /* Paleta cromÃ¡tica original Rupi */
   --ink: #173e30;
   --muted: #43614c;
   --paper: #fffefa;
@@ -15,7 +15,7 @@
   --green: #31724b;
   --gold: #ffd26a;
 
-  /* Tokens semánticos de diseño */
+  /* Tokens semÃ¡nticos de diseÃ±o */
   --color-primary: var(--red);
   --color-primary-dark: var(--red-dark);
   --color-success: var(--green);
@@ -24,6 +24,22 @@
   --color-text-muted: var(--muted);
   --color-bg-card: var(--paper);
   --color-border: var(--line);
+
+  /* Tokens de interacciÃ³n fÃ­sica y animaciÃ³n estilo agente / storybook */
+  --rupi-orange: #f95738;
+  --rupi-orange-shadow: #cc3a1d;
+  --rupi-green-leaf: #31724b;
+  --rupi-green-shadow: #214f34;
+  --rupi-blue-sky: #246a91;
+  --rupi-blue-shadow: #184c68;
+  --rupi-yellow-sun: #ffd26a;
+  --rupi-yellow-shadow: #c98e2b;
+  --rupi-border-sticker: #173e30;
+  --rupi-canvas-white: #ffffff;
+  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-tap: 100ms;
+  --duration-enter: 220ms;
 
   /* Tokens de espaciado modular */
   --space-xs: 4px;
@@ -228,7 +244,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 .progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg,#d65e3b,#efad4d); }
 .learning-layout { display: grid; grid-template-columns: minmax(0,1fr) 280px; align-items: start; gap: 22px; }
 
-/* Roadmap: illustration, route, and markers use the same 600 × 1000 canvas. */
+/* Roadmap: illustration, route, and markers use the same 600 Ã— 1000 canvas. */
 .map-panel { overflow: hidden; border: 2px solid #dce7d5; border-radius: 24px; background: var(--paper); box-shadow: 0 14px 34px #25453014; scroll-margin-top: 84px; }
 .unit-heading { display: flex; align-items: center; gap: 14px; min-height: 72px; padding: 12px 22px; border-bottom: 2px solid #edf2e8; background: linear-gradient(105deg, #ffffff 0%, #f6faf0 100%); }
 .unit-number { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 12px; background: #e7f3d7; color: #3f7849; font: 800 13px var(--display-font); box-shadow: inset 0 0 0 1px #d8e8c7; }
@@ -263,82 +279,336 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 .road-surface { stroke: #f7e7bd; stroke-width: 49; }
 .road-center { stroke: #d7ae58; stroke-width: 3; stroke-dasharray: 5 14; animation: road-travel 4s linear infinite; }
 .trail-stop { position: absolute; z-index: 4; width: 0; height: 0; transform: translate(-50%,-50%); scroll-margin-top: 100px; }
-.lesson-node { position: absolute; top: 0; left: 0; display: grid; width: 58px; height: 58px; place-items: center; padding: 0; border: 4px solid #fffdf7; border-radius: 50%; background: #c7d3bc; box-shadow: 0 4px 0 #98aa8e,0 7px 10px #3157441b; transform: translate(-50%,-50%); transition: scale .2s,filter .2s; }
-.lesson-node:hover:not(:disabled) { scale: 1.12; filter: brightness(1.06); }
+.lesson-node {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  padding: 0;
+  border: 3.5px solid #ffffff;
+  border-radius: 50%;
+  background: #c7d3bc;
+  box-shadow: 0 4px 0 #85987d, 0 6px 12px rgba(23, 62, 48, 0.15);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--duration-tap) var(--ease-snappy),
+              box-shadow var(--duration-tap) var(--ease-snappy),
+              filter var(--duration-tap) ease;
+}
+.lesson-node:hover:not(:disabled) {
+  transform: translate(-50%, -50%) translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 6px 0 #85987d, 0 8px 14px rgba(23, 62, 48, 0.18);
+}
+.lesson-node:active:not(:disabled) {
+  transform: translate(-50%, -50%) translateY(3px);
+  box-shadow: 0 1px 0 #85987d, 0 2px 6px rgba(23, 62, 48, 0.12);
+}
 .lesson-node:focus-visible,.node-label:focus-visible { outline: 3px solid #e9a941; outline-offset: 4px; }
-.trail-stop.complete .lesson-node { background: var(--green); box-shadow: 0 5px 0 #397246,0 8px 13px #31574428; }
-.trail-stop.active .lesson-node { width: 68px; height: 68px; background: var(--red); box-shadow: 0 0 0 7px #ffd477b8,0 6px 0 #ad3f2c,0 12px 18px #71392138; animation: node-float 2.7s ease-in-out infinite; }
+.trail-stop.complete .lesson-node {
+  background: var(--rupi-green-leaf);
+  box-shadow: 0 5px 0 var(--rupi-green-shadow), 0 6px 12px rgba(33, 79, 52, 0.2);
+}
+.trail-stop.complete .lesson-node:hover:not(:disabled) {
+  box-shadow: 0 7px 0 var(--rupi-green-shadow), 0 8px 14px rgba(33, 79, 52, 0.25);
+}
+.trail-stop.complete .lesson-node:active:not(:disabled) {
+  transform: translate(-50%, -50%) translateY(3px);
+  box-shadow: 0 1px 0 var(--rupi-green-shadow);
+}
+.trail-stop.active .lesson-node {
+  width: 68px;
+  height: 68px;
+  background: var(--rupi-orange);
+  box-shadow: 0 0 0 6px rgba(255, 210, 106, 0.85), 0 6px 0 var(--rupi-orange-shadow), 0 10px 18px rgba(249, 87, 56, 0.3);
+  animation: node-float 2.7s ease-in-out infinite;
+}
+.trail-stop.active .lesson-node:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.trail-stop.active .lesson-node:active:not(:disabled) {
+  animation: none;
+  transform: translate(-50%, -50%) translateY(3px);
+  box-shadow: 0 0 0 6px rgba(255, 210, 106, 0.85), 0 2px 0 var(--rupi-orange-shadow);
+}
 .trail-stop.locked .lesson-node { color: #53714b; }
 .node-number { display: grid; width: 100%; height: 100%; place-items: center; border-radius: 50%; color: white; font: 900 19px var(--display-font); text-shadow: 0 1px 2px #36523c4a; }
 .trail-stop.locked .node-number { color: #53714b; }
 .trail-stop.complete .node-number svg { width: 25px; height: 25px; stroke-width: 3.2; }
 .trail-stop.active .node-number svg { width: 28px; height: 28px; fill: #fff0c4; stroke: #fff0c4; animation: star-turn 8s linear infinite; }
-.trail-stop.active .lesson-node::after { position: absolute; bottom: -29px; left: 50%; padding: 5px 9px; border: 2px solid white; border-radius: 18px; background: #ffcb4e; color: #503916; content: '+20 XP'; font: 900 9px var(--display-font); white-space: nowrap; box-shadow: 0 3px 0 #c98e2b; animation: xp-pop 2s ease-in-out infinite; }
-.node-label { position: absolute; top: 0; min-width: 154px; max-width: 174px; padding: 9px 11px; border: 2px solid white; border-radius: 13px; background: var(--paper); text-align: left; transform: translateY(-50%); transition: transform .2s,box-shadow .2s; box-shadow: 0 4px 0 #806f4224,0 7px 13px #4a40201c; }
-.node-label.right { left: 43px; }
-.node-label.left { right: 43px; text-align: right; }
-.node-label b { display: block; color: #334b3b; font: 900 12px/1.2 var(--display-font); }
-.node-label>span:last-child { display: block; margin-top: 3px; color: #59695d; font-size: 10px; }
-.stop-place { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; color: #a14f38; font: 900 8px/1.25 var(--body-font); letter-spacing: .45px; text-transform: uppercase; }
+.trail-stop.active .lesson-node::after {
+  position: absolute;
+  bottom: -29px;
+  left: 50%;
+  padding: 5px 10px;
+  border: 2px solid var(--rupi-border-sticker);
+  border-radius: 18px;
+  background: var(--rupi-yellow-sun);
+  color: var(--rupi-border-sticker);
+  content: '+20 XP';
+  font: 900 10px var(--display-font);
+  white-space: nowrap;
+  box-shadow: 0 3px 0 var(--rupi-border-sticker);
+  animation: xp-pop 2s ease-in-out infinite;
+}
+.node-label {
+  position: absolute;
+  top: 0;
+  min-width: 154px;
+  max-width: 178px;
+  padding: 10px 12px;
+  border: 2px solid var(--rupi-border-sticker);
+  border-radius: 14px;
+  background: #ffffff;
+  text-align: left;
+  transform: translateY(-50%);
+  box-shadow: 0 4px 0 var(--rupi-border-sticker);
+  transition: transform var(--duration-tap) var(--ease-snappy), box-shadow var(--duration-tap) var(--ease-snappy);
+}
+.node-label.right { left: 45px; }
+.node-label.left { right: 45px; text-align: right; }
+.node-label b { display: block; color: var(--rupi-border-sticker); font: 900 13px/1.25 var(--display-font); }
+.node-label>span:last-child { display: block; margin-top: 3px; color: #59695d; font-size: 11px; }
+.stop-place { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; color: var(--rupi-orange); font: 900 9px/1.25 var(--body-font); letter-spacing: .45px; text-transform: uppercase; }
 .node-label.left .stop-place { justify-content: flex-end; }
-.stop-place svg { width: 10px; height: 10px; flex: 0 0 10px; stroke-width: 2; }
-.trail-stop.complete .node-label { border-color: #d7e8cd; box-shadow: 0 3px 0 #87a982; }
-.trail-stop.complete .stop-place { color: #4f8050; }
-.trail-stop.active .node-label { border-color: #ffd26a; background: #fff8e2; box-shadow: 0 4px 0 #d59a36,0 8px 16px #b96e3338; }
-.trail-stop.active .node-label b,.trail-stop.active .stop-place { color: #ad492f; }
-.node-label:disabled { cursor: not-allowed; }
-.node-label:not(:disabled):hover { transform: translateY(-50%) translateY(-2px); box-shadow: 0 7px 16px #4a40202b; }
+.stop-place svg { width: 11px; height: 11px; flex: 0 0 11px; stroke-width: 2.2; }
+.trail-stop.complete .node-label { border-color: var(--rupi-border-sticker); box-shadow: 0 4px 0 var(--rupi-border-sticker); }
+.trail-stop.complete .stop-place { color: var(--rupi-green-leaf); }
+.trail-stop.active .node-label {
+  border-color: var(--rupi-border-sticker);
+  background: #fffdf5;
+  box-shadow: 0 5px 0 var(--rupi-border-sticker);
+}
+.trail-stop.active .node-label b, .trail-stop.active .stop-place { color: var(--rupi-orange); }
+.node-label:disabled { cursor: not-allowed; opacity: 0.8; }
+.node-label:not(:disabled):hover { transform: translateY(-50%) translateY(-2px); box-shadow: 0 6px 0 var(--rupi-border-sticker); }
+.node-label:not(:disabled):active { transform: translateY(-50%) translateY(2px); box-shadow: 0 2px 0 var(--rupi-border-sticker); }
 .map-decoration { position: absolute; z-index: 3; width: 14px; height: 14px; color: #e3a53f; pointer-events: none; animation: twinkle 2s ease-in-out infinite; }
 .sparkle-one { top: 30%; left: 11%; }
 .sparkle-two { right: 11%; bottom: 18%; animation-delay: 1s; }
-.map-legend { position: relative; z-index: 4; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 14px 15px; border-top: 1px solid #e4e7d7; background: var(--paper); color: #526453; font-size: 9px; scroll-margin-top: 90px; }
+.map-legend { position: relative; z-index: 4; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 14px 15px; border-top: 2px solid #e4e7d7; background: #ffffff; color: #526453; font-size: 11px; font-weight: 700; scroll-margin-top: 90px; }
 .map-legend span { display: flex; align-items: center; gap: 7px; }
-.legend-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 2px white; }
-.legend-dot.done { background: var(--green); }
-.legend-dot.now { background: var(--red); }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 2px var(--rupi-border-sticker); }
+.legend-dot.done { background: var(--rupi-green-leaf); }
+.legend-dot.now { background: var(--rupi-orange); }
 .legend-dot.locked { background: #c7d3bc; }
 .image-credit { display: block; padding: 0 12px 10px; color: #75806f; font-size: 8px; text-align: center; text-decoration: none; }
 .image-credit:hover { color: #a34933; text-decoration: underline; }
 
-/* Small activity cards and mascot tutor */
-.right-column { display: grid; gap: 14px; }
-.continue-card { overflow: hidden; border: 1px solid #ebe5d8; border-radius: 15px; background: var(--paper); box-shadow: 0 8px 25px #55432309; scroll-margin-top: 90px; }
-.continue-top { display: flex; align-items: center; gap: 7px; padding: 14px 15px 0; color: #986038; font-size: 8px; font-weight: 800; letter-spacing: .8px; }
-.mini-spark { width: 14px; height: 14px; color: #d88d30; stroke-width: 2; }
-.continue-art { position: relative; height: 126px; margin: 10px 12px 0; overflow: hidden; border-radius: 10px; background: linear-gradient(180deg,#fff4d61a,#7a543044),url('/images/ayacucho-plaza.jpg') center 43% / cover; }
-.place-art-label { position: absolute; right: 8px; bottom: 7px; padding: 4px 7px; border: 1px solid white; border-radius: 20px; background: #fffaf0e8; color: #82462f; font-size: 7px; font-weight: 900; letter-spacing: .6px; }
-.continue-body { padding: 13px 15px 15px; }
-.lesson-tag { color: #a34933; font-size: 8px; font-weight: 800; letter-spacing: .7px; }
-.continue-body h2 { margin: 5px 0; font: 800 15px var(--display-font); }
-.continue-body p { color: var(--muted); font-size: 11px; line-height: 1.55; }
-.start-button { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 13px; padding: 11px 13px; border: 0; border-radius: 9px; background: #b94d35; color: white; font-size: 11px; font-weight: 700; box-shadow: 0 3px 0 #913a2a; transition: transform .15s,box-shadow .15s,background .15s; }
-.start-button:hover { background: #a9432e; box-shadow: 0 2px 0 #913a2a; transform: translateY(1px); }
-.start-button svg { width: 16px; height: 16px; stroke-width: 2; }
-.mascot-card { position: relative; min-height: 112px; padding: 14px; overflow: hidden; border: 1px solid #eee3cf; border-radius: 14px; background: linear-gradient(115deg,#fff6e5,#fffaf1); scroll-margin-top: 90px; }
-.mascot-copy { position: relative; z-index: 1; max-width: 170px; }
-.mascot-copy .eyebrow { color: #98643f; font-size: 8px; }
-.mascot-copy p { margin: 7px 0; color: #55483c; font: 700 11px/1.5 var(--display-font); }
-.mascot-card .rupi-character { position: absolute; right: 1px; bottom: -2px; width: 79px; height: 84px; overflow: visible; animation: rupi-hover 3s ease-in-out infinite; }
-.hint-button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border: 1px solid #e9cfa4; border-radius: 8px; background: #fff8e9; color: #9e4c34; font-size: 9px; font-weight: 800; }
-.hint-button:hover { background: #ffefd0; }
-.hint-button svg { width: 13px; height: 13px; }
-.hint-panel { position: relative; z-index: 2; max-width: 180px; margin-top: 8px; padding: 8px 9px; border-left: 3px solid #e8a53a; border-radius: 0 8px 8px 0; background: #fffdf5; color: #59664e; font-size: 9px; line-height: 1.45; box-shadow: 0 3px 10px #705a2a12; }
-.curriculum-note { display: flex; align-items: center; gap: 7px; padding: 4px 5px; color: #737d72; font-size: 10px; }
-.curriculum-note svg { width: 15px; height: 15px; flex: 0 0 15px; color: #d89032; stroke-width: 1.8; }
-.page-footer { margin-top: 17px; color: #8f998f; font-size: 10px; text-align: center; }
-.page-footer svg { width: 12px; height: 12px; margin-left: 4px; color: #bd573c; fill: #bd573c; vertical-align: -2px; }
+/* Small activity cards and mascot tutor (Storybook / Sticker UI) */
+.right-column { display: grid; gap: 16px; }
+.continue-card {
+  overflow: hidden;
+  border: 2.5px solid var(--rupi-border-sticker);
+  border-radius: 20px;
+  background: var(--rupi-canvas-white);
+  box-shadow: 0 6px 0 var(--rupi-border-sticker);
+  scroll-margin-top: 90px;
+  transition: transform var(--duration-tap) var(--ease-snappy), box-shadow var(--duration-tap) var(--ease-snappy);
+}
+.continue-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 var(--rupi-border-sticker);
+}
+.continue-top { display: flex; align-items: center; gap: 7px; padding: 14px 16px 0; color: #986038; font-size: 10px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; }
+.mini-spark { width: 15px; height: 15px; color: var(--rupi-orange); stroke-width: 2.2; }
+.continue-art { position: relative; height: 130px; margin: 10px 14px 0; overflow: hidden; border: 2px solid var(--rupi-border-sticker); border-radius: 12px; background: linear-gradient(180deg,#fff4d61a,#7a543044),url('/images/ayacucho-plaza.jpg') center 43% / cover; }
+.place-art-label { position: absolute; right: 8px; bottom: 8px; padding: 4px 9px; border: 1.5px solid var(--rupi-border-sticker); border-radius: 20px; background: #ffffff; color: var(--rupi-border-sticker); font-size: 9px; font-weight: 900; letter-spacing: .4px; box-shadow: 0 2px 0 var(--rupi-border-sticker); }
+.continue-body { padding: 14px 16px 18px; }
+.lesson-tag { color: var(--rupi-orange); font-size: 10px; font-weight: 900; letter-spacing: .7px; text-transform: uppercase; }
+.continue-body h2 { margin: 6px 0; font: 800 17px var(--display-font); color: var(--rupi-border-sticker); }
+.continue-body p { color: #4a5d53; font-size: 12.5px; line-height: 1.55; }
 
-/* Dialog and character movement */
-.modal-backdrop { position: fixed; z-index: 30; inset: 0; display: grid; place-items: center; padding: 20px; background: #1d302c66; backdrop-filter: blur(3px); }
-.lesson-modal { position: relative; width: min(390px,100%); padding: 28px; border-radius: 18px; background: var(--paper); text-align: center; box-shadow: 0 18px 60px #172d2630; }
-.modal-close { position: absolute; top: 12px; right: 14px; display: grid; width: 30px; height: 30px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #667166; }
-.modal-close:hover { background: #f4eee3; }
-.modal-close svg { width: 18px; height: 18px; }
-.modal-icon { display: grid; width: 56px; height: 56px; place-items: center; margin: 0 auto 15px; border-radius: 50%; background: #fff0e5; color: #b94d35; }
-.modal-icon svg { width: 25px; height: 25px; stroke-width: 2.3; }
-.lesson-modal h2 { margin: 7px 0; font: 800 22px var(--display-font); }
-.lesson-modal p { max-width: 285px; margin: 0 auto; color: #748078; font-size: 12px; line-height: 1.6; }
-.lesson-modal .start-button { margin-top: 21px; }
+/* Botón CTA Primario Rupi (Estilo Duolingo con Naranja Gallito de las Rocas y 3D) */
+.start-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 50px;
+  margin-top: 15px;
+  padding: 12px 20px;
+  border: 2px solid var(--rupi-border-sticker);
+  border-radius: 14px;
+  background: var(--rupi-orange);
+  color: #ffffff;
+  font: 900 14px var(--display-font);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 var(--rupi-border-sticker);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--duration-tap) var(--ease-snappy),
+              box-shadow var(--duration-tap) var(--ease-snappy),
+              background-color var(--duration-tap) ease;
+}
+.start-button:hover {
+  background: #ff684a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--rupi-border-sticker);
+}
+.start-button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--rupi-border-sticker);
+}
+.start-button svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.6;
+  transition: transform var(--duration-tap) var(--ease-snappy);
+}
+.start-button:hover svg {
+  transform: translateX(3px);
+}
+
+.mascot-card {
+  position: relative;
+  min-height: 120px;
+  padding: 16px;
+  overflow: hidden;
+  border: 2.5px solid var(--rupi-border-sticker);
+  border-radius: 20px;
+  background: #fffdf5;
+  box-shadow: 0 6px 0 var(--rupi-border-sticker);
+  scroll-margin-top: 90px;
+}
+.mascot-copy { position: relative; z-index: 1; max-width: 175px; }
+.mascot-copy .eyebrow { color: #98643f; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+.mascot-copy p { margin: 7px 0; color: #36483d; font: 800 12px/1.5 var(--display-font); }
+.mascot-card .rupi-character { position: absolute; right: 2px; bottom: -2px; width: 84px; height: 90px; overflow: visible; animation: rupi-hover 3s ease-in-out infinite; }
+
+.hint-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 2px solid var(--rupi-border-sticker);
+  border-radius: 12px;
+  background: var(--rupi-yellow-sun);
+  color: var(--rupi-border-sticker);
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 3px 0 var(--rupi-border-sticker);
+  cursor: pointer;
+  transition: transform var(--duration-tap) var(--ease-snappy),
+              box-shadow var(--duration-tap) var(--ease-snappy);
+}
+.hint-button:hover {
+  background: #ffe08a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 var(--rupi-border-sticker);
+}
+.hint-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--rupi-border-sticker);
+}
+.hint-button svg { width: 14px; height: 14px; stroke-width: 2.2; }
+.hint-panel {
+  position: relative;
+  z-index: 2;
+  max-width: 190px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 2px solid var(--rupi-border-sticker);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #33443a;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.45;
+  box-shadow: 0 4px 0 var(--rupi-border-sticker);
+}
+.curriculum-note { display: flex; align-items: center; gap: 8px; padding: 4px 5px; color: #556c60; font-size: 11px; font-weight: 700; }
+.curriculum-note svg { width: 16px; height: 16px; flex: 0 0 16px; color: var(--rupi-orange); stroke-width: 2; }
+.page-footer { margin-top: 20px; color: #728479; font-size: 11px; text-align: center; font-weight: 600; }
+.page-footer svg { width: 13px; height: 13px; margin-left: 4px; color: var(--rupi-orange); fill: var(--rupi-orange); vertical-align: -2px; }
+
+/* Dialog and character movement (Storybook Pop-in con Aceleración GPU) */
+.modal-backdrop {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(23, 62, 48, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: backdropFadeIn 0.18s ease-out;
+}
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.lesson-modal {
+  position: relative;
+  width: min(410px, 100%);
+  padding: 30px;
+  border: 3px solid var(--rupi-border-sticker);
+  border-radius: 24px;
+  background: var(--rupi-canvas-white);
+  text-align: center;
+  box-shadow: 0 8px 0 var(--rupi-border-sticker);
+  animation: modalStorybookPop 0.22s var(--ease-snappy);
+}
+@keyframes modalStorybookPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  border: 2px solid #e2ece5;
+  border-radius: 50%;
+  background: #fdfbf7;
+  color: #4b6356;
+  cursor: pointer;
+  transition: transform var(--duration-tap) var(--ease-snappy), background-color 0.15s ease;
+}
+.modal-close:hover {
+  background: #f0f7f2;
+  transform: scale(1.05);
+}
+.modal-close:active {
+  transform: scale(0.95);
+}
+.modal-close svg { width: 18px; height: 18px; stroke-width: 2.2; }
+
+.modal-icon {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  margin: 0 auto 16px;
+  border: 2.5px solid var(--rupi-border-sticker);
+  border-radius: 18px;
+  background: #fff4eb;
+  color: var(--rupi-orange);
+  box-shadow: 0 3px 0 var(--rupi-border-sticker);
+}
+.modal-icon svg { width: 28px; height: 28px; stroke-width: 2.5; }
+.lesson-modal h2 { margin: 8px 0; font: 900 23px var(--display-font); color: var(--rupi-border-sticker); }
+.lesson-modal p { max-width: 295px; margin: 0 auto; color: #4a5d53; font-size: 13px; line-height: 1.6; }
+.lesson-modal .start-button { margin-top: 22px; }
 .rupi-character { overflow: visible; }
 .rupi-ground-shadow { fill: #344d3b29; transform-box: fill-box; transform-origin: center; animation: rupi-shadow 1.6s ease-in-out infinite; }
 .rupi-body { fill: #de5638; stroke: #9c382e; stroke-width: 3; stroke-linejoin: round; }
@@ -366,6 +636,14 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 @keyframes rupi-chirp { 0%,74%,100% { scale: 1; } 77%,84% { scale: 1 .85; } 80%,88% { scale: 1; } }
 @keyframes rupi-blink { 0%,43%,46%,100% { scale: 1 1; } 44.5% { scale: 1 .08; } }
 @keyframes star-turn { to { rotate: 360deg; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
 
 @media (max-width: 1000px) {
   .sidebar { padding-inline: 20px; }
@@ -533,7 +811,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   background: #e2e8dc;
 }
 
-/* Skeleton Loading Shimmer (Respetando el diseño original HU-01) */
+/* Skeleton Loading Shimmer (Respetando el diseÃ±o original HU-01) */
 @keyframes shimmer-sweep {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -606,7 +884,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 .skeleton-mascot-card { display: flex; align-items: center; justify-content: space-between; padding: 14px; border-radius: 14px; border: 1px solid #eee3cf; background: linear-gradient(115deg,#fff6e5,#fffaf1); }
 .skeleton-mascot-side { width: 65px; height: 65px; flex: 0 0 65px; }
 
-/* Accesibilidad: Reducción de movimiento */
+/* Accesibilidad: ReducciÃ³n de movimiento */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -644,7 +922,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
    RUPI: RESUMEN DE AVENTURA, COMPANION Y LAYOUT HUMANO
    ==================================================== */
 
-/* Banner de bienvenida y estadísticas (RouteOverview) */
+/* Banner de bienvenida y estadÃ­sticas (RouteOverview) */
 .adventure-welcome {
   margin: 18px 0 24px;
   border-radius: 24px;
@@ -914,7 +1192,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   .overall-progress { flex-basis: 100%; }
 }
 
-/* Layout del mapa + acompañante lateral (App) */
+/* Layout del mapa + acompaÃ±ante lateral (App) */
 .adventure-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
@@ -935,7 +1213,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   }
 }
 
-/* Acompañante de recorrido (RouteCompanion) */
+/* AcompaÃ±ante de recorrido (RouteCompanion) */
 .route-companion {
   display: flex;
   flex-direction: column;
@@ -1128,7 +1406,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   display: block;
 }
 
-/* Fila de botones de acción táctiles (mínimo 48px) */
+/* Fila de botones de acciÃ³n tÃ¡ctiles (mÃ­nimo 48px) */
 .fact-actions-row {
   display: flex;
   gap: 10px;
@@ -1197,7 +1475,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   box-shadow: 0 2px 0 #cc3a1d;
 }
 
-/* Mensaje de refuerzo y ánimo de Rupi integrado */
+/* Mensaje de refuerzo y Ã¡nimo de Rupi integrado */
 .companion-rupi-quote {
   display: flex;
   align-items: center;
@@ -1240,7 +1518,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   color: #173e30;
 }
 
-/* Atribución y créditos en el pie de la tarjeta */
+/* AtribuciÃ³n y crÃ©ditos en el pie de la tarjeta */
 .companion-footer-credit {
   padding: 10px 18px 14px;
   border-top: 1px solid #edf2e8;
@@ -1362,10 +1640,10 @@ dialog.lesson-modal::backdrop {
 }
 
 /* ==========================================================================
-   RUPI: REDISEÑO INFANTIL Y HUMAN-CRAFTED FRONTEND (SECCIONES 1 A 5)
+   RUPI: REDISEÃ‘O INFANTIL Y HUMAN-CRAFTED FRONTEND (SECCIONES 1 A 5)
    ========================================================================== */
 
-/* 1. Reset de tipografía: nada por debajo de 14px, texto general >=16px, títulos >=20px */
+/* 1. Reset de tipografÃ­a: nada por debajo de 14px, texto general >=16px, tÃ­tulos >=20px */
 body, button, input, select, textarea {
   font-size: 16px;
 }
@@ -1426,7 +1704,7 @@ body, button, input, select, textarea {
   display: none !important;
 }
 
-/* 2. Jerarquía de la pantalla: Bloque de bienvenida compacto y visible sin scroll */
+/* 2. JerarquÃ­a de la pantalla: Bloque de bienvenida compacto y visible sin scroll */
 .adventure-welcome {
   margin: 6px 0 12px !important;
   padding: 10px 18px !important;
@@ -1484,7 +1762,7 @@ body, button, input, select, textarea {
   line-height: 1.35;
 }
 
-/* CTA táctil principal: Tu siguiente paso */
+/* CTA tÃ¡ctil principal: Tu siguiente paso */
 .hero-cta-wrapper {
   margin-top: 2px;
 }
@@ -1693,7 +1971,7 @@ body, button, input, select, textarea {
   margin-top: -5px;
 }
 
-/* Botón de audio del Hero completamente circular y sin borde nativo */
+/* BotÃ³n de audio del Hero completamente circular y sin borde nativo */
 .listen-greeting-btn {
   appearance: none !important;
   -webkit-appearance: none !important;
@@ -1726,7 +2004,7 @@ body, button, input, select, textarea {
   box-shadow: 0 1px 0 #dca331 !important;
 }
 
-/* 3. Mapa: Fondo coherente (Opción B) y sendero despejado */
+/* 3. Mapa: Fondo coherente (OpciÃ³n B) y sendero despejado */
 .map-panel {
   border: 2px solid #dce7d5 !important;
   border-radius: 24px !important;
@@ -1787,7 +2065,7 @@ body, button, input, select, textarea {
   height: 0;
 }
 
-/* Nodos circulares táctiles (mínimo 48px) */
+/* Nodos circulares tÃ¡ctiles (mÃ­nimo 48px) */
 .lesson-node {
   position: absolute;
   top: 0;
@@ -1821,7 +2099,7 @@ body, button, input, select, textarea {
   stroke-width: 2.3;
 }
 
-/* Insignia circular de número de parada en la esquina (mínimo 18px) */
+/* Insignia circular de nÃºmero de parada en la esquina (mÃ­nimo 18px) */
 .node-seq-badge {
   position: absolute;
   bottom: -4px;
@@ -1961,7 +2239,7 @@ body, button, input, select, textarea {
   border-color: #ffffff;
 }
 
-/* 4. Etiquetas hacia el EXTERIOR con separación de 16-20px y conector */
+/* 4. Etiquetas hacia el EXTERIOR con separaciÃ³n de 16-20px y conector */
 .node-label-pill {
   position: absolute;
   top: 0;
@@ -1982,7 +2260,7 @@ body, button, input, select, textarea {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Separación horizontal garantizada: 48px para normal, 56px para activo */
+/* SeparaciÃ³n horizontal garantizada: 48px para normal, 56px para activo */
 .node-label-pill.right {
   left: 48px !important;
   text-align: left !important;
@@ -2008,7 +2286,7 @@ body, button, input, select, textarea {
   box-shadow: 0 6px 0 rgba(23, 62, 48, 0.12), 0 12px 22px rgba(23, 62, 48, 0.1) !important;
 }
 
-/* Conectores tipo triángulo al nodo */
+/* Conectores tipo triÃ¡ngulo al nodo */
 .node-label-pill.right::before {
   content: '';
   position: absolute;
@@ -2262,7 +2540,7 @@ body, button, input, select, textarea {
   color: var(--ink);
 }
 
-/* 6. Leyenda única, compacta y uniforme */
+/* 6. Leyenda Ãºnica, compacta y uniforme */
 .map-legend {
   position: relative;
   z-index: 4;
@@ -2319,7 +2597,7 @@ body, button, input, select, textarea {
   color: #53714b !important;
 }
 
-/* 7. RouteCompanion con botón interactivo y Modal */
+/* 7. RouteCompanion con botÃ³n interactivo y Modal */
 .card-kicker-row {
   display: flex;
   align-items: center;
@@ -2447,7 +2725,7 @@ body, button, input, select, textarea {
   font-size: 15px !important;
 }
 
-/* 8. Adaptabilidad responsive y soporte móvil 390×844 */
+/* 8. Adaptabilidad responsive y soporte mÃ³vil 390Ã—844 */
 @media (max-width: 980px) {
   .welcome-compact-grid {
     flex-direction: column;
@@ -2543,10 +2821,10 @@ body, button, input, select, textarea {
 }
 
 /* =========================================================
-   ACTIVIDADES ESCOLARES Y CELEBRACIÓN CON RUPI (HU-02, HU-05)
+   ACTIVIDADES ESCOLARES Y CELEBRACIÃ“N CON RUPI (HU-02, HU-05)
    ========================================================= */
 
-/* Reglas de accesibilidad y controles táctiles de Rupi */
+/* Reglas de accesibilidad y controles tÃ¡ctiles de Rupi */
 .grade-card.unavailable, .course-card.unavailable { opacity: .7; cursor: default; }
 .grade-select-btn:disabled, .course-card-btn:disabled { cursor: not-allowed; filter: grayscale(.5); }
 .lesson-modal { max-height: 88dvh; overflow-y: auto; }
@@ -2686,7 +2964,7 @@ body, button, input, select, textarea {
   object-fit: cover;
 }
 
-/* Video educativo de YouTube embebido en la lección */
+/* Video educativo de YouTube embebido en la lecciÃ³n */
 .activity-block-item.youtube-embed-card {
   background: #ffffff;
   border: 2px solid #173e30;
@@ -2833,7 +3111,7 @@ body, button, input, select, textarea {
 }
 
 /* =========================================================
-   HU-06: PREGUNTAS INTERACTIVAS Y RETROALIMENTACIÓN FORMATIVA
+   HU-06: PREGUNTAS INTERACTIVAS Y RETROALIMENTACIÃ“N FORMATIVA
    ========================================================= */
 
 .activity-questions-section {
@@ -2972,7 +3250,7 @@ body, button, input, select, textarea {
   gap: 10px;
 }
 
-/* Botones de opción con objetivo táctil ≥48px y volumen físico 3D */
+/* Botones de opciÃ³n con objetivo tÃ¡ctil â‰¥48px y volumen fÃ­sico 3D */
 .question-option-btn {
   display: flex;
   align-items: center;
@@ -3109,7 +3387,7 @@ body, button, input, select, textarea {
   box-shadow: 0 2px 0 #a0b6c4;
 }
 
-/* Retroalimentación Formativa de Rupi */
+/* RetroalimentaciÃ³n Formativa de Rupi */
 .question-feedback-box {
   display: flex;
   align-items: flex-start;
@@ -3491,7 +3769,7 @@ body, button, input, select, textarea {
   box-shadow: 0 4px 0 #0d251d;
 }
 
-/* Modal de Celebración con Rupi */
+/* Modal de CelebraciÃ³n con Rupi */
 .activity-celebration-card {
   display: flex;
   flex-direction: column;
@@ -3775,7 +4053,7 @@ body, button, input, select, textarea {
 }
 
 /* ==========================================================================
-   HU-08: Diploma de Logro Escolar y Graduación Gallito de las Rocas
+   HU-08: Diploma de Logro Escolar y GraduaciÃ³n Gallito de las Rocas
    ========================================================================== */
 
 .diploma-overlay {
@@ -4179,7 +4457,7 @@ body, button, input, select, textarea {
   letter-spacing: 0.5px;
 }
 
-/* CTA Hero y Celebración */
+/* CTA Hero y CelebraciÃ³n */
 .diploma-hero-btn {
   background: #31724b !important;
   border-color: #245738 !important;
@@ -4233,7 +4511,7 @@ body, button, input, select, textarea {
   box-shadow: 0 2px 0 #1b4d30;
 }
 
-/* Impresión */
+/* ImpresiÃ³n */
 @media print {
   body * {
     visibility: hidden;
@@ -4281,7 +4559,7 @@ body, button, input, select, textarea {
 }
 
 /* ====================================================
-   HU-11: CÓDIGO DE CLASE Y BADGE DE GRADO ACTIVO
+   HU-11: CÃ“DIGO DE CLASE Y BADGE DE GRADO ACTIVO
    ==================================================== */
 .current-grade-badge {
   display: inline-flex;
@@ -4348,7 +4626,7 @@ body, button, input, select, textarea {
 }
 
 /* =========================================================
-   BARRA DE ESTADO: MODO PREVISUALIZACIÓN DOCENTE (HU-05)
+   BARRA DE ESTADO: MODO PREVISUALIZACIÃ“N DOCENTE (HU-05)
    ========================================================= */
 .teacher-preview-topbar {
   display: flex;
@@ -4410,7 +4688,7 @@ body, button, input, select, textarea {
 }
 
 /* ====================================================
-   NUEVAS MEJORAS DE DISEÑO: ENCABEZADO Y MODAL ACCESIBLE
+   NUEVAS MEJORAS DE DISEÃ‘O: ENCABEZADO Y MODAL ACCESIBLE
    ==================================================== */
 .course-heading-layout {
   display: flex;
@@ -4624,7 +4902,7 @@ body, button, input, select, textarea {
   box-shadow: 0 1px 0 #173e30;
 }
 
-/* Indicador de exploración de otro grado escolar y botón limpio de catálogo */
+/* Indicador de exploraciÃ³n de otro grado escolar y botÃ³n limpio de catÃ¡logo */
 .exploring-grade-pill {
   display: inline-flex;
   align-items: center;
@@ -4709,7 +4987,7 @@ body, button, input, select, textarea {
   font-size: 14px;
 }
 
-/* Pestañas de materia sin badges redundantes */
+/* PestaÃ±as de materia sin badges redundantes */
 .course-switch-bar {
   display: flex;
   align-items: center;
@@ -4794,7 +5072,7 @@ body, button, input, select, textarea {
   outline-offset: 3px;
 }
 
-/* Enlaces y botones de Biblioteca Escolar MINEDU: contraste nítido y legible */
+/* Enlaces y botones de Biblioteca Escolar MINEDU: contraste nÃ­tido y legible */
 .official-study {
   margin: 18px 0;
   padding: 18px;
@@ -4948,7 +5226,7 @@ body, button, input, select, textarea {
   transform: translateY(-4px) scale(1.06);
 }
 
-/* Badge de número en el nodo del jugador */
+/* Badge de nÃºmero en el nodo del jugador */
 .lesson-node.is-current-player-node .node-seq-badge {
   background: #ffd26a !important;
   color: #173e30 !important;
@@ -4956,11 +5234,11 @@ body, button, input, select, textarea {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
 }
 
-/* Barra superior en celulares y tabletas pequeñas (≤ 520 px).
-   El menú se centraba con justify-content: center dentro de un contenedor con desplazamiento: cuando no cabía,
-   «Mi Camino» quedaba en coordenadas negativas y no se podía alcanzar ni pulsar. Los márgenes automáticos centran
-   cuando hay espacio y, si no lo hay, el menú empieza en el borde y se desliza. Además, el nombre del alumno y la
-   palabra «Salir» ceden su espacio al menú (siguen en Mi Perfil y en el aria-label del botón). */
+/* Barra superior en celulares y tabletas pequeÃ±as (â‰¤ 520 px).
+   El menÃº se centraba con justify-content: center dentro de un contenedor con desplazamiento: cuando no cabÃ­a,
+   Â«Mi CaminoÂ» quedaba en coordenadas negativas y no se podÃ­a alcanzar ni pulsar. Los mÃ¡rgenes automÃ¡ticos centran
+   cuando hay espacio y, si no lo hay, el menÃº empieza en el borde y se desliza. AdemÃ¡s, el nombre del alumno y la
+   palabra Â«SalirÂ» ceden su espacio al menÃº (siguen en Mi Perfil y en el aria-label del botÃ³n). */
 @media (max-width: 520px) {
   .main-nav { justify-content: flex-start; min-width: 0; gap: 0; margin-inline: 4px; }
   .main-nav > .nav-item:first-child { margin-inline-start: auto; }
