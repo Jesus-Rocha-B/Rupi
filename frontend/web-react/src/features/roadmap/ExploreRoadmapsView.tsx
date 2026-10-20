@@ -183,28 +183,37 @@ export function ExploreRoadmapsView({
 
   return (
     <div className="explore-view-container" id="explorar-roadmaps">
-      {/* Cabecera de la sección de exploración */}
+      {/* Cabecera de la sección de exploración estilo Storybook con la Mascota Rupi */}
       <header className="explore-header">
         <div className="explore-header-text">
           <div className="explore-eyebrow">
             <Compass size={18} aria-hidden="true" />
-            <span>Catálogo Escolar de Primaria</span>
+            <span>Rutas Escolares de Primaria</span>
           </div>
-          <h1 className="explore-title">Explorar Roadmaps</h1>
+          <h1 className="explore-title">¡Elige tu próxima gran aventura!</h1>
           <p className="explore-subtitle">
             Descubre los caminos de aprendizaje oficiales creados por RUPI o accede a las rutas creadas por tus profesores para tu aula.
           </p>
         </div>
 
-        <button
-          type="button"
-          className="btn-join-code-highlight"
-          onClick={onOpenJoinModal}
-          title="Unirme con el código que me dio mi profesor"
-        >
-          <KeyRound size={18} aria-hidden="true" />
-          <span>Ingresar código de clase</span>
-        </button>
+        <div className="explore-hero-companion">
+          <div className="explore-companion-balloon">
+            <Sparkles size={14} className="sparkle-mini" aria-hidden="true" />
+            <span>¡Hola, explorador! ¿Qué aprenderemos hoy? 🎒</span>
+          </div>
+          <div className="explore-companion-actions">
+            <RupiCharacter mood="cheering" role="matematica" className="explore-companion-rupi" />
+            <button
+              type="button"
+              className="btn-join-code-highlight"
+              onClick={onOpenJoinModal}
+              title="Unirme con el código que me dio mi profesor"
+            >
+              <KeyRound size={18} aria-hidden="true" />
+              <span>Ingresar código de clase</span>
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* Pestañas de Categoría: Por Defecto (RUPI) vs Comunidad / Profesores */}

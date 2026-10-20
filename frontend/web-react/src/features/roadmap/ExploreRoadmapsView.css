@@ -11,16 +11,16 @@
 /* Cabecera */
 .explore-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
 }
 
 .explore-header-text {
   flex: 1;
-  min-width: 280px;
+  min-width: 300px;
 }
 
 .explore-eyebrow {
@@ -28,46 +28,96 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 900;
   color: #246a91;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.35rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.45rem;
 }
 
 .explore-title {
   margin: 0 0 0.5rem 0;
-  font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+  font-size: clamp(2rem, 3.8vw, 2.75rem);
   font-weight: 900;
+  font-family: var(--display-font, 'Nunito', sans-serif);
   color: #173e30;
-  line-height: 1.2;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .explore-subtitle {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: #4a5d53;
   max-width: 650px;
-  line-height: 1.45;
+  line-height: 1.5;
+  font-weight: 600;
 }
 
-/* Botón de código de clase en cabecera */
-.btn-join-code-highlight {
+/* Mascota Rupi en cabecera de exploración */
+.explore-hero-companion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.65rem;
+}
+
+.explore-companion-balloon {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  background-color: #ffd26a;
+  gap: 0.45rem;
+  background: #ffffff;
   color: #173e30;
   border: 2px solid #173e30;
   border-radius: 14px;
-  padding: 0.75rem 1.25rem;
-  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
   font-weight: 800;
+  box-shadow: 0 3px 0 #173e30;
+  animation: balloonFloat 3s ease-in-out infinite;
+}
+
+@keyframes balloonFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.sparkle-mini {
+  color: #f95738;
+}
+
+.explore-companion-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.explore-companion-rupi {
+  width: 74px;
+  height: 80px;
+  overflow: visible;
+  filter: drop-shadow(0 4px 0 rgba(23, 62, 48, 0.15));
+  animation: rupi-hover 3s ease-in-out infinite;
+}
+
+/* Botón de código de clase en cabecera (Sticker 3D Duolingo) */
+.btn-join-code-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  background-color: #ffd26a;
+  color: #173e30;
+  border: 2.5px solid #173e30;
+  border-radius: 16px;
+  padding: 0.85rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 900;
   font-family: inherit;
   cursor: pointer;
   box-shadow: 0 4px 0 #173e30;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
-  min-height: 48px;
+  touch-action: manipulation;
+  transition: transform 0.1s var(--ease-snappy), box-shadow 0.1s var(--ease-snappy), background-color 0.1s ease;
+  min-height: 52px;
 }
 
 .btn-join-code-highlight:hover {
@@ -170,17 +220,17 @@
   line-height: 1.3;
 }
 
-/* Barra de Filtros: Buscador + Grados + Materias */
+/* Barra de Filtros: Buscador + Grados + Materias (Sticker Toy UI) */
 .explore-filters-bar {
   background-color: #ffffff;
-  border: 2px solid #173e30;
-  border-radius: 20px;
-  padding: 1.25rem 1.35rem;
-  box-shadow: 0 4px 0 #173e30;
-  margin-bottom: 2rem;
+  border: 3px solid #173e30;
+  border-radius: 24px;
+  padding: 1.5rem 1.6rem;
+  box-shadow: 0 6px 0 #173e30;
+  margin-bottom: 2.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .explore-search-input-wrap {
@@ -192,139 +242,166 @@
 
 .search-icon {
   position: absolute;
-  left: 14px;
-  color: #63776b;
+  left: 18px;
+  color: #246a91;
   pointer-events: none;
+  stroke-width: 2.5;
 }
 
 .explore-search-input {
   width: 100%;
-  padding: 0.85rem 2.6rem 0.85rem 2.75rem;
-  font-size: 0.95rem;
+  padding: 0.95rem 2.8rem 0.95rem 3.2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
   font-family: inherit;
-  border: 2px solid #cfded6;
-  border-radius: 14px;
+  border: 2.5px solid #173e30;
+  border-radius: 9999px;
   background-color: #fafcfb;
   color: #173e30;
   box-sizing: border-box;
-  min-height: 48px;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  min-height: 54px;
+  box-shadow: 0 4px 0 #173e30;
+  touch-action: manipulation;
+  transition: transform 0.1s var(--ease-snappy), box-shadow 0.1s var(--ease-snappy), border-color 0.1s ease, background-color 0.1s ease;
 }
 
 .explore-search-input:focus {
   outline: none;
-  border-color: #246a91;
+  border-color: #f95738;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(36, 106, 145, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #173e30;
 }
 
 .clear-search-btn {
   position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  font-size: 1.4rem;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: #f1ede4;
+  border: 1.5px solid #173e30;
+  border-radius: 50%;
+  font-size: 1.2rem;
   line-height: 1;
-  color: #8fa397;
+  color: #173e30;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
+  transition: transform 0.1s var(--ease-snappy);
 }
 
 .clear-search-btn:hover {
-  color: #173e30;
+  transform: scale(1.1);
+  background: #ffd26a;
 }
 
-/* Filtro por Grado */
+/* Filtro por Grado (Píldoras tipo Sticker con relieve 3D) */
 .explore-grade-chips {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
 }
 
 .chips-label {
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: #4a5d53;
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #173e30;
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  margin-right: 0.25rem;
+  gap: 0.4rem;
+  margin-right: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chips-label svg {
+  stroke-width: 2.5;
+  color: #f95738;
 }
 
 .grade-chip-btn {
-  background-color: #f3f6f4;
-  border: 1.5px solid #cfded6;
-  border-radius: 12px;
-  padding: 0.45rem 0.85rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #315243;
+  background-color: #ffffff;
+  border: 2px solid #173e30;
+  border-radius: 14px;
+  padding: 0.55rem 1.05rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #173e30;
   cursor: pointer;
   font-family: inherit;
-  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
-  min-height: 38px;
+  box-shadow: 0 3px 0 #173e30;
+  touch-action: manipulation;
+  transition: transform 0.1s var(--ease-snappy), box-shadow 0.1s var(--ease-snappy), background-color 0.1s ease;
+  min-height: 42px;
 }
 
 .grade-chip-btn:hover {
-  background-color: #e5ece8;
-  border-color: #31724b;
-  transform: translateY(-1px);
+  background-color: #fff8e8;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #173e30;
 }
 
 .grade-chip-btn:active {
-  transform: scale(0.94);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
 }
 
 .grade-chip-btn.active {
-  background-color: #173e30;
+  background-color: #ffd26a;
   border-color: #173e30;
-  color: #ffd26a;
-  box-shadow: 0 2px 0 #0d241c;
+  color: #173e30;
+  box-shadow: 0 3px 0 #173e30;
+  font-weight: 900;
 }
 
-/* Filtro por Materia */
+/* Filtro por Materia (Stickers de color temático) */
 .explore-area-chips {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
-  padding-top: 0.25rem;
-  border-top: 1px dashed #cfded6;
+  padding-top: 0.5rem;
+  border-top: 2px dashed #e2ded5;
 }
 
 .area-chip-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   background-color: #ffffff;
-  border: 1.5px solid #cfded6;
+  border: 2px solid #173e30;
   border-radius: 14px;
-  padding: 0.5rem 0.95rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #315243;
+  padding: 0.6rem 1.15rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #173e30;
   cursor: pointer;
   font-family: inherit;
-  min-height: 40px;
-  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  min-height: 44px;
+  box-shadow: 0 3px 0 #173e30;
+  touch-action: manipulation;
+  transition: transform 0.1s var(--ease-snappy), box-shadow 0.1s var(--ease-snappy), background-color 0.1s ease;
 }
 
 .area-chip-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #173e30;
   background-color: #f7faf8;
-  border-color: #246a91;
-  transform: translateY(-1px);
 }
 
 .area-chip-btn:active {
-  transform: scale(0.94);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
 }
 
 .area-chip-btn.active {
   background-color: #246a91;
-  border-color: #246a91;
+  border-color: #173e30;
   color: #ffffff;
-  box-shadow: 0 2px 0 #164660;
+  box-shadow: 0 3px 0 #173e30;
+  font-weight: 900;
 }
 
 /* Contador de resultados */
