@@ -202,7 +202,7 @@ export function ExploreRoadmapsView({
             <span>¡Hola, explorador! ¿Qué aprenderemos hoy? 🎒</span>
           </div>
           <div className="explore-companion-actions">
-            <RupiCharacter mood="cheering" role="matematica" className="explore-companion-rupi" />
+            <RupiCharacter mood="celebrating" role="matematica" trackMouse={true} className="explore-companion-rupi" />
             <button
               type="button"
               className="btn-join-code-highlight"
@@ -433,7 +433,7 @@ export function ExploreRoadmapsView({
         {/* Estado Vacío */}
         {!loading && filteredRoutes.length === 0 && (
           <div className="explore-empty-state">
-            <RupiCharacter mood={activeTab === 'COMUNIDAD' ? 'cheering' : 'thinking'} role="default" className="explore-empty-rupi" />
+            <RupiCharacter mood={activeTab === 'COMUNIDAD' ? 'celebrating' : 'thinking'} role="default" trackMouse={true} className="explore-empty-rupi" />
             {activeTab === 'COMUNIDAD' ? (
               <>
                 <h3>¡Explora las rutas de tu comunidad escolar!</h3>

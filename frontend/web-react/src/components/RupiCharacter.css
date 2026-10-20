@@ -1,6 +1,7 @@
 /* ==========================================================================
-   RupiCharacter.css · Sistema de Animación Orgánica y Física de Rupi
-   Inspirado en los 12 principios de animación de Disney y física de Emil Kowalski
+   RupiCharacter.css · Sistema de Animación y Rig Anatómico Modular de Rupi
+   Inspirado en la metodología de animación de Duolingo (Duo the Owl)
+   Física de deformación orgánica: Squash & Stretch, Anticipation, Follow-Through
    ========================================================================== */
 
 .rupi-character {
@@ -12,11 +13,18 @@
   transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.16s ease;
 }
 
-/* Partes anatómicas con orígenes de transformación calibrados */
+/* --------------------------------------------------------------------------
+   PIEZAS ANATÓMICAS DEL RIG Y PUNTOS DE PIVOTE CALIBRADOS
+   -------------------------------------------------------------------------- */
 .rupi-ground-shadow {
   fill: rgba(23, 62, 48, 0.22);
   transform-box: fill-box;
   transform-origin: center center;
+}
+
+.rupi-torso-group {
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
 }
 
 .rupi-body {
@@ -24,8 +32,6 @@
   stroke: #9c382e;
   stroke-width: 3;
   stroke-linejoin: round;
-  transform-box: fill-box;
-  transform-origin: 50% 85%;
 }
 
 .rupi-tail {
@@ -47,6 +53,11 @@
   transform-origin: 15% 45%;
 }
 
+.rupi-head-group {
+  transform-box: fill-box;
+  transform-origin: 50% 90%;
+}
+
 .rupi-crest {
   fill: #f0523b;
   stroke: #a9322c;
@@ -60,13 +71,16 @@
   fill: #e85d3a;
 }
 
+.rupi-beak-group {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+}
+
 .rupi-beak {
   fill: #ffd057;
   stroke: #a74e2d;
   stroke-width: 3;
   stroke-linejoin: round;
-  transform-box: fill-box;
-  transform-origin: 0% 50%;
 }
 
 .rupi-beak-shine {
@@ -76,22 +90,39 @@
   stroke-linecap: round;
 }
 
+/* Ojos y Seguimiento Ocular */
+.rupi-eye-group {
+  transform-box: fill-box;
+  transform-origin: center center;
+}
+
 .rupi-eye-white {
   fill: #ffffff;
   stroke: #a13730;
   stroke-width: 3;
-  transform-box: fill-box;
-  transform-origin: center center;
+}
+
+.rupi-pupil-tracked {
+  transform: translate(var(--pupil-dx, 0px), var(--pupil-dy, 0px));
+  transition: transform 0.08s ease-out;
 }
 
 .rupi-eye-pupil {
   fill: #3f292a;
-  transform-box: fill-box;
-  transform-origin: center center;
 }
 
 .rupi-eye-glint {
   fill: #ffffff;
+}
+
+/* Párpado cerrado para descanso y guiño (oculto por defecto) */
+.rupi-eyelid-closed {
+  fill: none;
+  stroke: #a13730;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 0.15s ease;
 }
 
 .rupi-cheek {
@@ -112,461 +143,470 @@
   transform-origin: center top;
 }
 
+/* FX dinámicos (ocultos por defecto hasta que su mood los active) */
+.fx-celebration,
+.fx-sleeping,
+.fx-surprised,
+.fx-thinking {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ==========================================================================
-   ESTADOS DE ÁNIMO (MOODS)
+   EL CATÁLOGO DE LAS 10+ ANIMACIONES MODULARES DE RUPI
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. MOOD: IDLE (Respiración viva, follow-through en plumas y parpadeo natural)
+   1. MOOD: IDLE (Respiración viva, follow-through en plumas y doble parpadeo)
    -------------------------------------------------------------------------- */
-.rupi-character.mood-idle {
-  animation: rupi-idle-body 3.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+.rupi-character.mood-idle .rupi-torso-group {
+  animation: rig-idle-breathe 3.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
-
 .rupi-character.mood-idle .rupi-crest {
-  animation: rupi-idle-crest 3.2s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  animation: rig-idle-crest 3.2s cubic-bezier(0.37, 0, 0.63, 1) infinite;
 }
-
 .rupi-character.mood-idle .rupi-tail {
-  animation: rupi-idle-tail 2.6s ease-in-out infinite;
+  animation: rig-idle-tail 2.6s ease-in-out infinite;
 }
-
 .rupi-character.mood-idle .rupi-wing {
-  animation: rupi-idle-wing 2.4s ease-in-out infinite alternate;
+  animation: rig-idle-wing 2.4s ease-in-out infinite alternate;
 }
-
 .rupi-character.mood-idle .rupi-ground-shadow {
-  animation: rupi-idle-shadow 3.2s ease-in-out infinite;
+  animation: rig-idle-shadow 3.2s ease-in-out infinite;
 }
-
-.rupi-character.mood-idle .rupi-eye-white,
-.rupi-character.mood-idle .rupi-eye-pupil {
-  animation: rupi-blink-natural 4.6s ease-in-out infinite;
-}
-
-/* --------------------------------------------------------------------------
-   2. MOOD: CHEERING (Salto con anticipación, euforia y aleteo de victoria)
-   -------------------------------------------------------------------------- */
-.rupi-character.mood-cheering {
-  animation: rupi-cheer-jump 1.35s cubic-bezier(0.2, 0.8, 0.25, 1) infinite;
-}
-
-.rupi-character.mood-cheering .rupi-ground-shadow {
-  animation: rupi-cheer-shadow 1.35s cubic-bezier(0.2, 0.8, 0.25, 1) infinite;
-}
-
-.rupi-character.mood-cheering .rupi-wing {
-  animation: rupi-cheer-wing-flap 0.22s ease-in-out infinite alternate !important;
-}
-
-.rupi-character.mood-cheering .rupi-crest {
-  animation: rupi-cheer-crest 0.65s ease-in-out infinite alternate !important;
-}
-
-.rupi-character.mood-cheering .rupi-beak {
-  animation: rupi-cheer-sing 0.5s ease-in-out infinite alternate !important;
-}
-
-.rupi-character.mood-cheering .rupi-tail {
-  animation: rupi-cheer-tail 0.4s ease-in-out infinite alternate !important;
+.rupi-character.mood-idle .rupi-eye-group {
+  animation: rig-eye-blink 4.6s ease-in-out infinite;
 }
 
 /* --------------------------------------------------------------------------
-   3. MOOD: THINKING (Curioso, cabecita ladeada, mirada atenta hacia arriba)
+   2. MOOD: WAVING (Saludo alegre con el ala al ingresar al aula o roadmap)
    -------------------------------------------------------------------------- */
-.rupi-character.mood-thinking {
-  animation: rupi-think-sway 3.6s ease-in-out infinite;
+.rupi-character.mood-waving .rupi-torso-group {
+  animation: rig-wave-body 1.8s ease-in-out infinite;
+}
+.rupi-character.mood-waving .rupi-wing {
+  animation: rig-wave-wing 0.28s ease-in-out infinite alternate !important;
+}
+.rupi-character.mood-waving .rupi-crest {
+  animation: rig-wave-crest 1.8s ease-in-out infinite;
+}
+.rupi-character.mood-waving .rupi-beak-group {
+  animation: rig-beak-smile 0.9s ease-in-out infinite alternate;
 }
 
-.rupi-character.mood-thinking .rupi-crest {
-  animation: rupi-think-crest 3.6s ease-in-out infinite;
+/* --------------------------------------------------------------------------
+   3. MOOD: CELEBRATING (¡Victoria! Salto alto, confeti, aleteo frenético)
+   -------------------------------------------------------------------------- */
+.rupi-character.mood-celebrating {
+  animation: rig-cheer-jump 1.35s cubic-bezier(0.2, 0.8, 0.25, 1) infinite;
+}
+.rupi-character.mood-celebrating .rupi-ground-shadow {
+  animation: rig-cheer-shadow 1.35s cubic-bezier(0.2, 0.8, 0.25, 1) infinite;
+}
+.rupi-character.mood-celebrating .rupi-wing {
+  animation: rig-cheer-wing-flap 0.2s ease-in-out infinite alternate !important;
+}
+.rupi-character.mood-celebrating .rupi-crest {
+  animation: rig-cheer-crest 0.6s ease-in-out infinite alternate !important;
+}
+.rupi-character.mood-celebrating .rupi-beak-group {
+  animation: rig-cheer-sing 0.45s ease-in-out infinite alternate !important;
+}
+.rupi-character.mood-celebrating .fx-celebration {
+  opacity: 1;
+}
+.rupi-character.mood-celebrating .confetti {
+  animation: rig-confetti-pop 1.35s ease-out infinite;
 }
 
+/* --------------------------------------------------------------------------
+   4. MOOD: THINKING (Resolviendo reto: cabeza ladeada, mirada atenta y duda)
+   -------------------------------------------------------------------------- */
+.rupi-character.mood-thinking .rupi-head-group {
+  animation: rig-think-head 3.4s ease-in-out infinite;
+}
 .rupi-character.mood-thinking .rupi-eye-pupil,
 .rupi-character.mood-thinking .rupi-eye-glint {
-  animation: rupi-think-pupil 3.6s ease-in-out infinite;
+  animation: rig-think-pupil 3.4s ease-in-out infinite;
 }
-
-.rupi-character.mood-thinking .rupi-beak {
-  animation: rupi-think-beak 1.8s ease-in-out infinite;
-}
-
 .rupi-character.mood-thinking .rupi-wing {
-  animation: rupi-think-wing 2.4s ease-in-out infinite;
+  animation: rig-think-wing 2.4s ease-in-out infinite;
+}
+.rupi-character.mood-thinking .rupi-crest {
+  animation: rig-think-crest 3.4s ease-in-out infinite;
+}
+.rupi-character.mood-thinking .fx-thinking {
+  opacity: 1;
+}
+.rupi-character.mood-thinking .think-question-mark {
+  animation: rig-question-float 2s ease-in-out infinite;
 }
 
 /* --------------------------------------------------------------------------
-   4. MOOD: JUMPING (Rebote elástico y dinámico como pelota de resorte)
+   5. MOOD: ENCOURAGING (Ánimo ante un fallo: mirada tierna, abrazo y aliento)
+   -------------------------------------------------------------------------- */
+.rupi-character.mood-encouraging .rupi-torso-group {
+  animation: rig-encourage-torso 2.6s ease-in-out infinite;
+}
+.rupi-character.mood-encouraging .rupi-wing {
+  animation: rig-encourage-wing 2.6s ease-in-out infinite;
+}
+.rupi-character.mood-encouraging .rupi-head-group {
+  animation: rig-encourage-head 2.6s ease-in-out infinite;
+}
+
+/* --------------------------------------------------------------------------
+   6. MOOD: SURPRISED (Cosquillas al hacer clic: respingo boing y chispitas)
+   -------------------------------------------------------------------------- */
+.rupi-character.mood-surprised {
+  animation: rig-surprised-boing 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.rupi-character.mood-surprised .fx-surprised {
+  opacity: 1;
+}
+.rupi-character.mood-surprised .surprise-spark {
+  animation: rig-spark-burst 0.65s ease-out infinite;
+}
+.rupi-character.mood-surprised .rupi-beak-group {
+  transform: scale(1.15, 1.45);
+}
+
+/* --------------------------------------------------------------------------
+   7. MOOD: SLEEPING (Siesta por inactividad: acurrucado, Zzz y párpados cerrados)
+   -------------------------------------------------------------------------- */
+.rupi-character.mood-sleeping .rupi-torso-group {
+  animation: rig-sleep-breathe 4.5s ease-in-out infinite;
+}
+.rupi-character.mood-sleeping .rupi-eye-white,
+.rupi-character.mood-sleeping .rupi-eye-pupil,
+.rupi-character.mood-sleeping .rupi-eye-glint {
+  opacity: 0 !important;
+}
+.rupi-character.mood-sleeping .rupi-eyelid-closed {
+  opacity: 1 !important;
+}
+.rupi-character.mood-sleeping .rupi-crest {
+  transform: rotate(-10deg) scale(0.92);
+}
+.rupi-character.mood-sleeping .fx-sleeping {
+  opacity: 1;
+}
+.rupi-character.mood-sleeping .zzz-text.z1 {
+  animation: rig-zzz-rise 3s ease-out infinite 0s;
+}
+.rupi-character.mood-sleeping .zzz-text.z2 {
+  animation: rig-zzz-rise 3s ease-out infinite 0.9s;
+}
+.rupi-character.mood-sleeping .zzz-text.z3 {
+  animation: rig-zzz-rise 3s ease-out infinite 1.8s;
+}
+
+/* --------------------------------------------------------------------------
+   8. MOOD: READING (Concentrado en su libro de cuentos con letras mágicas)
+   -------------------------------------------------------------------------- */
+.rupi-character.mood-reading .rupi-head-group {
+  animation: rig-read-nod 2.8s ease-in-out infinite;
+}
+.rupi-character.mood-reading .rupi-open-book {
+  animation: rig-book-bob 2.8s ease-in-out infinite;
+}
+
+/* --------------------------------------------------------------------------
+   9. MOOD: MATH-HERO (Lápiz alzado, birrete y símbolos orbitando)
+   -------------------------------------------------------------------------- */
+.rupi-character.mood-math-hero .rupi-torso-group {
+  animation: rig-math-hero-body 2.2s ease-in-out infinite;
+}
+.rupi-character.mood-math-hero .rupi-math-pencil {
+  animation: rig-pencil-triumph 1.2s ease-in-out infinite alternate;
+}
+
+/* --------------------------------------------------------------------------
+   10. MOOD: SCIENCE-LAB (Lentes puestos, matraz químico y burbujas efervescentes)
+   -------------------------------------------------------------------------- */
+.rupi-character.mood-science-lab .rupi-flask-container {
+  animation: rig-flask-shake 0.85s ease-in-out infinite alternate;
+}
+
+/* --------------------------------------------------------------------------
+   11. MOOD: GLIDING (Volando y planeando en el aire entre paradas)
+   -------------------------------------------------------------------------- */
+.rupi-character.mood-gliding {
+  animation: rig-glide-flight 2.4s ease-in-out infinite;
+}
+.rupi-character.mood-gliding .rupi-wing {
+  transform: rotate(-28deg) scaleY(0.9);
+}
+
+/* --------------------------------------------------------------------------
+   12. MOOD: JUMPING (Rebote elástico y juguetón continuo)
    -------------------------------------------------------------------------- */
 .rupi-character.mood-jumping {
-  animation: rupi-spring-jump 0.8s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+  animation: rig-spring-jump 0.8s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
 }
-
 .rupi-character.mood-jumping .rupi-ground-shadow {
-  animation: rupi-spring-shadow 0.8s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
-}
-
-.rupi-character.mood-jumping .rupi-wing {
-  animation: rupi-cheer-wing-flap 0.18s ease-in-out infinite alternate;
+  animation: rig-spring-shadow 0.8s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
 }
 
 /* ==========================================================================
-   MICROINTERACCIONES AL PASAR EL MOUSE O TOCAR LA MASCOTA
+   MICROINTERACCIONES FÍSICAS DE HOVER Y TAP
    ========================================================================== */
 .rupi-character:hover {
   transform: scale(1.06) translateY(-4px);
-  filter: drop-shadow(0 6px 12px rgba(23, 62, 48, 0.18));
+  filter: drop-shadow(0 6px 14px rgba(23, 62, 48, 0.2));
 }
 
 .rupi-character:hover .rupi-crest {
-  transform: rotate(8deg);
+  transform: rotate(10deg);
   transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .rupi-character:hover .rupi-wing {
-  transform: rotate(-18deg) translateY(-2px);
+  transform: rotate(-20deg) translateY(-2px);
   transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .rupi-character:active {
-  transform: scale(1.14, 0.86) translateY(5px) !important;
+  transform: scale(1.15, 0.85) translateY(5px) !important;
   transition: transform 0.08s ease !important;
 }
 
 /* ==========================================================================
-   ANIMACIONES DE ELEMENTOS TEMÁTICOS (Roles)
+   KEYFRAMES DEL SISTEMA MODULAR
    ========================================================================== */
 
-/* Lector: Letras flotantes con movimiento ascendente mágico */
-.reading-glyph {
-  animation: glyph-float 2.8s ease-in-out infinite;
-  text-shadow: 0 1px 2px rgba(23, 62, 48, 0.2);
-}
-.glyph-a { animation-delay: 0s; }
-.glyph-b { animation-delay: 0.9s; }
-.glyph-c { animation-delay: 1.8s; }
-
-@keyframes glyph-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.85; }
-  50% { transform: translateY(-7px) rotate(6deg); opacity: 1; }
+/* 1. Idle */
+@keyframes rig-idle-breathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  40% { transform: translateY(-4px) scale(0.97, 1.03); }
+  55% { transform: translateY(-4px) scale(1.01, 0.99); }
+  85% { transform: translateY(1px) scale(1.02, 0.98); }
 }
 
-/* Matemático: Símbolos matemáticos que orbitan y giran con chispa */
-.math-symbol {
-  animation: math-symbol-bounce 2.4s ease-in-out infinite;
-}
-.sym-plus { animation-delay: 0s; }
-.sym-times { animation-delay: 0.6s; }
-.sym-equal { animation-delay: 1.2s; }
-.sym-div { animation-delay: 1.8s; }
-
-@keyframes math-symbol-bounce {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 0.8; }
-  50% { transform: translateY(-6px) scale(1.15); opacity: 1; }
+@keyframes rig-idle-crest {
+  0%, 100% { transform: rotate(0deg); }
+  42% { transform: rotate(6deg); }
+  75% { transform: rotate(-2.5deg); }
 }
 
-.rupi-math-pencil {
-  transform-box: fill-box;
-  transform-origin: bottom center;
-  animation: pencil-wiggle 2.4s ease-in-out infinite;
+@keyframes rig-idle-tail {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
 }
 
-@keyframes pencil-wiggle {
-  0%, 100% { transform: rotate(22deg); }
-  50% { transform: rotate(14deg) translateY(-3px); }
+@keyframes rig-idle-wing {
+  0% { transform: rotate(4deg); }
+  100% { transform: rotate(-12deg); }
 }
 
-/* Científico: Burbujas ascendentes del matraz de laboratorio */
-.flask-bubble {
-  animation: bubble-rise 2s ease-in-out infinite;
-}
-.b1 { animation-delay: 0s; }
-.b2 { animation-delay: 0.5s; }
-.b3 { animation-delay: 1s; }
-.b4 { animation-delay: 1.5s; }
-
-@keyframes bubble-rise {
-  0% { transform: translateY(4px) scale(0.7); opacity: 0; }
-  50% { opacity: 0.95; }
-  100% { transform: translateY(-16px) scale(1.15); opacity: 0; }
+@keyframes rig-idle-shadow {
+  0%, 100% { transform: scaleX(1) scaleY(1); opacity: 0.95; }
+  42% { transform: scaleX(0.85) scaleY(0.75); opacity: 0.65; }
 }
 
-.atom-orbit {
-  animation: orbit-spin 6s linear infinite;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.orbit-2 {
-  animation-duration: 4.5s;
-  animation-direction: reverse;
+@keyframes rig-eye-blink {
+  0%, 39%, 43%, 45.5%, 49%, 100% { transform: scaleY(1); }
+  41%, 47% { transform: scaleY(0.08); }
 }
 
-@keyframes orbit-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* 2. Waving */
+@keyframes rig-wave-body {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-5deg) translateY(-2px); }
+}
+
+@keyframes rig-wave-wing {
+  0% { transform: rotate(-10deg) translateY(-4px); }
+  100% { transform: rotate(-42deg) translateY(-8px); }
+}
+
+@keyframes rig-wave-crest {
+  0%, 100% { transform: rotate(2deg); }
+  50% { transform: rotate(8deg); }
+}
+
+@keyframes rig-beak-smile {
+  0% { transform: scale(1, 1); }
+  100% { transform: scale(1.06, 1.15); }
+}
+
+/* 3. Celebrating */
+@keyframes rig-cheer-jump {
+  0% { transform: translateY(0) scale(1, 1); }
+  14% { transform: translateY(4px) scale(1.15, 0.85); }
+  34% { transform: translateY(-24px) scale(0.91, 1.12) rotate(3deg); }
+  52% { transform: translateY(-28px) scale(1.02, 0.98) rotate(-3deg); }
+  70% { transform: translateY(-9px) scale(0.95, 1.05); }
+  80% { transform: translateY(3px) scale(1.14, 0.86); }
+  90% { transform: translateY(-3px) scale(0.98, 1.02); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+@keyframes rig-cheer-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.9; }
+  14% { transform: scaleX(1.25); opacity: 1; }
+  45%, 55% { transform: scaleX(0.42); opacity: 0.2; }
+  80% { transform: scaleX(1.22); opacity: 1; }
+}
+
+@keyframes rig-cheer-wing-flap {
+  0% { transform: rotate(22deg) translateY(-2px); }
+  100% { transform: rotate(-26deg) translateY(2px); }
+}
+
+@keyframes rig-cheer-crest {
+  0% { transform: rotate(-4deg) scale(0.95); }
+  100% { transform: rotate(12deg) scale(1.1); }
+}
+
+@keyframes rig-cheer-sing {
+  0% { transform: scale(1, 1); }
+  100% { transform: scale(1.08, 1.45); }
+}
+
+@keyframes rig-confetti-pop {
+  0% { transform: translateY(10px) scale(0); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(-24px) scale(1.1) rotate(180deg); opacity: 0; }
+}
+
+/* 4. Thinking */
+@keyframes rig-think-head {
+  0%, 100% { transform: rotate(-6deg) translateY(0); }
+  50% { transform: rotate(-13deg) translateY(-3px); }
+}
+
+@keyframes rig-think-pupil {
+  0%, 100% { transform: translate(-3px, -5px); }
+  50% { transform: translate(-6px, -8px); }
+}
+
+@keyframes rig-think-wing {
+  0%, 100% { transform: rotate(-14deg); }
+  50% { transform: rotate(-24deg) translateY(-4px); }
+}
+
+@keyframes rig-think-crest {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(7deg); }
+}
+
+@keyframes rig-question-float {
+  0%, 100% { transform: translateY(0) scale(0.95); opacity: 0.85; }
+  50% { transform: translateY(-6px) scale(1.12); opacity: 1; }
+}
+
+/* 5. Encouraging */
+@keyframes rig-encourage-torso {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.02) translateY(-2px); }
+}
+
+@keyframes rig-encourage-wing {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(-18deg) translateY(-2px); }
+}
+
+@keyframes rig-encourage-head {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(4deg); }
+}
+
+/* 6. Surprised */
+@keyframes rig-surprised-boing {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  25% { transform: translateY(-14px) scale(0.92, 1.12); }
+  50% { transform: translateY(2px) scale(1.08, 0.94); }
+  75% { transform: translateY(-3px) scale(0.98, 1.02); }
+}
+
+@keyframes rig-spark-burst {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: scale(1.3) translateY(-10px); opacity: 0; }
+}
+
+/* 7. Sleeping */
+@keyframes rig-sleep-breathe {
+  0%, 100% { transform: translateY(3px) scale(1.03, 0.97); }
+  50% { transform: translateY(0) scale(0.98, 1.02); }
+}
+
+@keyframes rig-zzz-rise {
+  0% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+  40% { opacity: 0.95; }
+  100% { transform: translate(14px, -24px) scale(1.2); opacity: 0; }
+}
+
+/* 8. Reading */
+@keyframes rig-read-nod {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  35% { transform: rotate(5deg) translateY(2px); }
+  70% { transform: rotate(-2deg) translateY(-1px); }
+}
+
+@keyframes rig-book-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* 9. Math Hero */
+@keyframes rig-math-hero-body {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.02); }
+}
+
+@keyframes rig-pencil-triumph {
+  0% { transform: rotate(18deg) scale(0.98); }
+  100% { transform: rotate(28deg) scale(1.05) translateY(-4px); }
+}
+
+/* 10. Science Lab */
+@keyframes rig-flask-shake {
+  0% { transform: rotate(-4deg); }
+  100% { transform: rotate(6deg) translateY(-2px); }
+}
+
+/* 11. Gliding */
+@keyframes rig-glide-flight {
+  0%, 100% { transform: translateY(0) rotate(4deg); }
+  50% { transform: translateY(-10px) rotate(-4deg); }
+}
+
+/* 12. Jumping */
+@keyframes rig-spring-jump {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(4px) scale(1.12, 0.88); }
+  50% { transform: translateY(-16px) scale(0.92, 1.1); }
+  75% { transform: translateY(2px) scale(1.08, 0.92); }
+}
+
+@keyframes rig-spring-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.9; }
+  20% { transform: scaleX(1.18); opacity: 1; }
+  50% { transform: scaleX(0.55); opacity: 0.35; }
+  75% { transform: scaleX(1.15); opacity: 1; }
 }
 
 /* ==========================================================================
-   DEFINICIÓN DE KEYFRAMES PRINCIPALES DE RUPI
+   ACCESIBILIDAD ESTRICTA
    ========================================================================== */
-
-/* 1. Respiración viva del cuerpo (Squash & Stretch orgánico) */
-@keyframes rupi-idle-body {
-  0%, 100% {
-    transform: translateY(0) scale(1, 1);
-  }
-  38% {
-    transform: translateY(-4px) scale(0.97, 1.03);
-  }
-  50% {
-    transform: translateY(-4px) scale(1, 1);
-  }
-  85% {
-    transform: translateY(1px) scale(1.02, 0.98);
-  }
-}
-
-/* Copete con inercia elástica (Follow-through) */
-@keyframes rupi-idle-crest {
-  0%, 100% {
-    transform: rotate(0deg);
-  }
-  42% {
-    transform: rotate(5.5deg);
-  }
-  75% {
-    transform: rotate(-2deg);
-  }
-}
-
-/* Meneo de colita alegre */
-@keyframes rupi-idle-tail {
-  0%, 100% {
-    transform: rotate(-4deg);
-  }
-  50% {
-    transform: rotate(9deg);
-  }
-}
-
-/* Aleteo de descanso */
-@keyframes rupi-idle-wing {
-  0% {
-    transform: rotate(4deg);
-  }
-  100% {
-    transform: rotate(-11deg);
-  }
-}
-
-/* Sombra en sincronía con la respiración */
-@keyframes rupi-idle-shadow {
-  0%, 100% {
-    transform: scaleX(1) scaleY(1);
-    opacity: 0.95;
-  }
-  42% {
-    transform: scaleX(0.85) scaleY(0.75);
-    opacity: 0.65;
-  }
-}
-
-/* Doble parpadeo natural */
-@keyframes rupi-blink-natural {
-  0%, 39%, 43%, 45.5%, 49%, 100% {
-    transform: scaleY(1);
-  }
-  41%, 47% {
-    transform: scaleY(0.08);
-  }
-}
-
-/* 2. Salto con anticipación de celebración (Cheering) */
-@keyframes rupi-cheer-jump {
-  0% {
-    transform: translateY(0) scale(1, 1);
-  }
-  14% {
-    /* Anticipation: se agacha antes del impulso */
-    transform: translateY(4px) scale(1.15, 0.85);
-  }
-  34% {
-    /* Despegue explosivo hacia arriba */
-    transform: translateY(-22px) scale(0.91, 1.12) rotate(3deg);
-  }
-  52% {
-    /* Flote máximo en el aire */
-    transform: translateY(-25px) scale(1.02, 0.98) rotate(-3deg);
-  }
-  70% {
-    /* Caída rápida */
-    transform: translateY(-8px) scale(0.95, 1.05);
-  }
-  80% {
-    /* Aterrizaje elástico con compresión */
-    transform: translateY(3px) scale(1.14, 0.86);
-  }
-  90% {
-    /* Rebote de recuperación */
-    transform: translateY(-2px) scale(0.98, 1.02);
-  }
-  100% {
-    transform: translateY(0) scale(1, 1);
-  }
-}
-
-@keyframes rupi-cheer-shadow {
-  0%, 100% {
-    transform: scaleX(1);
-    opacity: 0.9;
-  }
-  14% {
-    transform: scaleX(1.25);
-    opacity: 1;
-  }
-  45%, 55% {
-    transform: scaleX(0.42);
-    opacity: 0.22;
-  }
-  80% {
-    transform: scaleX(1.22);
-    opacity: 1;
-  }
-}
-
-@keyframes rupi-cheer-wing-flap {
-  0% {
-    transform: rotate(20deg) translateY(-2px);
-  }
-  100% {
-    transform: rotate(-24deg) translateY(2px);
-  }
-}
-
-@keyframes rupi-cheer-crest {
-  0% {
-    transform: rotate(-4deg) scale(0.95);
-  }
-  100% {
-    transform: rotate(10deg) scale(1.08);
-  }
-}
-
-@keyframes rupi-cheer-sing {
-  0% {
-    transform: scale(1, 1);
-  }
-  100% {
-    transform: scale(1.08, 1.4);
-  }
-}
-
-@keyframes rupi-cheer-tail {
-  0% {
-    transform: rotate(-10deg);
-  }
-  100% {
-    transform: rotate(14deg);
-  }
-}
-
-/* 3. Pensando / Resolviendo reto (Thinking) */
-@keyframes rupi-think-sway {
-  0%, 100% {
-    transform: translateY(0) rotate(-6deg);
-  }
-  50% {
-    transform: translateY(-5px) rotate(-10deg);
-  }
-}
-
-@keyframes rupi-think-crest {
-  0%, 100% {
-    transform: rotate(-3deg);
-  }
-  50% {
-    transform: rotate(6deg);
-  }
-}
-
-@keyframes rupi-think-pupil {
-  0%, 100% {
-    transform: translate(-3px, -5px);
-  }
-  50% {
-    transform: translate(-5px, -7px);
-  }
-}
-
-@keyframes rupi-think-beak {
-  0%, 100% {
-    transform: scale(1, 1);
-  }
-  40%, 60% {
-    transform: scale(1.05, 0.88);
-  }
-}
-
-@keyframes rupi-think-wing {
-  0%, 100% {
-    transform: rotate(-12deg);
-  }
-  50% {
-    transform: rotate(-22deg) translateY(-3px);
-  }
-}
-
-/* 4. Rebote enérgico de resorte (Jumping) */
-@keyframes rupi-spring-jump {
-  0%, 100% {
-    transform: translateY(0) scale(1, 1);
-  }
-  20% {
-    transform: translateY(4px) scale(1.12, 0.88);
-  }
-  50% {
-    transform: translateY(-16px) scale(0.92, 1.1);
-  }
-  75% {
-    transform: translateY(2px) scale(1.08, 0.92);
-  }
-}
-
-@keyframes rupi-spring-shadow {
-  0%, 100% {
-    transform: scaleX(1);
-    opacity: 0.9;
-  }
-  20% {
-    transform: scaleX(1.18);
-    opacity: 1;
-  }
-  50% {
-    transform: scaleX(0.55);
-    opacity: 0.35;
-  }
-  75% {
-    transform: scaleX(1.15);
-    opacity: 1;
-  }
-}
-
-/* Accesibilidad estricta */
 @media (prefers-reduced-motion: reduce) {
   .rupi-character,
   .rupi-character *,
   .rupi-ground-shadow,
+  .rupi-torso-group,
   .rupi-body,
   .rupi-wing,
   .rupi-crest,
   .rupi-tail,
-  .rupi-beak,
-  .rupi-eye-white,
-  .rupi-eye-pupil,
-  .reading-glyph,
-  .math-symbol,
-  .flask-bubble,
-  .atom-orbit {
+  .rupi-beak-group,
+  .rupi-eye-group,
+  .rupi-pupil-tracked,
+  .confetti,
+  .zzz-text,
+  .surprise-spark,
+  .think-question-mark {
     animation: none !important;
     transition: none !important;
   }
