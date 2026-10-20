@@ -97,7 +97,6 @@
   height: 80px;
   overflow: visible;
   filter: drop-shadow(0 4px 0 rgba(23, 62, 48, 0.15));
-  animation: rupi-hover 3s ease-in-out infinite;
 }
 
 /* Botón de código de clase en cabecera (Sticker 3D Duolingo) */
