@@ -30,6 +30,14 @@ public class ReminderRepository {
             AND actividad.tipo IN ('CUESTIONARIO','RETO') AND actividad.archivado_en IS NULL
         """;
 
+    public record Due(String route,String node,String title,Instant startsAt) {}
+    private static final String PREFERENCE = " AND COALESCE((SELECT habilitada FROM notificacion_preferencia_categoria WHERE usuario_id=m.usuario_id AND categoria='TAREA' AND canal='INTERNA'),TRUE)=TRUE ";
+    public List<Due> due(String student,Instant now,Instant until) {
+        return jdbc.query("SELECT DISTINCT p.version_ruta_id,p.referencia_id,p.titulo,p.inicia_en FROM escuela_planificacion_ruta p "
+            +ELIGIBLE+" WHERE p.tipo='EVALUACION' AND m.usuario_id=? AND p.inicia_en>? AND p.inicia_en<=?"+PREFERENCE,
+            (rs,n)->new Due(rs.getString(1),rs.getString(2),rs.getString(3),rs.getTimestamp(4).toLocalDateTime().toInstant(ZoneOffset.UTC)),
+            student,timestamp(now),timestamp(until));
+    }
     /** INSERT atómico y clave única: repetir el barrido o ejecutarlo en dos servidores no duplica avisos. */
     public void generate(Instant now, Instant until) {
         jdbc.update("""
@@ -39,6 +47,7 @@ public class ReminderRepository {
             FROM escuela_planificacion_ruta p
             """ + ELIGIBLE + """
             WHERE p.tipo='EVALUACION' AND p.inicia_en>? AND p.inicia_en<=?
+            """ + PREFERENCE + """
             ON DUPLICATE KEY UPDATE id=escuela_recordatorio_evaluacion.id
             """, timestamp(now), timestamp(now), timestamp(until));
     }
@@ -52,6 +61,7 @@ public class ReminderRepository {
                 AND r.aula_id=p.aula_id AND r.version_ruta_id=p.version_ruta_id
                 AND r.nodo_id=p.referencia_id AND r.fecha_evaluacion=p.inicia_en
             WHERE p.tipo='EVALUACION' AND m.usuario_id=? AND p.version_ruta_id=? AND p.inicia_en>?
+            """ + PREFERENCE + """
             ORDER BY p.inicia_en,p.titulo,r.id
             """, (rs,row)->new Reminder(rs.getString("id"),rs.getString("aula_id"),rs.getString("nombre"),
                 rs.getString("titulo"),rs.getTimestamp("inicia_en").toLocalDateTime().atOffset(ZoneOffset.UTC).toString(),

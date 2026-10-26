@@ -1,0 +1,10 @@
+.study-notifications { padding: clamp(1rem,3vw,2rem); border: 2px solid #b8ceb8; border-radius: 20px; background: #fffdf5; color: #173e30; margin-block: 1.5rem; }
+.study-notifications fieldset { display: grid; gap: .75rem; border: 0; padding: 0; }
+.study-notifications label { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.study-notifications label:has(input[type=time]), .study-notifications label:has(select) { display: grid; }
+.study-notifications :is(select,input[type=time]) { width: 100%; border: 2px solid #31724b; border-radius: 10px; background: white; padding: .5rem; color: #173e30; }
+.study-notifications button { background: #31724b; color: white; border: 0; border-radius: 12px; box-shadow: 0 3px 0 #173e30; cursor: pointer; }
+.study-notifications button:active { transform: translateY(2px); box-shadow: 0 1px 0 #173e30; }
+.study-notifications button:disabled { opacity: .65; }
+.study-notifications ul { padding: 0; list-style: none; }
+.study-notifications li { border-block-start: 1px solid #b8ceb8; padding-block: 1rem; }

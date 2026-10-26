@@ -37,9 +37,10 @@ class MainActivity : Activity() {
   super.onCreate(state)
   window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
   registerReceiver(summaryConnectionReceiver,android.content.IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION))
+  if(api==null)api=StudyAlerts.restore(this)
   if (api == null) loginScreen() else {
    val topic = state?.getString("topic")
-   if (topic != null) { if(state?.getBoolean("summary")==true) loadSummary(JSONObject(topic)) else if(state?.getBoolean("cards")==true) loadCards(JSONObject(topic)) else loadTopic(JSONObject(topic)) } else topics()
+   if (topic != null) { if(state?.getBoolean("summary")==true) loadSummary(JSONObject(topic)) else if(state?.getBoolean("cards")==true) loadCards(JSONObject(topic)) else loadTopic(JSONObject(topic)) } else if(intent.getBooleanExtra("notifications",false))notifications() else topics()
   }
  }
  override fun onSaveInstanceState(out: Bundle) { currentTopic?.let { out.putString("topic", it.toString()) }; out.putBoolean("summary",summaryMode);out.putBoolean("cards",cardMode); super.onSaveInstanceState(out) }
@@ -89,7 +90,7 @@ class MainActivity : Activity() {
     val result=job()
     runOnUiThread { if(alive) { busy=false; if(ticket==screen) { notice.text=""; done(result) } } }
    } catch(e: Exception) {
-    runOnUiThread { if(alive) { busy=false; if(ticket==screen) notice.text=e.message ?: "No pudimos continuar. Revisa tu conexión." } }
+    runOnUiThread { if(alive) { busy=false; if(e is RupiSessionExpired){StudyAlerts.disable(this);api=null;loginScreen();notice.text="Vuelve a iniciar sesión.";return@runOnUiThread}; if(ticket==screen) notice.text=e.message ?: "No pudimos continuar. Revisa tu conexión." } }
    }
   }
  }
@@ -104,20 +105,86 @@ class MainActivity : Activity() {
   button("Entrar") {
    val serverText=server.text.toString();val username=user.text.toString();val secret=password.text.toString()
    password.setText("")
-   execute({ val client=RupiApi(serverText);client.login(username,secret);client },{ api=it; topics() })
+   execute({ val client=RupiApi(serverText);client.login(username,secret);client },{ StudyAlerts.disable(this);api=it; topics() })
   }
  }
  private fun topics() {
   currentTopic=null
   page("Mis temas")
   button("Resúmenes descargados") {savedSummaries()}
+  button("Mi ritmo de estudio y avisos"){notifications()}
   button("Actualizar temas") { topics() }
-  button("Salir") { execute({ api?.request("/api/v1/auth/logout","POST") },{ api?.clear();api=null;loginScreen() }) }
+  button("Salir") { StudyAlerts.disable(this);execute({ api?.request("/api/v1/auth/logout","POST") },{ api?.clear();api=null;loginScreen() }) }
   execute({ JSONArray(api!!.request("/api/v1/student/ai-quizzes/topics")) },{ items ->
    if(items.length()==0) text("Todavía no tienes paradas disponibles. Únete a una ruta en Rupi y vuelve a consultar.")
    for(i in 0 until items.length()) { val item=items.getJSONObject(i); button(item.getString("routeTitle")+" · "+item.getString("title")) { loadTopic(item) } }
   })
  }
+
+ private fun notifications() {
+  summaryMode=false;cardMode=false;currentTopic=null
+  page("Mi ritmo de estudio")
+  button("Volver a mis temas"){topics()}
+  execute({
+   Pair(JSONObject(api!!.request("/api/v1/student/notifications/preferences")),JSONObject(api!!.request("/api/v1/student/notifications")))
+  },{ (status,inbox) ->
+   val prefs=status.getJSONObject("preferences")
+   text("Metas sin cambiar tus notas · horas de Perú")
+   text("Completaste "+status.getInt("completedToday")+" actividades hoy.")
+   text("Mi meta diaria")
+   val goal=Spinner(this).apply{
+    minimumHeight=dp(48);contentDescription="Mi meta diaria"
+    adapter=ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,(1..5).map{"$it actividad(es)"})
+    setSelection(prefs.getInt("dailyGoal")-1)
+   };layout.addView(goal)
+   fun toggle(label:String,value:Boolean)=CheckBox(this).apply{
+    text=label;isChecked=value;minHeight=dp(48);setSingleLine(false);setHorizontallyScrolling(false);setPadding(dp(8),dp(12),dp(8),dp(12));this@MainActivity.layout.addView(this)
+   }
+   val goals=toggle("Recordar mi meta pendiente",prefs.getBoolean("goals"))
+   val evaluations=toggle("Recordar evaluaciones próximas",prefs.getBoolean("evaluations"))
+   val system=toggle("Permitir avisos en Android",prefs.getBoolean("system"))
+   val at=input("Hora del recordatorio (HH:mm)").apply{setText(prefs.getString("remindAt"))}
+   val from=input("Descansar desde (HH:mm)").apply{setText(prefs.getString("quietFrom"))}
+   val until=input("Volver a recibir avisos (HH:mm)").apply{setText(prefs.getString("quietUntil"))}
+   button("Guardar mis preferencias"){
+    val value=JSONObject().put("dailyGoal",goal.selectedItemPosition+1).put("goals",goals.isChecked)
+     .put("evaluations",evaluations.isChecked).put("system",system.isChecked)
+     .put("remindAt",at.text.toString()).put("quietFrom",from.text.toString()).put("quietUntil",until.text.toString()).put("revision",prefs.getLong("revision"))
+    execute({JSONObject(api!!.request("/api/v1/student/notifications/preferences","PUT",value))},{
+     prefs.put("revision",it.getJSONObject("preferences").getLong("revision"))
+     if(it.getJSONObject("preferences").getBoolean("system")){
+      if(android.os.Build.VERSION.SDK_INT>=33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED)
+       requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),25)
+      else activateAlerts()
+     }else{StudyAlerts.disable(this);notice.text="Preferencias guardadas. Avisos del dispositivo desactivados."}
+    })
+   }
+   button("Recargar preferencias guardadas"){notifications()}
+   text("Android consulta periódicamente con conexión. El ahorro de batería puede retrasar los avisos. Si cierras la sesión, se detienen.")
+   text("Mis avisos",22)
+   if(inbox.optBoolean("quiet"))text("Horario de descanso: los avisos del dispositivo están pausados.")
+   val items=inbox.getJSONArray("items")
+   if(items.length()==0)text("No tienes recordatorios pendientes.")
+   for(i in 0 until items.length()){
+    val item=items.getJSONObject(i);text(item.getString("title"),20);text(item.getString("body"))
+    if(item.getBoolean("read"))text("Leído") else button("Marcar como leído"){
+     execute({api!!.request("/api/v1/student/notifications/"+item.getString("id")+"/read","PUT")},{notifications()})
+    }
+   }
+  })
+ }
+ private fun activateAlerts(){
+  if(!StudyAlerts.allowed(this)){notice.text="Preferencias guardadas. Permite las notificaciones en los ajustes de Android para recibir avisos.";return}
+  execute({StudyAlerts.enable(this,api!!)},{notice.text="Preferencias guardadas. Avisos activados en este dispositivo."})
+ }
+ override fun onRequestPermissionsResult(code:Int,permissions:Array<out String>,results:IntArray){
+  super.onRequestPermissionsResult(code,permissions,results)
+  if(code==25 && api!=null){
+   if(results.isNotEmpty()&&results[0]==android.content.pm.PackageManager.PERMISSION_GRANTED)activateAlerts()
+   else notice.text="Puedes consultar tus avisos aquí aunque no concedas el permiso de Android."
+  }
+ }
+
  private fun path(topic: JSONObject) = "/api/v1/student/learning-routes/"+topic.getString("routeId")+"/nodes/"+topic.getString("nodeId")+"/ai-quiz"
  private fun loadTopic(topic: JSONObject) {
   summaryMode=false;cardMode=false

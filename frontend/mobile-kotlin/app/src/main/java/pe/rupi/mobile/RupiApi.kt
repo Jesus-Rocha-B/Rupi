@@ -8,6 +8,7 @@ import java.net.URI
 import java.util.UUID
 
 /** Only talks to Spring Boot. No provider key or database credential belongs in the app. */
+class RupiSessionExpired: IllegalStateException("Vuelve a iniciar sesión para recibir avisos.")
 class RupiApi(server: String) {
  private val base = URI(server.trim().trimEnd('/'))
  private val cookies = CookieManager(null, CookiePolicy.ACCEPT_ORIGINAL_SERVER)
@@ -38,7 +39,7 @@ class RupiApi(server: String) {
    if (status !in 200..299) {
     val text = connection.errorStream?.bufferedReader()?.use { it.readText().take(4000) }.orEmpty()
     val message = try { JSONObject(text).optString("detail") } catch (_: Exception) { "" }
-    if (status == 401) cookies.cookieStore.removeAll()
+    if (status == 401) { cookies.cookieStore.removeAll(); throw RupiSessionExpired() }
     throw IllegalStateException(message.ifBlank { "No pudimos consultar Rupi. Revisa tu conexión o vuelve a iniciar sesión." })
    }
    cookies.put(uri, connection.headerFields)
@@ -53,5 +54,18 @@ class RupiApi(server: String) {
   if (user.optString("role") != "ESTUDIANTE") { cookies.cookieStore.removeAll(); error("Este cliente de práctica está destinado a estudiantes.") }
  }
  fun requestId(node: String): String = pending.getOrPut(node) { UUID.randomUUID().toString() }
+ fun exportSession():JSONObject {
+  val cookie=cookies.cookieStore.cookies.firstOrNull { !it.hasExpired() && it.name=="rupi_session" }
+   ?: error("Vuelve a iniciar sesión.")
+  val lifetime=if(cookie.maxAge>0)minOf(cookie.maxAge,86400L) else 86400L
+  return JSONObject().put("server",base.toString()).put("name",cookie.name).put("value",cookie.value)
+   .put("expires",System.currentTimeMillis()+lifetime*1000L)
+ }
+ fun importSession(value:JSONObject) {
+  val cookie=java.net.HttpCookie(value.getString("name"),value.getString("value"))
+  cookie.version=0;cookie.path="/";cookie.secure=base.scheme=="https";cookie.isHttpOnly=true
+  cookie.maxAge=maxOf(0,(value.getLong("expires")-System.currentTimeMillis())/1000)
+  cookies.cookieStore.add(base,cookie)
+ }
  fun clear() { cookies.cookieStore.removeAll(); pending.clear() }
 }
