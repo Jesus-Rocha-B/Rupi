@@ -1,0 +1,10 @@
+.visual-sheet { text-align:left; }
+.visual-label { color:#246a91; font-weight:800; }
+.visual-concepts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); gap:16px; }
+.visual-sheet article { background:white; border:2px solid #b7cbb2; border-radius:16px; padding:20px; margin:12px 0; }
+.visual-number { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; background:#ffd26a; color:#173e30; font-weight:900; }
+.visual-sheet h3 { font-size:1.5rem; line-height:1.4; }
+.visual-sheet h4 { font-size:1.1rem; margin:12px 0; }
+.visual-sheet p { line-height:1.65; white-space:pre-wrap; }
+.visual-sheet aside { background:#fff1c7; padding:20px; border-left:5px solid #b98628; }
+.visual-steps li { padding:12px 8px; border-bottom:1px solid #b7cbb2; line-height:1.6; }

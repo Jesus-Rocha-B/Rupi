@@ -273,8 +273,12 @@ export async function downloadUnitPackage(
   signal?: AbortSignal,
   nodePackage = false
 ): Promise<UnitPackage> {
+  const path = nodePackage ? `student/learning-routes/${encodeURIComponent(versionRouteId)}/nodes/${encodeURIComponent(unitKey)}/package` : unitPackagePath(versionRouteId, unitKey)
+  return downloadStudyPackage(path, fallbackName, signal)
+}
+export async function downloadStudyPackage(path: string, fallbackName: string, signal?: AbortSignal): Promise<UnitPackage> {
   const timeout = AbortSignal.timeout(60000)
-  const response = await fetch(`${API_BASE}/api/v1/${nodePackage ? `student/learning-routes/${encodeURIComponent(versionRouteId)}/nodes/${encodeURIComponent(unitKey)}/package` : unitPackagePath(versionRouteId, unitKey)}`, {
+  const response = await fetch(`${API_BASE}/api/v1/${path}`, {
     credentials: 'same-origin',
     signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
   })

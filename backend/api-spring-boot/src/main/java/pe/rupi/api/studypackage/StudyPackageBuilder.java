@@ -478,4 +478,21 @@ public class StudyPackageBuilder {
                     (page.getLeft() + page.getRight()) / 2, page.getBottom() + 30, 0);
         }
     }
+
+    /** HU-23 reuses the HU-12 ZIP entries, checksums and manifest conventions. */
+    public static byte[] visualSupplement(String html, Object content) throws IOException {
+        var out = new ByteArrayOutputStream();
+        var entries = new ArrayList<ManifestEntry>();
+        try (var zip = new ZipOutputStream(out, StandardCharsets.UTF_8)) {
+            putEntry(zip, "ABRIR.html", html.getBytes(StandardCharsets.UTF_8), entries);
+            putEntry(zip, CONTENT_ENTRY, JSON.writeValueAsBytes(content), entries);
+            putEntry(zip, README_ENTRY, ("Extrae el ZIP y abre ABRIR.html. No requiere internet. "+
+                "Es una copia descargada: al volver a conectarte, abre el tema en Rupi para comprobar su vigencia. "+
+                "Una retirada no puede eliminar copias de dispositivos desconectados.").getBytes(StandardCharsets.UTF_8), entries);
+            zip.putNextEntry(new ZipEntry(MANIFEST_ENTRY));
+            zip.write(JSON.writeValueAsBytes(Map.of("formato","rupi-resumen-visual","version",1,"archivos",entries)));
+            zip.closeEntry();
+        }
+        return out.toByteArray();
+    }
 }

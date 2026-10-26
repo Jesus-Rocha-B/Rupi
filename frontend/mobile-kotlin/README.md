@@ -19,3 +19,6 @@ La HU completa y configuración de backend están en ../../docs/implementacion/H
 
 ## HU-22: tarjetas de memoria
 Desde un tema, elegir Repasar con tarjetas. Permite revelar pregunta/respuesta, deslizar horizontalmente, navegar con botones y marcar Lo recuerdo o Necesito practicar. El avance se guarda en TiDB mediante Spring Boot. El docente publica las tarjetas revisadas desde la web. Fuentes Kotlin compiladas; APK y dispositivo pendientes de validación. Detalles en ../../docs/implementacion/HU-22-tarjetas-memoria.md.
+
+## HU-23: resúmenes visuales
+Tema → Ver resumen visual. Reutiliza IA de Spring Boot y descarga ZIP de HU-12, verifica SHA-256 y conserva el contenido educativo en almacenamiento privado para lectura nativa sin conexión. Resúmenes descargados también está disponible antes del login; no contiene datos personales. Al detectar conexión con el resumen abierto, comprueba su vigencia. Falta proveedor real y validación en dispositivo/APK. Ver ../../docs/implementacion/HU-23-resumenes-visuales.md.

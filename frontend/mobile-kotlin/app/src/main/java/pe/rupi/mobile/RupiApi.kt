@@ -16,7 +16,9 @@ class RupiApi(server: String) {
   require(base.host != null && base.userInfo == null && base.query == null && base.fragment == null && base.path.isNullOrEmpty()) { "Usa la dirección base del servidor Rupi." }
   require(base.scheme == "https" || (BuildConfig.DEBUG && base.scheme == "http" && base.host in setOf("10.0.2.2", "127.0.0.1", "localhost"))) { "Usa HTTPS. En debug se permite el emulador local." }
  }
- fun request(path: String, method: String = "GET", body: JSONObject? = null): String {
+ fun request(path: String, method: String = "GET", body: JSONObject? = null): String = requestBytes(path,method,body).toString(Charsets.UTF_8)
+ fun download(path: String): ByteArray = requestBytes(path,"GET",null)
+ private fun requestBytes(path: String, method: String, body: JSONObject?): ByteArray {
   require(path.startsWith("/api/v1/") && !path.contains(".."))
   val uri = base.resolve(path)
   val connection = uri.toURL().openConnection() as HttpURLConnection
@@ -40,7 +42,10 @@ class RupiApi(server: String) {
     throw IllegalStateException(message.ifBlank { "No pudimos consultar Rupi. Revisa tu conexión o vuelve a iniciar sesión." })
    }
    cookies.put(uri, connection.headerFields)
-   return if (status == 204) "" else connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+   val bytes=if (status == 204) byteArrayOf() else connection.inputStream.use { it.readBytes() }
+   val expected=connection.getHeaderField("X-Rupi-Paquete-Sha256")
+   if(expected!=null){val actual=java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString(""){"%02x".format(it)};check(actual.equals(expected,true)){"La descarga no pasó la verificación. Vuelve a intentarlo."}}
+   return bytes
   } finally { connection.disconnect() }
  }
  fun login(username: String, password: String) {

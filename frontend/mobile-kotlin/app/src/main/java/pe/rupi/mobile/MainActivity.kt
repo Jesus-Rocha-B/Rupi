@@ -20,18 +20,29 @@ class MainActivity : Activity() {
  private var busy = false
  private var alive = true
  private var screen = 0
+ private var summaryMode=false
  private var cardMode=false
  private var currentTopic: JSONObject? = null
  private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
- override fun onCreate(state: Bundle?) {
-  super.onCreate(state)
-  if (api == null) loginScreen() else {
-   val topic = state?.getString("topic")
-   if (topic != null) { if(state?.getBoolean("cards")==true) loadCards(JSONObject(topic)) else loadTopic(JSONObject(topic)) } else topics()
+
+ private val summaryConnectionReceiver=object:android.content.BroadcastReceiver(){
+  override fun onReceive(context:android.content.Context?,intent:android.content.Intent?){
+   val connected=(getSystemService(CONNECTIVITY_SERVICE) as android.net.ConnectivityManager).activeNetworkInfo?.isConnected==true
+   val topic=currentTopic
+   if(connected && alive && !busy && summaryMode && api!=null && topic!=null)loadSummary(topic)
   }
  }
- override fun onSaveInstanceState(out: Bundle) { currentTopic?.let { out.putString("topic", it.toString()) }; out.putBoolean("cards",cardMode); super.onSaveInstanceState(out) }
- override fun onDestroy() { alive = false; worker.shutdownNow(); super.onDestroy() }
+
+ override fun onCreate(state: Bundle?) {
+  super.onCreate(state)
+  registerReceiver(summaryConnectionReceiver,android.content.IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION))
+  if (api == null) loginScreen() else {
+   val topic = state?.getString("topic")
+   if (topic != null) { if(state?.getBoolean("summary")==true) loadSummary(JSONObject(topic)) else if(state?.getBoolean("cards")==true) loadCards(JSONObject(topic)) else loadTopic(JSONObject(topic)) } else topics()
+  }
+ }
+ override fun onSaveInstanceState(out: Bundle) { currentTopic?.let { out.putString("topic", it.toString()) }; out.putBoolean("summary",summaryMode);out.putBoolean("cards",cardMode); super.onSaveInstanceState(out) }
+ override fun onDestroy() { unregisterReceiver(summaryConnectionReceiver);alive = false; worker.shutdownNow(); super.onDestroy() }
  private fun page(title: String) {
   screen++
   val scroll = ScrollView(this)
@@ -82,6 +93,7 @@ class MainActivity : Activity() {
  private fun loginScreen() {
   currentTopic=null
   page("Entra a tu aula")
+  button("Resúmenes descargados") {savedSummaries()}
   val server=input("Servidor Rupi (HTTPS)")
   if(BuildConfig.DEBUG) server.setText("http://10.0.2.2:8081")
   val user=input("Usuario escolar")
@@ -95,6 +107,7 @@ class MainActivity : Activity() {
  private fun topics() {
   currentTopic=null
   page("Mis temas")
+  button("Resúmenes descargados") {savedSummaries()}
   button("Actualizar temas") { topics() }
   button("Salir") { execute({ api?.request("/api/v1/auth/logout","POST") },{ api?.clear();api=null;loginScreen() }) }
   execute({ JSONArray(api!!.request("/api/v1/student/ai-quizzes/topics")) },{ items ->
@@ -104,11 +117,12 @@ class MainActivity : Activity() {
  }
  private fun path(topic: JSONObject) = "/api/v1/student/learning-routes/"+topic.getString("routeId")+"/nodes/"+topic.getString("nodeId")+"/ai-quiz"
  private fun loadTopic(topic: JSONObject) {
-  cardMode=false
+  summaryMode=false;cardMode=false
   currentTopic=topic
   page(topic.getString("title"))
   button("Volver a mis temas") { topics() }
   button("Consultar mi práctica") { loadTopic(topic) }
+  button("Ver resumen visual") {loadSummary(topic)}
   button("Repasar con tarjetas") { loadCards(topic) }
   execute({ JSONObject(api!!.request(path(topic))) },{ status ->
    val practice=status.optJSONObject("practice")
@@ -225,5 +239,102 @@ class MainActivity : Activity() {
   text("Fuente indicada por tu docente: "+card.getString("source"))
   text("Primero repasamos lo que necesita práctica; después las tarjetas nuevas y lo que recuerdas.")
   button("Volver a repasar") {command("RESTART")}
+ }
+
+ private fun summaryPath(topic: JSONObject)=path(topic).removeSuffix("ai-quiz")+"visual-summary"
+ private fun summaryFile(topic: JSONObject): java.io.File {
+  val folder=java.io.File(filesDir,"visual-summaries");folder.mkdirs()
+  return java.io.File(folder,java.util.UUID.fromString(topic.getString("routeId")).toString()+"-"+java.util.UUID.fromString(topic.getString("nodeId")).toString()+".json")
+ }
+ private fun savedSummaries() {
+  summaryMode=false;currentTopic=null
+  page("Resúmenes descargados")
+  text("Copias guardadas en este dispositivo. Pueden estar desactualizadas; vuelve al tema con conexión para comprobar su vigencia.")
+  button("Volver") {if(api==null)loginScreen() else topics()}
+  val files=java.io.File(filesDir,"visual-summaries").listFiles().orEmpty()
+  if(files.isEmpty())text("Todavía no guardaste resúmenes.")
+  files.forEach { file ->
+   try {
+    val saved=JSONObject(file.readText(Charsets.UTF_8));val topic=saved.getJSONObject("topic")
+    button(topic.getString("title")) {
+     currentTopic=topic;summaryMode=true;page("Copia descargada")
+     button("Volver a mis descargas") {savedSummaries()}
+     if(api!=null)button("Comprobar vigencia") {loadSummary(topic)}
+     renderSummary(topic,saved.getJSONObject("resource"),true)
+    }
+   }catch(_:Exception){text("No pudimos leer una descarga.")}
+  }
+ }
+ private fun loadSummary(topic: JSONObject) {
+  summaryMode=true;cardMode=false;currentTopic=topic
+  page("Ver resumen visual")
+  button("Volver al tema") {summaryMode=false;loadTopic(topic)}
+  button("Comprobar versión y revisión") {loadSummary(topic)}
+  execute({
+   try {JSONObject(api!!.request(summaryPath(topic))).put("offline",false)}
+   catch(e:Exception){
+    val file=summaryFile(topic)
+    if(!file.exists())throw e
+    JSONObject().put("resource",JSONObject(file.readText(Charsets.UTF_8)).getJSONObject("resource")).put("offline",true)
+   }
+  },{ result ->
+   val resource=result.optJSONObject("resource");val offline=result.optBoolean("offline")
+   if(resource!=null) {
+    if(!offline) {
+     val file=summaryFile(topic)
+     val outdated=if(file.exists()) try {JSONObject(file.readText(Charsets.UTF_8)).getJSONObject("resource").optString("version")!=resource.optString("version")} catch(_:Exception){true} else false
+     if(outdated||resource.optString("state") in setOf("REPORTADO","RECHAZADO","DESACTUALIZADO")){file.delete();text("La copia anterior cambió o fue retirada. Comprueba este recurso antes de guardarlo nuevamente.")}
+    }
+    renderSummary(topic,resource,offline)
+   }else{
+    if(!offline)summaryFile(topic).delete()
+    text("No hay un resumen disponible para esta versión del tema.")
+   }
+   if(!offline && result.optBoolean("configured") && (resource==null||resource.optString("state")=="FALLIDO"))
+    button("Preparar resumen visual") {
+     execute({api!!.request(summaryPath(topic),"POST",JSONObject().put("requestId",java.util.UUID.randomUUID().toString()))},{loadSummary(topic)})
+    }
+   if(!result.optBoolean("configured") && resource==null)text("La IA todavía no está configurada. Puedes continuar tu lección.")
+  })
+ }
+ private fun renderSummary(topic: JSONObject,resource: JSONObject,offline: Boolean) {
+  if(offline)text("Copia descargada. No pudimos comprobar su vigencia. Puede haber una versión nueva o estar retirada.")
+  val state=resource.optString("state")
+  val content=resource.optJSONObject("content")
+  if(content==null){text(when(state){"GENERANDO"->"Preparando el resumen. Consulta nuevamente en unos segundos.";"FALLIDO"->"No pudimos preparar el resumen. Continúa tu lección.";else->"Resumen retirado o pendiente de revisión."});return}
+  text("Contenido asistido por IA · "+resource.optInt("grade")+".º de primaria")
+  text(if(state=="REVISADO_DOCENTE")"Revisado por docente." else "Validación automática; puede contener errores.")
+  text(content.getString("title"),24)
+  val concepts=content.getJSONArray("concepts")
+  for(i in 0 until concepts.length()){
+   val c=concepts.getJSONObject(i);text("${i+1}. "+c.getString("title"),20);text(c.getString("text"))
+  }
+  text("Paso a paso",20);val steps=content.getJSONArray("steps")
+  for(i in 0 until steps.length())text("${i+1}. "+steps.getString(i))
+  text("Ejemplo explicado",20);text(content.getString("example"))
+  text("Para recordar",20);text(content.getString("remember"))
+  text("Fuente: "+resource.optString("source"))
+  if(!offline) {
+   button("Guardar para consultar sin conexión"){
+    execute({
+     val bytes=api!!.download(summaryPath(topic)+"/"+resource.getString("id")+"/package")
+     var payload:JSONObject?=null
+     java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(bytes)).use { zip ->
+      var entry=zip.nextEntry
+      while(entry!=null){if(entry.name=="contenido.json")payload=JSONObject(zip.readBytes().toString(Charsets.UTF_8));entry=zip.nextEntry}
+     }
+     val saved=payload?:throw IllegalStateException("Paquete incompleto.")
+     val file=summaryFile(topic);val temporary=java.io.File(file.parentFile,file.name+".tmp")
+     temporary.writeText(JSONObject().put("topic",topic).put("resource",saved.getJSONObject("resource")).toString(),Charsets.UTF_8)
+     java.nio.file.Files.move(temporary.toPath(),file.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+    },{notice.text="Resumen guardado. Puedes abrirlo desde Resúmenes descargados incluso sin iniciar sesión."})
+   }
+   button("Reportar contenido incorrecto"){
+    val reason=EditText(this).apply{hint="¿Qué debemos revisar?";filters=arrayOf(android.text.InputFilter.LengthFilter(500))}
+    AlertDialog.Builder(this).setTitle("Revisar resumen").setView(reason).setNegativeButton("Cancelar",null).setPositiveButton("Enviar"){_,_->
+     if(reason.text.isNotBlank())execute({api!!.request(summaryPath(topic)+"/"+resource.getString("id")+"/report","POST",JSONObject().put("reason",reason.text.toString()))},{loadSummary(topic)})
+    }.show()
+   }
+  }
  }
 }

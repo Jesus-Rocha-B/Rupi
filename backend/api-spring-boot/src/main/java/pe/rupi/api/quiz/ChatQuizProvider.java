@@ -30,6 +30,10 @@ public class ChatQuizProvider implements QuizProvider {
  }
  public String provider(){return provider;}
  public String model(){return model;}
+ public String requestJson(String instructions,Object data) throws Exception {
+  if(!configured())throw new IllegalStateException("IA no configurada");
+  return call(instructions,data);
+ }
  private String call(String instructions,Object data) throws Exception {
   String payload=QuizValidation.JSON.writeValueAsString(Map.of("model",model,"response_format",Map.of("type","json_object"),
    "messages",List.of(Map.of("role","system","content",instructions),Map.of("role","user","content",QuizValidation.JSON.writeValueAsString(data)))));
