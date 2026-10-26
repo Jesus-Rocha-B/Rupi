@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <linearGradient id="titi-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b8daf0"/>
+      <stop offset="40%" stop-color="#dceffa"/>
+      <stop offset="75%" stop-color="#eef8ff"/>
+      <stop offset="100%" stop-color="#fdfbf7"/>
+    </linearGradient>
+    <linearGradient id="titi-sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffe385" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#f9b33a" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="titi-cordillera" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#466487" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#80a5cb" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="titi-water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#347ca8" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#246a91" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#4b8eaf" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="titi-totora" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d8a83d" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#9a6e1a" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="url(#titi-sky)"/>
+
+  <!-- Sol Inti Andino Brillante del Altiplano -->
+  <circle cx="280" cy="220" r="140" fill="url(#titi-sun)"/>
+  <circle cx="280" cy="220" r="220" fill="url(#titi-sun)" opacity="0.3"/>
+
+  <!-- Cordillera Real Nevada a lo Lejos -->
+  <path d="M-20 440 L160 310 L280 390 L460 270 L620 400 L840 260 L980 360 L1150 280 L1250 370 L1250 680 L-20 680 Z" fill="url(#titi-cordillera)"/>
+  <!-- Picos nevados -->
+  <polygon points="460,270 420,330 500,330" fill="#ffffff" opacity="0.75"/>
+  <polygon points="840,260 790,320 890,320" fill="#ffffff" opacity="0.75"/>
+  <polygon points="1150,280 1110,335 1190,335" fill="#ffffff" opacity="0.75"/>
+
+  <!-- Espejo de Agua Sagrada Titicaca -->
+  <rect y="580" width="1200" height="1220" fill="url(#titi-water)"/>
+
+  <!-- Ondas Calmas del Lago -->
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.45">
+    <path d="M120 670 q80 -12 160 0 t160 0"/>
+    <path d="M560 640 q100 -14 200 0 t200 0"/>
+    <path d="M220 820 q120 -15 240 0 t240 0"/>
+    <path d="M780 870 q90 -12 180 0 t180 0"/>
+    <path d="M140 1080 q140 -16 280 0 t280 0"/>
+    <path d="M620 1260 q110 -15 220 0 t220 0"/>
+    <path d="M180 1450 q130 -16 260 0 t260 0"/>
+  </g>
+
+  <!-- Islas Flotantes de Totora de Los Uros (Boceto Izquierda) -->
+  <g transform="translate(60, 720)" opacity="0.7">
+    <ellipse cx="140" cy="80" rx="150" ry="40" fill="url(#titi-totora)"/>
+    <!-- Choza típica de totora -->
+    <path d="M80 75 Q140 10 200 75 Z" fill="#b8832a"/>
+    <rect x="130" y="55" width="20" height="20" rx="2" fill="#5c3f10"/>
+  </g>
+
+  <!-- Caballito de Totora Tradicional Navegando (Derecha) -->
+  <g transform="translate(900, 940)" opacity="0.75">
+    <!-- Casco curvo de totora en proa alta -->
+    <path d="M0 60 Q80 85 180 60 Q220 20 230 -10 Q215 15 170 45 Q70 65 0 60 Z" fill="url(#titi-totora)"/>
+    <!-- Remo -->
+    <line x1="80" y1="20" x2="150" y2="90" stroke="#6b4614" stroke-width="5" stroke-linecap="round"/>
+    <!-- Pescador silueta estilizada -->
+    <circle cx="110" cy="20" r="10" fill="#6b4614"/>
+    <path d="M100 30 L120 30 L115 55 L105 55 Z" fill="#6b4614"/>
+  </g>
+
+  <!-- Totoral costero / Juncos en bordes inferiores -->
+  <g stroke="#9c7827" stroke-width="4" stroke-linecap="round" opacity="0.5">
+    <line x1="40" y1="1800" x2="60" y2="1640"/>
+    <line x1="55" y1="1800" x2="85" y2="1620"/>
+    <line x1="75" y1="1800" x2="70" y2="1660"/>
+    <line x1="90" y1="1800" x2="115" y2="1610"/>
+    <line x1="110" y1="1800" x2="135" y2="1650"/>
+
+    <line x1="1080" y1="1800" x2="1060" y2="1640"/>
+    <line x1="1100" y1="1800" x2="1085" y2="1610"/>
+    <line x1="1120" y1="1800" x2="1130" y2="1630"/>
+    <line x1="1145" y1="1800" x2="1120" y2="1600"/>
+    <line x1="1170" y1="1800" x2="1165" y2="1620"/>
+  </g>
+</svg>

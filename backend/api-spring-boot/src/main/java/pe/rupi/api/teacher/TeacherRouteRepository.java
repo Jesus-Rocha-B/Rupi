@@ -766,24 +766,29 @@ public class TeacherRouteRepository {
                     """, qId, versionActividadId, qSeq++, qType, statement, explanation, points);
 
             int optSeq = 1;
-            boolean hasCorrect = false;
-            if (q.options() != null) {
-                for (var opt : q.options()) {
+            boolean isSingleChoice = "OPCION_UNICA".equalsIgnoreCase(qType);
+            if (q.options() != null && !q.options().isEmpty()) {
+                int correctIdx = -1;
+                for (int i = 0; i < q.options().size(); i++) {
+                    if (Boolean.TRUE.equals(q.options().get(i).isCorrect())) {
+                        correctIdx = i;
+                    }
+                }
+                if (correctIdx == -1) {
+                    correctIdx = 0;
+                }
+
+                for (int i = 0; i < q.options().size(); i++) {
+                    var opt = q.options().get(i);
                     String optId = opt.id() != null && !opt.id().isBlank() ? opt.id() : UUID.randomUUID().toString();
                     String optText = opt.text() != null ? opt.text().trim() : "Opción " + optSeq;
-                    boolean isCorrect = Boolean.TRUE.equals(opt.isCorrect());
-                    if (isCorrect) hasCorrect = true;
+                    boolean isCorrect = isSingleChoice ? (i == correctIdx) : Boolean.TRUE.equals(opt.isCorrect());
 
                     jdbc.update("""
                             INSERT INTO evaluacion_opcion_respuesta (id, pregunta_id, numero_secuencia, texto, es_correcta)
                             VALUES (?, ?, ?, ?, ?)
                             """, optId, qId, optSeq++, optText, isCorrect);
                 }
-            }
-            if (!hasCorrect && q.options() != null && !q.options().isEmpty()) {
-                jdbc.update("""
-                        UPDATE evaluacion_opcion_respuesta SET es_correcta = TRUE WHERE pregunta_id = ? AND numero_secuencia = 1
-                        """, qId);
             }
         }
     }

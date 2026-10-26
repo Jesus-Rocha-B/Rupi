@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <linearGradient id="man-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff9a6c"/>
+      <stop offset="35%" stop-color="#ffb884"/>
+      <stop offset="70%" stop-color="#fed6a1"/>
+      <stop offset="100%" stop-color="#fff2d6"/>
+    </linearGradient>
+    <linearGradient id="man-sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff512f"/>
+      <stop offset="100%" stop-color="#f09819"/>
+    </linearGradient>
+    <linearGradient id="man-sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#186b80" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="#22899f" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#4db4c9" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="man-sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8c792" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#d4aa67" stop-opacity="0.45"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="url(#man-sky)"/>
+
+  <!-- Sol Poniéndose en el Océano Pacífico (Atardecer Cálido Norteño) -->
+  <circle cx="600" cy="420" r="160" fill="url(#man-sun)" opacity="0.8"/>
+  <ellipse cx="600" cy="580" rx="340" ry="20" fill="#ffd778" opacity="0.6"/>
+
+  <!-- Mar Cálido del Norte Peruano -->
+  <rect y="560" width="1200" height="640" fill="url(#man-sea)"/>
+
+  <!-- Olas de Mar Suaves y Espuma Blanca (Paraíso del Surf) -->
+  <g stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.65">
+    <path d="M-50 640 Q250 610 550 640 T1250 630"/>
+    <path d="M-50 720 Q350 690 750 720 T1250 710"/>
+    <path d="M-50 820 Q200 780 600 820 T1250 800"/>
+    <path d="M-50 940 Q400 900 800 940 T1250 930"/>
+  </g>
+
+  <!-- Muelle de Madera Tradicional y Pescadores a lo Lejos -->
+  <g transform="translate(180, 780)" opacity="0.65">
+    <line x1="0" y1="30" x2="280" y2="30" stroke="#52391b" stroke-width="8"/>
+    <line x1="40" y1="30" x2="40" y2="90" stroke="#52391b" stroke-width="6"/>
+    <line x1="120" y1="30" x2="120" y2="90" stroke="#52391b" stroke-width="6"/>
+    <line x1="200" y1="30" x2="200" y2="90" stroke="#52391b" stroke-width="6"/>
+    <line x1="260" y1="30" x2="260" y2="90" stroke="#52391b" stroke-width="6"/>
+  </g>
+
+  <!-- Orilla de Arena Cálida y Dorada -->
+  <path d="M-50 1080 Q350 980 750 1060 T1250 1020 L1250 1800 L-50 1800 Z" fill="url(#man-sand)"/>
+
+  <!-- Palmeras Costeras de Máncora y Zorritos -->
+  <g transform="translate(920, 1100)" opacity="0.75">
+    <!-- Tronco curvado por la brisa marina -->
+    <path d="M120 340 Q70 180 100 0" stroke="#5c401d" stroke-width="9" fill="none"/>
+    <!-- Penacho de hojas de coco -->
+    <path d="M100 0 Q40 -50 -10 -20 M100 0 Q60 -70 90 -80 M100 0 Q130 -70 160 -40 M100 0 Q170 -10 200 20 M100 0 Q140 40 160 80 M100 0 Q60 50 20 60" stroke="#2d6a3f" stroke-width="6" fill="none"/>
+  </g>
+
+  <!-- Conchas y Caracoles Marinos en la Playa -->
+  <g fill="#9e733b" opacity="0.4">
+    <ellipse cx="240" cy="1480" rx="14" ry="9"/>
+    <ellipse cx="480" cy="1620" rx="12" ry="8"/>
+    <ellipse cx="760" cy="1540" rx="16" ry="10"/>
+  </g>
+</svg>

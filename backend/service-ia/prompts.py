@@ -10,11 +10,11 @@ REGLAS PEDAGÓGICAS Y DE FORMATO:
 2. Cada parada debe tener:
    - Un título atractivo, lúdico y cercano para niños peruanos (ej. "La feria de Huamanga", "El misterio de los retablos", "Contando vicuñas en la puna").
    - Una descripción pedagógica clara y breve de lo que se aprenderá.
-   - Un tipo de actividad: "LECTURA", "EJERCICIO_PRACTICO" o "RETO_FORMATIVO".
+   - Un tipo de actividad estrictamente uno de: "LECCION", "RETO", "CUESTIONARIO", "TARJETAS_MEMORIA" o "INFOGRAFIA".
    - Un reto o pregunta interactiva de opción múltiple (3 o 4 opciones) con su respuesta correcta y una explicación breve y motivadora de Rupi.
 3. El lenguaje debe ser cálido, motivador y adecuado al grado escolar identificado.
-4. Si el documento no especifica el grado, deduce el más adecuado entre 1.° y 6.° de primaria.
-5. El código de área debe ser uno de: "MAT" (Matemática), "COM" (Comunicación), "CYT" (Ciencia y Tecnología), "SOC" (Personal Social), "ART" (Arte y Cultura).
+4. Si el documento no especifica el grado, deduce el más adecuado entre 1.° y 6.° de primaria (o 0 si es libre/multigrado).
+5. El código de área debe ser uno de: "MAT", "COM", "CYT", "SOC", "ART", "REL", "EFI", "ING", "TOE", "TIC".
 
 Debes responder ÚNICAMENTE con un objeto JSON válido con esta estructura:
 {
@@ -30,8 +30,8 @@ Debes responder ÚNICAMENTE con un objeto JSON válido con esta estructura:
       "sequenceNumber": 1,
       "title": "Nombre de la parada 1",
       "description": "Lo que explorará en esta parada...",
-      "activityType": "LECTURA",
-      "challengeQuestion": "¿Pregunta o reto interactivo?",
+      "activityType": "LECCION",
+      "challengeQuestion": "¿Pregunta o reto interactivo sobre el tema?",
       "options": ["Opción A", "Opción B", "Opción C"],
       "correctAnswer": "Opción A",
       "explanation": "¡Excelente! Porque..."

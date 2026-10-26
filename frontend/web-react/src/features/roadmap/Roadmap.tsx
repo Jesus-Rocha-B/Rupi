@@ -56,7 +56,13 @@ import {
 
   BookOpen,
 
+  Palette,
+
 } from 'lucide-react'
+
+import { useMapBackground } from '../../utils/mapBackgrounds'
+
+import { MapBackgroundModal } from '../../components/MapBackgroundModal'
 
 import { nodeStateLabels } from './nodeStates'
 
@@ -322,6 +328,10 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
   const [rupiMood, setRupiMood] = useState<'idle' | 'jumping' | 'cheering' | 'thinking'>('cheering')
 
+  const [isBgModalOpen, setIsBgModalOpen] = useState(false)
+
+  const [mapBg, setMapBg] = useMapBackground(route.versionRouteId)
+
 
 
   // Separación vertical fija de 145px entre paradas a lo largo del sendero
@@ -578,35 +588,63 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
         </div>
 
-        {guideMessage && (
+        <div className="unit-heading-actions">
 
           <button
 
             type="button"
 
-            className="listen-guide-btn"
+            className="change-bg-btn"
 
-            onClick={handleGuideAction}
+            onClick={() => setIsBgModalOpen(true)}
 
-            title={`Escuchar a Rupi: "${guideMessage}"`}
+            title={`Cambiar paisaje del mapa (actual: ${mapBg.name})`}
 
-            aria-label="Escuchar consejo de Rupi"
+            aria-label="Cambiar paisaje del mapa de aprendizaje"
 
           >
 
-            <Volume2 size={16} aria-hidden="true" />
+            <Palette size={15} aria-hidden="true" />
 
-            <span>Escuchar a Rupi</span>
+            <span>Paisaje: <strong>{mapBg.region}</strong></span>
 
           </button>
 
-        )}
 
-        <span className="unit-status">
 
-          {route.progress.completedNodes === route.progress.totalNodes ? '¡Ruta completada!' : 'En marcha'}
+          {guideMessage && (
 
-        </span>
+            <button
+
+              type="button"
+
+              className="listen-guide-btn"
+
+              onClick={handleGuideAction}
+
+              title={`Escuchar a Rupi: "${guideMessage}"`}
+
+              aria-label="Escuchar consejo de Rupi"
+
+            >
+
+              <Volume2 size={16} aria-hidden="true" />
+
+              <span>Escuchar a Rupi</span>
+
+            </button>
+
+          )}
+
+
+
+          <span className="unit-status">
+
+            {route.progress.completedNodes === route.progress.totalNodes ? '¡Ruta completada!' : 'En marcha'}
+
+          </span>
+
+        </div>
 
       </header>
 
@@ -616,7 +654,19 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
         className="map-area"
 
-        style={{ height: `${totalMapHeight}px`, minHeight: `${totalMapHeight}px` }}
+        style={{
+
+          height: `${totalMapHeight}px`,
+
+          minHeight: `${totalMapHeight}px`,
+
+          ['--map-bg-color' as any]: mapBg.bgColor,
+
+          ['--map-gradient' as any]: mapBg.gradient,
+
+          ['--map-bg-image' as any]: `url('${mapBg.imageUrl}')`,
+
+        }}
 
         aria-label={`Mapa con ${route.progress.totalNodes} paradas de aprendizaje`}
 
@@ -888,6 +938,14 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
         roadmapTitle={route.title}
         stopTitle={activeNode?.title}
         lessonContent={activeNode ? `${activeNode.title} (${activeNode.activityType})` : undefined}
+      />
+
+      <MapBackgroundModal
+        isOpen={isBgModalOpen}
+        onClose={() => setIsBgModalOpen(false)}
+        currentBgId={mapBg.id}
+        onSelectBg={(bgId) => setMapBg(bgId)}
+        routeTitle={route.title || currentUnit?.title}
       />
 
     </section>

@@ -56,26 +56,44 @@ def health_check():
 
 @app.post("/api/v1/ia/roadmap/generate-from-file")
 async def generate_roadmap_from_file(
-    file: UploadFile = File(...),
+    files: Optional[List[UploadFile]] = File(None),
+    file: Optional[UploadFile] = File(None),
     gradeNumber: Optional[int] = Form(None),
     subjectCode: Optional[str] = Form(None)
 ):
-    """Extrae el contenido de un archivo (PDF, DOCX, TXT) y genera un Roadmap estructurado."""
+    """Extrae el contenido de uno o múltiples archivos (PDF, DOCX, TXT) y genera un Roadmap estructurado."""
     try:
-        content_bytes = await file.read()
-        if not content_bytes:
-            raise HTTPException(status_code=400, detail="El archivo subido está vacío.")
+        file_list = []
+        if files:
+            file_list.extend(files)
+        if file and file not in file_list:
+            file_list.append(file)
             
-        extracted_text = extract_text_from_file(content_bytes, file.filename)
-        if not extracted_text.strip():
-            raise HTTPException(status_code=400, detail="No se pudo extraer texto legible del archivo.")
+        if not file_list:
+            raise HTTPException(status_code=400, detail="Debes subir al menos un archivo educativo.")
             
-        # Limitar longitud para optimizar tokens si es un libro muy largo (máximo ~50,000 caracteres)
-        trimmed_text = extracted_text[:50000]
+        extracted_sections = []
+        filenames = []
+        for f in file_list:
+            content_bytes = await f.read()
+            if not content_bytes:
+                continue
+            text = extract_text_from_file(content_bytes, f.filename)
+            if text.strip():
+                filenames.append(f.filename)
+                extracted_sections.append(f"=== DOCUMENTO: {f.filename} ===\n{text.strip()}")
+                
+        if not extracted_sections:
+            raise HTTPException(status_code=400, detail="No se pudo extraer texto legible de los archivos subidos.")
+            
+        combined_text = "\n\n".join(extracted_sections)[:60000]
         
-        user_prompt = f"MATERIAL EDUCATIVO BASE (Nombre de archivo: {file.filename}):\n\n{trimmed_text}\n\n"
-        if gradeNumber:
-            user_prompt += f"PREFERENCIA: Diseña específicamente para {gradeNumber}.° de primaria.\n"
+        user_prompt = f"MATERIALES EDUCATIVOS DE BASE (Archivos analizados: {', '.join(filenames)}):\n\n{combined_text}\n\n"
+        if gradeNumber is not None:
+            if gradeNumber == 0:
+                user_prompt += "PREFERENCIA: Diseña una ruta de aprendizaje adaptada para primaria multigrado o sin grado fijo (libre).\n"
+            else:
+                user_prompt += f"PREFERENCIA: Diseña específicamente para {gradeNumber}.° de primaria.\n"
         if subjectCode:
             user_prompt += f"PREFERENCIA: Área curricular {subjectCode}.\n"
         user_prompt += "Genera el JSON completo de la ruta de aprendizaje siguiendo el esquema estricto."
@@ -89,7 +107,7 @@ async def generate_roadmap_from_file(
         roadmap_data = json.loads(gemini_response)
         return {
             "success": True,
-            "filename": file.filename,
+            "filenames": filenames,
             "roadmap": roadmap_data
         }
         

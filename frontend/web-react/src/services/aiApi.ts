@@ -6,7 +6,7 @@ export interface GeneratedStop {
   sequenceNumber: number
   title: string
   description: string
-  activityType: 'LECTURA' | 'EJERCICIO_PRACTICO' | 'RETO_FORMATIVO'
+  activityType: 'LECCION' | 'RETO' | 'CUESTIONARIO' | 'TARJETAS_MEMORIA' | 'INFOGRAFIA' | string
   challengeQuestion: string
   options?: string[]
   correctAnswer?: string
@@ -36,14 +36,26 @@ export interface ChatMessage {
 }
 
 export async function generateRoadmapFromFile(
-  file: File,
+  fileOrFiles: File | File[],
   gradeNumber?: number,
   subjectCode?: string
 ): Promise<GeneratedRoadmap> {
   const formData = new FormData()
-  formData.append('file', file)
-  if (gradeNumber) formData.append('gradeNumber', String(gradeNumber))
-  if (subjectCode) formData.append('subjectCode', subjectCode)
+  const fileList = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles]
+  
+  fileList.forEach((f) => {
+    formData.append('files', f)
+  })
+  if (fileList.length > 0) {
+    formData.append('file', fileList[0])
+  }
+  
+  if (gradeNumber !== undefined && gradeNumber !== null) {
+    formData.append('gradeNumber', String(gradeNumber))
+  }
+  if (subjectCode) {
+    formData.append('subjectCode', subjectCode)
+  }
 
   const res = await fetch('/api/v1/ia/roadmap/generate-from-file', {
     method: 'POST',

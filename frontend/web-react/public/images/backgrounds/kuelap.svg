@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <linearGradient id="kue-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cde2d6"/>
+      <stop offset="45%" stop-color="#e9f3ec"/>
+      <stop offset="80%" stop-color="#f6faf7"/>
+      <stop offset="100%" stop-color="#fbfdfb"/>
+    </linearGradient>
+    <linearGradient id="kue-stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5a685e" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#738578" stop-opacity="0.45"/>
+    </linearGradient>
+    <linearGradient id="kue-forest" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1d4d31" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#2d6e47" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="url(#kue-sky)"/>
+
+  <!-- Bruma de los Bosques Nubosos de Chachapoyas -->
+  <ellipse cx="600" cy="320" rx="650" ry="90" fill="#ffffff" opacity="0.65"/>
+  <ellipse cx="400" cy="220" rx="450" ry="70" fill="#ffffff" opacity="0.5"/>
+
+  <!-- Cresta Montañosa de la Selva Alta donde se erige Kuélap (3,000 msnm) -->
+  <path d="M-50 480 L350 340 L850 420 L1250 310 L1250 680 L-50 680 Z" fill="url(#kue-forest)"/>
+
+  <!-- Muralla Gigantesca de Piedra Caliza (20 metros de alto) -->
+  <path d="M-50 620 L1250 580 L1250 960 L-50 1000 Z" fill="url(#kue-stone)"/>
+
+  <!-- Frisos en Rombo y Zigzag Característicos de la Cultura Chachapoyas -->
+  <g stroke="#f2f7f4" stroke-width="6" fill="none" opacity="0.75">
+    <path d="M60 740 L110 690 L160 740 L210 690 L260 740 L310 690 L360 740 L410 690 L460 740 L510 690 L560 740 L610 690 L660 740 L710 690 L760 740 L810 690 L860 740 L910 690 L960 740 L1010 690 L1060 740 L1110 690 L1160 740"/>
+    <path d="M60 740 L110 790 L160 740 L210 790 L260 740 L310 790 L360 740 L410 790 L460 740 L510 790 L560 740 L610 790 L660 740 L710 790 L760 740 L810 790 L860 740 L910 790 L960 740 L1010 790 L1060 740 L1110 790 L1160 740"/>
+  </g>
+
+  <!-- Casa Circular Típica Chachapoyas con Techo Cónico de Paja (Tintero) -->
+  <g transform="translate(180, 1100)" opacity="0.8">
+    <!-- Muro circular de piedra -->
+    <rect x="20" y="70" width="180" height="90" rx="10" fill="#58675c" stroke="#37413a" stroke-width="3"/>
+    <!-- Techo cónico -->
+    <polygon points="110,0 10,75 210,75" fill="#a47b3b"/>
+    <!-- Puerta trapezoidal -->
+    <polygon points="90,160 95,100 125,100 130,160" fill="#202722"/>
+  </g>
+  <g transform="translate(820, 1180)" opacity="0.75">
+    <rect x="20" y="70" width="160" height="85" rx="10" fill="#58675c" stroke="#37413a" stroke-width="3"/>
+    <polygon points="100,0 10,75 190,75" fill="#a47b3b"/>
+    <polygon points="85,155 90,105 115,105 120,155" fill="#202722"/>
+  </g>
+
+  <!-- Árboles con Orquídeas y Bromelias Nativas de la Ceja de Selva -->
+  <g stroke="#1b3d27" stroke-width="6" opacity="0.5">
+    <path d="M-10 1800 Q50 1680 70 1560 Q90 1620 140 1800"/>
+    <circle cx="70" cy="1550" r="12" fill="#e84c3d"/>
+    <circle cx="85" cy="1565" r="8" fill="#f49d37"/>
+
+    <path d="M1210 1800 Q1150 1670 1130 1550 Q1110 1620 1060 1800"/>
+    <circle cx="1130" cy="1540" r="12" fill="#e84c3d"/>
+  </g>
+</svg>

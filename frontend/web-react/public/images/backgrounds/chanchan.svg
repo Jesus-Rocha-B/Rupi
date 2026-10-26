@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <linearGradient id="chan-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fcedd2"/>
+      <stop offset="40%" stop-color="#faedd8"/>
+      <stop offset="85%" stop-color="#fff8ec"/>
+      <stop offset="100%" stop-color="#faf2e3"/>
+    </linearGradient>
+    <linearGradient id="chan-adobe" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#bf7d3b" stop-opacity="0.65"/>
+      <stop offset="50%" stop-color="#d4944f" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#a8692c" stop-opacity="0.65"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="url(#chan-sky)"/>
+
+  <!-- Sol de la Costa Chimú -->
+  <circle cx="900" cy="200" r="140" fill="#fca311" opacity="0.65"/>
+
+  <!-- Muros Monumentales de Adobe de la Capital del Imperio Chimú -->
+  <rect x="0" y="440" width="1200" height="240" fill="url(#chan-adobe)"/>
+  <!-- Almenas superiores en forma de pirámide escalonada -->
+  <g fill="#99581f" opacity="0.6">
+    <polygon points="100,440 140,380 180,440"/>
+    <polygon points="260,440 300,380 340,440"/>
+    <polygon points="420,440 460,380 500,440"/>
+    <polygon points="580,440 620,380 660,440"/>
+    <polygon points="740,440 780,380 820,440"/>
+    <polygon points="900,440 940,380 980,440"/>
+    <polygon points="1060,440 1100,380 1140,440"/>
+  </g>
+
+  <!-- Relieve Esculpido en Barro: Peces Chimú Nadando en el Muro -->
+  <g stroke="#fcf4e4" stroke-width="4" fill="none" opacity="0.8">
+    <!-- Patrón de peces estilizados -->
+    <g transform="translate(140, 520)">
+      <path d="M0 20 Q40 0 80 20 Q40 40 0 20 Z"/>
+      <polygon points="0,20 -20,5 -20,35"/>
+      <circle cx="65" cy="18" r="4" fill="#fcf4e4"/>
+    </g>
+    <g transform="translate(380, 520)">
+      <path d="M0 20 Q40 0 80 20 Q40 40 0 20 Z"/>
+      <polygon points="0,20 -20,5 -20,35"/>
+      <circle cx="65" cy="18" r="4" fill="#fcf4e4"/>
+    </g>
+    <g transform="translate(620, 520)">
+      <path d="M0 20 Q40 0 80 20 Q40 40 0 20 Z"/>
+      <polygon points="0,20 -20,5 -20,35"/>
+      <circle cx="65" cy="18" r="4" fill="#fcf4e4"/>
+    </g>
+    <g transform="translate(860, 520)">
+      <path d="M0 20 Q40 0 80 20 Q40 40 0 20 Z"/>
+      <polygon points="0,20 -20,5 -20,35"/>
+      <circle cx="65" cy="18" r="4" fill="#fcf4e4"/>
+    </g>
+  </g>
+
+  <!-- Muros Interiores Laberínticos de Chan Chan -->
+  <rect x="0" y="820" width="1200" height="280" fill="url(#chan-adobe)" opacity="0.8"/>
+  <!-- Relieve Esculpido: Aves Pelícanos Marinas Típicas de Huanchaco -->
+  <g stroke="#fcf4e4" stroke-width="4" fill="none" opacity="0.75">
+    <g transform="translate(200, 920)">
+      <path d="M0 30 Q30 5 60 30 L50 60 L10 60 Z"/>
+      <path d="M60 30 L95 10 L85 35"/>
+    </g>
+    <g transform="translate(500, 920)">
+      <path d="M0 30 Q30 5 60 30 L50 60 L10 60 Z"/>
+      <path d="M60 30 L95 10 L85 35"/>
+    </g>
+    <g transform="translate(800, 920)">
+      <path d="M0 30 Q30 5 60 30 L50 60 L10 60 Z"/>
+      <path d="M60 30 L95 10 L85 35"/>
+    </g>
+  </g>
+
+  <!-- Base de Tierra Costera y Ladrillos de Barro de Chan Chan -->
+  <rect y="1260" width="1200" height="540" fill="#b87739" opacity="0.35"/>
+  <!-- Rejillas romboidales características Chimú -->
+  <g stroke="#91561f" stroke-width="3" fill="none" opacity="0.3">
+    <path d="M0 1350 L1200 1350 M0 1450 L1200 1450 M0 1550 L1200 1550 M0 1650 L1200 1650"/>
+    <path d="M200 1260 L200 1800 M400 1260 L400 1800 M600 1260 L600 1800 M800 1260 L800 1800 M1000 1260 L1000 1800"/>
+  </g>
+</svg>

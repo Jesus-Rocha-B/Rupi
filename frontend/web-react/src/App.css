@@ -270,9 +270,11 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 .map-progress>span { padding: 0 2px; color: #c7bba6; }
 .map-progress small { margin-left: 3px; color: #8b9184; font: 500 9px var(--body-font); }
 .map-area {
-  position: relative; height: 1000px; overflow: hidden; isolation: isolate; background-color: #99a47a;
-  background-image: linear-gradient(180deg, #fff4d600 0%, #ead9b52b 32%, #d7c89bdb 62%, #99a47a 100%), url('/images/ayacucho-plaza.jpg');
+  position: relative; height: 1000px; overflow: hidden; isolation: isolate;
+  background-color: var(--map-bg-color, #99a47a);
+  background-image: var(--map-gradient, linear-gradient(180deg, #fff4d600 0%, #ead9b52b 32%, #d7c89bdb 62%, #99a47a 100%)), var(--map-bg-image, url('/images/ayacucho-plaza.jpg'));
   background-position: center, center top; background-size: 100% 100%, 100% auto; background-repeat: no-repeat;
+  transition: background-image 0.35s ease, background-color 0.35s ease;
 }
 .path-line { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
 .path-line { z-index: 1; }
@@ -2029,13 +2031,14 @@ body, button, input, select, textarea {
   position: relative;
   overflow: visible !important;
   isolation: isolate;
-  background-color: #f7f5ed;
+  background-color: var(--map-bg-color, #f7f5ed);
   background-image: 
-    linear-gradient(180deg, rgba(254, 253, 248, 0.85) 0%, rgba(246, 244, 236, 0.82) 40%, rgba(236, 234, 222, 0.86) 100%),
-    url('/images/ayacucho-plaza.jpg') !important;
+    var(--map-gradient, linear-gradient(180deg, rgba(254, 253, 248, 0.85) 0%, rgba(246, 244, 236, 0.82) 40%, rgba(236, 234, 222, 0.86) 100%)),
+    var(--map-bg-image, url('/images/ayacucho-plaza.jpg')) !important;
   background-position: center top !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
+  transition: background-color 0.35s ease, background-image 0.35s ease;
 }
 
 /* Detalles decorativos laterales discretos */

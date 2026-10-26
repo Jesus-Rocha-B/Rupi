@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <linearGradient id="hc-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fcedcc"/>
+      <stop offset="40%" stop-color="#faeed6"/>
+      <stop offset="80%" stop-color="#fdf8ea"/>
+      <stop offset="100%" stop-color="#fffdf7"/>
+    </linearGradient>
+    <linearGradient id="hc-sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffb347" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#ffd26a" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="hc-dune-back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e3a758" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#cb8939" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="hc-dune-mid" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#d4943f" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#e8b264" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="hc-lagoon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1f6852" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#348a70" stop-opacity="0.4"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="url(#hc-sky)"/>
+
+  <!-- Sol Costero Radiante de Ica -->
+  <circle cx="950" cy="220" r="150" fill="url(#hc-sun)"/>
+
+  <!-- Siluetas Ondulantes de Grandes Dunas de Arena -->
+  <path d="M-50 480 Q250 320 620 440 Q950 540 1250 390 L1250 780 L-50 780 Z" fill="url(#hc-dune-back)"/>
+  <!-- Cresta afilada de duna -->
+  <path d="M-50 480 Q250 320 620 440" stroke="#fbe4b2" stroke-width="4" fill="none" opacity="0.6"/>
+
+  <path d="M-50 720 Q380 610 740 760 Q1050 880 1250 710 L1250 1150 L-50 1150 Z" fill="url(#hc-dune-mid)"/>
+  <path d="M-50 720 Q380 610 740 760" stroke="#fdedcb" stroke-width="5" fill="none" opacity="0.5"/>
+
+  <!-- Laguna Esmeralda del Oasis en el Centro -->
+  <g transform="translate(320, 880)">
+    <ellipse cx="280" cy="110" rx="260" ry="85" fill="url(#hc-lagoon)"/>
+    <ellipse cx="280" cy="110" rx="220" ry="60" fill="#4fa88d" opacity="0.35"/>
+    <!-- Reflejos del agua -->
+    <ellipse cx="260" cy="100" rx="140" ry="25" fill="#ffffff" opacity="0.3"/>
+  </g>
+
+  <!-- Bosquejo de Palmeras Datileras y Algarrobos bordeando la laguna -->
+  <g transform="translate(240, 820)" opacity="0.75">
+    <!-- Palmera 1 -->
+    <path d="M40 120 Q30 50 60 0" stroke="#5a3d1c" stroke-width="6" fill="none"/>
+    <path d="M60 0 Q10 -30 -20 -10 M60 0 Q40 -40 60 -50 M60 0 Q90 -40 120 -10 M60 0 Q80 20 110 30" stroke="#255e34" stroke-width="5" fill="none"/>
+    <!-- Palmera 2 -->
+    <path d="M120 130 Q130 60 110 10" stroke="#5a3d1c" stroke-width="6" fill="none"/>
+    <path d="M110 10 Q70 -20 40 0 M110 10 Q110 -35 125 -40 M110 10 Q150 -20 170 10" stroke="#255e34" stroke-width="5" fill="none"/>
+  </g>
+  <g transform="translate(780, 840)" opacity="0.7">
+    <path d="M80 130 Q70 60 90 10" stroke="#5a3d1c" stroke-width="6" fill="none"/>
+    <path d="M90 10 Q50 -20 20 0 M90 10 Q90 -35 105 -40 M90 10 Q130 -20 150 10" stroke="#255e34" stroke-width="5" fill="none"/>
+  </g>
+
+  <!-- Duna de Primer Plano -->
+  <path d="M-50 1250 Q450 1100 880 1300 Q1080 1380 1250 1280 L1250 1800 L-50 1800 Z" fill="#df9f48" opacity="0.35"/>
+  <path d="M-50 1560 Q350 1480 820 1620 Q1060 1690 1250 1590 L1250 1800 L-50 1800 Z" fill="#c78631" opacity="0.25"/>
+
+  <!-- Ondulaciones finas del viento en la arena (Ripples) -->
+  <g stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.35">
+    <path d="M140 1420 q60 -8 120 0 t120 0"/>
+    <path d="M520 1460 q70 -8 140 0 t140 0"/>
+    <path d="M260 1680 q80 -10 160 0 t160 0"/>
+    <path d="M780 1710 q70 -8 140 0 t140 0"/>
+  </g>
+</svg>

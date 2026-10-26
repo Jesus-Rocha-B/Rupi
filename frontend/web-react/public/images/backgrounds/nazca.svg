@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <linearGradient id="nazca-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7ddb2"/>
+      <stop offset="40%" stop-color="#fcead0"/>
+      <stop offset="80%" stop-color="#fdf4e7"/>
+      <stop offset="100%" stop-color="#fbf4ea"/>
+    </linearGradient>
+    <linearGradient id="nazca-sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f95738" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#ffd26a" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="nazca-ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ab5a33" stop-opacity="0.5"/>
+      <stop offset="50%" stop-color="#934621" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#7a3717" stop-opacity="0.55"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="url(#nazca-sky)"/>
+
+  <!-- Puesta de Sol Mística en las Pampas -->
+  <circle cx="600" cy="280" r="180" fill="url(#nazca-sun)"/>
+
+  <!-- Cordillera de la Costa Lejana al Atardecer -->
+  <path d="M-20 420 L180 340 L380 390 L620 310 L840 380 L1060 320 L1220 370 L1220 540 L-20 540 Z" fill="#994c2d" opacity="0.4"/>
+
+  <!-- Pampas de Jumana (Suelo Ocre Rojizo de Piedra de Hierro) -->
+  <rect y="480" width="1200" height="1320" fill="url(#nazca-ground)"/>
+
+  <!-- Líneas Geométricas y Trapezoides Ancestrales que van al Infinito -->
+  <g stroke="#f5ebd6" stroke-width="4" stroke-linecap="round" opacity="0.45">
+    <polygon points="600,480 180,1800 320,1800" fill="#f5ebd6" fill-opacity="0.1" stroke="#f5ebd6" stroke-width="2"/>
+    <polygon points="600,480 950,1800 1080,1800" fill="#f5ebd6" fill-opacity="0.1" stroke="#f5ebd6" stroke-width="2"/>
+    <line x1="0" y1="620" x2="1200" y2="1340" stroke-width="3"/>
+    <line x1="1200" y1="740" x2="0" y2="1480" stroke-width="3"/>
+  </g>
+
+  <!-- Geoglifo de Nazca: EL COLIBRÍ (Icónico, centro superior) -->
+  <g transform="translate(480, 720) scale(1.1)" stroke="#fdf5e2" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.75">
+    <!-- Pico largo -->
+    <line x1="0" y1="0" x2="0" y2="-120"/>
+    <!-- Cabeza y cuerpo -->
+    <path d="M0 0 Q-15 20 -15 50 Q-15 80 0 110 Q15 80 15 50 Q15 20 0 0 Z"/>
+    <!-- Ala Izquierda con plumas estilizadas -->
+    <path d="M-15 40 L-70 10 L-60 25 L-110 5 L-95 25 L-140 15 L-110 45 L-70 55 L-15 55"/>
+    <!-- Ala Derecha con plumas estilizadas -->
+    <path d="M15 40 L70 10 L60 25 L110 5 L95 25 L140 15 L110 45 L70 55 L15 55"/>
+    <!-- Cola estilizada -->
+    <path d="M-10 110 L-50 170 M0 110 L0 180 M10 110 L50 170"/>
+  </g>
+
+  <!-- Geoglifo de Nazca: ESPIRAL / MONO (Lado Inferior Izquierdo) -->
+  <g transform="translate(180, 1380)" stroke="#fdf5e2" stroke-width="5" fill="none" opacity="0.65">
+    <!-- Cola en espiral perfecta -->
+    <path d="M 0,0
+      A 15,15 0 0,1 30,0
+      A 30,30 0 0,1 -30,0
+      A 45,45 0 0,1 60,0
+      A 60,60 0 0,1 -60,0
+      A 75,75 0 0,1 90,0" stroke-linecap="round"/>
+  </g>
+</svg>

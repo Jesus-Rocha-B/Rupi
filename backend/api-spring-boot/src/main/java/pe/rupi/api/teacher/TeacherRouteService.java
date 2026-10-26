@@ -40,7 +40,7 @@ public class TeacherRouteService {
         if (req.title().trim().length() > 180) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El título del roadmap no puede superar los 180 caracteres.");
         }
-        if (req.gradeNumber() == null || req.gradeNumber() < 1 || req.gradeNumber() > 6) {
+        if (req.gradeNumber() == null || req.gradeNumber() < 0 || req.gradeNumber() > 6) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El grado escolar debe ser entre 1.° y 6.° de primaria.");
         }
         if (req.areaCode() == null || req.areaCode().isBlank()) {

@@ -1,0 +1,427 @@
+/* ==========================================================================
+   MapBackgroundModal.css · Selector Artesanal de Paisajes del Perú
+   ========================================================================== */
+
+.bg-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background-color: rgba(18, 38, 28, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: bg-overlay-in 0.2s ease-out forwards;
+}
+
+@keyframes bg-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.bg-modal-container {
+  background: #fdfcf9;
+  border: 2px solid #2a5a43;
+  border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(23, 62, 48, 0.25), 0 4px 0 #1b442f;
+  width: 100%;
+  max-width: 980px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: bg-modal-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes bg-modal-pop {
+  from {
+    transform: scale(0.96) translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Encabezado */
+.bg-modal-header {
+  padding: 18px 24px;
+  background: #f4efe6;
+  border-bottom: 2px solid #e3dbcc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.bg-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.bg-modal-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #31724b;
+  color: #ffffff;
+  border: 2px solid #1e4b2f;
+  box-shadow: 0 3px 0 #1b442f;
+  flex-shrink: 0;
+}
+
+.bg-modal-title {
+  margin: 0;
+  font-family: var(--display-font, 'Nunito', system-ui, sans-serif);
+  font-size: 22px;
+  font-weight: 800;
+  color: #173e30;
+  line-height: 1.2;
+}
+
+.bg-modal-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #556b5e;
+  line-height: 1.35;
+}
+
+.bg-modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 2px solid #d4cbb8;
+  color: #556b5e;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  box-shadow: 0 2px 0 #c7bba6;
+}
+
+.bg-modal-close-btn:hover {
+  background: #faeedd;
+  color: #f95738;
+  border-color: #f95738;
+}
+
+.bg-modal-close-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* Filtros por Región */
+.bg-modal-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #faf7f0;
+  border-bottom: 1.5px solid #eae2d3;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: thin;
+}
+
+.bg-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #ffffff;
+  color: #4a5d52;
+  border: 1.5px solid #d9d0be;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.bg-filter-pill:hover {
+  background: #f3ece0;
+  color: #173e30;
+  border-color: #31724b;
+}
+
+.bg-filter-pill.active {
+  background: #173e30;
+  color: #ffd26a;
+  border-color: #173e30;
+  box-shadow: 0 2px 0 #0d261d;
+}
+
+/* Grilla de Paisajes */
+.bg-modal-grid {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: #31724b #ece5d8;
+}
+
+.bg-modal-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bg-modal-grid::-webkit-scrollbar-track {
+  background: #ece5d8;
+  border-radius: 4px;
+}
+
+.bg-modal-grid::-webkit-scrollbar-thumb {
+  background: #31724b;
+  border-radius: 4px;
+}
+
+/* Tarjeta de Paisaje */
+.bg-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  background: #ffffff;
+  border: 2px solid #ddd5c4;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  box-shadow: 0 3px 0 #cdc2ad;
+  position: relative;
+}
+
+.bg-card:hover {
+  transform: translateY(-2px);
+  border-color: #31724b;
+  box-shadow: 0 6px 0 #cdc2ad;
+}
+
+.bg-card:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #cdc2ad;
+}
+
+.bg-card.is-selected {
+  border-color: #31724b;
+  box-shadow: 0 0 0 2px #31724b, 0 4px 0 #1b442f;
+  background: #fbfdfb;
+}
+
+/* Vista previa de imagen */
+.bg-card-preview {
+  height: 110px;
+  width: 100%;
+  position: relative;
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-bottom: 2px solid #e5dcce;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px 10px;
+}
+
+.bg-card-region-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(23, 62, 48, 0.88);
+  color: #ffd26a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.bg-card-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: #2a7346;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  border: 1px solid #ffffff;
+  animation: bg-badge-bounce 0.3s ease-out;
+}
+
+@keyframes bg-badge-bounce {
+  0% { transform: scale(0.8); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Cuerpo de la tarjeta */
+.bg-card-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.bg-card-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.bg-card-title {
+  margin: 0;
+  font-family: var(--display-font, 'Nunito', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 800;
+  color: #173e30;
+  line-height: 1.25;
+}
+
+.bg-zone-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
+}
+
+.bg-zone-pill.zone-sierra {
+  background: #eef6f0;
+  color: #27623e;
+  border: 1px solid #c8e4d0;
+}
+
+.bg-zone-pill.zone-costa {
+  background: #fef7ec;
+  color: #b36e1b;
+  border: 1px solid #fbe0b3;
+}
+
+.bg-zone-pill.zone-selva {
+  background: #edf8f2;
+  color: #1e5932;
+  border: 1px solid #c2e8cf;
+}
+
+.bg-card-tagline {
+  margin: 2px 0 0 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #435b4f;
+  line-height: 1.3;
+}
+
+.bg-card-desc {
+  margin: 3px 0 0 0;
+  font-size: 11px;
+  color: #697c72;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Pie del modal */
+.bg-modal-footer {
+  padding: 14px 24px;
+  background: #f4efe6;
+  border-top: 2px solid #e3dbcc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.bg-modal-footer-info {
+  flex: 1;
+}
+
+.bg-footer-tip {
+  font-size: 12px;
+  color: #4a5e52;
+  line-height: 1.35;
+}
+
+.bg-modal-done-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 12px;
+  background: #31724b;
+  color: #ffffff;
+  font-family: var(--display-font, 'Nunito', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 800;
+  border: 2px solid #1e4b2f;
+  box-shadow: 0 4px 0 #1b442f;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  white-space: nowrap;
+}
+
+.bg-modal-done-btn:hover {
+  background: #28603e;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #1b442f;
+}
+
+.bg-modal-done-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #1b442f;
+}
+
+/* Responsividad */
+@media (max-width: 900px) {
+  .bg-modal-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .bg-modal-overlay {
+    padding: 10px;
+  }
+  .bg-modal-container {
+    max-height: 95vh;
+  }
+  .bg-modal-header {
+    padding: 14px 16px;
+  }
+  .bg-modal-grid {
+    grid-template-columns: 1fr;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .bg-modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 16px;
+  }
+  .bg-modal-done-btn {
+    justify-content: center;
+  }
+}

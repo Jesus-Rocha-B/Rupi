@@ -116,6 +116,49 @@
   white-space: nowrap;
 }
 
+.unit-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  margin-left: auto;
+}
+
+.change-bg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 12px;
+  border: 2px solid #246a91;
+  background: #f0f7fb;
+  color: #1a4c75;
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #246a91;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.1s ease;
+  flex: none;
+}
+
+.change-bg-btn strong {
+  color: #0c3350;
+  font-weight: 900;
+}
+
+.change-bg-btn:hover {
+  background: #e1f0fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #246a91;
+  color: #103350;
+}
+
+.change-bg-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #246a91;
+}
+
 .listen-guide-btn {
   display: inline-flex;
   align-items: center;

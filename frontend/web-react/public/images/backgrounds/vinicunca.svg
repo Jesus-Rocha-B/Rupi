@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <linearGradient id="vini-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b0d6f5"/>
+      <stop offset="40%" stop-color="#d7ebfb"/>
+      <stop offset="80%" stop-color="#f4f9fd"/>
+      <stop offset="100%" stop-color="#fdfcf8"/>
+    </linearGradient>
+    <linearGradient id="vini-sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffd26a" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ff9a3c" stop-opacity="0.25"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="url(#vini-sky)"/>
+
+  <!-- Sol Andino a más de 5,000 metros de altura -->
+  <circle cx="850" cy="200" r="140" fill="url(#vini-sun)"/>
+
+  <!-- Picos Nevados Lejanos del Ausangate (Apu Sagrado) -->
+  <polygon points="180,380 320,240 460,380" fill="#ffffff" opacity="0.8"/>
+  <polygon points="420,380 580,210 740,380" fill="#ffffff" opacity="0.85"/>
+
+  <!-- Franjas Minerales Geológicas Ondulantes de Vinicunca (7 Colores) -->
+  <!-- 1. Turquesa / Arcilla verde (filita y clorita) -->
+  <path d="M-50 480 Q320 380 720 460 T1250 420 L1250 640 L-50 640 Z" fill="#4d9b89" opacity="0.6"/>
+
+  <!-- 2. Lavanda / Púrpura mineral -->
+  <path d="M-50 580 Q320 480 720 560 T1250 520 L1250 760 L-50 760 Z" fill="#84658e" opacity="0.55"/>
+
+  <!-- 3. Rojo / Óxido de hierro (arcilitas y fangolitas) -->
+  <path d="M-50 690 Q320 590 720 670 T1250 630 L1250 880 L-50 880 Z" fill="#b94c3c" opacity="0.65"/>
+
+  <!-- 4. Dorado Mostaza / Areniscas cuarzosas azufradas -->
+  <path d="M-50 800 Q320 700 720 780 T1250 740 L1250 990 L-50 990 Z" fill="#dfa539" opacity="0.65"/>
+
+  <!-- 5. Rosa Cuarzo / Arcilla roja magnesiana -->
+  <path d="M-50 910 Q320 810 720 890 T1250 850 L1250 1110 L-50 1110 Z" fill="#d87777" opacity="0.55"/>
+
+  <!-- 6. Verde Musgo / Arenisca verde -->
+  <path d="M-50 1020 Q320 920 720 1000 T1250 960 L1250 1250 L-50 1250 Z" fill="#58804d" opacity="0.55"/>
+
+  <!-- 7. Ocre Terracota Base -->
+  <path d="M-50 1150 Q320 1050 720 1130 T1250 1090 L1250 1800 L-50 1800 Z" fill="#9e5c36" opacity="0.45"/>
+
+  <!-- Siluetas Amigables de Vicuñas o Alpacas Andinas Pastando -->
+  <g transform="translate(240, 1340)" fill="#784224" opacity="0.65">
+    <!-- Alpaca 1 -->
+    <ellipse cx="60" cy="50" rx="35" ry="25"/>
+    <path d="M75 40 L90 -5 L102 -5 L92 40 Z"/>
+    <circle cx="98" cy="-5" r="9"/>
+    <!-- Orejitas -->
+    <polygon points="94,-12 97,-22 100,-12"/>
+    <!-- Patitas -->
+    <line x1="40" y1="65" x2="40" y2="105" stroke="#784224" stroke-width="6"/>
+    <line x1="55" y1="65" x2="55" y2="105" stroke="#784224" stroke-width="6"/>
+    <line x1="75" y1="65" x2="75" y2="105" stroke="#784224" stroke-width="6"/>
+    <line x1="88" y1="65" x2="88" y2="105" stroke="#784224" stroke-width="6"/>
+  </g>
+</svg>

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <linearGradient id="huan-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a4d1f2"/>
+      <stop offset="35%" stop-color="#cde7fa"/>
+      <stop offset="70%" stop-color="#ebf5fd"/>
+      <stop offset="100%" stop-color="#fbfdfd"/>
+    </linearGradient>
+    <linearGradient id="huan-snow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#e1f1f7"/>
+      <stop offset="100%" stop-color="#aed3e6"/>
+    </linearGradient>
+    <linearGradient id="huan-lagoon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1b8585" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#36a3a3" stop-opacity="0.35"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="url(#huan-sky)"/>
+
+  <!-- Sol Frío de Puna y Glaciar -->
+  <circle cx="880" cy="180" r="120" fill="#fff5cc" opacity="0.8"/>
+
+  <!-- Cumbre Doble Majestuosa del Huascarán (Norte 6,655m y Sur 6,768m) -->
+  <g>
+    <!-- Base de Roca Granítica -->
+    <polygon points="120,620 440,240 760,640" fill="#4d5c68" opacity="0.6"/>
+    <polygon points="560,640 820,210 1140,620" fill="#42505c" opacity="0.65"/>
+
+    <!-- Glaciar Perpetuo Cumbre Norte -->
+    <polygon points="440,240 340,360 410,340 450,380 520,340" fill="url(#huan-snow)"/>
+    <!-- Glaciar Perpetuo Cumbre Sur (Punto más alto del Perú) -->
+    <polygon points="820,210 710,350 780,330 830,370 910,330" fill="url(#huan-snow)"/>
+  </g>
+
+  <!-- Morrenas y Valles Glaciares -->
+  <path d="M-50 680 L380 560 L780 690 L1250 580 L1250 920 L-50 920 Z" fill="#567262" opacity="0.4"/>
+
+  <!-- Laguna Glaciar Llanganuco de Agua Turquesa Intensa -->
+  <g transform="translate(180, 840)">
+    <ellipse cx="420" cy="130" rx="460" ry="110" fill="url(#huan-lagoon)"/>
+    <ellipse cx="420" cy="130" rx="360" ry="70" fill="#4ec5c5" opacity="0.3"/>
+  </g>
+
+  <!-- Bosque de Queñuales Andinos (Polylepis) en las orillas -->
+  <g stroke="#3a2512" stroke-width="5" opacity="0.65">
+    <path d="M120 1100 Q140 1020 120 950 Q110 930 90 920"/>
+    <circle cx="90" cy="910" r="28" fill="#326343" stroke="#22472f" stroke-width="2"/>
+    <circle cx="120" cy="890" r="24" fill="#3f7551" stroke="#22472f" stroke-width="2"/>
+
+    <path d="M1040 1120 Q1020 1030 1045 960 Q1060 940 1080 930"/>
+    <circle cx="1080" cy="920" r="30" fill="#326343" stroke="#22472f" stroke-width="2"/>
+  </g>
+
+  <!-- Pastizales de Ichu en las faldas -->
+  <g fill="none" stroke="#b0974b" stroke-width="3" stroke-linecap="round" opacity="0.5">
+    <path d="M60 1450 l10 -30 l10 30 M70 1450 l5 -35 l5 35"/>
+    <path d="M360 1520 l10 -30 l10 30 M370 1520 l5 -35 l5 35"/>
+    <path d="M840 1480 l10 -30 l10 30 M850 1480 l5 -35 l5 35"/>
+    <path d="M1020 1560 l10 -30 l10 30 M1030 1560 l5 -35 l5 35"/>
+  </g>
+</svg>

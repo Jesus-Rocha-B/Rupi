@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <defs>
+    <linearGradient id="ps-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d2ebd9"/>
+      <stop offset="45%" stop-color="#ebf7ee"/>
+      <stop offset="80%" stop-color="#fdfbf3"/>
+      <stop offset="100%" stop-color="#f7efe0"/>
+    </linearGradient>
+    <linearGradient id="ps-river" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#285e43" stop-opacity="0.3"/>
+      <stop offset="50%" stop-color="#347855" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#234a34" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="ps-jungle-back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a6639" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#4f9964" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="ps-jungle-front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1b4d29" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#2d7742" stop-opacity="0.35"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="url(#ps-sky)"/>
+
+  <!-- Bruma y Sol Amazónico Húmedo -->
+  <circle cx="920" cy="220" r="130" fill="#ffe082" opacity="0.5"/>
+  <ellipse cx="600" cy="480" rx="700" ry="120" fill="#ffffff" opacity="0.4"/>
+
+  <!-- Dosel Selvático Profundo (Copa de Árboles) -->
+  <path d="M-30 460 Q60 410 150 450 Q250 390 360 430 Q470 380 580 430 Q700 390 820 440 Q940 390 1060 440 Q1150 400 1240 450 L1240 700 L-30 700 Z" fill="url(#ps-jungle-back)"/>
+
+  <!-- Meandro del Río Amazonas (Río de los Espejos) serpenteando suavemente -->
+  <path d="M720 540 C520 680, 850 820, 580 1040 C340 1220, 800 1440, 540 1800 L760 1800 C1020 1440, 560 1220, 800 1040 C1070 820, 740 680, 940 540 Z" fill="url(#ps-river)"/>
+
+  <!-- Palmeras de Aguaje Silueteadas a la Izquierda -->
+  <g transform="translate(100, 680)" opacity="0.6">
+    <!-- Tronco estilizado -->
+    <path d="M40 280 Q35 140 50 0" stroke="#3d2b15" stroke-width="7" fill="none"/>
+    <!-- Corona de hojas de palmera -->
+    <path d="M50 0 Q-30 -40 -70 -10" stroke="#1f542c" stroke-width="5" fill="none"/>
+    <path d="M50 0 Q-10 -70 20 -80" stroke="#1f542c" stroke-width="5" fill="none"/>
+    <path d="M50 0 Q70 -70 90 -40" stroke="#1f542c" stroke-width="5" fill="none"/>
+    <path d="M50 0 Q130 -30 140 10" stroke="#1f542c" stroke-width="5" fill="none"/>
+    <path d="M50 0 Q10 40 -20 60" stroke="#1f542c" stroke-width="5" fill="none"/>
+  </g>
+
+  <!-- Loto / Victoria Regia (Hojas flotantes en el río) -->
+  <g transform="translate(420, 1140)" opacity="0.65">
+    <ellipse cx="60" cy="30" rx="55" ry="24" fill="#2d6a3b" stroke="#1e4b27" stroke-width="3"/>
+    <circle cx="85" cy="20" r="10" fill="#f95738" opacity="0.8"/>
+  </g>
+  <g transform="translate(720, 1320)" opacity="0.55">
+    <ellipse cx="50" cy="25" rx="45" ry="20" fill="#2d6a3b" stroke="#1e4b27" stroke-width="3"/>
+  </g>
+
+  <!-- Salto Sutil del Delfín Rosado (Inia geoffrensis) -->
+  <g transform="translate(680, 920)" opacity="0.65">
+    <!-- Arco del cuerpo del delfín -->
+    <path d="M0 40 Q35 -15 80 15 Q65 10 50 18 Q30 5 0 40 Z" fill="#e898aa"/>
+    <!-- Aleta dorsal suave -->
+    <polygon points="35,3 45,-8 48,6" fill="#d88497"/>
+    <!-- Salpicadura de agua -->
+    <circle cx="75" cy="22" r="3" fill="#ffffff"/>
+    <circle cx="83" cy="26" r="2" fill="#ffffff"/>
+  </g>
+
+  <!-- Hojas de Monstera / Helechos en esquinas de primer plano -->
+  <g fill="#173e30" opacity="0.35">
+    <path d="M0 1620 Q90 1660 120 1740 Q60 1780 0 1800 Z"/>
+    <path d="M1200 1580 Q1100 1630 1070 1720 Q1130 1770 1200 1800 Z"/>
+  </g>
+</svg>
