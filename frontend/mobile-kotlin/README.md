@@ -16,3 +16,6 @@ La sesión permanece en memoria y se solicita de nuevo al cerrar el proceso. Los
 Fuentes Kotlin compiladas con stubs Android; no es una compilación APK. El intento Gradle falló al establecer su conexión local (Unable to establish loopback connection). Falta verificar build Android completo y flujo en dispositivo/emulador. Revisar también insets y accesibilidad con SDK 36.
 
 La HU completa y configuración de backend están en ../../docs/implementacion/HU-21-cuestionarios-ia.md.
+
+## HU-22: tarjetas de memoria
+Desde un tema, elegir Repasar con tarjetas. Permite revelar pregunta/respuesta, deslizar horizontalmente, navegar con botones y marcar Lo recuerdo o Necesito practicar. El avance se guarda en TiDB mediante Spring Boot. El docente publica las tarjetas revisadas desde la web. Fuentes Kotlin compiladas; APK y dispositivo pendientes de validación. Detalles en ../../docs/implementacion/HU-22-tarjetas-memoria.md.

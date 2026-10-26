@@ -1,3 +1,4 @@
+import { Flashcards } from '../flashcards/Flashcards'
 import { QuizPractice } from '../quiz/QuizPractice'
 import { useState } from 'react'
 import {
@@ -124,7 +125,7 @@ export function LessonScreenView({
     }
   }
 
-  const reinforcementPanel = <><QuizPractice key={`quiz:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><NodeReinforcement key={`${route.versionRouteId}:${node.id}`}
+  const reinforcementPanel = <><Flashcards key={`cards:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><QuizPractice key={`quiz:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><NodeReinforcement key={`${route.versionRouteId}:${node.id}`}
     routeId={route.versionRouteId} nodeId={node.id}
     revision={Object.entries(feedbackMap).map(([id, feedback]) => `${id}:${feedback.isCorrect}`).join(',')} /></>
 

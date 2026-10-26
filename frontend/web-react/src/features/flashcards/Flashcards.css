@@ -1,0 +1,9 @@
+.flashcards .memory-card { display:block; width:100%; min-height:240px; padding:1.5rem; background:#fff5d8; color:#173e30; border:2px solid #b98628; border-radius:18px; box-shadow:0 5px 0 #b98628; touch-action:pan-y; text-align:center; overflow-wrap:anywhere; }
+.flashcards .memory-card.is-revealed { background:#e9f3e7; border-color:#31724b; box-shadow:0 5px 0 #31724b; }
+.memory-face { display:flex; flex-direction:column; gap:1.2rem; animation:memory-turn .22s ease-out; }
+.memory-face strong { font-size:clamp(1.15rem,3vw,1.6rem); white-space:pre-wrap; line-height:1.5; }
+.memory-face small { font-size:.9rem; }
+.memory-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin:1.2rem 0; }
+.memory-actions button { flex:1 1 120px; min-width:48px; }
+@keyframes memory-turn { from { transform:rotateY(70deg); opacity:.3; } to { transform:rotateY(0); opacity:1; } }
+@media (prefers-reduced-motion:reduce) { .memory-face { animation:none; } }

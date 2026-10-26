@@ -20,16 +20,17 @@ class MainActivity : Activity() {
  private var busy = false
  private var alive = true
  private var screen = 0
+ private var cardMode=false
  private var currentTopic: JSONObject? = null
  private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
  override fun onCreate(state: Bundle?) {
   super.onCreate(state)
   if (api == null) loginScreen() else {
    val topic = state?.getString("topic")
-   if (topic != null) loadTopic(JSONObject(topic)) else topics()
+   if (topic != null) { if(state?.getBoolean("cards")==true) loadCards(JSONObject(topic)) else loadTopic(JSONObject(topic)) } else topics()
   }
  }
- override fun onSaveInstanceState(out: Bundle) { currentTopic?.let { out.putString("topic", it.toString()) }; super.onSaveInstanceState(out) }
+ override fun onSaveInstanceState(out: Bundle) { currentTopic?.let { out.putString("topic", it.toString()) }; out.putBoolean("cards",cardMode); super.onSaveInstanceState(out) }
  override fun onDestroy() { alive = false; worker.shutdownNow(); super.onDestroy() }
  private fun page(title: String) {
   screen++
@@ -103,10 +104,12 @@ class MainActivity : Activity() {
  }
  private fun path(topic: JSONObject) = "/api/v1/student/learning-routes/"+topic.getString("routeId")+"/nodes/"+topic.getString("nodeId")+"/ai-quiz"
  private fun loadTopic(topic: JSONObject) {
+  cardMode=false
   currentTopic=topic
   page(topic.getString("title"))
   button("Volver a mis temas") { topics() }
   button("Consultar mi práctica") { loadTopic(topic) }
+  button("Repasar con tarjetas") { loadCards(topic) }
   execute({ JSONObject(api!!.request(path(topic))) },{ status ->
    val practice=status.optJSONObject("practice")
    text("Práctica formativa: no cambia tus calificaciones.")
@@ -164,5 +167,63 @@ class MainActivity : Activity() {
    }
   }
   if(state=="COMPLETADO") text("¡Terminaste! "+view.getInt("correct")+" de "+questions.length()+" aciertos. Revisa las explicaciones.")
+ }
+
+ private fun cardsPath(topic: JSONObject) = path(topic).removeSuffix("ai-quiz")+"flashcards"
+ private fun loadCards(topic: JSONObject) {
+  currentTopic=topic
+  cardMode=true
+  page("Repasar con tarjetas")
+  button("Volver al tema") { cardMode=false;loadTopic(topic) }
+  button("Recuperar mi repaso") { loadCards(topic) }
+  execute({ JSONObject(api!!.request(cardsPath(topic))) },{ renderCards(topic,it) })
+ }
+ private fun renderCards(topic: JSONObject,deck: JSONObject) {
+  text("Piensa en la respuesta y voltea la tarjeta. Tu autoevaluación no cambia tus notas.")
+  val cards=deck.getJSONArray("cards")
+  if(cards.length()==0) { text("Todavía no hay tarjetas revisadas para esta actividad.");return }
+  var index=0
+  for(i in 0 until cards.length()) if(cards.getJSONObject(i).getString("id")==deck.optString("current")) index=i
+  val card=cards.getJSONObject(index)
+  val revealed=deck.optBoolean("revealed")
+  fun command(action: String,id: String=card.getString("id")) {
+   val body=JSONObject().put("requestId",java.util.UUID.randomUUID().toString()).put("revision",deck.getLong("revision")).put("action",action).put("cardId",id)
+   execute({ api!!.request(cardsPath(topic),"POST",body) },{ loadCards(topic) })
+  }
+  fun move(delta: Int) { val next=index+delta;if(next in 0 until cards.length()) command("NAVIGATE",cards.getJSONObject(next).getString("id")) }
+  text("Tarjeta ${index+1} de ${cards.length()} · "+when(card.getString("state")){"PRACTICAR"->"Necesito practicar";"RECUERDO"->"Lo recuerdo";else->"Por descubrir"})
+  val face=button((if(revealed) "Respuesta: " else "Pregunta: ")+card.getString(if(revealed) "answer" else "question")) { command(if(revealed) "NAVIGATE" else "REVEAL") }
+  face.minHeight=dp(200)
+  face.setBackgroundColor(if(revealed) Color.rgb(233,243,231) else Color.rgb(255,245,216))
+  face.setTextColor(Color.rgb(23,62,48))
+  var startX=0f;var startY=0f;var dragged=false
+  face.setOnTouchListener { _,event ->
+   when(event.actionMasked) {
+    android.view.MotionEvent.ACTION_DOWN -> {startX=event.x;startY=event.y;dragged=false;false}
+    android.view.MotionEvent.ACTION_MOVE -> {
+     val dx=event.x-startX;val dy=event.y-startY
+     if(kotlin.math.abs(dx)>dp(10)||kotlin.math.abs(dy)>dp(10))dragged=true
+     if(kotlin.math.abs(dx)>kotlin.math.abs(dy)*1.5 && kotlin.math.abs(dx)>dp(10))face.parent.requestDisallowInterceptTouchEvent(true)
+     dragged
+    }
+    android.view.MotionEvent.ACTION_UP -> {
+     val dx=event.x-startX;val dy=event.y-startY
+     face.parent.requestDisallowInterceptTouchEvent(false);face.isPressed=false
+     if(!busy&&kotlin.math.abs(dx)>dp(60)&&kotlin.math.abs(dx)>kotlin.math.abs(dy)*1.5) {move(if(dx<0)1 else -1);true} else dragged
+    }
+    android.view.MotionEvent.ACTION_CANCEL -> {dragged=true;face.isPressed=false;face.parent.requestDisallowInterceptTouchEvent(false);true}
+    else -> false
+   }
+  }
+  button(if(revealed) "Ver pregunta" else "Ver respuesta") {command(if(revealed)"NAVIGATE" else "REVEAL")}
+  button("Anterior",index>0) {move(-1)}
+  button("Siguiente",index<cards.length()-1) {move(1)}
+  if(revealed) {
+   button("Lo recuerdo") {command("REMEMBER")}
+   button("Necesito practicar") {command("PRACTICE")}
+  }
+  text("Fuente indicada por tu docente: "+card.getString("source"))
+  text("Primero repasamos lo que necesita práctica; después las tarjetas nuevas y lo que recuerdas.")
+  button("Volver a repasar") {command("RESTART")}
  }
 }
