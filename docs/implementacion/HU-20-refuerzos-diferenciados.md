@@ -2,6 +2,11 @@
 
 Implementación local: 26 de octubre de 2026. Base de integración: `4fa9edc`.
 
+## Activación autorizada · 26 de octubre de 2026
+
+Después de la entrega inicial, el usuario autorizó aplicar V22 a TiDB y publicar en main. La migración se aplicó correctamente a la base compartida rupi: tabla nueva creada, columna activa generada e índices únicos comprobados. La tabla quedó con cero asignaciones; no se insertaron datos de prueba ni se modificaron registros anteriores.
+
+El resto de este documento conserva la revisión inicial y sus límites previos a esta autorización. La migración ya no está pendiente. La comprobación compartida posterior aprobó diez paneles reales con available=true; sin errores. Los compañeros deben actualizar el código de main y recompilar/reiniciar sus backends para utilizar los nuevos endpoints; no necesitan volver a ejecutar la migración sobre esta misma base compartida.
 ## Alcance y recorrido
 Como profesor, asignar prácticas según las dificultades de cada estudiante y consultar su seguimiento.
 
