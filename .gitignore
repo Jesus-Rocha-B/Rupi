@@ -18,6 +18,11 @@ dist-ssr
 .env*
 !.env.example
 
+# Database dumps and local backups
+*.dump
+dump_*.sql
+database/dump_*.sql
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

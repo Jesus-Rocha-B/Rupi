@@ -482,7 +482,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 .mascot-copy { position: relative; z-index: 1; max-width: 175px; }
 .mascot-copy .eyebrow { color: #98643f; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
 .mascot-copy p { margin: 7px 0; color: #36483d; font: 800 12px/1.5 var(--display-font); }
-.mascot-card .rupi-character { position: absolute; right: 2px; bottom: -2px; width: 84px; height: 90px; overflow: visible; }
+.mascot-card .rupi-character { position: absolute; right: 2px; bottom: -2px; width: 84px; height: 90px; overflow: visible; animation: rupi-hover 3s ease-in-out infinite; }
 
 .hint-button {
   display: inline-flex;

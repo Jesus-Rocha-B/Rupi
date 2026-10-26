@@ -36,6 +36,11 @@ npm run build
 npm run lint
 ```
 
+## Base de Datos Compartida
+
+El equipo utiliza una base de datos centralizada en la nube (TiDB Cloud Serverless) para compartir usuarios, rutas y actividades escolares en tiempo real.
+Consulta la guía de conexión en [`docs/BASE-DE-DATOS-COMPARTIDA.md`](docs/BASE-DE-DATOS-COMPARTIDA.md).
+
 ## Implementación por historias
 
 El plan detallado de las primeras cuatro historias está en [`docs/implementacion/README.md`](docs/implementacion/README.md). La HU-01, su contrato de API y su seguimiento están en [`docs/implementacion/HU-01-mapa-interactivo.md`](docs/implementacion/HU-01-mapa-interactivo.md).

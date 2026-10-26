@@ -86,7 +86,7 @@ export function RouteCompanion({ route, teacher = false }: Props) {
       <aside className="route-companion" aria-label="Acompañamiento de tu ruta">
         <section className="cultural-companion-card simple-motivational">
           <div className="companion-rupi-quote">
-            <RupiCharacter mood="celebrating" trackMouse={true} className="companion-rupi-avatar" />
+            <RupiCharacter mood="cheering" className="companion-rupi-avatar" />
             <div className="rupi-quote-body">
               <span className="quote-badge">
                 <Sparkles size={16} aria-hidden="true" />
@@ -195,7 +195,7 @@ export function RouteCompanion({ route, teacher = false }: Props) {
 
         {/* 4. Mensaje de aliento de Rupi integrado en la misma tarjeta */}
         <div className="companion-rupi-quote">
-          <RupiCharacter mood="celebrating" trackMouse={true} className="companion-rupi-avatar" />
+          <RupiCharacter mood="cheering" className="companion-rupi-avatar" />
           <div className="rupi-quote-body">
             <span className="quote-badge">
               <Sparkles size={14} aria-hidden="true" />
