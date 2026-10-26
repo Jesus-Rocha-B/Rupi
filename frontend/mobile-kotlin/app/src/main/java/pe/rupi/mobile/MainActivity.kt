@@ -51,8 +51,9 @@ class MainActivity : Activity() {
   scroll.setPadding(dp(16), dp(32), dp(16), dp(24))
   scroll.isFillViewport = true
   layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; fitsSystemWindows = true }
-  scroll.addView(layout)
+  scroll.addView(layout, android.widget.FrameLayout.LayoutParams(-1,-2))
   setContentView(scroll)
+  if(android.os.Build.VERSION.SDK_INT>=30) layout.setOnApplyWindowInsetsListener { view,insets -> val bars=insets.getInsets(android.view.WindowInsets.Type.systemBars());view.setPadding(0,bars.top,0,bars.bottom);insets }
   text("rupi · $title", 24)
   notice = TextView(this).apply { setTextColor(Color.rgb(23,62,48)); setPadding(0,dp(12),0,dp(12)) }
   layout.addView(notice)
@@ -74,6 +75,7 @@ class MainActivity : Activity() {
    setTextColor(Color.WHITE); setBackgroundColor(Color.rgb(49,114,75))
    setOnClickListener { if(!busy) action() }
   }
+  button.isSingleLine=false;button.maxLines=Int.MAX_VALUE;button.setHorizontallyScrolling(false);button.minWidth=dp(48);button.setPadding(dp(16),dp(12),dp(16),dp(12))
   layout.addView(button, LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(12); bottomMargin=dp(8) })
   return button
  }
@@ -158,7 +160,7 @@ class MainActivity : Activity() {
    val answered=!q.isNull("selectedOption")
    for(j in 0 until options.length()) {
     val option=options.getJSONObject(j)
-    val radio=RadioButton(this).apply { id=j+1;text=option.getString("text");minHeight=dp(48);isEnabled=!answered;setTextColor(Color.rgb(23,62,48)) }
+    val radio=RadioButton(this).apply { id=j+1;text=option.getString("text");minHeight=dp(48);minWidth=dp(48);setSingleLine(false);setHorizontallyScrolling(false);setPadding(dp(12),dp(12),dp(12),dp(12));isEnabled=!answered;setTextColor(Color.rgb(23,62,48)) }
     ids[j+1]=option.getString("id");group.addView(radio)
     if(answered&&option.getString("id")==q.optString("selectedOption")) group.check(j+1)
    }
@@ -331,7 +333,7 @@ class MainActivity : Activity() {
     },{notice.text="Resumen guardado. Puedes abrirlo desde Resúmenes descargados incluso sin iniciar sesión."})
    }
    button("Reportar contenido incorrecto"){
-    val reason=EditText(this).apply{hint="¿Qué debemos revisar?";filters=arrayOf(android.text.InputFilter.LengthFilter(500))}
+    val reason=EditText(this).apply{hint="¿Qué debemos revisar?";minHeight=dp(48);filters=arrayOf(android.text.InputFilter.LengthFilter(500))}
     AlertDialog.Builder(this).setTitle("Revisar resumen").setView(reason).setNegativeButton("Cancelar",null).setPositiveButton("Enviar"){_,_->
      if(reason.text.isNotBlank())execute({api!!.request(summaryPath(topic)+"/"+resource.getString("id")+"/report","POST",JSONObject().put("reason",reason.text.toString()))},{loadSummary(topic)})
     }.show()

@@ -1,0 +1,26 @@
+/* HU-24: reflow, not clipping. Zoom remains enabled in index.html. */
+.study-touch, .study-touch *, .lesson-screen-container { box-sizing: border-box; min-inline-size: 0; }
+.study-touch { inline-size: 100%; max-inline-size: 100%; overflow-wrap: anywhere; text-align: start; }
+.study-touch > *, .study-touch .assigned-tasks { max-inline-size: 100%; }
+.study-touch :is(button, a, summary, select, input:not([type=radio]):not([type=checkbox]), textarea) {
+ min-block-size: 48px; min-inline-size: min(48px, 100%); max-inline-size: 100%;
+ font-size: max(1rem, 16px); line-height: 1.5;
+}
+.study-touch :is(button, a, summary) { white-space: normal; overflow-wrap: anywhere; touch-action: manipulation; }
+.study-touch button, .study-touch summary { padding: .75rem 1rem; }
+.study-touch a { display: inline-flex; align-items: center; }
+.study-touch :is(label, p, legend, h2, h3, h4, li) { overflow-wrap: anywhere; }
+.study-touch label:has(input[type=radio]), .study-touch label:has(input[type=checkbox]) { min-block-size: 48px; padding-block: .4rem; gap: .75rem; }
+.study-touch :is(input[type=radio], input[type=checkbox]) { flex: 0 0 24px; inline-size: 24px; block-size: 24px; }
+.study-touch :is(img, video, iframe, svg) { max-inline-size: 100%; }
+.study-touch pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.study-touch :focus-visible { outline: 3px solid #246a91; outline-offset: 3px; }
+.study-touch .memory-card { touch-action: pan-y pinch-zoom; }
+@media (max-width: 480px) {
+ .study-touch .assigned-tasks { padding: 1rem; margin-inline: 0; }
+ .study-touch :is(.memory-actions, .quiz-actions) { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; }
+ .study-touch .visual-concepts { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+ .study-touch *, .study-touch *::before, .study-touch *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

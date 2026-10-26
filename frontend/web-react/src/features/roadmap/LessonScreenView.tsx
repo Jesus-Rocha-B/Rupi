@@ -1,3 +1,4 @@
+import './StudyTouch.css'
 import { VisualSummary } from '../visualsummary/VisualSummary'
 import { Flashcards } from '../flashcards/Flashcards'
 import { QuizPractice } from '../quiz/QuizPractice'
@@ -126,9 +127,9 @@ export function LessonScreenView({
     }
   }
 
-  const reinforcementPanel = <><VisualSummary key={`summary:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><Flashcards key={`cards:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><QuizPractice key={`quiz:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><NodeReinforcement key={`${route.versionRouteId}:${node.id}`}
+  const reinforcementPanel = <div className="study-touch" aria-label="Recursos de repaso"><VisualSummary key={`summary:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><Flashcards key={`cards:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><QuizPractice key={`quiz:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><NodeReinforcement key={`${route.versionRouteId}:${node.id}`}
     routeId={route.versionRouteId} nodeId={node.id}
-    revision={Object.entries(feedbackMap).map(([id, feedback]) => `${id}:${feedback.isCorrect}`).join(',')} /></>
+    revision={Object.entries(feedbackMap).map(([id, feedback]) => `${id}:${feedback.isCorrect}`).join(',')} /></div>
 
   // 1. ESTADO DE CARGA
   if (loading) {
