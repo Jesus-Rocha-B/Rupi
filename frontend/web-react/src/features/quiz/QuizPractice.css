@@ -1,0 +1,7 @@
+.quiz-practice { text-align: left; }
+.quiz-question legend { font-weight: 800; line-height: 1.5; }
+.quiz-origin { border-left: 4px solid #ffd26a; padding: .75rem; background: #fff5d8; }
+.quiz-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+.quiz-practice [role=alert] { border-left: 4px solid #a52d1d; padding: .75rem; }
+.quiz-practice .assigned-check { font-weight: 600; }
+.quiz-practice .assigned-check input[type=radio] { width: 24px; min-width: 24px; height: 24px; min-height: 24px; padding: 0; flex: 0 0 24px; accent-color: #31724b; }

@@ -1,3 +1,4 @@
+import { QuizPractice } from '../quiz/QuizPractice'
 import { useState } from 'react'
 import {
   ArrowLeft,
@@ -123,9 +124,9 @@ export function LessonScreenView({
     }
   }
 
-  const reinforcementPanel = <NodeReinforcement key={`${route.versionRouteId}:${node.id}`}
+  const reinforcementPanel = <><QuizPractice key={`quiz:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><NodeReinforcement key={`${route.versionRouteId}:${node.id}`}
     routeId={route.versionRouteId} nodeId={node.id}
-    revision={Object.entries(feedbackMap).map(([id, feedback]) => `${id}:${feedback.isCorrect}`).join(',')} />
+    revision={Object.entries(feedbackMap).map(([id, feedback]) => `${id}:${feedback.isCorrect}`).join(',')} /></>
 
   // 1. ESTADO DE CARGA
   if (loading) {

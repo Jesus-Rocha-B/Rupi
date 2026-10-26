@@ -27,3 +27,9 @@ rupi:
   auth:
     demo-session-token: ${RUPI_DEMO_SESSION_TOKEN:}
 
+
+  ai:
+    endpoint: ${RUPI_AI_ENDPOINT:}
+    key: ${RUPI_AI_KEY:}
+    provider: ${RUPI_AI_PROVIDER:}
+    model: ${RUPI_AI_MODEL:}

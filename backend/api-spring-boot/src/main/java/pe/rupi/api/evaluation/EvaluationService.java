@@ -28,7 +28,15 @@ public class EvaluationService {
         this.jdbc = jdbc;
     }
 
+    // Generated practice versions are private and must only use HU-21's ownership-checked API.
+    private void requireLessonActivity(UUID activity) {
+        Integer generated = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM evaluacion_cuestionario_ia WHERE version_actividad_id=:activity",
+            new MapSqlParameterSource("activity", activity.toString()), Integer.class);
+        if (generated != null && generated > 0) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
     public List<QuestionDto> findQuestionsForActivity(UUID activityVersionId) {
+        requireLessonActivity(activityVersionId);
         String sqlQuestions = """
                 SELECT id, numero_secuencia, tipo, enunciado, explicacion, puntos
                 FROM evaluacion_pregunta
@@ -103,6 +111,7 @@ public class EvaluationService {
             UUID activityVersionId,
             SubmitAnswerRequest request
     ) {
+        requireLessonActivity(activityVersionId);
         if (request.questionId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe especificar la pregunta.");
         }
@@ -293,6 +302,7 @@ public class EvaluationService {
     }
 
     public EvaluationSummaryDto getEvaluationSummary(UUID studentId, UUID activityVersionId) {
+        requireLessonActivity(activityVersionId);
         String sql = """
                 SELECT COUNT(r.id) AS total_answered,
                        SUM(CASE WHEN r.es_correcta = TRUE THEN 1 ELSE 0 END) AS correct_count,

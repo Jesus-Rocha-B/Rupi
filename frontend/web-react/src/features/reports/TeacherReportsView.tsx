@@ -1,3 +1,4 @@
+import { QuizReviews } from '../quiz/QuizReview'
 import { TeacherAssignments } from '../reinforcement/AssignedTasks'
 import { StudentFilter } from './StudentFilter'
 import { StudentOverviewView } from './StudentOverviewView'
@@ -76,6 +77,7 @@ function ClassroomReports({ room, view, onViewChange, initialRouteId }: { room: 
   </select></label><StudentFilter members={members} selected={student} onChange={setSelectedStudent} />
     {student && <StudentOverviewView key={`${route}:${student}`} room={room} route={route} student={student} onViewChange={onViewChange} />}
     <TeacherAssignments key={`refuerzo:${room}:${route}:${student}`} room={room} route={route} student={student} />
+    <QuizReviews key={`quiz:${room}:${route}`} room={room} route={route} />
     <div id="report-detail" tabIndex={-1}>{view === 'grades' ? <GradesReportView key={`${route}:${student}`} room={room} route={route} student={student} /> : <ReportResults key={`${route}:${student}`} room={room} route={route} student={student} />}</div></>
 }
 
