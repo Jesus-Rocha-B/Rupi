@@ -22,3 +22,6 @@ Desde un tema, elegir Repasar con tarjetas. Permite revelar pregunta/respuesta, 
 
 ## HU-23: resúmenes visuales
 Tema → Ver resumen visual. Reutiliza IA de Spring Boot y descarga ZIP de HU-12, verifica SHA-256 y conserva el contenido educativo en almacenamiento privado para lectura nativa sin conexión. Resúmenes descargados también está disponible antes del login; no contiene datos personales. Al detectar conexión con el resumen abierto, comprueba su vigencia. Falta proveedor real y validación en dispositivo/APK. Ver ../../docs/implementacion/HU-23-resumenes-visuales.md.
+
+## Validacion actualizada
+APK real compilado y probado en emulador Pixel_6: login, cuestionarios, flashcards, persistencia, descarga sin red y retirada. Ejecutar powershell -File scripts/Compilar-Android.ps1 -Lint desde la raiz. El fallo Gradle anterior esta resuelto. Solo falta proveedor/clave para IA real. Detalles: ../../docs/implementacion/VALIDACION-ANDROID-Y-CONFIGURACION-IA.md.

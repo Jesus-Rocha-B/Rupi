@@ -35,6 +35,7 @@ class MainActivity : Activity() {
 
  override fun onCreate(state: Bundle?) {
   super.onCreate(state)
+  window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
   registerReceiver(summaryConnectionReceiver,android.content.IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION))
   if (api == null) loginScreen() else {
    val topic = state?.getString("topic")
@@ -97,7 +98,7 @@ class MainActivity : Activity() {
   val server=input("Servidor Rupi (HTTPS)")
   if(BuildConfig.DEBUG) server.setText("http://10.0.2.2:8081")
   val user=input("Usuario escolar")
-  val password=input("Contraseña")
+  val password=input("Contraseña",true)
   button("Entrar") {
    val serverText=server.text.toString();val username=user.text.toString();val secret=password.text.toString()
    password.setText("")
@@ -223,7 +224,7 @@ class MainActivity : Activity() {
     android.view.MotionEvent.ACTION_UP -> {
      val dx=event.x-startX;val dy=event.y-startY
      face.parent.requestDisallowInterceptTouchEvent(false);face.isPressed=false
-     if(!busy&&kotlin.math.abs(dx)>dp(60)&&kotlin.math.abs(dx)>kotlin.math.abs(dy)*1.5) {move(if(dx<0)1 else -1);true} else dragged
+     if(!busy&&kotlin.math.abs(dx)>dp(60)&&kotlin.math.abs(dx)>kotlin.math.abs(dy)*1.5) {move(if(dx<0)1 else -1);true} else { if(!dragged)face.performClick();true }
     }
     android.view.MotionEvent.ACTION_CANCEL -> {dragged=true;face.isPressed=false;face.parent.requestDisallowInterceptTouchEvent(false);true}
     else -> false

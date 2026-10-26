@@ -1,5 +1,7 @@
 # HU-23 · Infografías y resúmenes visuales
 
+> Actualizacion posterior: APK compilado y probado en emulador con datos aislados. Falta proveedor/clave para validar IA real. Ver [validacion actual](VALIDACION-ANDROID-Y-CONFIGURACION-IA.md). Los limites Android de abajo corresponden a la entrega inicial.
+
 Implementación: 26 de octubre de 2026.
 
 ## Tareas

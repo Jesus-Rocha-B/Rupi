@@ -2,6 +2,7 @@ param([switch]$Recompilar)
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 . "$PSScriptRoot\.local\env.ps1"
+. "$PSScriptRoot\scripts\Cargar-IA.ps1"
 New-Item -ItemType Directory -Force "$PSScriptRoot/.local/sockets" | Out-Null
 
 function Test-Port([int]$Port) {
@@ -32,8 +33,9 @@ if ($Recompilar -or !(Test-Path $jar)) {
 if (!(Test-Port 8081)) {
     # El proceso hereda las variables de entorno; no colocar secretos en sus argumentos.
     # Start-Process concatena ArgumentList: las rutas con espacios deben ir entre comillas.
+    $socketFallback = Join-Path $env:TEMP ('rupi-no-afunix-' + [Guid]::NewGuid().ToString('N'))
     $apiArgs = @(
-        "`"-Djdk.net.unixdomain.tmpdir=$PSScriptRoot/.local/sockets`"",
+        "`"-Djdk.net.unixdomain.tmpdir=$socketFallback`"",
         '-Djava.net.preferIPv4Stack=true',
         '-jar',
         "`"$jar`""

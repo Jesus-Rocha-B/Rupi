@@ -1,5 +1,7 @@
 # HU-21 · Cuestionarios cortos asistidos por IA
 
+> Actualizacion posterior: APK compilado y probado en emulador con datos aislados. Falta proveedor/clave para validar IA real. Ver [validacion actual](VALIDACION-ANDROID-Y-CONFIGURACION-IA.md). Los limites Android de abajo corresponden a la entrega inicial.
+
 Implementado el 26 de octubre de 2026. Sin proveedor ni clave de IA configurados: la generación real está deshabilitada. No se han generado cuestionarios reales ni introducido ejemplos en TiDB.
 
 ## Tareas y recorrido
