@@ -1,3 +1,4 @@
+import { TeacherAssignments } from '../reinforcement/AssignedTasks'
 import { StudentFilter } from './StudentFilter'
 import { StudentOverviewView } from './StudentOverviewView'
 import { ReportDownload } from './ReportDownload'
@@ -74,6 +75,7 @@ function ClassroomReports({ room, view, onViewChange, initialRouteId }: { room: 
     {routes.map(r => <option key={r.id} value={r.id}>{r.title} · v{r.version} · {r.state === 'PUBLICADO' ? 'Publicada' : 'No publicada'}</option>)}
   </select></label><StudentFilter members={members} selected={student} onChange={setSelectedStudent} />
     {student && <StudentOverviewView key={`${route}:${student}`} room={room} route={route} student={student} onViewChange={onViewChange} />}
+    <TeacherAssignments key={`refuerzo:${room}:${route}:${student}`} room={room} route={route} student={student} />
     <div id="report-detail" tabIndex={-1}>{view === 'grades' ? <GradesReportView key={`${route}:${student}`} room={room} route={route} student={student} /> : <ReportResults key={`${route}:${student}`} room={room} route={route} student={student} />}</div></>
 }
 

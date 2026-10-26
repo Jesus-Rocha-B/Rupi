@@ -1,0 +1,33 @@
+-- HU-20. Aplicar una vez, previa revision del administrador; no contiene datos de prueba.
+-- Ejecutar sobre la base seleccionada. No modifica tablas ni migraciones anteriores.
+CREATE TABLE IF NOT EXISTS aprendizaje_asignacion_refuerzo (
+ id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+ solicitud_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ aula_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ docente_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ estudiante_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ ruta_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ nodo_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ recurso_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ titulo VARCHAR(180) NOT NULL,
+ instrucciones VARCHAR(2000) NOT NULL,
+ motivo VARCHAR(1000) NOT NULL,
+ recurso_titulo VARCHAR(255) NOT NULL,
+ recurso_url VARCHAR(1000) NOT NULL,
+ nodo_titulo VARCHAR(255) NOT NULL,
+ respondidas_iniciales INT NOT NULL,
+ aciertos_iniciales INT NOT NULL,
+ asignado_en DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+ iniciado_en DATETIME(6) NULL,
+ completado_en DATETIME(6) NULL,
+ reflexion VARCHAR(1000) NULL,
+ activa TINYINT GENERATED ALWAYS AS (CASE WHEN completado_en IS NULL THEN 1 ELSE NULL END) STORED,
+ UNIQUE KEY uq_asignacion_solicitud (solicitud_id, estudiante_id),
+ UNIQUE KEY uq_asignacion_activa (estudiante_id, nodo_id, recurso_id, activa),
+ KEY ix_asignacion_aula_ruta (aula_id, ruta_id, asignado_en),
+ FOREIGN KEY (aula_id) REFERENCES escuela_aula(id),
+ FOREIGN KEY (docente_id) REFERENCES identidad_cuenta_usuario(id),
+ FOREIGN KEY (estudiante_id) REFERENCES identidad_cuenta_usuario(id),
+ FOREIGN KEY (ruta_id) REFERENCES aprendizaje_version_ruta(id),
+ FOREIGN KEY (nodo_id) REFERENCES aprendizaje_nodo_ruta(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

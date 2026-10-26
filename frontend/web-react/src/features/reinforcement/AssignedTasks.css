@@ -1,0 +1,16 @@
+.assigned-tasks { margin: 1.25rem 0; padding: clamp(1rem, 3vw, 1.75rem); border: 2px solid #b7cbb2; border-radius: 20px; background: #faf8f5; color: #173e30; overflow-wrap: anywhere; }
+.assigned-tasks summary { cursor: pointer; min-height: 48px; font-weight: 800; padding: .7rem 0; }
+.assigned-tasks article { border-top: 2px solid #dce5d5; padding: 1rem 0; }
+.assigned-tasks fieldset { min-width: 0; padding: 1rem; border: 1px solid #b7cbb2; border-radius: 12px; margin: 1rem 0; }
+.assigned-tasks label { display: grid; gap: .4rem; margin: 1rem 0; font-weight: 700; }
+.assigned-tasks input:not([type=checkbox]), .assigned-tasks select, .assigned-tasks textarea { width: 100%; min-width: 0; box-sizing: border-box; min-height: 48px; padding: .7rem; font: inherit; color: #173e30; background: white; border: 2px solid #b7cbb2; border-radius: 10px; }
+.assigned-tasks textarea { min-height: 100px; resize: vertical; }
+.assigned-tasks .assigned-check { display: flex; align-items: center; min-height: 48px; gap: .7rem; }
+.assigned-check input { width: 24px; height: 24px; flex-shrink: 0; }
+.assigned-tasks button { min-height: 48px; padding: .65rem 1rem; border: 2px solid #24583a; border-radius: 12px; background: #31724b; color: white; font: inherit; font-weight: 800; box-shadow: 0 3px 0 #173e30; cursor: pointer; }
+.assigned-tasks button:active { transform: translateY(2px); box-shadow: 0 1px 0 #173e30; }
+.assigned-tasks button:disabled { opacity: .6; cursor: default; }
+.assigned-tasks :focus-visible { outline: 3px solid #246a91; outline-offset: 3px; }
+.assigned-tasks a { display: inline-block; padding: .65rem .1rem; color: #195674; text-decoration: underline; }
+.assigned-note { font-size: .9rem; line-height: 1.6; }
+.assigned-instructions { white-space: pre-wrap; }
