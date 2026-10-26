@@ -1,0 +1,399 @@
+/* Rupi Tutor Chat - Estilo Humano y Artesanal Escolar (RUPI) */
+
+.rupi-tutor-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  font-family: inherit;
+}
+
+/* Botón Burbuja Flotante */
+.rupi-tutor-bubble-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #fdfaf6;
+  border: 3px solid #173e30;
+  border-radius: 999px;
+  padding: 6px 18px 6px 6px;
+  box-shadow: 0 6px 0 #173e30, 0 10px 16px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height: 56px;
+  position: relative;
+}
+
+.rupi-tutor-bubble-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #173e30, 0 14px 20px rgba(0, 0, 0, 0.16);
+  background-color: #fff9f0;
+}
+
+.rupi-tutor-bubble-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #173e30, 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rupi-bubble-avatar {
+  width: 52px;
+  height: 52px;
+  background-color: #ffd26a;
+  border: 2px solid #173e30;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.rupi-bubble-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.rupi-bubble-label span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f95738;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rupi-bubble-label strong {
+  font-size: 0.95rem;
+  color: #173e30;
+  font-weight: 800;
+}
+
+.rupi-unread-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  background-color: #f95738;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(249, 87, 56, 0.6);
+}
+
+/* Tarjeta del Chat Desplegable */
+.rupi-chat-card {
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: 540px;
+  max-height: calc(100vh - 80px);
+  background-color: #fdfaf6;
+  border: 3px solid #173e30;
+  border-radius: 24px;
+  box-shadow: 0 8px 0 #173e30, 0 16px 32px rgba(23, 62, 48, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: rupi-pop-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes rupi-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Cabecera */
+.rupi-chat-header {
+  background-color: #173e30;
+  color: #ffffff;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid #ffd26a;
+}
+
+.rupi-chat-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rupi-header-icon {
+  width: 44px;
+  height: 44px;
+  background-color: #ffd26a;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.rupi-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rupi-header-title strong {
+  font-size: 1.05rem;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.rupi-pill-grounding {
+  font-size: 0.68rem;
+  background-color: #ffd26a;
+  color: #173e30;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.rupi-header-sub {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: #d1fae5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.rupi-close-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  transition: background-color 0.15s ease;
+}
+
+.rupi-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Mensajes */
+.rupi-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background-color: #f7f3ec;
+}
+
+.rupi-message-row {
+  display: flex;
+  gap: 10px;
+  max-width: 88%;
+}
+
+.rupi-message-row.assistant {
+  align-self: flex-start;
+}
+
+.rupi-message-row.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.rupi-msg-avatar {
+  width: 32px;
+  height: 32px;
+  background-color: #ffd26a;
+  border: 1.5px solid #173e30;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.rupi-message-bubble {
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.rupi-message-row.assistant .rupi-message-bubble {
+  background-color: #ffffff;
+  color: #173e30;
+  border: 2px solid #e5dccf;
+  border-top-left-radius: 4px;
+}
+
+.rupi-message-row.user .rupi-message-bubble {
+  background-color: #f95738;
+  color: #ffffff;
+  font-weight: 600;
+  border: 2px solid #d43f21;
+  border-top-right-radius: 4px;
+}
+
+.rupi-message-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Botón de Audio / Lectura */
+.rupi-speak-btn {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f0fdf4;
+  border: 1.5px solid #31724b;
+  color: #173e30;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 32px;
+}
+
+.rupi-speak-btn:hover {
+  background-color: #31724b;
+  color: #ffffff;
+}
+
+.rupi-message-bubble.loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.rupi-spin {
+  animation: rupi-spin 1s linear infinite;
+  color: #f95738;
+}
+
+@keyframes rupi-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Chips rápidos */
+.rupi-quick-chips {
+  padding: 8px 12px;
+  background-color: #f0ebe2;
+  border-top: 2px solid #e0d6c7;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.rupi-chip-btn {
+  background-color: #ffffff;
+  border: 1.5px solid #173e30;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #173e30;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 0 #173e30;
+  transition: transform 0.1s ease;
+  min-height: 36px;
+}
+
+.rupi-chip-btn:hover {
+  background-color: #ffd26a;
+}
+
+.rupi-chip-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.rupi-chip-icon {
+  color: #f95738;
+}
+
+/* Barra de Entrada */
+.rupi-chat-input-bar {
+  padding: 10px 14px;
+  background-color: #ffffff;
+  border-top: 2px solid #173e30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rupi-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid #d1c7b7;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  outline: none;
+  font-family: inherit;
+  min-height: 44px;
+  transition: border-color 0.15s ease;
+}
+
+.rupi-input:focus {
+  border-color: #173e30;
+}
+
+.rupi-send-btn {
+  width: 44px;
+  height: 44px;
+  background-color: #f95738;
+  border: 2px solid #173e30;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #173e30;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  flex-shrink: 0;
+}
+
+.rupi-send-btn:hover:not(:disabled) {
+  background-color: #e04526;
+}
+
+.rupi-send-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.rupi-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
