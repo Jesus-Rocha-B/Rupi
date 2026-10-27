@@ -140,8 +140,8 @@ class MainActivity : Activity() {
    fun toggle(label:String,value:Boolean)=CheckBox(this).apply{
     text=label;isChecked=value;minHeight=dp(48);setSingleLine(false);setHorizontallyScrolling(false);setPadding(dp(8),dp(12),dp(8),dp(12));this@MainActivity.layout.addView(this)
    }
-   val goals=toggle("Recordar mi meta pendiente",prefs.getBoolean("goals"))
-   val evaluations=toggle("Recordar evaluaciones próximas",prefs.getBoolean("evaluations"))
+   val goals=toggle("Recordar mi meta pendiente y mi racha",prefs.getBoolean("goals"))
+   val evaluations=toggle("Avisos de mi docente: fechas de evaluación y materiales nuevos",prefs.getBoolean("evaluations"))
    val system=toggle("Permitir avisos en Android",prefs.getBoolean("system"))
    val at=input("Hora del recordatorio (HH:mm)").apply{setText(prefs.getString("remindAt"))}
    val from=input("Descansar desde (HH:mm)").apply{setText(prefs.getString("quietFrom"))}

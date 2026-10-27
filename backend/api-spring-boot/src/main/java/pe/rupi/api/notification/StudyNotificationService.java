@@ -103,6 +103,31 @@ public class StudyNotificationService {
  }
  private String event(ReminderRepository.Due due){return "EVAL:"+due.route()+":"+due.node()+":"+due.startsAt();}
  private static String streakKey(LocalDate day){return "RACHA:"+day;}
+ // Historia 28: novedades del docente de los últimos días (fecha de evaluación nueva o reprogramada, material adjunto a una parada).
+ record News(String key,String title,String body,Instant expires){}
+ static final Duration NEWS_WINDOW=Duration.ofDays(7);
+ private static final java.time.format.DateTimeFormatter DAY_TIME=java.time.format.DateTimeFormatter.ofPattern("d/MM 'a las' HH:mm");
+ private List<News> news(String user,Instant now){
+  List<News> items=new ArrayList<>();
+  for(var due:reminders.scheduledSince(user,now,now.minus(NEWS_WINDOW))){
+   String body=due.title()+" · "+DAY_TIME.format(due.startsAt().atZone(LIMA))+". Tu docente ya la puso en el calendario.";
+   items.add(new News("FECHA:"+due.route()+":"+due.node()+":"+due.startsAt(),"Nueva fecha de evaluación",body.substring(0,Math.min(body.length(),500)),due.startsAt()));
+  }
+  var params=p(user);params.put("since",stamp(now.minus(NEWS_WINDOW)));
+  for(var row:db.queryForList("""
+   SELECT r.id,r.titulo,r.creado_en,ruta.titulo ruta FROM aprendizaje_nodo_recurso r
+   JOIN aprendizaje_nodo_ruta n ON n.id=r.nodo_id
+   JOIN aprendizaje_version_ruta v ON v.id=n.version_ruta_id AND v.estado='PUBLICADO'
+   JOIN aprendizaje_ruta ruta ON ruta.id=v.ruta_id AND ruta.archivado_en IS NULL
+   JOIN aprendizaje_inscripcion_ruta i ON i.version_ruta_id=v.id AND i.estudiante_id=:user AND i.estado IN ('ACTIVO','COMPLETADO')
+   WHERE r.creado_en>=:since AND r.creado_en>=i.inscrito_en ORDER BY r.creado_en DESC,r.id LIMIT 20
+   """,params)){
+   var created=((Timestamp)row.get("creado_en")).toLocalDateTime().toInstant(ZoneOffset.UTC);
+   String body=row.get("titulo")+" · "+row.get("ruta")+". Ábrelo desde la parada cuando quieras repasar.";
+   items.add(new News("MATERIAL:"+row.get("id"),"Nuevo material de tu docente",body.substring(0,Math.min(body.length(),500)),created.plus(NEWS_WINDOW)));
+  }
+  return items;
+ }
  /** Dos horas antes del descanso, pero nunca antes de la hora de recordatorio elegida ni dentro del descanso. */
  static LocalTime streakAt(Preferences s){
   var at=time(s.remindAt());var from=time(s.quietFrom());var risk=from.minusHours(2);
@@ -141,11 +166,12 @@ public class StudyNotificationService {
     String title="Evaluación próxima";String body=due.title()+" · "+due.startsAt().atZone(LIMA).toLocalDateTime()+". Revisa tus materiales con calma.";
     message(user,event(due),"TAREA",title,body.substring(0,Math.min(body.length(),500)),due.startsAt());
    }
+   if(settings.evaluations())for(var item:news(user,now))message(user,item.key(),"TAREA",item.title(),item.body(),item.expires());
   });
  }
  private List<Notice> visible(String user,Preferences settings){
   var now=clock.instant();var params=p(user);params.put("now",stamp(now));
-  Set<String> evaluations=new HashSet<>();if(settings.evaluations())reminders.due(user,now,now.plus(Duration.ofHours(24))).forEach(d->evaluations.add(event(d)));
+  Set<String> evaluations=new HashSet<>();if(settings.evaluations()){reminders.due(user,now,now.plus(Duration.ofHours(24))).forEach(d->evaluations.add(event(d)));news(user,now).forEach(n->evaluations.add(n.key()));}
   int done=completed(user);var today=LocalDate.now(clock.withZone(LIMA));String goalKey="META:"+today;String streakKey=streakKey(today);
   return db.queryForList("""
    SELECT m.*,e.clave_evento FROM notificacion_mensaje m JOIN notificacion_evento_usuario e ON e.mensaje_id=m.id

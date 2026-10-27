@@ -50,9 +50,9 @@ export function StudyNotifications() {
      {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} actividad{n > 1 ? 'es' : ''}</option>)}
     </select></label>
     <p>Completaste {status?.completedToday ?? 0} actividades hoy. La meta no cambia tus calificaciones.</p>
-    <label><input type="checkbox" checked={form.goals} onChange={e => setForm({ ...form, goals: e.target.checked })} />Recordar mi meta pendiente</label>
+    <label><input type="checkbox" checked={form.goals} onChange={e => setForm({ ...form, goals: e.target.checked })} />Recordar mi meta pendiente y mi racha</label>
     <label>Hora del recordatorio<input type="time" required value={form.remindAt} onChange={e => setForm({ ...form, remindAt: e.target.value })} /></label>
-    <label><input type="checkbox" checked={form.evaluations} onChange={e => setForm({ ...form, evaluations: e.target.checked })} />Recordar evaluaciones durante las próximas 24 horas</label>
+    <label><input type="checkbox" checked={form.evaluations} onChange={e => setForm({ ...form, evaluations: e.target.checked })} />Avisos de mi docente: nuevas fechas de evaluación, materiales nuevos y evaluaciones de las próximas 24 horas</label>
     <label><input type="checkbox" checked={form.system} onChange={e => setForm({ ...form, system: e.target.checked })} />Permitir avisos en Android</label>
     <p>Activa también el permiso desde la aplicación Android. En esta web puedes consultar tus avisos.</p>
     <label>Descansar desde<input type="time" required value={form.quietFrom} onChange={e => setForm({ ...form, quietFrom: e.target.value })} /></label>

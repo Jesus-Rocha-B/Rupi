@@ -38,6 +38,13 @@ public class ReminderRepository {
             (rs,n)->new Due(rs.getString(1),rs.getString(2),rs.getString(3),rs.getTimestamp(4).toLocalDateTime().toInstant(ZoneOffset.UTC)),
             student,timestamp(now),timestamp(until));
     }
+    /** Historia 28: evaluaciones futuras que el docente programó o reprogramó desde {@code since}, con la misma elegibilidad. */
+    public List<Due> scheduledSince(String student,Instant now,Instant since) {
+        return jdbc.query("SELECT DISTINCT p.version_ruta_id,p.referencia_id,p.titulo,p.inicia_en FROM escuela_planificacion_ruta p "
+            +ELIGIBLE+" WHERE p.tipo='EVALUACION' AND m.usuario_id=? AND p.inicia_en>? AND p.actualizado_en>=?"+PREFERENCE,
+            (rs,n)->new Due(rs.getString(1),rs.getString(2),rs.getString(3),rs.getTimestamp(4).toLocalDateTime().toInstant(ZoneOffset.UTC)),
+            student,timestamp(now),timestamp(since));
+    }
     /** INSERT atómico y clave única: repetir el barrido o ejecutarlo en dos servidores no duplica avisos. */
     public void generate(Instant now, Instant until) {
         jdbc.update("""
