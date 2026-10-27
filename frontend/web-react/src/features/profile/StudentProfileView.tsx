@@ -13,12 +13,14 @@ import {
   Shirt,
   Sparkles,
   Star,
+  Trophy,
   Volume2,
 } from 'lucide-react'
 import type { BadgeDto, RouteSummary, Student } from '../../services/learningRoutesApi'
 import { StudentAvatar } from '../../components/StudentAvatar'
 import { RupiCharacter, type EquippedAccessories } from '../../components/RupiCharacter'
 import { RupiCustomizerModal } from '../../components/RupiCustomizerModal'
+import { ClassroomLeaderboardModal } from '../../components/ClassroomLeaderboardModal'
 import { fetchEquippedAccessories } from '../../services/accessoriesApi'
 import { RoadmapCard } from '../../components/RoadmapCard'
 import { speakText } from '../../utils/speech'
@@ -94,6 +96,7 @@ export function StudentProfileView({
 }: StudentProfileViewProps) {
   const [selectedBadge, setSelectedBadge] = useState<CatalogBadge | null>(null)
   const [showCustomizer, setShowCustomizer] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [equippedAccessories, setEquippedAccessories] = useState<EquippedAccessories>({})
 
   useEffect(() => {
@@ -271,16 +274,28 @@ export function StudentProfileView({
           <p className="profile-rupi-subtitle">
             Personaliza a Rupi con sombreros tradicionales, vestimentas andinas y auras mágicas desbloqueados con tus puntos XP.
           </p>
-          <button
-            type="button"
-            className="btn-open-rupi-store"
-            onClick={() => setShowCustomizer(true)}
-            title="Abrir la tienda y vestir a Rupi"
-            aria-label="Abrir la tienda y vestir a Rupi"
-          >
-            <Sparkles size={18} aria-hidden="true" />
-            <span>Abrir Armario y Tienda de Rupi</span>
-          </button>
+          <div className="profile-rupi-buttons-row">
+            <button
+              type="button"
+              className="btn-open-rupi-store"
+              onClick={() => setShowCustomizer(true)}
+              title="Abrir la tienda y vestir a Rupi"
+              aria-label="Abrir la tienda y vestir a Rupi"
+            >
+              <Sparkles size={18} aria-hidden="true" />
+              <span>Abrir Armario y Tienda</span>
+            </button>
+            <button
+              type="button"
+              className="btn-open-classroom-leaderboard"
+              onClick={() => setShowLeaderboard(true)}
+              title="Ver la tabla de logros y posiciones del aula"
+              aria-label="Ver la tabla de logros y posiciones del aula"
+            >
+              <Trophy size={18} aria-hidden="true" />
+              <span>Tabla de Logros del Aula</span>
+            </button>
+          </div>
         </div>
 
         <div className="profile-rupi-avatar-wrap">
@@ -478,6 +493,11 @@ export function StudentProfileView({
         isOpen={showCustomizer}
         onClose={() => setShowCustomizer(false)}
         onEquippedChange={setEquippedAccessories}
+      />
+
+      <ClassroomLeaderboardModal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
       />
     </div>
   )

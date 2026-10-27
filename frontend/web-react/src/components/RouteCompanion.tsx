@@ -18,10 +18,12 @@ import {
   Shirt,
   Sparkles,
   Store,
+  Trophy,
   Volume2,
 } from 'lucide-react'
 import { RupiCharacter, type EquippedAccessories } from './RupiCharacter'
 import { RupiCustomizerModal } from './RupiCustomizerModal'
+import { ClassroomLeaderboardModal } from './ClassroomLeaderboardModal'
 import { fetchEquippedAccessories } from '../services/accessoriesApi'
 import { StreakBadge } from './StreakBadge'
 import { speakText } from '../utils/speech'
@@ -85,6 +87,7 @@ export function RouteCompanion({ route, teacher = false }: Props) {
   const activeFactIndex = choice.key === factKey ? choice.index : Math.max(0, linkedIndex)
 
   const [showCustomizer, setShowCustomizer] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [equippedAccessories, setEquippedAccessories] = useState<EquippedAccessories>({})
 
   useEffect(() => {
@@ -133,6 +136,16 @@ export function RouteCompanion({ route, teacher = false }: Props) {
                 <Shirt size={14} aria-hidden="true" />
                 <span>Vestir a Rupi</span>
               </button>
+              <button
+                type="button"
+                className="rupi-wardrobe-trigger-btn"
+                onClick={() => setShowLeaderboard(true)}
+                title="Ver la tabla de posiciones de tu aula"
+                aria-label="Ver la tabla de posiciones de tu aula"
+              >
+                <Trophy size={14} aria-hidden="true" />
+                <span>Tabla del Aula</span>
+              </button>
             </div>
           </div>
         </section>
@@ -141,6 +154,10 @@ export function RouteCompanion({ route, teacher = false }: Props) {
         isOpen={showCustomizer}
         onClose={() => setShowCustomizer(false)}
         onEquippedChange={setEquippedAccessories}
+      />
+      <ClassroomLeaderboardModal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
       />
       </aside>
     )
@@ -255,6 +272,16 @@ export function RouteCompanion({ route, teacher = false }: Props) {
               <Shirt size={14} aria-hidden="true" />
               <span>Vestir a Rupi</span>
             </button>
+            <button
+              type="button"
+              className="rupi-wardrobe-trigger-btn"
+              onClick={() => setShowLeaderboard(true)}
+              title="Ver la tabla de posiciones de tu aula"
+              aria-label="Ver la tabla de posiciones de tu aula"
+            >
+              <Trophy size={14} aria-hidden="true" />
+              <span>Tabla del Aula</span>
+            </button>
           </div>
         </div>
 
@@ -280,6 +307,10 @@ export function RouteCompanion({ route, teacher = false }: Props) {
       isOpen={showCustomizer}
       onClose={() => setShowCustomizer(false)}
       onEquippedChange={setEquippedAccessories}
+    />
+    <ClassroomLeaderboardModal
+      isOpen={showLeaderboard}
+      onClose={() => setShowLeaderboard(false)}
     />
       </aside>
   )

@@ -706,3 +706,38 @@
   transform: translateY(3px);
   box-shadow: 0 1px 0 #a82e16;
 }
+
+
+.profile-rupi-buttons-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-open-classroom-leaderboard {
+  background-color: #246a91;
+  color: #ffffff;
+  border: 2px solid #1a4d6b;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #143d54;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  min-height: 48px;
+}
+
+.btn-open-classroom-leaderboard:hover {
+  background-color: #1f5c7d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #143d54;
+}
+
+.btn-open-classroom-leaderboard:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #143d54;
+}

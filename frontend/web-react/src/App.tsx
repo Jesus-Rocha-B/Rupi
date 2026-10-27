@@ -17,6 +17,7 @@ import {
   Shirt,
   Sparkles,
   Star,
+  Trophy,
   Volume2,
 } from 'lucide-react'
 import { Roadmap } from './features/roadmap/Roadmap'
@@ -56,6 +57,7 @@ import { StudentAvatar } from './components/StudentAvatar'
 import { ExploreRoadmapsView } from './features/roadmap/ExploreRoadmapsView'
 import { StudentProfileView } from './features/profile/StudentProfileView'
 import { RupiCustomizerModal } from './components/RupiCustomizerModal'
+import { ClassroomLeaderboardModal } from './components/ClassroomLeaderboardModal'
 import { speakText } from './utils/speech'
 import './App.css'
 
@@ -124,6 +126,7 @@ function App() {
   const [highlightBadge, setHighlightBadge] = useState<BadgeDto | null>(null)
   const [joinModalOpen, setJoinModalOpen] = useState(false)
   const [showRupiStore, setShowRupiStore] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [loading, setLoading] = useState(true)
   const [slowLoading, setSlowLoading] = useState(false)
   const [currentView, setCurrentView] = useState<AppView>('camino')
@@ -675,6 +678,15 @@ function App() {
             <Shirt aria-hidden="true" />
             <span>Tienda Rupi</span>
           </button>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => setShowLeaderboard(true)}
+            title="Ver la Tabla de Logros y Posiciones del Aula"
+          >
+            <Trophy aria-hidden="true" />
+            <span>Tabla de Aula</span>
+          </button>
         </nav>
         <div className="sidebar-bottom">
           <div className="profile-top-group">
@@ -1130,6 +1142,11 @@ function App() {
       <RupiCustomizerModal
         isOpen={showRupiStore}
         onClose={() => setShowRupiStore(false)}
+      />
+
+      <ClassroomLeaderboardModal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
       />
     </div>
 
