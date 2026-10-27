@@ -1193,34 +1193,47 @@
   border-radius: 6px;
 }
 
-/* Barra de pestañas segmentadas */
+/* Barra de pestañas segmentadas (estrictamente en una sola fila sin saltos) */
 .stop-nav-tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 8px 12px;
   background: #f8fafc;
   border-bottom: 2px solid #e2e8f0;
-  overflow: visible;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  -webkit-overflow-scrolling: touch;
 }
 
 .stop-nav-tabs::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+  display: block;
+  height: 5px;
+}
+
+.stop-nav-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.stop-nav-tabs::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
 }
 
 .stop-nav-tab {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px 16px;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 6px 14px;
   border: 1.5px solid transparent;
   background: transparent;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 800;
   color: #64748b;
   border-radius: 10px;

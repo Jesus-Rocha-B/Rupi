@@ -131,7 +131,7 @@ function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [loading, setLoading] = useState(true)
   const [slowLoading, setSlowLoading] = useState(false)
-  const [currentView, setCurrentView] = useState<AppView>('inicio')
+  const [currentView, setCurrentView] = useState<AppView>('camino')
   const [dailyGoalRefreshKey, setDailyGoalRefreshKey] = useState(0)
   const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview' | 'reports'>('authoring')
   const [reportsTarget, setReportsTarget] = useState<{ routeId?: string; grade?: number }>({})
@@ -442,6 +442,7 @@ function App() {
     setSelectedGrade(gradeNumber)
     setSelectedCourse(courseCode)
     setRouteId('')
+    setCurrentView('camino')
     resetView()
     writeStorage('rupi_selected_grade', gradeNumber != null ? String(gradeNumber) : null)
     writeStorage('rupi_selected_course', courseCode)
@@ -472,6 +473,7 @@ function App() {
     }
     handleSelectGradeAndCourse(result.grade.number, courseCode)
     setRouteId(result.versionRouteId)
+    setCurrentView('camino')
     setReloadKey(value => value + 1)
   }
 
@@ -510,6 +512,7 @@ function App() {
       resetView()
       setStudent(current)
       setTeacherViewMode('authoring')
+      setCurrentView('camino')
       setRoutes([]); setRouteId(''); setSelectedGrade(null); setSelectedCourse(null)
       setReloadKey(value => value + 1)
     } catch (error) {
@@ -528,6 +531,7 @@ function App() {
       resetView()
       setStudent(current)
       setTeacherViewMode('authoring')
+      setCurrentView('camino')
       setRoutes([]); setRouteId(''); setSelectedGrade(null); setSelectedCourse(null)
       setReloadKey(value => value + 1)
     } catch {
@@ -632,6 +636,7 @@ function App() {
             // También fija el grado: con `selectedGrade` en null la app volvía a esta pantalla tras cargar la ruta.
             handleSelectGradeAndCourse(gradeNumber, courseCode)
             setRouteId(versionRouteId)
+            setCurrentView('camino')
           }}
           onLogout={handleLogout}
           onOpenJoinModal={() => setJoinModalOpen(true)}
