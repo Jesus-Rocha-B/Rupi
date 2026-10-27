@@ -1,0 +1,708 @@
+/**
+ * RupiCustomizerModal.css
+ * Estilos artesanales, táctiles y con identidad peruana para el Armario y Tienda de Rupi (HU-31).
+ * Cumple estrictamente con AGENTS.md y human-crafted-frontend.
+ */
+
+.customizer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background-color: rgba(23, 62, 48, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: customizerFadeIn 0.15s ease-out;
+}
+
+@keyframes customizerFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.customizer-modal-box {
+  width: 100%;
+  max-width: 960px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #faf8f5;
+  border: 3px solid #173e30;
+  border-radius: 24px;
+  box-shadow: 0 8px 0 #173e30;
+  overflow: hidden;
+  animation: customizerPopIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes customizerPopIn {
+  from {
+    transform: scale(0.96) translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Encabezado */
+.customizer-header {
+  background-color: #ffffff;
+  border-bottom: 2px solid #e2dac9;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.customizer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.customizer-icon-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background-color: #fff2ec;
+  border: 2px solid #f95738;
+  color: #f95738;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 3px 0 #e64526;
+}
+
+.customizer-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #173e30;
+  line-height: 1.2;
+}
+
+.customizer-subtitle {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  color: #556b61;
+}
+
+.customizer-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.customizer-xp-pill {
+  background-color: #fff9e6;
+  border: 2px solid #ffd26a;
+  color: #7a5105;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 0 #e6be4d;
+}
+
+.customizer-close-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: #f3efe6;
+  border: 2px solid #173e30;
+  color: #173e30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #173e30;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.customizer-close-btn:hover {
+  background-color: #ede7dc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #173e30;
+}
+
+.customizer-close-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+/* Banners de estado */
+.customizer-banner {
+  margin: 12px 24px 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.customizer-banner.error {
+  background-color: #fde8e4;
+  border: 2px solid #f95738;
+  color: #a82e16;
+}
+
+.customizer-banner.success {
+  background-color: #eaf6ee;
+  border: 2px solid #31724b;
+  color: #1b4e30;
+}
+
+/* Cuerpo dividido en 2 columnas */
+.customizer-body {
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  padding: 18px 24px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Columna Izquierda: Probador en vivo */
+.customizer-preview-col {
+  width: 250px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.customizer-avatar-stage {
+  background-color: #ffffff;
+  border: 2.5px solid #dcd4c3;
+  border-radius: 20px;
+  padding: 16px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 4px 0 #dcd4c3;
+}
+
+.customizer-stage-rupi {
+  width: 155px;
+  height: 175px;
+  object-fit: contain;
+}
+
+.customizer-stage-badge {
+  margin-top: 8px;
+  background-color: #31724b;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #1b4e30;
+}
+
+.customizer-stage-info {
+  background-color: #f3efe6;
+  border: 2px solid #dcd4c3;
+  border-radius: 14px;
+  padding: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stage-info-text {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #556b61;
+  line-height: 1.35;
+}
+
+.stage-reset-btn {
+  background-color: #ffffff;
+  border: 2px solid #31724b;
+  color: #31724b;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #31724b;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  min-height: 38px;
+}
+
+.stage-reset-btn:hover {
+  background-color: #eaf6ee;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #31724b;
+}
+
+.stage-reset-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #31724b;
+}
+
+/* Columna Derecha: Catálogo */
+.customizer-catalog-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.customizer-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.customizer-tab {
+  min-height: 42px;
+  padding: 7px 16px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  border-radius: 12px;
+  border: 2px solid #dcd4c3;
+  background-color: #ffffff;
+  color: #556b61;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #dcd4c3;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.1s ease;
+}
+
+.customizer-tab:hover {
+  background-color: #f7f4ee;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #dcd4c3;
+}
+
+.customizer-tab.active {
+  background-color: #173e30;
+  border-color: #173e30;
+  color: #ffffff;
+  box-shadow: 0 3px 0 #0d251d;
+}
+
+.customizer-tab:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #0d251d;
+}
+
+.customizer-loading {
+  padding: 40px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #556b61;
+}
+
+/* Grilla de Tarjetas de Accesorios */
+.customizer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+  max-height: 420px;
+}
+
+.accessory-card {
+  background-color: #ffffff;
+  border: 2px solid #dcd4c3;
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #dcd4c3;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.1s ease;
+  position: relative;
+}
+
+.accessory-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #bfb49e;
+  border-color: #bfb49e;
+}
+
+.accessory-card.is-equipped {
+  border-color: #31724b;
+  background-color: #f4fbf6;
+  box-shadow: 0 3px 0 #31724b;
+}
+
+.accessory-card.is-equipped:hover {
+  border-color: #235436;
+  box-shadow: 0 5px 0 #235436;
+}
+
+.accessory-card.is-locked {
+  background-color: #faf7f2;
+}
+
+.accessory-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.accessory-type-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #246a91;
+  background-color: #eaf3f8;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid #bfdbed;
+}
+
+.accessory-cost-badge {
+  font-size: 0.74rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #7a5105;
+  background-color: #fff8e1;
+  border: 1px solid #ffd26a;
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+
+.accessory-cost-badge.free {
+  color: #1b4e30;
+  background-color: #eaf6ee;
+  border-color: #a3d9b4;
+}
+
+.accessory-card-body {
+  margin: 4px 0 10px;
+}
+
+.accessory-card-title {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #173e30;
+  line-height: 1.25;
+}
+
+.accessory-card-desc {
+  margin: 0;
+  font-size: 0.74rem;
+  color: #63776d;
+  line-height: 1.35;
+}
+
+.accessory-card-actions {
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.acc-btn {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.acc-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.acc-btn.equipped {
+  background-color: #31724b;
+  color: #ffffff;
+  border: 2px solid #235436;
+  box-shadow: 0 3px 0 #1b422a;
+}
+
+.acc-btn.equipped:hover:not(:disabled) {
+  background-color: #2b6542;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #1b422a;
+}
+
+.acc-btn.equipped:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #1b422a;
+}
+
+.acc-btn.equip {
+  background-color: #246a91;
+  color: #ffffff;
+  border: 2px solid #1a4d6b;
+  box-shadow: 0 3px 0 #143d54;
+}
+
+.acc-btn.equip:hover:not(:disabled) {
+  background-color: #1f5c7d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #143d54;
+}
+
+.acc-btn.equip:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #143d54;
+}
+
+.acc-btn.unlock {
+  background-color: #f95738;
+  color: #ffffff;
+  border: 2px solid #d43b1e;
+  box-shadow: 0 3px 0 #a82e16;
+}
+
+.acc-btn.unlock:hover:not(:disabled) {
+  background-color: #e54c2e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #a82e16;
+}
+
+.acc-btn.unlock:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #a82e16;
+}
+
+.acc-btn.locked {
+  background-color: #eae5da;
+  color: #7b8e83;
+  border: 1.5px solid #d4cbba;
+  box-shadow: none;
+  font-size: 0.74rem;
+}
+
+/* Pie del modal */
+.customizer-footer {
+  background-color: #ffffff;
+  border-top: 2px solid #e2dac9;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.customizer-footer-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #556b61;
+  max-width: 600px;
+}
+
+.tip-icon {
+  color: #f95738;
+  flex-shrink: 0;
+}
+
+.customizer-done-btn {
+  background-color: #31724b;
+  color: #ffffff;
+  border: 2px solid #235436;
+  border-radius: 14px;
+  padding: 10px 24px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #1b422a;
+  min-height: 48px;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.customizer-done-btn:hover {
+  background-color: #2b6542;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #1b422a;
+}
+
+.customizer-done-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #1b422a;
+}
+
+/* Modo Adaptable a Pantallas Móviles / Tabletas pequeñas */
+@media (max-width: 768px) {
+  .customizer-body {
+    flex-direction: column;
+  }
+
+  .customizer-preview-col {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .customizer-avatar-stage {
+    width: 160px;
+    padding: 10px;
+  }
+
+  .customizer-stage-rupi {
+    width: 110px;
+    height: 120px;
+  }
+
+  .customizer-stage-info {
+    flex: 1;
+  }
+
+  .customizer-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    max-height: 320px;
+  }
+}
+
+
+/* Botón de acceso directo al armario en el acompañante de ruta y perfil */
+.rupi-wardrobe-trigger-btn {
+  margin-top: 8px;
+  background-color: #ffffff;
+  border: 2px solid #31724b;
+  color: #173e30;
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #31724b;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  width: fit-content;
+}
+
+.rupi-wardrobe-trigger-btn:hover {
+  background-color: #f3faee;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #31724b;
+}
+
+.rupi-wardrobe-trigger-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #31724b;
+}
+
+/* Sección de Rupi en el Perfil del Estudiante */
+.profile-rupi-section {
+  background-color: #ffffff;
+  border: 2.5px solid #173e30;
+  border-radius: 24px;
+  padding: 1.8rem 2rem;
+  box-shadow: 0 5px 0 #173e30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.profile-rupi-content {
+  flex: 1;
+  min-width: 260px;
+}
+
+.profile-rupi-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #173e30;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.profile-rupi-subtitle {
+  margin: 0.4rem 0 1rem;
+  font-size: 0.92rem;
+  color: #4a5d53;
+  line-height: 1.45;
+}
+
+.profile-rupi-avatar-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #faf8f5;
+  border: 2px solid #dcd4c3;
+  border-radius: 20px;
+  padding: 12px 24px;
+  box-shadow: 0 3px 0 #dcd4c3;
+}
+
+.profile-rupi-character {
+  width: 110px;
+  height: 120px;
+}
+
+.btn-open-rupi-store {
+  background-color: #f95738;
+  color: #ffffff;
+  border: 2px solid #d43b1e;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #a82e16;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  min-height: 48px;
+}
+
+.btn-open-rupi-store:hover {
+  background-color: #e54c2e;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #a82e16;
+}
+
+.btn-open-rupi-store:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #a82e16;
+}

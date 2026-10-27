@@ -14,6 +14,7 @@ import {
   KeyRound,
   LogOut,
   RefreshCw,
+  Shirt,
   Sparkles,
   Star,
   Volume2,
@@ -54,6 +55,7 @@ import { TeacherAuthoringView } from './features/teacher/TeacherAuthoringView'
 import { StudentAvatar } from './components/StudentAvatar'
 import { ExploreRoadmapsView } from './features/roadmap/ExploreRoadmapsView'
 import { StudentProfileView } from './features/profile/StudentProfileView'
+import { RupiCustomizerModal } from './components/RupiCustomizerModal'
 import { speakText } from './utils/speech'
 import './App.css'
 
@@ -121,6 +123,7 @@ function App() {
   const [badgesModalOpen, setBadgesModalOpen] = useState(false)
   const [highlightBadge, setHighlightBadge] = useState<BadgeDto | null>(null)
   const [joinModalOpen, setJoinModalOpen] = useState(false)
+  const [showRupiStore, setShowRupiStore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [slowLoading, setSlowLoading] = useState(false)
   const [currentView, setCurrentView] = useState<AppView>('camino')
@@ -663,6 +666,15 @@ function App() {
               <span className="nav-badge-count">{badges.length}</span>
             )}
           </button>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => setShowRupiStore(true)}
+            title="Abrir la Tienda y Armario de Rupi"
+          >
+            <Shirt aria-hidden="true" />
+            <span>Tienda Rupi</span>
+          </button>
         </nav>
         <div className="sidebar-bottom">
           <div className="profile-top-group">
@@ -1113,6 +1125,11 @@ function App() {
         isOpen={joinModalOpen}
         onClose={() => setJoinModalOpen(false)}
         onJoined={handleJoinedClass}
+      />
+
+      <RupiCustomizerModal
+        isOpen={showRupiStore}
+        onClose={() => setShowRupiStore(false)}
       />
     </div>
 

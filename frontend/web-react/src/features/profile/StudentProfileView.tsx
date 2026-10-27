@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Award,
   BookOpen,
@@ -10,12 +10,16 @@ import {
   Lock,
   LogOut,
   School,
+  Shirt,
   Sparkles,
   Star,
   Volume2,
 } from 'lucide-react'
 import type { BadgeDto, RouteSummary, Student } from '../../services/learningRoutesApi'
 import { StudentAvatar } from '../../components/StudentAvatar'
+import { RupiCharacter, type EquippedAccessories } from '../../components/RupiCharacter'
+import { RupiCustomizerModal } from '../../components/RupiCustomizerModal'
+import { fetchEquippedAccessories } from '../../services/accessoriesApi'
 import { RoadmapCard } from '../../components/RoadmapCard'
 import { speakText } from '../../utils/speech'
 import './StudentProfileView.css'
@@ -89,6 +93,27 @@ export function StudentProfileView({
   onLogout,
 }: StudentProfileViewProps) {
   const [selectedBadge, setSelectedBadge] = useState<CatalogBadge | null>(null)
+  const [showCustomizer, setShowCustomizer] = useState(false)
+  const [equippedAccessories, setEquippedAccessories] = useState<EquippedAccessories>({})
+
+  useEffect(() => {
+    let active = true
+    fetchEquippedAccessories()
+      .then((data) => {
+        if (!active) return
+        setEquippedAccessories({
+          sombrero: data.sombrero,
+          vestimenta: data.vestimenta,
+          fondo: data.fondo,
+        })
+      })
+      .catch(() => {
+        // Fallback silencioso si no hay conexión
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const earnedCodes = new Set(earnedBadges.map((b) => b.code))
 
@@ -233,6 +258,37 @@ export function StudentProfileView({
               </span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Mi Compañero Rupi y Armario (HU-31) */}
+      <section className="profile-rupi-section" aria-labelledby="profile-rupi-title">
+        <div className="profile-rupi-content">
+          <h2 id="profile-rupi-title" className="profile-rupi-title">
+            <Shirt size={22} aria-hidden="true" />
+            <span>Mi Compañero Rupi</span>
+          </h2>
+          <p className="profile-rupi-subtitle">
+            Personaliza a Rupi con sombreros tradicionales, vestimentas andinas y auras mágicas desbloqueados con tus puntos XP.
+          </p>
+          <button
+            type="button"
+            className="btn-open-rupi-store"
+            onClick={() => setShowCustomizer(true)}
+            title="Abrir la tienda y vestir a Rupi"
+            aria-label="Abrir la tienda y vestir a Rupi"
+          >
+            <Sparkles size={18} aria-hidden="true" />
+            <span>Abrir Armario y Tienda de Rupi</span>
+          </button>
+        </div>
+
+        <div className="profile-rupi-avatar-wrap">
+          <RupiCharacter
+            mood="cheering"
+            accessories={equippedAccessories}
+            className="profile-rupi-character"
+          />
         </div>
       </section>
 
@@ -417,6 +473,12 @@ export function StudentProfileView({
           </button>
         </div>
       </section>
+
+      <RupiCustomizerModal
+        isOpen={showCustomizer}
+        onClose={() => setShowCustomizer(false)}
+        onEquippedChange={setEquippedAccessories}
+      />
     </div>
   )
 }

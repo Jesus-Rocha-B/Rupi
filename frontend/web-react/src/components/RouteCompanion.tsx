@@ -1,5 +1,5 @@
 import { RouteCalendar } from '../features/calendar/RouteCalendar'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   Award,
   Bell,
@@ -15,11 +15,14 @@ import {
   Mountain,
   Palette,
   Shapes,
+  Shirt,
   Sparkles,
   Store,
   Volume2,
 } from 'lucide-react'
-import { RupiCharacter } from './RupiCharacter'
+import { RupiCharacter, type EquippedAccessories } from './RupiCharacter'
+import { RupiCustomizerModal } from './RupiCustomizerModal'
+import { fetchEquippedAccessories } from '../services/accessoriesApi'
 import { StreakBadge } from './StreakBadge'
 import { speakText } from '../utils/speech'
 import type { CulturalContext, CulturalFact, RouteDetail, RouteNode } from '../services/learningRoutesApi'
@@ -81,13 +84,35 @@ export function RouteCompanion({ route, teacher = false }: Props) {
   const linkedIndex = facts.findIndex(fact => fact.nodeSequence === currentNode?.sequence)
   const activeFactIndex = choice.key === factKey ? choice.index : Math.max(0, linkedIndex)
 
+  const [showCustomizer, setShowCustomizer] = useState(false)
+  const [equippedAccessories, setEquippedAccessories] = useState<EquippedAccessories>({})
+
+  useEffect(() => {
+    let active = true
+    fetchEquippedAccessories()
+      .then((data) => {
+        if (!active) return
+        setEquippedAccessories({
+          sombrero: data.sombrero,
+          vestimenta: data.vestimenta,
+          fondo: data.fondo,
+        })
+      })
+      .catch(() => {
+        // Fallback silencioso sin romper la interfaz
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
   // Si no hay contexto cultural, mostrar solo la tarjeta de ánimo pedagógico de Rupi sin romper la pantalla
   if (!context || !facts.length) {
     return (
       <aside className="route-companion" aria-label="Acompañamiento de tu ruta">
         <section className="cultural-companion-card simple-motivational">
           <div className="companion-rupi-quote">
-            <RupiCharacter mood="cheering" className="companion-rupi-avatar" />
+            <RupiCharacter mood="cheering" accessories={equippedAccessories} className="companion-rupi-avatar" />
             <div className="rupi-quote-body">
               <span className="quote-badge">
                 <Sparkles size={16} aria-hidden="true" />
@@ -98,10 +123,25 @@ export function RouteCompanion({ route, teacher = false }: Props) {
                   'No hay prisa en el camino. ¡Cada paso que das te hace crecer!'}
               </p>
               {!teacher && <StreakBadge completedNodes={route.progress.completedNodes} />}
+              <button
+                type="button"
+                className="rupi-wardrobe-trigger-btn"
+                onClick={() => setShowCustomizer(true)}
+                title="Abrir la tienda y vestir a Rupi"
+                aria-label="Abrir la tienda y vestir a Rupi"
+              >
+                <Shirt size={14} aria-hidden="true" />
+                <span>Vestir a Rupi</span>
+              </button>
             </div>
           </div>
         </section>
       <RouteCalendar key={route.versionRouteId} routeId={route.versionRouteId} teacher={teacher} />
+      <RupiCustomizerModal
+        isOpen={showCustomizer}
+        onClose={() => setShowCustomizer(false)}
+        onEquippedChange={setEquippedAccessories}
+      />
       </aside>
     )
   }
@@ -197,7 +237,7 @@ export function RouteCompanion({ route, teacher = false }: Props) {
 
         {/* 4. Mensaje de aliento de Rupi integrado en la misma tarjeta */}
         <div className="companion-rupi-quote">
-          <RupiCharacter mood="cheering" className="companion-rupi-avatar" />
+          <RupiCharacter mood="cheering" accessories={equippedAccessories} className="companion-rupi-avatar" />
           <div className="rupi-quote-body">
             <span className="quote-badge">
               <Sparkles size={14} aria-hidden="true" />
@@ -205,6 +245,16 @@ export function RouteCompanion({ route, teacher = false }: Props) {
             </span>
             <p className="quote-text">{context.motivationalMessage}</p>
             {!teacher && <StreakBadge completedNodes={route.progress.completedNodes} />}
+            <button
+              type="button"
+              className="rupi-wardrobe-trigger-btn"
+              onClick={() => setShowCustomizer(true)}
+              title="Abrir la tienda y vestir a Rupi"
+              aria-label="Abrir la tienda y vestir a Rupi"
+            >
+              <Shirt size={14} aria-hidden="true" />
+              <span>Vestir a Rupi</span>
+            </button>
           </div>
         </div>
 
@@ -226,6 +276,11 @@ export function RouteCompanion({ route, teacher = false }: Props) {
         </footer>
       </section>
     <RouteCalendar key={route.versionRouteId} routeId={route.versionRouteId} teacher={teacher} />
+    <RupiCustomizerModal
+      isOpen={showCustomizer}
+      onClose={() => setShowCustomizer(false)}
+      onEquippedChange={setEquippedAccessories}
+    />
       </aside>
   )
 }
