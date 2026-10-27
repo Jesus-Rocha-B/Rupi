@@ -12,6 +12,7 @@ import {
   Heart,
   House,
   KeyRound,
+  LayoutDashboard,
   LogOut,
   RefreshCw,
   Shirt,
@@ -58,10 +59,11 @@ import { ExploreRoadmapsView } from './features/roadmap/ExploreRoadmapsView'
 import { StudentProfileView } from './features/profile/StudentProfileView'
 import { RupiCustomizerModal } from './components/RupiCustomizerModal'
 import { ClassroomLeaderboardModal } from './components/ClassroomLeaderboardModal'
+import { StudentDashboardView } from './features/dashboard/StudentDashboardView'
 import { speakText } from './utils/speech'
 import './App.css'
 
-export type AppView = 'camino' | 'explorar' | 'perfil' | 'leccion'
+export type AppView = 'inicio' | 'camino' | 'explorar' | 'perfil' | 'leccion'
 
 
 const guideMessages = [
@@ -129,7 +131,7 @@ function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [loading, setLoading] = useState(true)
   const [slowLoading, setSlowLoading] = useState(false)
-  const [currentView, setCurrentView] = useState<AppView>('camino')
+  const [currentView, setCurrentView] = useState<AppView>('inicio')
   const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview' | 'reports'>('authoring')
   const [reportsTarget, setReportsTarget] = useState<{ routeId?: string; grade?: number }>({})
 
@@ -205,6 +207,27 @@ function App() {
     } finally {
       setActivityLoading(false)
     }
+  }
+
+  async function handleContinueFromDashboard(targetRouteId: string, targetNodeId: string) {
+    try {
+      setRouteId(targetRouteId)
+      const detail = await fetchRouteDetail(targetRouteId)
+      setSelectedRoute(detail)
+      const targetNode = detail.nodes.find(n => n.id === targetNodeId)
+      if (targetNode) {
+        await handleOpenNode(targetNode)
+      } else {
+        setCurrentView('camino')
+      }
+    } catch {
+      setCurrentView('camino')
+    }
+  }
+
+  function handleNavigateToRouteFromDashboard(targetRouteId: string) {
+    setRouteId(targetRouteId)
+    setCurrentView('camino')
   }
 
   function handleActivityCompleted(result: ActivityCompleteResult) {
@@ -639,6 +662,16 @@ function App() {
         <nav className="main-nav" aria-label="Navegación principal">
           <button
             type="button"
+            className={`nav-item ${currentView === 'inicio' ? 'selected' : ''}`}
+            onClick={() => setCurrentView('inicio')}
+            aria-current={currentView === 'inicio' ? 'page' : undefined}
+            title="Ver mi panel principal con resumen métrico de lecciones"
+          >
+            <LayoutDashboard aria-hidden="true" />
+            <span>Mi Panel</span>
+          </button>
+          <button
+            type="button"
             className={`nav-item ${currentView === 'camino' ? 'selected' : ''}`}
             onClick={() => setCurrentView('camino')}
             aria-current={currentView === 'camino' ? 'page' : undefined}
@@ -744,6 +777,23 @@ function App() {
               <span>Volver a Panel de Autoría</span>
             </button>
           </div>
+        )}
+
+        {/* Pantalla 0: Panel Principal Inicial con Resumen Métrico de Lecciones (HU-33) */}
+        {currentView === 'inicio' && (
+          <StudentDashboardView
+            studentName={student.name}
+            onContinueLesson={(targetRouteId, targetNodeId) => {
+              void handleContinueFromDashboard(targetRouteId, targetNodeId)
+            }}
+            onNavigateToRoute={(targetRouteId) => {
+              handleNavigateToRouteFromDashboard(targetRouteId)
+            }}
+            onOpenStore={() => setShowRupiStore(true)}
+            onOpenLeaderboard={() => setShowLeaderboard(true)}
+            onNavigateToCamino={() => setCurrentView('camino')}
+            onNavigateToExplorar={() => setCurrentView('explorar')}
+          />
         )}
 
         {/* Pantalla 1: Explorar Roadmaps (Oficial CNEB 1.°-6.° vs Comunidad/Profesores) */}
