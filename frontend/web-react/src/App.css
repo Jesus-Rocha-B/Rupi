@@ -2358,6 +2358,46 @@ body, button, input, select, textarea {
   letter-spacing: 0.5px;
 }
 
+.active-player-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.player-here-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef3c7;
+  border: 1.5px solid #f59e0b;
+  color: #92400e;
+  font-size: 0.74rem !important;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 3px rgba(146, 64, 14, 0.12);
+}
+
+.player-dot-pulse {
+  width: 7px;
+  height: 7px;
+  background: #f59e0b;
+  border-radius: 50%;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.55; }
+}
+
+.stop-action-row {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+}
+
 .stop-title-text {
   font-family: var(--display-font);
   font-weight: 900;

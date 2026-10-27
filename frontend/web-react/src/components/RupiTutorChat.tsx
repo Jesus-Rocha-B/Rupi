@@ -1,15 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { X, Send, Volume2, Loader2, RotateCcw } from 'lucide-react'
 import { askRupiTutor, type ChatMessage } from '../services/aiApi'
-import { RupiCharacter } from './RupiCharacter'
+import { RupiCharacter, type EquippedAccessories } from './RupiCharacter'
 import { speakText } from '../utils/speech'
 import './RupiTutorChat.css'
 
 interface Props {
   roadmapId?: string
   roadmapTitle?: string
+  roadmapDescription?: string
+  stopsSummary?: string
+  currentGrade?: string
+  currentSubject?: string
   stopTitle?: string
   lessonContent?: string
+  accessories?: EquippedAccessories
 }
 
 /**
@@ -155,7 +160,17 @@ function loadHistoryFromStorage(key: string, fallbackGreeting: ChatMessage): Cha
   return [fallbackGreeting]
 }
 
-export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonContent }: Props) {
+export function RupiTutorChat({
+  roadmapId,
+  roadmapTitle,
+  roadmapDescription,
+  stopsSummary,
+  currentGrade,
+  currentSubject,
+  stopTitle,
+  lessonContent,
+  accessories,
+}: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -217,6 +232,10 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
         text,
         {
           roadmapTitle: roadmapTitle || 'Ruta Escolar',
+          roadmapDescription: roadmapDescription || '',
+          stopsSummary: stopsSummary || '',
+          currentGrade: currentGrade || '',
+          currentSubject: currentSubject || '',
           stopTitle: stopTitle || 'Parada Activa',
           lessonContent: lessonContent || '',
         },
@@ -260,7 +279,7 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
 
   return (
     <div className="rupi-tutor-container">
-      {/* Botón flotante inferior derecho con la cara de Rupi */}
+      {/* Botón flotante inferior derecho con la cara y ropa de Rupi */}
       {!isOpen && (
         <button
           type="button"
@@ -273,7 +292,7 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
           title="¿Dudas con la lección? ¡Pregúntale a Rupi!"
         >
           <div className="rupi-bubble-avatar">
-            <RupiCharacter mood="idle" />
+            <RupiCharacter mood="idle" accessories={accessories} />
           </div>
           <div className="rupi-bubble-label">
             <span>¿Dudas?</span>
@@ -290,7 +309,7 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
           <div className="rupi-chat-header">
             <div className="rupi-chat-header-info">
               <div className="rupi-header-icon">
-                <RupiCharacter mood="cheering" />
+                <RupiCharacter mood="cheering" accessories={accessories} />
               </div>
               <div>
                 <div className="rupi-header-title">
@@ -330,7 +349,7 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
               <div key={idx} className={`rupi-message-row ${m.role}`}>
                 {m.role === 'assistant' && (
                   <div className="rupi-msg-avatar" aria-hidden="true">
-                    <RupiCharacter mood="idle" />
+                    <RupiCharacter mood="idle" accessories={accessories} />
                   </div>
                 )}
                 <div className="rupi-message-bubble">
@@ -354,7 +373,7 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
             {loading && (
               <div className="rupi-message-row assistant">
                 <div className="rupi-msg-avatar">
-                  <RupiCharacter mood="thinking" />
+                  <RupiCharacter mood="thinking" accessories={accessories} />
                 </div>
                 <div className="rupi-message-bubble loading">
                   <Loader2 size={16} className="rupi-spin" />
@@ -370,7 +389,7 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
             <input
               type="text"
               className="rupi-input"
-              placeholder="Hazle una pregunta a Rupi..."
+              placeholder="Hazle una pregunta a Rupi sobre el roadmap..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}

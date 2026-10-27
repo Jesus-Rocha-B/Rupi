@@ -31,6 +31,10 @@ class TextGenerateRequest(BaseModel):
 
 class ChatContext(BaseModel):
     roadmapTitle: Optional[str] = "Ruta de Aprendizaje"
+    roadmapDescription: Optional[str] = ""
+    stopsSummary: Optional[str] = ""
+    currentGrade: Optional[str] = ""
+    currentSubject: Optional[str] = ""
     stopTitle: Optional[str] = "Parada Actual"
     lessonContent: Optional[str] = ""
 
@@ -164,11 +168,17 @@ def tutor_chat(payload: ChatRequest):
             
         ctx = payload.context or ChatContext()
         context_block = f"""
-DOCUMENTO Y CONTEXTO DE LA LECCIÓN (GROUNDING NOTEBOOKLM):
-- Ruta de Aprendizaje: {ctx.roadmapTitle}
-- Parada / Actividad Actual: {ctx.stopTitle}
-- Contenido de Estudio:
-{ctx.lessonContent if ctx.lessonContent else "En esta parada los estudiantes aprenden nociones y habilidades prácticas de la lección."}
+DOCUMENTO Y CONTEXTO COMPLETO DEL ROADMAP (GROUNDING NOTEBOOKLM):
+- Título del Roadmap Escolar: {ctx.roadmapTitle}
+- Descripción General de la Ruta: {ctx.roadmapDescription if ctx.roadmapDescription else "Aventura escolar de aprendizaje por etapas."}
+- Materia y Grado: {ctx.currentSubject} {ctx.currentGrade}
+- Paradas Didácticas que componen este Roadmap:
+{ctx.stopsSummary if ctx.stopsSummary else "Secuencia didáctica de paradas y lecciones interactivas."}
+
+PARADA DONDE ESTÁ EL ESTUDIANTE AHORA:
+- Parada actual: {ctx.stopTitle}
+- Contenido de la parada activa:
+{ctx.lessonContent if ctx.lessonContent else "El estudiante explora actividades didácticas en esta parada."}
 """
         # Incluir historial de conversación para continuidad NotebookLM
         history_text = ""

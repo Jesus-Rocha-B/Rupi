@@ -27,6 +27,10 @@ export interface GeneratedRoadmap {
 
 export interface ChatContext {
   roadmapTitle?: string
+  roadmapDescription?: string
+  stopsSummary?: string
+  currentGrade?: string
+  currentSubject?: string
   stopTitle?: string
   lessonContent?: string
 }

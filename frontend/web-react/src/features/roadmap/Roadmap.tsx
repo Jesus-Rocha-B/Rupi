@@ -56,17 +56,15 @@ import {
 
   BookOpen,
 
-  Palette,
 
 } from 'lucide-react'
 
 import { useMapBackground } from '../../utils/mapBackgrounds'
 
-import { MapBackgroundModal } from '../../components/MapBackgroundModal'
 
-import { nodeStateLabels } from './nodeStates'
 
-import { RupiCharacter } from '../../components/RupiCharacter'
+import { RupiCharacter, type EquippedAccessories } from '../../components/RupiCharacter'
+import { fetchEquippedAccessories } from '../../services/accessoriesApi'
 
 import { UnitDownloadPanel } from './UnitDownloadPanel'
 
@@ -330,9 +328,26 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
   const [rupiMood, setRupiMood] = useState<'idle' | 'jumping' | 'cheering' | 'thinking'>('cheering')
 
-  const [isBgModalOpen, setIsBgModalOpen] = useState(false)
 
-  const [mapBg, setMapBg] = useMapBackground(route.versionRouteId)
+  const [mapBg] = useMapBackground(route.versionRouteId)
+  const [equippedAccessories, setEquippedAccessories] = useState<EquippedAccessories>({})
+
+  useEffect(() => {
+    let active = true
+    fetchEquippedAccessories()
+      .then((acc) => {
+        if (!active) return
+        setEquippedAccessories({
+          sombrero: acc.sombrero,
+          vestimenta: acc.vestimenta,
+          fondo: acc.fondo,
+        })
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
 
 
 
@@ -592,28 +607,6 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
         <div className="unit-heading-actions">
 
-          <button
-
-            type="button"
-
-            className="change-bg-btn"
-
-            onClick={() => setIsBgModalOpen(true)}
-
-            title={`Cambiar paisaje del mapa (actual: ${mapBg.name})`}
-
-            aria-label="Cambiar paisaje del mapa de aprendizaje"
-
-          >
-
-            <Palette size={15} aria-hidden="true" />
-
-            <span>Paisaje: <strong>{mapBg.region}</strong></span>
-
-          </button>
-
-
-
           {guideMessage && (
 
             <button
@@ -776,7 +769,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
                     <div className="node-rupi-inside" aria-hidden="true">
 
-                      <RupiCharacter mood={rupiMood} className="node-rupi-svg" />
+                      <RupiCharacter mood={rupiMood} accessories={equippedAccessories} className="node-rupi-svg" />
 
                     </div>
 
@@ -831,32 +824,32 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
                 >
 
                   {isActive && (
-
-                    <span className="player-here-badge">
-
-                      <span className="player-dot-pulse" aria-hidden="true" />
-
-                      ¡Nivel actual con Rupi!
-
-                    </span>
-
+                    <div className="active-player-header">
+                      <span className="player-here-badge">
+                        <span className="player-dot-pulse" aria-hidden="true" />
+                        ¡Estás aquí con Rupi!
+                      </span>
+                    </div>
                   )}
 
                   {isGoal && (
-
                     <span className="goal-kicker-tag">
-
                       <Trophy size={14} aria-hidden="true" />
-
                       ¡Meta!
-
                     </span>
-
                   )}
 
                   <b className="stop-title-text">{node.title}</b>
 
-                  <span className={`pill-state ${cssClass}`}>{nodeStateLabels[node.state]}</span>
+                  <div className="stop-action-row">
+                    <span className={`pill-state ${cssClass}`}>
+                      {node.state === 'COMPLETADO'
+                        ? '✓ Completada'
+                        : canOpen
+                        ? '▶ ¡Puedes entrar!'
+                        : '🔒 Bloqueada'}
+                    </span>
+                  </div>
 
                 </div>
 
@@ -939,19 +932,16 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
       <RupiTutorChat
         roadmapId={route.versionRouteId}
         roadmapTitle={route.title}
+        roadmapDescription={route.culturalContext?.description || route.culturalContext?.motivationalMessage || `Ruta de aprendizaje escolar de ${route.area?.name || 'aprendizaje'} para ${route.grade?.name || 'primaria'}.`}
+        stopsSummary={route.nodes.map((n) => `Parada ${n.sequence}: ${n.title} (${n.activityType || 'LECCION'})`).join('\n')}
+        currentGrade={route.grade?.name}
+        currentSubject={route.area?.name}
         stopTitle={activeNode?.title}
         lessonContent={activeNode ? `${activeNode.title} (${activeNode.activityType})` : undefined}
+        accessories={equippedAccessories}
       />
 
-      <MapBackgroundModal
-        isOpen={isBgModalOpen}
-        onClose={() => setIsBgModalOpen(false)}
-        currentBgId={mapBg.id}
-        onSelectBg={(bgId) => setMapBg(bgId)}
-        routeTitle={route.title || currentUnit?.title}
-      />
-
-    </section>
+      </section>
 
   )
 
