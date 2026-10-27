@@ -20,6 +20,7 @@ import {
   Volume2,
 } from 'lucide-react'
 import { RupiCharacter } from './RupiCharacter'
+import { StreakBadge } from './StreakBadge'
 import { speakText } from '../utils/speech'
 import type { CulturalContext, CulturalFact, RouteDetail, RouteNode } from '../services/learningRoutesApi'
 
@@ -96,6 +97,7 @@ export function RouteCompanion({ route, teacher = false }: Props) {
                 {context?.motivationalMessage ||
                   'No hay prisa en el camino. ¡Cada paso que das te hace crecer!'}
               </p>
+              {!teacher && <StreakBadge completedNodes={route.progress.completedNodes} />}
             </div>
           </div>
         </section>
@@ -202,6 +204,7 @@ export function RouteCompanion({ route, teacher = false }: Props) {
               Rupi te acompaña
             </span>
             <p className="quote-text">{context.motivationalMessage}</p>
+            {!teacher && <StreakBadge completedNodes={route.progress.completedNodes} />}
           </div>
         </div>
 

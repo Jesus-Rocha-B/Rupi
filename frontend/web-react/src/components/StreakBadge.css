@@ -1,0 +1,71 @@
+/* Historia 30 · Racha junto a Rupi. Insignia de papel con borde nítido y sombra sólida, sin halos. */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 6px 12px 6px 6px;
+  background: #fffefa;
+  border: 2px solid #dbe8d2;
+  border-radius: 14px;
+  box-shadow: 0 3px 0 #dbe8d2;
+  color: #173e30;
+  max-width: 100%;
+}
+
+.streak-badge-flame {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 10px;
+  background: #edf2e8;
+  color: #43614c;
+}
+
+.streak-badge.is-lit {
+  background: #fff6dc;
+  border-color: #c98e2b;
+  box-shadow: 0 3px 0 #c98e2b;
+}
+
+.streak-badge.is-lit .streak-badge-flame {
+  background: #ffd26a;
+  color: #cc3a1d;
+}
+
+/* Racha de ayer que hoy aún espera actividad: se diferencia con texto y borde punteado, no solo con color. */
+.streak-badge.is-waiting {
+  border-style: dashed;
+}
+
+.streak-badge-text {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.streak-badge-text strong {
+  font-family: var(--display-font, 'Nunito', system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.streak-badge-text span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #43614c;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .streak-badge.is-lit .streak-badge-flame svg {
+    animation: streak-flicker 2.4s ease-in-out infinite;
+    transform-origin: 50% 90%;
+  }
+}
+
+@keyframes streak-flicker {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08) rotate(-3deg); }
+}
