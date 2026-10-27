@@ -937,6 +937,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
       <UnitDownloadPanel key={route.versionRouteId} route={route} />
 
       <RupiTutorChat
+        roadmapId={route.versionRouteId}
         roadmapTitle={route.title}
         stopTitle={activeNode?.title}
         lessonContent={activeNode ? `${activeNode.title} (${activeNode.activityType})` : undefined}

@@ -105,6 +105,12 @@ async def generate_roadmap_from_file(
         )
         
         roadmap_data = json.loads(gemini_response)
+        # Asegurar que cada parada indique obligatoriamente sus documentos base
+        if "stops" in roadmap_data and isinstance(roadmap_data["stops"], list):
+            for s in roadmap_data["stops"]:
+                if not s.get("sourceDocuments") or not isinstance(s["sourceDocuments"], list) or len(s["sourceDocuments"]) == 0:
+                    s["sourceDocuments"] = list(filenames)
+
         return {
             "success": True,
             "filenames": filenames,
@@ -164,14 +170,14 @@ DOCUMENTO Y CONTEXTO DE LA LECCIÓN (GROUNDING NOTEBOOKLM):
 - Contenido de Estudio:
 {ctx.lessonContent if ctx.lessonContent else "En esta parada los estudiantes aprenden nociones y habilidades prácticas de la lección."}
 """
-        # Incluir historial breve si existe
+        # Incluir historial de conversación para continuidad NotebookLM
         history_text = ""
         if payload.history:
             history_lines = []
-            for h in payload.history[-4:]:  # Últimos 4 mensajes
+            for h in payload.history[-10:]:  # Hasta 10 intercambios recientes para memoria conversacional
                 prefix = "Estudiante" if h.role == "user" else "Rupi"
                 history_lines.append(f"{prefix}: {h.content}")
-            history_text = "\nHISTORIAL RECIENTE:\n" + "\n".join(history_lines) + "\n"
+            history_text = "\nHISTORIAL DE CONVERSACIÓN PREVIO:\n" + "\n".join(history_lines) + "\n"
 
         user_content = f"{context_block}\n{history_text}\nPREGUNTA ACTUAL DEL ESTUDIANTE:\n{payload.message}"
         

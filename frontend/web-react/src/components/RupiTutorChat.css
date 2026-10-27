@@ -167,7 +167,53 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: 170px;
+}
+
+.rupi-header-sources {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-top: 3px;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rupi-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rupi-reset-chat-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.12s ease;
+}
+
+.rupi-reset-chat-btn:hover {
+  background: #f95738;
+  border-color: #d43f21;
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .rupi-close-btn {
@@ -175,13 +221,13 @@
   border: none;
   color: #ffffff;
   cursor: pointer;
-  padding: 8px;
+  padding: 6px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 36px;
+  min-height: 36px;
   transition: background-color 0.15s ease;
 }
 
@@ -255,6 +301,53 @@
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.rupi-formatted-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rupi-chat-paragraph {
+  margin: 0;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.rupi-chat-strong {
+  font-weight: 850;
+  color: #173e30;
+  letter-spacing: -0.01em;
+}
+
+.rupi-message-row.user .rupi-chat-strong {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.rupi-chat-code {
+  background: #f1f5f9;
+  color: #0f172a;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.88em;
+  border: 1px solid #cbd5e1;
+}
+
+.rupi-chat-ul,
+.rupi-chat-ol {
+  margin: 2px 0 2px 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rupi-chat-ul li,
+.rupi-chat-ol li {
+  line-height: 1.45;
 }
 
 /* Botón de Audio / Lectura */

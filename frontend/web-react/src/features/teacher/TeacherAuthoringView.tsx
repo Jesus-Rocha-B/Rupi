@@ -15,6 +15,8 @@ import {
   Sparkles,
 
   ArrowLeft,
+  ArrowRight,
+  ExternalLink,
 
   GraduationCap,
 
@@ -111,6 +113,7 @@ import {
   type TeacherNode,
 
   type AttachResourcePayload,
+  type UploadMaterialResult,
 
   type TeacherQuestion,
 
@@ -121,6 +124,7 @@ import {
 import { StudentAvatar } from '../../components/StudentAvatar'
 
 import { MaterialUploadZone } from '../../components/MaterialUploadZone'
+import { RupiTutorChat } from '../../components/RupiTutorChat'
 
 import { generateRoadmapFromFile } from '../../services/aiApi'
 
@@ -1037,6 +1041,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
       title: string
       description?: string
       activityType?: string
+      sourceDocuments?: string[]
       challengeQuestion?: string
       options?: string[]
       correctAnswer?: string
@@ -1066,6 +1071,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
             title: s.title,
             description: s.description || s.challengeQuestion,
             activityType: s.activityType,
+            sourceDocuments: s.sourceDocuments,
             challengeQuestion: s.challengeQuestion,
             options: s.options,
             correctAnswer: s.correctAnswer,
@@ -1087,6 +1093,19 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
         areaCode: finalArea,
       })
 
+      // Subir los archivos base a Spring Boot para asociarlos como fuentes a las paradas
+      const uploadedMaterialsMap = new Map<string, UploadMaterialResult>()
+      if (hasAiFiles) {
+        for (const file of aiFiles) {
+          try {
+            const uploaded = await uploadTeacherMaterial(file)
+            uploadedMaterialsMap.set(file.name.toLowerCase().trim(), uploaded)
+          } catch (uploadErr) {
+            console.error('Error subiendo documento base de la ruta a Spring Boot:', uploadErr)
+          }
+        }
+      }
+
       if (stopsToCreate.length > 0) {
         for (const stop of stopsToCreate) {
           try {
@@ -1097,6 +1116,44 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
               activityType: validActivityType,
               estimatedMinutes: 15,
             })
+
+            // Asociar documentos fuente (fuentes de las que se deriva este nodo)
+            if (nodeRes?.nodeId && uploadedMaterialsMap.size > 0) {
+              let matchingMaterials: UploadMaterialResult[] = []
+              if (stop.sourceDocuments && stop.sourceDocuments.length > 0) {
+                for (const srcDoc of stop.sourceDocuments) {
+                  const cleanSrc = srcDoc.toLowerCase().trim()
+                  const found = Array.from(uploadedMaterialsMap.entries()).find(([name]) =>
+                    name === cleanSrc || name.includes(cleanSrc) || cleanSrc.includes(name)
+                  )
+                  if (found && !matchingMaterials.some((m) => m.id === found[1].id)) {
+                    matchingMaterials.push(found[1])
+                  }
+                }
+              }
+              if (matchingMaterials.length === 0) {
+                // Si la parada sintetiza todas las fuentes o no hubo nombre específico, asociar todos los documentos cargados
+                matchingMaterials = Array.from(uploadedMaterialsMap.values())
+              }
+
+              for (const mat of matchingMaterials) {
+                try {
+                  let resType: 'DOCUMENTO' | 'PRESENTACION' | 'IMAGEN' = 'DOCUMENTO'
+                  const lower = mat.originalName.toLowerCase()
+                  if (lower.endsWith('.ppt') || lower.endsWith('.pptx')) resType = 'PRESENTACION'
+                  else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png')) resType = 'IMAGEN'
+
+                  await attachResourceToNode(res.routeId, nodeRes.nodeId, {
+                    type: resType,
+                    title: mat.originalName,
+                    url: mat.downloadUrl,
+                    multimediaId: mat.id,
+                  })
+                } catch (attachErr) {
+                  console.error('Error asociando documento fuente a la parada:', attachErr)
+                }
+              }
+            }
 
             // Crear y asociar las preguntas interactivas generadas por IA
             if (nodeRes?.nodeId && stop.challengeQuestion) {
@@ -2310,9 +2367,13 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
 
                                 <FileText size={12} aria-hidden="true" />
 
-                                {n.resources.length} recursos
-
+                                {n.resources.length} {n.resources.length === 1 ? 'recurso' : 'recursos'}
                               </span>
+                              {n.resources.length > 0 && (
+                                <span className="stop-meta-pill doc-source" title={`Fuentes: ${n.resources.map((r) => r.title).join(', ')}`}>
+                                  <FileText size={11} aria-hidden="true" /> {n.resources.length > 1 ? `${n.resources.length} fuentes` : '1 doc base'}
+                                </span>
+                              )}
 
                               {n.videoUrl && (
 
@@ -2593,6 +2654,64 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
                           {activeNodeTab === 'detalles' && (
 
                             <div className="tab-content-panel" role="tabpanel">
+
+                              {/* Documentos y Fuentes de Aprendizaje del Nodo */}
+                              <div className="form-card-section node-sources-section">
+                                <div className="node-sources-header">
+                                  <div className="sources-title-row">
+                                    <FileText size={18} className="sources-icon" aria-hidden="true" />
+                                    <h4 className="section-subtitle">
+                                      Documentos y Fuentes Base ({selectedNode.resources.length})
+                                    </h4>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="sources-manage-link"
+                                    onClick={() => setActiveNodeTab('materiales')}
+                                    title="Gestionar en Fichas y Recursos"
+                                  >
+                                    <span>Gestionar en Fichas y Recursos</span>
+                                    <ArrowRight size={14} aria-hidden="true" />
+                                  </button>
+                                </div>
+
+                                {selectedNode.resources.length > 0 ? (
+                                  <div className="node-sources-chips-grid">
+                                    {selectedNode.resources.map((res) => (
+                                      <div key={res.id} className="node-source-card">
+                                        <div className="source-card-lead">
+                                          <span className="source-badge">Fuente Base</span>
+                                          <strong className="source-title" title={res.title}>
+                                            {res.title}
+                                          </strong>
+                                        </div>
+                                        <a
+                                          href={res.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="source-view-btn"
+                                          title="Abrir o descargar documento"
+                                        >
+                                          <ExternalLink size={13} aria-hidden="true" />
+                                          <span>Ver</span>
+                                        </a>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="no-sources-callout">
+                                    <p>Esta parada no tiene documentos base adjuntos.</p>
+                                    <button
+                                      type="button"
+                                      className="add-source-inline-btn"
+                                      onClick={() => setActiveNodeTab('materiales')}
+                                    >
+                                      <Paperclip size={14} aria-hidden="true" />
+                                      <span>Adjuntar PDF o Documento a esta parada</span>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
 
                               <div className="form-card-section">
 
@@ -4087,6 +4206,17 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
           currentBgId={teacherMapBg.id}
           onSelectBg={(bgId) => setTeacherMapBg(bgId)}
           routeTitle={activeRouteDetail.title}
+        />
+      )}
+
+      {/* Rupi Tutor Chat (Estilo NotebookLM) integrado para el docente */}
+      {selectedRouteId && activeRouteDetail && (
+        <RupiTutorChat
+          roadmapId={activeRouteDetail.versionRouteId || selectedRouteId}
+          roadmapTitle={activeRouteDetail.title}
+          stopTitle={selectedNode?.title}
+          lessonContent={selectedNode ? `${selectedNode.title} (${selectedNode.activityType}) - ${selectedNode.instructions || ''}` : undefined}
+          sources={selectedNode?.resources?.map((r) => r.title)}
         />
       )}
     </div>

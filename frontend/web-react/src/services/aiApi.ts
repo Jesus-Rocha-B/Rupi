@@ -7,6 +7,7 @@ export interface GeneratedStop {
   title: string
   description: string
   activityType: 'LECCION' | 'RETO' | 'CUESTIONARIO' | 'TARJETAS_MEMORIA' | 'INFOGRAFIA' | string
+  sourceDocuments?: string[]
   challengeQuestion: string
   options?: string[]
   correctAnswer?: string
