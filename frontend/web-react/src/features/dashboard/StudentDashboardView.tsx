@@ -18,11 +18,13 @@ import {
   type DashboardSummaryResponse,
 } from '../../services/dashboardApi'
 import { RupiCharacter, type EquippedAccessories } from '../../components/RupiCharacter'
+import { DailyGoalRing } from '../../components/DailyGoalRing'
 import { speakText } from '../../utils/speech'
 import './StudentDashboardView.css'
 
 interface Props {
   studentName: string
+  refreshTrigger?: number
   onContinueLesson: (routeId: string, nodeId: string) => void
   onNavigateToRoute: (routeId: string) => void
   onOpenStore: () => void
@@ -51,6 +53,7 @@ function parseEquippedAccessories(codes: string[]): EquippedAccessories {
 
 export const StudentDashboardView: React.FC<Props> = ({
   studentName,
+  refreshTrigger = 0,
   onContinueLesson,
   onNavigateToRoute,
   onOpenStore,
@@ -88,7 +91,7 @@ export const StudentDashboardView: React.FC<Props> = ({
     return () => {
       ignore = true
     }
-  }, [])
+  }, [refreshTrigger])
 
   const handleSpeakSummary = () => {
     if (!data) return
@@ -232,7 +235,12 @@ export const StudentDashboardView: React.FC<Props> = ({
         </div>
       )}
 
-      {/* 2. Cuadrícula de Tarjetas Métricas (Recuento Exacto) */}
+      {/* 2. Indicador Gráfico de Progreso Diario y Meta de Hoy (HU-34) */}
+      <section className="dashboard-daily-goal-section" aria-label="Meta de aprendizaje del día">
+        <DailyGoalRing refreshTrigger={refreshTrigger} />
+      </section>
+
+      {/* 3. Cuadrícula de Tarjetas Métricas (Recuento Exacto) */}
       <section className="dashboard-metrics-grid" aria-label="Tarjetas métricas de aprendizaje">
         {/* Tarjeta 1: Lecciones Completadas */}
         <article className="metric-card metric-completed">

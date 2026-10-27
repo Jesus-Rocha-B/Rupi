@@ -132,6 +132,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [slowLoading, setSlowLoading] = useState(false)
   const [currentView, setCurrentView] = useState<AppView>('inicio')
+  const [dailyGoalRefreshKey, setDailyGoalRefreshKey] = useState(0)
   const [teacherViewMode, setTeacherViewMode] = useState<'authoring' | 'student_preview' | 'reports'>('authoring')
   const [reportsTarget, setReportsTarget] = useState<{ routeId?: string; grade?: number }>({})
 
@@ -231,6 +232,7 @@ function App() {
   }
 
   function handleActivityCompleted(result: ActivityCompleteResult) {
+    setDailyGoalRefreshKey(k => k + 1)
     if (!selectedRoute) return
     if (result.badgeEarned) {
       setBadges(prev => {
@@ -783,6 +785,7 @@ function App() {
         {currentView === 'inicio' && (
           <StudentDashboardView
             studentName={student.name}
+            refreshTrigger={dailyGoalRefreshKey}
             onContinueLesson={(targetRouteId, targetNodeId) => {
               void handleContinueFromDashboard(targetRouteId, targetNodeId)
             }}

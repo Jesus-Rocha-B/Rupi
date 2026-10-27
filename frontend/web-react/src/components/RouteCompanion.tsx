@@ -24,6 +24,7 @@ import {
 import { RupiCharacter, type EquippedAccessories } from './RupiCharacter'
 import { RupiCustomizerModal } from './RupiCustomizerModal'
 import { ClassroomLeaderboardModal } from './ClassroomLeaderboardModal'
+import { DailyGoalRing } from './DailyGoalRing'
 import { fetchEquippedAccessories } from '../services/accessoriesApi'
 import { StreakBadge } from './StreakBadge'
 import { speakText } from '../utils/speech'
@@ -126,6 +127,8 @@ export function RouteCompanion({ route, teacher = false }: Props) {
                   'No hay prisa en el camino. ¡Cada paso que das te hace crecer!'}
               </p>
               {!teacher && <StreakBadge completedNodes={route.progress.completedNodes} />}
+            {!teacher && <DailyGoalRing compact />}
+              {!teacher && <DailyGoalRing compact />}
               <button
                 type="button"
                 className="rupi-wardrobe-trigger-btn"
@@ -262,6 +265,7 @@ export function RouteCompanion({ route, teacher = false }: Props) {
             </span>
             <p className="quote-text">{context.motivationalMessage}</p>
             {!teacher && <StreakBadge completedNodes={route.progress.completedNodes} />}
+            {!teacher && <DailyGoalRing compact />}
             <button
               type="button"
               className="rupi-wardrobe-trigger-btn"

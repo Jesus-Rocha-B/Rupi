@@ -1,0 +1,556 @@
+/**
+ * DailyGoalRing.css
+ * Estilos para el Indicador Gráfico de Progreso Diario (HU-34)
+ * Estética táctil, artesanal y accesible según AGENTS.md.
+ */
+
+.daily-goal-card {
+  background: #fffdf9;
+  border: 2px solid #e2d7c5;
+  border-radius: 18px;
+  padding: 18px 22px;
+  box-shadow: 0 4px 0 #d0c3ae;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: transform 0.15s ease, border-color 0.2s ease;
+}
+
+.daily-goal-card.goal-completed-card {
+  border-color: #ffd26a;
+  background: linear-gradient(180deg, #fffdf8 0%, #fffbf0 100%);
+  box-shadow: 0 4px 0 #d6ab38;
+}
+
+.daily-goal-card.is-loading {
+  min-height: 140px;
+  align-items: center;
+  justify-content: center;
+  color: #173e30;
+  font-weight: 700;
+}
+
+.daily-goal-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2d7c5;
+  border-top-color: #31724b;
+  border-radius: 50%;
+  animation: ring-spin 0.8s linear infinite;
+}
+
+@keyframes ring-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 1. Cabecera de la tarjeta */
+.goal-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.goal-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.goal-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #eef6f0;
+  color: #1e5a36;
+  border: 1.5px solid #c2e2cc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.goal-completed-card .goal-icon-badge {
+  background: #fff5d6;
+  color: #8c6300;
+  border-color: #f7d67f;
+}
+
+.goal-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  color: #173e30;
+  line-height: 1.2;
+}
+
+.goal-subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c584c;
+}
+
+.goal-config-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f7f1e6;
+  border: 1.5px solid #dcd1be;
+  color: #4a3b2c;
+  font-size: 12px;
+  font-weight: 800;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  box-shadow: 0 2px 0 #cfc3ae;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.goal-config-toggle:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #cfc3ae;
+}
+
+/* Selector desplegable de meta */
+.goal-target-selector {
+  background: #f8f3ea;
+  border: 1.5px dashed #d7c8b0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selector-prompt {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5c4d3e;
+}
+
+.selector-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.target-pill-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1.5px solid #c9bea9;
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #3d3125;
+  box-shadow: 0 3px 0 #b3a690;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 80px;
+  transition: transform 0.1s;
+}
+
+.target-pill-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #b3a690;
+}
+
+.target-pill-btn.is-selected {
+  background: #173e30;
+  border-color: #0e2920;
+  color: #ffffff;
+  box-shadow: 0 3px 0 #081712;
+}
+
+.recommended-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: #c98800;
+  margin-top: 1px;
+}
+
+.target-pill-btn.is-selected .recommended-tag {
+  color: #ffd26a;
+}
+
+/* 2. Cuerpo: Anillo SVG y detalles */
+.goal-body-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.goal-ring-wrapper {
+  position: relative;
+  width: 136px;
+  height: 136px;
+  flex-shrink: 0;
+}
+
+.goal-svg-ring {
+  width: 136px;
+  height: 136px;
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  fill: none;
+  stroke: #ebe4d8;
+  stroke-width: 10;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: #31724b;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+}
+
+.ring-progress.goal-met {
+  stroke: #f95738;
+}
+
+.goal-completed-card .ring-progress.goal-met {
+  stroke: #d99a14;
+}
+
+.goal-ring-center {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.center-progress-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.goal-center-count {
+  font-size: 26px;
+  font-weight: 900;
+  color: #173e30;
+}
+
+.goal-center-count small {
+  font-size: 16px;
+  font-weight: 700;
+  color: #7b6b5d;
+}
+
+.goal-center-percent {
+  font-size: 12px;
+  font-weight: 800;
+  color: #31724b;
+  margin-top: 2px;
+}
+
+.center-completed-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #a47600;
+  line-height: 1.1;
+}
+
+.sparkle-icon {
+  color: #f95738;
+  margin-bottom: 2px;
+}
+
+.goal-center-caption {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #173e30;
+}
+
+/* Columna de detalles */
+.goal-details-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Barra segmentada táctil */
+.segmented-track-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.segmented-track {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.track-segment {
+  flex: 1;
+  height: 14px;
+  border-radius: 6px;
+  background: #ebe4d8;
+  border: 1px solid #dacfc0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.track-segment.segment-filled {
+  background: #31724b;
+  border-color: #245537;
+}
+
+.track-segment.segment-gold {
+  background: #e6a817;
+  border-color: #ba8409;
+}
+
+.segmented-counter-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a3b2c;
+}
+
+/* Mensaje motivacional */
+.goal-motivation-bubble {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fff8eb;
+  border: 1.5px solid #f6d499;
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.1s;
+}
+
+.goal-motivation-bubble:active {
+  transform: scale(0.98);
+}
+
+.motivation-flame {
+  color: #f95738;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.goal-motivation-bubble p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5c3b00;
+  line-height: 1.35;
+}
+
+/* 3. Tira de Historial Semanal */
+.weekly-history-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #ede3d4;
+}
+
+.strip-title {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7b6b5d;
+}
+
+.strip-days-row {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.history-day-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: #fdfaf4;
+  border: 1.5px solid #e3d8c6;
+  border-radius: 10px;
+  padding: 6px 4px;
+}
+
+.history-day-chip.is-current-day {
+  border-color: #ffd26a;
+  background: #fffef8;
+  box-shadow: 0 0 0 2px rgba(255, 210, 106, 0.4);
+}
+
+.history-day-chip.day-met {
+  background: #eef6f0;
+  border-color: #badfc6;
+}
+
+.day-name {
+  font-size: 11px;
+  font-weight: 800;
+  color: #5c4d3e;
+}
+
+.day-indicator {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-icon {
+  color: #2b7a4b;
+}
+
+.partial-badge {
+  font-size: 11px;
+  font-weight: 900;
+  color: #f95738;
+  background: #ffede8;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.empty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d7cdbe;
+}
+
+/* Modo Compacto (para la barra lateral y acompañante) */
+.daily-goal-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fffdf9;
+  border: 2px solid #e2d7c5;
+  border-radius: 14px;
+  padding: 8px 12px;
+  box-shadow: 0 3px 0 #d0c3ae;
+}
+
+.compact-ring-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.compact-svg-ring {
+  width: 44px;
+  height: 44px;
+  transform: rotate(-90deg);
+}
+
+.compact-inner-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compact-ratio {
+  font-size: 11px;
+  font-weight: 900;
+  color: #173e30;
+}
+
+.trophy-gold {
+  color: #e6a817;
+}
+
+.compact-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.compact-header-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.compact-label {
+  font-size: 13px;
+  font-weight: 900;
+  color: #173e30;
+}
+
+.compact-done-badge {
+  font-size: 10px;
+  font-weight: 800;
+  background: #d4edda;
+  color: #155724;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.compact-subtext {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c584c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsividad en pantallas móviles */
+@media (max-width: 600px) {
+  .daily-goal-card {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .goal-body-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .goal-details-col {
+    width: 100%;
+  }
+
+  .strip-days-row {
+    gap: 4px;
+  }
+
+  .history-day-chip {
+    padding: 4px 2px;
+  }
+
+  .day-name {
+    font-size: 10px;
+  }
+}

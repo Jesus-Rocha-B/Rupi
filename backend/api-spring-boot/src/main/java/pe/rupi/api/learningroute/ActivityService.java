@@ -22,15 +22,21 @@ import pe.rupi.api.learningroute.LearningRouteDtos.NextUnlockedNode;
 public class ActivityService {
     private final NamedParameterJdbcTemplate jdbc;
     private final EvaluationService evaluationService;
+    private final pe.rupi.api.gamification.DailyGoalProgressService goalProgressService;
 
     public ActivityService(NamedParameterJdbcTemplate jdbc) {
-        this(jdbc, new EvaluationService(jdbc));
+        this(jdbc, new EvaluationService(jdbc), null);
+    }
+
+    public ActivityService(NamedParameterJdbcTemplate jdbc, EvaluationService evaluationService) {
+        this(jdbc, evaluationService, null);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
-    public ActivityService(NamedParameterJdbcTemplate jdbc, EvaluationService evaluationService) {
+    public ActivityService(NamedParameterJdbcTemplate jdbc, EvaluationService evaluationService, pe.rupi.api.gamification.DailyGoalProgressService goalProgressService) {
         this.jdbc = jdbc;
         this.evaluationService = evaluationService;
+        this.goalProgressService = goalProgressService;
     }
 
 
@@ -240,6 +246,10 @@ public class ActivityService {
                     .addValue("amount", experienceToAward)
                     .addValue("refId", nodeAccess.activityVersionId())
                     .addValue("idempotency", idempotencyKey));
+
+            if (goalProgressService != null) {
+                goalProgressService.recordCompletedActivity(studentId.toString());
+            }
         }
 
         // 3. Buscar y desbloquear el siguiente nodo
