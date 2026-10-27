@@ -26,6 +26,7 @@ import {
   enrollInRoute,
   fetchStudentRoutes,
   fetchStudentBadges,
+  fetchStudentExperience,
   fetchSession,
   fetchSessionOptions,
   login,
@@ -110,6 +111,7 @@ function App() {
   const [demoAvailable, setDemoAvailable] = useState(false)
   const [routes, setRoutes] = useState<RouteSummary[]>([])
   const [badges, setBadges] = useState<BadgeDto[]>([])
+  const [ledgerXp, setLedgerXp] = useState<number | null>(null)
   const [routeId, setRouteId] = useState('')
   const [selectedRoute, setSelectedRoute] = useState<RouteDetail | null>(null)
   const [selectedNode, setSelectedNode] = useState<RouteNode | null>(null)
@@ -159,6 +161,8 @@ function App() {
       setHighlightBadge(badge)
     }
     setBadgesModalOpen(true)
+    // El total se lee del servidor al abrir la vitrina; si falla, se usa la estimación por paradas.
+    void fetchStudentExperience().then(r => setLedgerXp(r.totalXp)).catch(() => setLedgerXp(null))
   }
 
   async function handleOpenNode(node: RouteNode) {
@@ -1096,7 +1100,7 @@ function App() {
           schoolName={student?.schoolName || 'I.E. 38001 Mariscal Sucre'}
           gradeName={`${selectedGrade || 2}.° de primaria`}
           earnedBadges={badges}
-          totalXp={routes.reduce((acc, r) => acc + (r.completedNodes * 50), 0) + (badges.some(b => b.code === 'GRAN_TUNQUI_ORO') ? 100 : 0)}
+          totalXp={ledgerXp ?? routes.reduce((acc, r) => acc + (r.completedNodes * 50), 0) + (badges.some(b => b.code === 'GRAN_TUNQUI_ORO') ? 100 : 0)}
           highlightBadge={highlightBadge}
           onClose={() => {
             setBadgesModalOpen(false)

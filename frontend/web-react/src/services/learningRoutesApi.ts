@@ -345,6 +345,10 @@ export const fetchEvaluationSummary = (activityId: string, signal?: AbortSignal)
 export const fetchStudentBadges = (signal?: AbortSignal) =>
   request<BadgeDto[]>('student/badges', { signal })
 
+/** Historia 29: XP real del libro de movimientos (incluye retos, bonos y ajustes). */
+export const fetchStudentExperience = (signal?: AbortSignal) =>
+  request<{ totalXp: number; badges: number }>('student/experience', { signal })
+
 export const fetchRouteDiploma = (routeId: string, signal?: AbortSignal) =>
   request<RouteDiplomaResponse>(
     `student/learning-routes/${encodeURIComponent(routeId)}/diploma`,
