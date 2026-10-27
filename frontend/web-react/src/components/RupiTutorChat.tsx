@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { X, Send, Sparkles, Volume2, Loader2, RotateCcw, FileText } from 'lucide-react'
+import { X, Send, Volume2, Loader2, RotateCcw } from 'lucide-react'
 import { askRupiTutor, type ChatMessage } from '../services/aiApi'
 import { RupiCharacter } from './RupiCharacter'
 import { speakText } from '../utils/speech'
@@ -10,7 +10,6 @@ interface Props {
   roadmapTitle?: string
   stopTitle?: string
   lessonContent?: string
-  sources?: string[]
 }
 
 /**
@@ -156,14 +155,14 @@ function loadHistoryFromStorage(key: string, fallbackGreeting: ChatMessage): Cha
   return [fallbackGreeting]
 }
 
-export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonContent, sources }: Props) {
+export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonContent }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [hasUnread, setHasUnread] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Clave única de almacenamiento persistente por roadmap (Estilo NotebookLM)
+  // Clave única de almacenamiento persistente por roadmap
   const cleanId = roadmapId || (roadmapTitle ? roadmapTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_') : 'general')
   const storageKey = `rupi_tutor_history_${cleanId}`
 
@@ -259,12 +258,6 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
     }
   }
 
-  const quickQuestions = [
-    '¿De qué trata esta parada?',
-    'Dame una pista para resolverla',
-    '¿Por qué es importante aprender esto?',
-  ]
-
   return (
     <div className="rupi-tutor-container">
       {/* Botón flotante inferior derecho con la cara de Rupi */}
@@ -292,8 +285,8 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
 
       {/* Ventana de chat desplegable */}
       {isOpen && (
-        <div className="rupi-chat-card" role="dialog" aria-label="Tutor Virtual Rupi (Estilo NotebookLM)">
-          {/* Cabecera cálida */}
+        <div className="rupi-chat-card" role="dialog" aria-label="Tutor Virtual Rupi">
+          {/* Cabecera limpia y cercana */}
           <div className="rupi-chat-header">
             <div className="rupi-chat-header-info">
               <div className="rupi-header-icon">
@@ -302,17 +295,10 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
               <div>
                 <div className="rupi-header-title">
                   <strong>Rupi Tutor</strong>
-                  <span className="rupi-pill-grounding">NotebookLM Rupi</span>
                 </div>
                 <p className="rupi-header-sub">
                   {stopTitle ? `Parada: ${stopTitle}` : roadmapTitle || 'Acompañante escolar'}
                 </p>
-                {sources && sources.length > 0 && (
-                  <div className="rupi-header-sources" title={`Fuentes: ${sources.join(', ')}`}>
-                    <FileText size={11} aria-hidden="true" />
-                    <span>{sources.length} fuente(s) conectada(s)</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -379,23 +365,7 @@ export function RupiTutorChat({ roadmapId, roadmapTitle, stopTitle, lessonConten
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Sugerencias de preguntas rápidas */}
-          <div className="rupi-quick-chips">
-            {quickQuestions.map((q, idx) => (
-              <button
-                key={idx}
-                type="button"
-                className="rupi-chip-btn"
-                onClick={() => handleSend(q)}
-                disabled={loading}
-              >
-                <Sparkles size={13} className="rupi-chip-icon" />
-                <span>{q}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Formulario de entrada */}
+          {/* Formulario de entrada limpio sin barrita extra */}
           <div className="rupi-chat-input-bar">
             <input
               type="text"

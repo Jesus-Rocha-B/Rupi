@@ -124,7 +124,6 @@ import {
 import { StudentAvatar } from '../../components/StudentAvatar'
 
 import { MaterialUploadZone } from '../../components/MaterialUploadZone'
-import { RupiTutorChat } from '../../components/RupiTutorChat'
 
 import { generateRoadmapFromFile } from '../../services/aiApi'
 
@@ -4209,16 +4208,7 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
         />
       )}
 
-      {/* Rupi Tutor Chat (Estilo NotebookLM) integrado para el docente */}
-      {selectedRouteId && activeRouteDetail && (
-        <RupiTutorChat
-          roadmapId={activeRouteDetail.versionRouteId || selectedRouteId}
-          roadmapTitle={activeRouteDetail.title}
-          stopTitle={selectedNode?.title}
-          lessonContent={selectedNode ? `${selectedNode.title} (${selectedNode.activityType}) - ${selectedNode.instructions || ''}` : undefined}
-          sources={selectedNode?.resources?.map((r) => r.title)}
-        />
-      )}
+
     </div>
 
   )

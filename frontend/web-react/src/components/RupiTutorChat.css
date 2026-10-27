@@ -150,16 +150,6 @@
   font-weight: 800;
 }
 
-.rupi-pill-grounding {
-  font-size: 0.68rem;
-  background-color: #ffd26a;
-  color: #173e30;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
 .rupi-header-sub {
   margin: 2px 0 0;
   font-size: 0.78rem;
@@ -168,24 +158,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 170px;
-}
-
-.rupi-header-sources {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  color: #ffffff;
-  padding: 1px 6px;
-  border-radius: 6px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  margin-top: 3px;
-  max-width: 170px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .rupi-header-actions {
@@ -390,48 +362,6 @@
 @keyframes rupi-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-
-/* Chips rápidos */
-.rupi-quick-chips {
-  padding: 8px 12px;
-  background-color: #f0ebe2;
-  border-top: 2px solid #e0d6c7;
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  white-space: nowrap;
-}
-
-.rupi-chip-btn {
-  background-color: #ffffff;
-  border: 1.5px solid #173e30;
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #173e30;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 0 #173e30;
-  transition: transform 0.1s ease;
-  min-height: 36px;
-}
-
-.rupi-chip-btn:hover {
-  background-color: #ffd26a;
-}
-
-.rupi-chip-btn:active {
-  transform: translateY(2px);
-  box-shadow: none;
-}
-
-.rupi-chip-icon {
-  color: #f95738;
 }
 
 /* Barra de Entrada */
