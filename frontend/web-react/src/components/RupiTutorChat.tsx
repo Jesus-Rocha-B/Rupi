@@ -31,7 +31,6 @@ export function RupiTutorChat({ roadmapTitle, stopTitle, lessonContent }: Props)
   useEffect(() => {
     if (isOpen) {
       scrollToBottom()
-      setHasUnread(false)
     }
   }, [isOpen, messages])
 
@@ -89,7 +88,7 @@ export function RupiTutorChat({ roadmapTitle, stopTitle, lessonContent }: Props)
         <button
           type="button"
           className="rupi-tutor-bubble-btn"
-          onClick={() => setIsOpen(true)}
+          onClick={() => { setIsOpen(true); setHasUnread(false); }}
           aria-label="Abrir tutor de ayuda Rupi"
           title="¿Dudas con la lección? ¡Pregúntale a Rupi!"
         >

@@ -154,6 +154,8 @@ function getNodeDisplayState(state: RouteNode['state']): { cssClass: string; lab
 
     case 'BLOQUEADO':
 
+      return { cssClass: 'locked', label: 'Aún no' }
+
     default:
 
       return { cssClass: 'locked', label: 'Aún no' }
@@ -660,13 +662,13 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
           minHeight: `${totalMapHeight}px`,
 
-          ['--map-bg-color' as any]: mapBg.bgColor,
+          '--map-bg-color': mapBg.bgColor,
 
-          ['--map-gradient' as any]: mapBg.gradient,
+          '--map-gradient': mapBg.gradient,
 
-          ['--map-bg-image' as any]: `url('${mapBg.imageUrl}')`,
+          '--map-bg-image': `url('${mapBg.imageUrl}')`,
 
-        }}
+        } as React.CSSProperties}
 
         aria-label={`Mapa con ${route.progress.totalNodes} paradas de aprendizaje`}
 

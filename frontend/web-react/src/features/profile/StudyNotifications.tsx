@@ -21,7 +21,9 @@ export function StudyNotifications() {
  }
  useEffect(() => {
   const controller = new AbortController()
-  void refreshForm(controller.signal).catch(e => { if (!controller.signal.aborted) setError(e.message) })
+  quizRequest<Status>(path + '/preferences', 'GET', undefined, controller.signal)
+   .then(result => { setStatus(result); setForm(result.preferences) })
+   .catch(e => { if (!controller.signal.aborted) setError(e.message) })
   const refresh = () => { void quizRequest<Inbox>(path, 'GET', undefined, controller.signal).then(setInbox).catch(e => { if (!controller.signal.aborted) setError(e.message) }) }
   refresh()
   const timer = window.setInterval(refresh, 60000)

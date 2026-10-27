@@ -224,9 +224,14 @@ import { useEffect, useState } from 'react'
 
 export function useMapBackground(routeId?: string | null): [MapBackgroundTheme, (id: string) => void] {
   const [currentBg, setCurrentBg] = useState<MapBackgroundTheme>(() => getActiveMapBackground(routeId))
+  const [prevRouteId, setPrevRouteId] = useState(routeId)
+
+  if (routeId !== prevRouteId) {
+    setPrevRouteId(routeId)
+    setCurrentBg(getActiveMapBackground(routeId))
+  }
 
   useEffect(() => {
-    setCurrentBg(getActiveMapBackground(routeId))
 
     const handleCustomChange = (e: Event) => {
       const customEvent = e as CustomEvent<{ id: string; routeId?: string }>

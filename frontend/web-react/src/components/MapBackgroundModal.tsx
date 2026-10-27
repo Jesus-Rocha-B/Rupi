@@ -33,13 +33,13 @@ export const MapBackgroundModal: React.FC<MapBackgroundModalProps> = ({
   routeTitle,
 }) => {
   const [selectedFilter, setSelectedFilter] = useState<FilterZone>('todos')
-  const [previewBgId, setPreviewBgId] = useState<string>(currentBgId)
+  const [selectedBgId, setSelectedBgId] = useState<string | null>(null)
+  const previewBgId = selectedBgId ?? currentBgId
 
-  useEffect(() => {
-    if (isOpen) {
-      setPreviewBgId(currentBgId)
-    }
-  }, [isOpen, currentBgId])
+  const handleClose = () => {
+    setSelectedBgId(null)
+    onClose()
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -59,7 +59,7 @@ export const MapBackgroundModal: React.FC<MapBackgroundModalProps> = ({
   })
 
   const handleSelect = (bg: MapBackgroundTheme) => {
-    setPreviewBgId(bg.id)
+    setSelectedBgId(bg.id)
     onSelectBg(bg.id)
   }
 
@@ -70,7 +70,7 @@ export const MapBackgroundModal: React.FC<MapBackgroundModalProps> = ({
       aria-modal="true"
       aria-labelledby="bg-modal-title"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
+        if (e.target === e.currentTarget) handleClose()
       }}
     >
       <div className="bg-modal-container">
@@ -94,7 +94,7 @@ export const MapBackgroundModal: React.FC<MapBackgroundModalProps> = ({
           <button
             type="button"
             className="bg-modal-close-btn"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Cerrar selector de paisajes"
             title="Cerrar (Esc)"
           >
