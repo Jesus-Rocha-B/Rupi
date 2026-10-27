@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.http.HttpStatus;import org.springframework.web.server.ResponseStatusException;
 import pe.rupi.api.reminder.ReminderRepository;
+import pe.rupi.api.gamification.StudyStreakService;
 @Service
 public class StudyNotificationService {
  public record Preferences(int dailyGoal,String remindAt,boolean goals,boolean evaluations,boolean system,String quietFrom,String quietUntil,long revision){}
@@ -12,9 +13,9 @@ public class StudyNotificationService {
  public record Notice(String id,String title,String body,String category,boolean read,String createdAt){}
  public record Inbox(List<Notice> items,boolean quiet,boolean system){}
  private static final ZoneId LIMA=ZoneId.of("America/Lima");
- private final NamedParameterJdbcTemplate db;private final ReminderRepository reminders;private final TransactionTemplate tx;private final Clock clock;
+ private final NamedParameterJdbcTemplate db;private final ReminderRepository reminders;private final TransactionTemplate tx;private final Clock clock;private final StudyStreakService streaks;
  @Autowired public StudyNotificationService(NamedParameterJdbcTemplate db,ReminderRepository reminders,PlatformTransactionManager manager){this(db,reminders,manager,Clock.systemUTC());}
- public StudyNotificationService(NamedParameterJdbcTemplate db,ReminderRepository reminders,PlatformTransactionManager manager,Clock clock){this.db=db;this.reminders=reminders;tx=new TransactionTemplate(manager);this.clock=clock;}
+ public StudyNotificationService(NamedParameterJdbcTemplate db,ReminderRepository reminders,PlatformTransactionManager manager,Clock clock){this.db=db;this.reminders=reminders;tx=new TransactionTemplate(manager);this.clock=clock;streaks=new StudyStreakService(db,clock);}
  private static ResponseStatusException fail(HttpStatus code,String message){return new ResponseStatusException(code,message);}
  private Map<String,Object> p(String user){return new HashMap<>(Map.of("user",user));}
  private void student(String user){
@@ -101,6 +102,12 @@ public class StudyNotificationService {
   });
  }
  private String event(ReminderRepository.Due due){return "EVAL:"+due.route()+":"+due.node()+":"+due.startsAt();}
+ private static String streakKey(LocalDate day){return "RACHA:"+day;}
+ /** Dos horas antes del descanso, pero nunca antes de la hora de recordatorio elegida ni dentro del descanso. */
+ static LocalTime streakAt(Preferences s){
+  var at=time(s.remindAt());var from=time(s.quietFrom());var risk=from.minusHours(2);
+  return risk.isBefore(at)||quietAt(risk,from,time(s.quietUntil()))?at:risk;
+ }
  private void message(String user,String event,String category,String title,String body,Instant expires){
   var params=p(user);params.put("key",event);
   if(db.queryForObject("SELECT COUNT(*) FROM notificacion_evento_usuario WHERE usuario_id=:user AND clave_evento=:key",params,Integer.class)>0)return;
@@ -123,6 +130,13 @@ public class StudyNotificationService {
      "Tu meta de hoy es completar "+settings.dailyGoal()+" actividad(es). Puedes avanzar con calma y pedir ayuda a tu docente.",
      local.toLocalDate().plusDays(1).atStartOfDay(LIMA).toInstant());
    }
+   // Historia 27: la racha sigue viva hasta el fin del día; se avisa una vez, antes del descanso, si hoy aún no hay actividad.
+   if(settings.goals()&&!local.toLocalTime().isBefore(streakAt(settings))){
+    var streak=streaks.current(user);
+    if(streak.atRisk())message(user,streakKey(local.toLocalDate()),"RECORDATORIO","Tu racha te espera",
+     "Llevas "+streak.days()+(streak.days()==1?" día":" días")+" seguidos aprendiendo. Si hoy completas una actividad, tu racha sigue creciendo. ¡Tú marcas el ritmo!",
+     local.toLocalDate().plusDays(1).atStartOfDay(LIMA).toInstant());
+   }
    if(settings.evaluations())for(var due:reminders.due(user,now,now.plus(Duration.ofHours(24)))){
     String title="Evaluación próxima";String body=due.title()+" · "+due.startsAt().atZone(LIMA).toLocalDateTime()+". Revisa tus materiales con calma.";
     message(user,event(due),"TAREA",title,body.substring(0,Math.min(body.length(),500)),due.startsAt());
@@ -132,12 +146,12 @@ public class StudyNotificationService {
  private List<Notice> visible(String user,Preferences settings){
   var now=clock.instant();var params=p(user);params.put("now",stamp(now));
   Set<String> evaluations=new HashSet<>();if(settings.evaluations())reminders.due(user,now,now.plus(Duration.ofHours(24))).forEach(d->evaluations.add(event(d)));
-  int done=completed(user);String goalKey="META:"+LocalDate.now(clock.withZone(LIMA));
+  int done=completed(user);var today=LocalDate.now(clock.withZone(LIMA));String goalKey="META:"+today;String streakKey=streakKey(today);
   return db.queryForList("""
    SELECT m.*,e.clave_evento FROM notificacion_mensaje m JOIN notificacion_evento_usuario e ON e.mensaje_id=m.id
    WHERE m.usuario_id=:user AND (m.expira_en IS NULL OR m.expira_en>:now) ORDER BY m.creada_en DESC,m.id LIMIT 100
    """,params).stream().filter(row->row.get("categoria").equals("RECORDATORIO")?
-    settings.goals()&&done<settings.dailyGoal()&&row.get("clave_evento").equals(goalKey):settings.evaluations()&&evaluations.contains(row.get("clave_evento").toString()))
+    settings.goals()&&(done<settings.dailyGoal()&&row.get("clave_evento").equals(goalKey)||done==0&&row.get("clave_evento").equals(streakKey)):settings.evaluations()&&evaluations.contains(row.get("clave_evento").toString()))
    .map(row->new Notice(row.get("id").toString(),row.get("titulo").toString(),row.get("cuerpo").toString(),row.get("categoria").toString(),row.get("leida_en")!=null,row.get("creada_en").toString())).toList();
  }
  public Inbox inbox(String user){generate(user);var settings=preferences(user);return new Inbox(visible(user,settings),quietAt(LocalTime.now(clock.withZone(LIMA)),time(settings.quietFrom()),time(settings.quietUntil())),settings.system());}
