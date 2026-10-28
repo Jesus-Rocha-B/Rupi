@@ -21,6 +21,7 @@ function ErrorHint({ practiceId, question }: { practiceId: string; question: Qui
   <p className="quiz-hint-level">{HINT_LEVEL_LABEL[hint.level]}{hint.reinforced ? ' · paso a paso' : ''}</p>
   <p>{hint.hint}</p>
   <ol>{hint.steps.map(step => <li key={step}>{step}</li>)}</ol>
+  <div className="quiz-hint-example"><strong>Ejemplo de la vida real</strong><p>{hint.realLifeExample}</p></div>
   <p className="quiz-hint-source">{hint.source === 'IA' ? 'Pista asistida por IA · revisada automáticamente' : 'Basada en la explicación revisada de la pregunta'}</p>
  </section>
 }

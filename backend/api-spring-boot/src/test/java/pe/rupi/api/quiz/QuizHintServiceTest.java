@@ -41,6 +41,7 @@ class QuizHintServiceTest {
   assertEquals("INICIAL",hint.level());assertEquals(2,hint.grade());assertEquals("EXPLICACION_REVISADA",hint.source());
   assertTrue(hint.hint().contains("«12»"));assertTrue(hint.hint().contains("«14»"));assertTrue(hint.hint().contains("catorce"));
   assertEquals(3,hint.steps().size());
+  assertTrue(hint.realLifeExample().contains("mercado"));
   verify(chat,never()).requestJson(anyString(),any());
  }
  @Test void onlyExplainsAnsweredWrongQuestions() {
@@ -54,10 +55,12 @@ class QuizHintServiceTest {
  @Test void usesValidatedAiHintAndCachesIt() throws Exception {
   when(chat.configured()).thenReturn(true);
   when(chat.requestJson(contains("Explica un error"),any())).thenReturn("""
-   {"hint":"Contaste un grupo de siete y te faltó el otro.","steps":["Cuenta siete.","Suma siete más."]}""");
-  when(chat.requestJson(contains("Revisa esta pista"),any())).thenReturn("{\"correct\":true,\"levelAppropriate\":true,\"safe\":true}");
+   {"hint":"Contaste un grupo de siete y te faltó el otro.","steps":["Cuenta siete.","Suma siete más."],
+   "realLifeExample":"Si la casera te da 7 mandarinas y luego 7 más, cuentas 14 en tu bolsa."}""");
+  when(chat.requestJson(contains("Revisa esta pista"),any())).thenReturn("{\"correct\":true,\"levelAppropriate\":true,\"safe\":true,\"exampleFits\":true}");
   var hint=service.hint("s","p","q1");
   assertEquals("IA",hint.source());assertEquals(List.of("Cuenta siete.","Suma siete más."),hint.steps());
+  assertTrue(hint.realLifeExample().contains("mandarinas"));
   service.hint("s","p","q1");
   verify(chat,times(2)).requestJson(anyString(),any());
  }
@@ -67,7 +70,17 @@ class QuizHintServiceTest {
   assertEquals("EXPLICACION_REVISADA",service.hint("s","p","q1").source());
  }
  @Test void validationRejectsIncompleteDrafts() {
-  assertThrows(IllegalArgumentException.class,()->QuizHintService.validate(new QuizHintService.Draft("Muy bien pensado",List.of("Solo un paso"))));
-  assertThrows(IllegalArgumentException.class,()->QuizHintService.validate(new QuizHintService.Draft(null,List.of("Paso uno","Paso dos"))));
+  assertThrows(IllegalArgumentException.class,()->QuizHintService.validate(new QuizHintService.Draft("Muy bien pensado",List.of("Solo un paso"),"Ejemplo en la bodega")));
+  assertThrows(IllegalArgumentException.class,()->QuizHintService.validate(new QuizHintService.Draft(null,List.of("Paso uno","Paso dos"),"Ejemplo en la bodega")));
+ }
+ @Test void aiHintWithoutRealLifeExampleIsRejected() {
+  assertThrows(IllegalArgumentException.class,()->QuizHintService.validate(new QuizHintService.Draft("Muy bien pensado",List.of("Paso uno","Paso dos"),null)));
+ }
+ @Test void everyAreaHasAnEverydayExample() {
+  for(String area:List.of("MAT","COM","CYT","SOC","ART","ING","OTRA")) {
+   String example=QuizHintService.realLifeExample(area);
+   assertTrue(example.length()>30&&example.length()<=400,area);
+  }
+  assertNotEquals(QuizHintService.realLifeExample("MAT"),QuizHintService.realLifeExample("COM"));
  }
 }

@@ -13,3 +13,5 @@
 .quiz-hint ol { margin: .5rem 0; padding-left: 1.4rem; line-height: 1.55; font-weight: 600; }
 .quiz-hint-level { font-weight: 800; color: #1b5574; }
 .quiz-hint-source { font-size: .85rem; color: #3d4f45; }
+.quiz-hint-example { margin: .5rem 0; padding: .6rem .8rem; border-left: 4px solid #ffd26a; background: #fff8e6; border-radius: 8px; }
+.quiz-hint-example p { margin: .25rem 0 0; }

@@ -3,8 +3,8 @@ export interface QuizQuestion {
  selectedOption: string | null; correct: boolean | null; explanation: string | null; correctOption: string | null
 }
 export interface QuizView { status: string; practiceId: string; source: string; reviewState: string | null; answered: number; correct: number; questions: QuizQuestion[] }
-/** HU-37: pista adaptada al nivel para entender un error. */
-export interface QuizHint { questionId: string; grade: number; level: 'INICIAL' | 'INTERMEDIO' | 'AVANZADO'; reinforced: boolean; hint: string; steps: string[]; source: 'IA' | 'EXPLICACION_REVISADA' }
+/** HU-37: pista adaptada al nivel para entender un error; HU-38: con un ejemplo de la vida real. */
+export interface QuizHint { questionId: string; grade: number; level: 'INICIAL' | 'INTERMEDIO' | 'AVANZADO'; reinforced: boolean; hint: string; steps: string[]; realLifeExample: string; source: 'IA' | 'EXPLICACION_REVISADA' }
 export const HINT_LEVEL_LABEL: Record<QuizHint['level'], string> = {
  INICIAL: 'Explicación para 1.° y 2.° grado', INTERMEDIO: 'Explicación para 3.° y 4.° grado', AVANZADO: 'Explicación para 5.° y 6.° grado',
 }

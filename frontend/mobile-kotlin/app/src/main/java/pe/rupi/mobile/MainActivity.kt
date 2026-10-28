@@ -315,12 +315,13 @@ class MainActivity : Activity() {
   if(state=="COMPLETADO") text("¡Terminaste! "+view.getInt("correct")+" de "+questions.length()+" aciertos. Revisa las explicaciones.")
  }
 
- /** HU-37: explanation of a wrong answer adapted to the student's grade. */
+ /** HU-37: explanation of a wrong answer adapted to the student's grade, with a real-life example (HU-38). */
  private fun showHint(hint: JSONObject) {
   val level=when(hint.getString("level")){"INICIAL"->"1.° y 2.° grado";"INTERMEDIO"->"3.° y 4.° grado";else->"5.° y 6.° grado"}
   val steps=hint.getJSONArray("steps")
   val body=StringBuilder(hint.getString("hint")).append("\n")
   for(i in 0 until steps.length()) body.append("\n").append(i+1).append(". ").append(steps.getString(i))
+  if(hint.optString("realLifeExample").isNotBlank()) body.append("\n\nEjemplo de la vida real:\n").append(hint.getString("realLifeExample"))
   body.append("\n\n").append(if(hint.optString("source")=="IA") "Pista asistida por IA · revisada automáticamente." else "Basada en la explicación revisada de la pregunta.")
   AlertDialog.Builder(this).setTitle("Rupi te explica · $level"+(if(hint.optBoolean("reinforced")) " · paso a paso" else ""))
    .setMessage(body.toString()).setPositiveButton("Entendido",null).show()
