@@ -15,3 +15,6 @@
 .quiz-hint-source { font-size: .85rem; color: #3d4f45; }
 .quiz-hint-example { margin: .5rem 0; padding: .6rem .8rem; border-left: 4px solid #ffd26a; background: #fff8e6; border-radius: 8px; }
 .quiz-hint-example p { margin: .25rem 0 0; }
+/* HU-39: escuchar consignas, explicaciones y pistas */
+.quiz-listen-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.quiz-question > .quiz-listen-row { justify-content: flex-end; margin-bottom: .25rem; }

@@ -32,6 +32,7 @@ import {
 import { resolveEducationalVideo, getYouTubeEmbedUrl } from '../../utils/educationalVideos'
 import { RupiCharacter } from '../../components/RupiCharacter'
 import { speakText } from '../../utils/speech'
+import { ListenButton } from '../../components/ListenButton'
 import './LessonScreenView.css'
 import { NodeReinforcement } from '../reinforcement/NodeReinforcement'
 
@@ -613,6 +614,8 @@ export function LessonScreenView({
                         <div className="feedback-text-col">
                           <strong>{feedback.isCorrect ? '¡Excelente trabajo!' : '¡Buen intento! Sigamos aprendiendo'}</strong>
                           <p>{feedback.feedbackMessage || feedback.explanation || (feedback.isCorrect ? '¡Has acertado la respuesta correcta!' : 'Revisa la explicación e inténtalo de nuevo.')}</p>
+                          {feedback.explanation && feedback.feedbackMessage && <p>{feedback.explanation}</p>}
+                          <ListenButton subject="la explicación" text={[feedback.feedbackMessage, feedback.explanation].filter(Boolean).join('. ')} />
                           {!feedback.isCorrect && (
                             <button
                               type="button"

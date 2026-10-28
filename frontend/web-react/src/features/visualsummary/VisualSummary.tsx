@@ -3,13 +3,16 @@ import { quizRequest } from '../../services/quizzesApi'
 import { downloadStudyPackage } from '../../services/learningRoutesApi'
 import '../reinforcement/AssignedTasks.css'
 import './VisualSummary.css'
+import { ListenButton } from '../../components/ListenButton'
 export interface Summary { id: string; state: string; version: string; topic: string; grade: number; area: string; source: string; provider: string; model: string; content: { title: string; concepts: { title: string; text: string; evidence: string }[]; steps: string[]; example: string; remember: string } | null }
 export function SummaryContent({ item }: { item: Summary }) {
  const d = item.content
  if (!d) return null
  return <div className="visual-sheet">
   <p className="visual-label">Contenido asistido por IA · {item.grade}.º de primaria</p>
-  <h3>{d.title}</h3><p>{item.state === 'REVISADO_DOCENTE' ? 'Revisado por docente' : 'Validación automática: puede contener errores. No sustituye la revisión docente.'}</p>
+  <h3>{d.title}</h3>
+  <ListenButton subject="el resumen visual" text={[d.title, ...d.concepts.map(c => c.title + ': ' + c.text), 'Paso a paso.', ...d.steps.map((s, i) => `Paso ${i + 1}: ${s}`), 'Ejemplo explicado: ' + d.example, 'Para recordar: ' + d.remember].join(' ')} />
+  <p>{item.state === 'REVISADO_DOCENTE' ? 'Revisado por docente' : 'Validación automática: puede contener errores. No sustituye la revisión docente.'}</p>
   <div className="visual-concepts">{d.concepts.map((c, i) => <article key={i}><span aria-hidden="true" className="visual-number">{i + 1}</span><h4>{c.title}</h4><p>{c.text}</p></article>)}</div>
   <h4>Paso a paso</h4><ol className="visual-steps">{d.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
   <article><h4>Ejemplo explicado</h4><p>{d.example}</p></article>

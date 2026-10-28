@@ -23,6 +23,7 @@ class MainActivity : Activity() {
  private var summaryMode=false
  private var cardMode=false
  private var currentTopic: JSONObject? = null
+ private var voice: RupiVoice? = null
  private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
 
  private val summaryConnectionReceiver=object:android.content.BroadcastReceiver(){
@@ -36,6 +37,7 @@ class MainActivity : Activity() {
  override fun onCreate(state: Bundle?) {
   super.onCreate(state)
   window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+  voice=RupiVoice(this)
   registerReceiver(summaryConnectionReceiver,android.content.IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION))
   if(api==null)api=StudyAlerts.restore(this)
   if (api == null) loginScreen() else {
@@ -44,9 +46,10 @@ class MainActivity : Activity() {
   }
  }
  override fun onSaveInstanceState(out: Bundle) { currentTopic?.let { out.putString("topic", it.toString()) }; out.putBoolean("summary",summaryMode);out.putBoolean("cards",cardMode); super.onSaveInstanceState(out) }
- override fun onDestroy() { unregisterReceiver(summaryConnectionReceiver);alive = false; worker.shutdownNow(); super.onDestroy() }
+ override fun onDestroy() { voice?.shutdown();unregisterReceiver(summaryConnectionReceiver);alive = false; worker.shutdownNow(); super.onDestroy() }
  private fun page(title: String) {
   screen++
+  voice?.stop()
   val scroll = ScrollView(this)
   scroll.setBackgroundColor(Color.rgb(250, 248, 245))
   scroll.setPadding(dp(16), dp(32), dp(16), dp(24))
@@ -61,6 +64,12 @@ class MainActivity : Activity() {
  }
  private fun text(value: String, size: Int = 18) {
   layout.addView(TextView(this).apply { text=value; textSize=size.toFloat(); setTextColor(Color.rgb(23,62,48)); setPadding(0,dp(10),0,dp(10)) })
+ }
+ /** HU-39: button that reads instructions or explanations aloud. */
+ private fun listen(subject: String, value: () -> String) {
+  button("🔊 Escuchar $subject") {
+   if(voice?.speak(value())!=true) notice.text="Para escuchar, instala o activa una voz en español en los ajustes de Android (Texto a voz)."
+  }.contentDescription="Escuchar $subject"
  }
  private fun input(label: String, password: Boolean = false): EditText {
   text(label)
@@ -138,6 +147,7 @@ class MainActivity : Activity() {
    layout.addView(bar,LinearLayout.LayoutParams(-1,dp(16)))
    text(if(met) "¡Meta del día lograda! Completaste $completed de $target lecciones." else "Llevas $completed de $target lecciones. Te faltan "+today.getInt("pendingLessons")+".",20)
    text(today.getString("motivationalMessage"))
+   listen("mi avance de hoy") { "Llevas $completed de $target lecciones. "+today.getString("motivationalMessage")+" "+comparison.getString("message") }
    val streak=overview.optInt("currentStreakDays")
    if(streak>0)text("Racha: $streak día(s) seguidos estudiando.")
    scoreComparison(comparison)
@@ -280,6 +290,7 @@ class MainActivity : Activity() {
    text(q.getString("text"),20)
    val group=RadioGroup(this)
    val options=q.getJSONArray("options")
+   listen("la pregunta") { RupiVoice.question(q.getString("text"),(0 until options.length()).map{options.getJSONObject(it).getString("text")}) }
    val ids=mutableMapOf<Int,String>()
    val answered=!q.isNull("selectedOption")
    for(j in 0 until options.length()) {
@@ -291,6 +302,7 @@ class MainActivity : Activity() {
    layout.addView(group)
    if(answered) {
     text((if(q.optBoolean("correct")) "¡Buen trabajo! " else "Sigamos aprendiendo. ")+q.optString("explanation"))
+    listen("la explicación") { q.optString("explanation") }
     if(!q.optBoolean("correct")) button("¿Por qué me equivoqué?") {
      execute({ JSONObject(api!!.request("/api/v1/student/ai-quizzes/"+view.getString("practiceId")+"/questions/"+q.getString("id")+"/hint","POST")) },{ showHint(it) })
     }
@@ -324,7 +336,8 @@ class MainActivity : Activity() {
   if(hint.optString("realLifeExample").isNotBlank()) body.append("\n\nEjemplo de la vida real:\n").append(hint.getString("realLifeExample"))
   body.append("\n\n").append(if(hint.optString("source")=="IA") "Pista asistida por IA · revisada automáticamente." else "Basada en la explicación revisada de la pregunta.")
   AlertDialog.Builder(this).setTitle("Rupi te explica · $level"+(if(hint.optBoolean("reinforced")) " · paso a paso" else ""))
-   .setMessage(body.toString()).setPositiveButton("Entendido",null).show()
+   .setMessage(body.toString()).setPositiveButton("Entendido",null)
+   .setNeutralButton("Escuchar") { _,_ -> if(voice?.speak(body.toString())!=true) notice.text="Para escuchar, instala o activa una voz en español en los ajustes de Android (Texto a voz)." }.show()
  }
 
  private fun cardsPath(topic: JSONObject) = path(topic).removeSuffix("ai-quiz")+"flashcards"
@@ -373,6 +386,7 @@ class MainActivity : Activity() {
     else -> false
    }
   }
+  listen(if(revealed) "la respuesta" else "la pregunta") { card.getString(if(revealed) "answer" else "question") }
   button(if(revealed) "Ver pregunta" else "Ver respuesta") {command(if(revealed)"NAVIGATE" else "REVEAL")}
   button("Anterior",index>0) {move(-1)}
   button("Siguiente",index<cards.length()-1) {move(1)}
@@ -449,6 +463,13 @@ class MainActivity : Activity() {
   text("Contenido asistido por IA · "+resource.optInt("grade")+".º de primaria")
   text(if(state=="REVISADO_DOCENTE")"Revisado por docente." else "Validación automática; puede contener errores.")
   text(content.getString("title"),24)
+  listen("el resumen") {
+   val parts=mutableListOf(content.getString("title"))
+   val c=content.getJSONArray("concepts");for(i in 0 until c.length())parts.add(c.getJSONObject(i).getString("title")+": "+c.getJSONObject(i).getString("text"))
+   val s=content.getJSONArray("steps");for(i in 0 until s.length())parts.add("Paso ${i+1}: "+s.getString(i))
+   parts.add("Ejemplo explicado: "+content.getString("example"));parts.add("Para recordar: "+content.getString("remember"))
+   parts.joinToString(" ")
+  }
   val concepts=content.getJSONArray("concepts")
   for(i in 0 until concepts.length()){
    val c=concepts.getJSONObject(i);text("${i+1}. "+c.getString("title"),20);text(c.getString("text"))

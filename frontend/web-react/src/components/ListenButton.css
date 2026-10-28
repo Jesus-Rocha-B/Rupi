@@ -1,0 +1,42 @@
+/* Botón Escuchar (HU-39): objetivo táctil de 48 px con volumen físico. */
+.listen-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 2px solid #173e30;
+  border-radius: 14px;
+  background: #ffd26a;
+  color: #173e30;
+  font-weight: 800;
+  font-size: 0.95rem;
+  box-shadow: 0 3px 0 #173e30;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.listen-btn.is-compact {
+  padding: 0;
+}
+
+.listen-btn.is-speaking {
+  background: #173e30;
+  color: #fffdf9;
+}
+
+.listen-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 #173e30;
+}
+
+.listen-btn:focus-visible {
+  outline: 3px solid #246a91;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listen-btn { transition: none; }
+}

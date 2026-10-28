@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { quizRequest } from '../../services/quizzesApi'
 import '../reinforcement/AssignedTasks.css'
 import './Flashcards.css'
+import { ListenButton } from '../../components/ListenButton'
 export interface Card { id: string; question: string; answer: string; source: string; state: string }
 interface Deck { cards: Card[]; current: string | null; revealed: boolean; revision: number }
 export function Flashcards({ routeId, nodeId }: { routeId: string; nodeId: string }) {
@@ -59,6 +60,7 @@ export function Flashcards({ routeId, nodeId }: { routeId: string; nodeId: strin
     <strong>{deck.revealed ? card.answer : card.question}</strong></span>
    </button>
    <div className="memory-actions">
+    <ListenButton subject={deck.revealed ? 'la respuesta de la tarjeta' : 'la pregunta de la tarjeta'} text={deck.revealed ? card.answer : card.question} />
     <button disabled={busy || !!error || index === 0} onClick={() => move(-1)}>Anterior</button>
     <button disabled={busy || !!error} onClick={() => void action(deck.revealed ? 'NAVIGATE' : 'REVEAL')}>{deck.revealed ? 'Ver pregunta' : 'Ver respuesta'}</button>
     <button disabled={busy || !!error || index === deck.cards.length - 1} onClick={() => move(1)}>Siguiente</button>

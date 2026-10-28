@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { HINT_LEVEL_LABEL, quizRequest, type QuizAvailability, type QuizHint, type QuizQuestion, type QuizView } from '../../services/quizzesApi'
 import '../reinforcement/AssignedTasks.css'
 import './QuizPractice.css'
+import { ListenButton } from '../../components/ListenButton'
+import { questionSpeech } from '../../utils/speech'
 /** HU-37: después de un error, Rupi explica por qué con palabras de su grado. */
 function ErrorHint({ practiceId, question }: { practiceId: string; question: QuizQuestion }) {
  const [hint, setHint] = useState<QuizHint | null>(null)
@@ -18,7 +20,8 @@ function ErrorHint({ practiceId, question }: { practiceId: string; question: Qui
   {error && <p role="alert">{error}</p>}
  </div>
  return <section className="quiz-hint" aria-label="Pista de Rupi para entender el error">
-  <p className="quiz-hint-level">{HINT_LEVEL_LABEL[hint.level]}{hint.reinforced ? ' · paso a paso' : ''}</p>
+  <div className="quiz-listen-row"><p className="quiz-hint-level">{HINT_LEVEL_LABEL[hint.level]}{hint.reinforced ? ' · paso a paso' : ''}</p>
+   <ListenButton subject="la pista de Rupi" text={[hint.hint, ...hint.steps.map((step, i) => `Paso ${i + 1}: ${step}`), 'En la vida real: ' + hint.realLifeExample].join(' ')} /></div>
   <p>{hint.hint}</p>
   <ol>{hint.steps.map(step => <li key={step}>{step}</li>)}</ol>
   <div className="quiz-hint-example"><strong>Ejemplo de la vida real</strong><p>{hint.realLifeExample}</p></div>
@@ -29,12 +32,14 @@ function Question({ question, practiceId, busy, answer, report }: { question: Qu
  const [selected, setSelected] = useState('')
  const [reason, setReason] = useState('')
  return <article className="quiz-question">
+  <div className="quiz-listen-row"><ListenButton subject="la pregunta y sus alternativas" text={questionSpeech(question.text, question.options.map(o => o.text))} /></div>
   <fieldset disabled={busy || question.selectedOption !== null}><legend>{question.text}</legend>
    {question.options.map(option => <label className="assigned-check" key={option.id}><input type="radio" name={question.id}
     value={option.id} checked={(question.selectedOption ?? selected) === option.id} onChange={() => setSelected(option.id)} />{option.text}</label>)}
    {!question.selectedOption && <button disabled={!selected || busy} onClick={() => answer(question.id, selected)}>Comprobar mi respuesta</button>}
   </fieldset>
-  {question.selectedOption && <div role="status"><strong>{question.correct ? '¡Buen trabajo!' : 'Sigamos aprendiendo.'}</strong><p>{question.explanation}</p></div>}
+  {question.selectedOption && <div role="status"><div className="quiz-listen-row"><strong>{question.correct ? '¡Buen trabajo!' : 'Sigamos aprendiendo.'}</strong>
+   <ListenButton compact subject="la explicación" text={(question.correct ? '¡Buen trabajo! ' : 'Sigamos aprendiendo. ') + (question.explanation ?? '')} /></div><p>{question.explanation}</p></div>}
   {question.selectedOption && question.correct === false && <ErrorHint practiceId={practiceId} question={question} />}
   <details><summary>Creo que esta pregunta necesita revisión</summary><label>Cuéntanos qué debemos revisar
    <textarea maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label>
