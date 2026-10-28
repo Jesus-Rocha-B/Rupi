@@ -111,6 +111,7 @@ class MainActivity : Activity() {
  private fun topics() {
   currentTopic=null
   page("Mis temas")
+  button("Mi meta de hoy") {dailyGoal()}
   button("Resúmenes descargados") {savedSummaries()}
   button("Mi ritmo de estudio y avisos"){notifications()}
   button("Actualizar temas") { topics() }
@@ -118,6 +119,43 @@ class MainActivity : Activity() {
   execute({ JSONArray(api!!.request("/api/v1/student/ai-quizzes/topics")) },{ items ->
    if(items.length()==0) text("Todavía no tienes paradas disponibles. Únete a una ruta en Rupi y vuelve a consultar.")
    for(i in 0 until items.length()) { val item=items.getJSONObject(i); button(item.getString("routeTitle")+" · "+item.getString("title")) { loadTopic(item) } }
+  })
+ }
+
+ private fun dailyGoal() {
+  summaryMode=false;cardMode=false;currentTopic=null
+  page("Mi meta de hoy")
+  button("Volver a mis temas"){topics()}
+  button("Actualizar mi avance"){dailyGoal()}
+  execute({ JSONObject(api!!.request("/api/v1/student/daily-goal")) },{ overview ->
+   val today=overview.getJSONObject("today")
+   val completed=today.getInt("completedLessons");val target=today.getInt("targetLessons");val met=today.getBoolean("isGoalMet")
+   layout.addView(DailyGoalRing(this,completed,target,met),LinearLayout.LayoutParams(-1,-2).apply{topMargin=dp(8);bottomMargin=dp(8)})
+   val bar=ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal).apply{
+    max=target.coerceAtLeast(1);progress=completed.coerceAtMost(max);minimumHeight=dp(16)
+    importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
+   }
+   layout.addView(bar,LinearLayout.LayoutParams(-1,dp(16)))
+   text(if(met) "¡Meta del día lograda! Completaste $completed de $target lecciones." else "Llevas $completed de $target lecciones. Te faltan "+today.getInt("pendingLessons")+".",20)
+   text(today.getString("motivationalMessage"))
+   val streak=overview.optInt("currentStreakDays")
+   if(streak>0)text("Racha: $streak día(s) seguidos estudiando.")
+   text("Tu semana de estudio",20)
+   val week=overview.getJSONArray("weeklyHistory")
+   for(i in 0 until week.length()){
+    val day=week.getJSONObject(i)
+    val mark=if(day.getBoolean("isGoalMet")) "✓ meta cumplida" else day.getInt("completedLessons").toString()+" de "+day.getInt("targetLessons")
+    text((if(day.getBoolean("isToday")) "Hoy" else day.getString("dayOfWeek"))+" · "+mark,16)
+   }
+   text("¿Cuántas paradas quieres completar por día?",20)
+   val options=overview.getJSONArray("availableTargetOptions")
+   for(i in 0 until options.length()){
+    val option=options.getInt(i)
+    button((if(option==overview.getInt("currentDailyTargetSetting")) "✓ " else "")+"$option "+(if(option==1) "parada" else "paradas"),option!=overview.getInt("currentDailyTargetSetting")){
+     execute({ api!!.request("/api/v1/student/daily-goal/target?target=$option","PUT") },{ dailyGoal() })
+    }
+   }
+   text("Es la misma meta que ves en la web. No cambia tus notas.")
   })
  }
 
