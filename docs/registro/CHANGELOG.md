@@ -2,6 +2,16 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-28 · HU-35 a HU-40: meta móvil, hoy vs. ayer, pistas por nivel, voz y retos diarios
+
+- `cb4f88f` HU-35: anillo y barra de la meta diaria en Android, con selector de meta.
+- `ff897fd` HU-36: `GET /student/daily-goal/comparison` compara el XP de hoy con el de ayer (hora de Lima, sin restar compras). Disponible en web y Android.
+- `5d0ed25` HU-37: pista «¿Por qué me equivoqué?» según el grado y el desempeño, con IA revisada o con la explicación revisada como respaldo.
+- `c285025` HU-38: ejemplos de la vida real peruana en las pistas y en el tutor de chat.
+- `f75d438` HU-39: botón Escuchar en la web (`ListenButton`) y voz del sistema en Android (`RupiVoice`).
+- `8aaa347` HU-40: V30 con 12 retos peruanos, rotación diaria por grado, XP solo con todas las respuestas y pantallas web y Android.
+- Detalle y validación: [HU-35](../implementacion/HU-35-indicador-meta-movil.md) a [HU-40](../implementacion/HU-40-retos-diarios-peru.md).
+
 ## 2026-10-14 · HU-17: reportes de resultados docentes
 
 - Resumen por estudiante y unidad con evidencia mínima y estados sin datos diferenciados.

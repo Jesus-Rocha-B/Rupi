@@ -25,3 +25,12 @@ Tema → Ver resumen visual. Reutiliza IA de Spring Boot y descarga ZIP de HU-12
 
 ## Validacion actualizada
 APK real compilado y probado en emulador Pixel_6: login, cuestionarios, flashcards, persistencia, descarga sin red y retirada. Ejecutar powershell -File scripts/Compilar-Android.ps1 -Lint desde la raiz. El fallo Gradle anterior esta resuelto. Solo falta proveedor/clave para IA real. Detalles: ../../docs/implementacion/VALIDACION-ANDROID-Y-CONFIGURACION-IA.md.
+
+## HU-35 a HU-40: meta, comparación, pistas, voz y reto diario
+Desde «Mis temas»:
+- **Mi meta de hoy:** anillo (`DailyGoalRing.kt`) y barra de la meta diaria, selector de meta y «Hoy vs. ayer» con el XP de ambos días (HU-35, HU-36).
+- **¿Por qué me equivoqué?:** en la práctica, tras un error. Abre la pista adaptada al grado con un ejemplo de la vida real (HU-37, HU-38).
+- **🔊 Escuchar:** lee consignas, alternativas, explicaciones, tarjetas, resúmenes y el reto con la voz del sistema (`RupiVoice.kt`, `es-PE` o `es`) (HU-39). Si el dispositivo no tiene voz en español, la app indica cómo activarla en Texto a voz.
+- **Reto del día:** razonamiento lógico o comprensión lectora con contexto peruano; se termina al responder todas las preguntas (+30 XP) (HU-40).
+
+Verificado el 28/10/2026 con `assembleDebug` y en emulador Pixel_8 (API 35) contra la API local. Detalles en `../../docs/implementacion/HU-35-indicador-meta-movil.md` a `HU-40-retos-diarios-peru.md`.
