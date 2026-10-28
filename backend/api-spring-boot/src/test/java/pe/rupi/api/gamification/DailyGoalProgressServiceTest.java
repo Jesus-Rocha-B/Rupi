@@ -1,5 +1,6 @@
 package pe.rupi.api.gamification;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import pe.rupi.api.gamification.DailyGoalDtos.DailyGoalOverviewResponse;
+import pe.rupi.api.gamification.DailyGoalDtos.ScoreComparisonResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -102,5 +104,52 @@ class DailyGoalProgressServiceTest {
         assertEquals(1, response.today().completedLessons());
         assertEquals(4, response.today().pendingLessons());
         assertEquals(20, response.today().percentage());
+    }
+
+    @Test
+    void scoreComparisonReportsImprovementOverYesterday() {
+        // Primero se consulta hoy y luego ayer
+        when(jdbc.queryForObject(contains("cantidad > 0"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(80, 50);
+        when(jdbc.queryForObject(contains("p.completado_en < :toInstant"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(3, 2);
+
+        ScoreComparisonResponse response = service.getScoreComparison("user-1");
+
+        assertEquals(80, response.todayExperience());
+        assertEquals(50, response.yesterdayExperience());
+        assertEquals(30, response.difference());
+        assertEquals("SUBE", response.trend());
+        assertEquals(3, response.todayLessons());
+        assertEquals(2, response.yesterdayLessons());
+        assertTrue(response.message().contains("30 XP"));
+        assertEquals(LocalDate.parse(response.today()).minusDays(1).toString(), response.yesterday());
+    }
+
+    @Test
+    void scoreComparisonEncouragesWhenBelowYesterday() {
+        when(jdbc.queryForObject(contains("cantidad > 0"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(10, 40);
+        when(jdbc.queryForObject(contains("p.completado_en < :toInstant"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(1, 3);
+
+        ScoreComparisonResponse response = service.getScoreComparison("user-1");
+
+        assertEquals(-30, response.difference());
+        assertEquals("BAJA", response.trend());
+        assertTrue(response.message().contains("Te faltan 30 XP"));
+    }
+
+    @Test
+    void scoreComparisonWithoutActivityIsEven() {
+        when(jdbc.queryForObject(contains("cantidad > 0"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(0, 0);
+        when(jdbc.queryForObject(contains("p.completado_en < :toInstant"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(0, 0);
+
+        ScoreComparisonResponse response = service.getScoreComparison("user-1");
+
+        assertEquals("IGUAL", response.trend());
+        assertTrue(response.message().contains("buen día para empezar"));
     }
 }

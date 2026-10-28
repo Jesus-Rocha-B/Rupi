@@ -34,6 +34,19 @@ public final class DailyGoalDtos {
             int currentStreakDays
     ) {}
 
+    /** Comparación breve entre el puntaje (XP ganado) de hoy y el de ayer (HU-36). */
+    public record ScoreComparisonResponse(
+            String today,
+            String yesterday,
+            int todayExperience,
+            int yesterdayExperience,
+            int difference,
+            String trend,
+            int todayLessons,
+            int yesterdayLessons,
+            String message
+    ) {}
+
     public record UpdateTargetGoalRequest(
             int targetLessons
     ) {}

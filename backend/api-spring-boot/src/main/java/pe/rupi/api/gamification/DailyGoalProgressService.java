@@ -122,6 +122,35 @@ public class DailyGoalProgressService {
         return getDailyGoalOverview(studentId);
     }
 
+    /**
+     * Compara el XP ganado hoy con el de ayer en horario de Lima (HU-36).
+     * Solo cuenta movimientos positivos: gastar XP en la tienda no baja el puntaje del día.
+     */
+    public ScoreComparisonResponse getScoreComparison(String studentId) {
+        LocalDate todayLocal = LocalDate.now(LIMA_ZONE);
+        LocalDate yesterdayLocal = todayLocal.minusDays(1);
+
+        int todayXp = sumExperienceBetween(studentId, todayLocal, todayLocal.plusDays(1));
+        int yesterdayXp = sumExperienceBetween(studentId, yesterdayLocal, todayLocal);
+        int todayLessons = countLessonsCompletedBetween(studentId, todayLocal, todayLocal.plusDays(1));
+        int yesterdayLessons = countLessonsCompletedBetween(studentId, yesterdayLocal, todayLocal);
+
+        int difference = todayXp - yesterdayXp;
+        String trend = difference > 0 ? "SUBE" : difference < 0 ? "BAJA" : "IGUAL";
+
+        return new ScoreComparisonResponse(
+                todayLocal.toString(),
+                yesterdayLocal.toString(),
+                todayXp,
+                yesterdayXp,
+                difference,
+                trend,
+                todayLessons,
+                yesterdayLessons,
+                buildComparisonMessage(todayXp, yesterdayXp, difference)
+        );
+    }
+
     @Transactional
     public void recordCompletedActivity(String studentId) {
         try {
@@ -164,6 +193,56 @@ public class DailyGoalProgressService {
                 .addValue("todayStart", Timestamp.from(todayStart));
         Integer count = jdbc.queryForObject(sql, params, Integer.class);
         return count != null ? count : 0;
+    }
+
+    private int sumExperienceBetween(String studentId, LocalDate fromDay, LocalDate toDay) {
+        String sql = """
+                SELECT COALESCE(SUM(cantidad), 0)
+                FROM gamificacion_movimiento_experiencia
+                WHERE usuario_id = :studentId
+                  AND cantidad > 0
+                  AND ocurrido_en >= :fromInstant
+                  AND ocurrido_en < :toInstant
+                """;
+        Integer total = jdbc.queryForObject(sql, dayRange(studentId, fromDay, toDay), Integer.class);
+        return total != null ? total : 0;
+    }
+
+    private int countLessonsCompletedBetween(String studentId, LocalDate fromDay, LocalDate toDay) {
+        String sql = """
+                SELECT COUNT(DISTINCT p.nodo_ruta_id)
+                FROM aprendizaje_inscripcion_ruta i
+                JOIN aprendizaje_progreso_nodo p ON p.inscripcion_id = i.id
+                WHERE i.estudiante_id = :studentId
+                  AND p.estado = 'COMPLETADO'
+                  AND p.completado_en >= :fromInstant
+                  AND p.completado_en < :toInstant
+                """;
+        Integer count = jdbc.queryForObject(sql, dayRange(studentId, fromDay, toDay), Integer.class);
+        return count != null ? count : 0;
+    }
+
+    private MapSqlParameterSource dayRange(String studentId, LocalDate fromDay, LocalDate toDay) {
+        return new MapSqlParameterSource()
+                .addValue("studentId", studentId)
+                .addValue("fromInstant", Timestamp.from(fromDay.atStartOfDay(LIMA_ZONE).toInstant()))
+                .addValue("toInstant", Timestamp.from(toDay.atStartOfDay(LIMA_ZONE).toInstant()));
+    }
+
+    private String buildComparisonMessage(int todayXp, int yesterdayXp, int difference) {
+        if (todayXp == 0 && yesterdayXp == 0) {
+            return "Hoy es un buen día para empezar. ¡Completa una parada y suma tus primeros XP!";
+        }
+        if (yesterdayXp == 0) {
+            return "¡Ya sumaste " + todayXp + " XP hoy! Ayer no registraste puntaje, así que vas mejor que ayer.";
+        }
+        if (difference > 0) {
+            return "¡Superaste tu ritmo de ayer por " + difference + " XP! Sigue así, explorador.";
+        }
+        if (difference == 0) {
+            return "Vas igual que ayer: " + todayXp + " XP. Una parada más y superas tu ritmo.";
+        }
+        return "Te faltan " + (-difference) + " XP para igualar lo de ayer. ¡Tú puedes!";
     }
 
     private void upsertTodayProgress(String studentId, LocalDate todayLocal, int targetGoal, int completedToday) {

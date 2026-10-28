@@ -127,7 +127,7 @@ class MainActivity : Activity() {
   page("Mi meta de hoy")
   button("Volver a mis temas"){topics()}
   button("Actualizar mi avance"){dailyGoal()}
-  execute({ JSONObject(api!!.request("/api/v1/student/daily-goal")) },{ overview ->
+  execute({ Pair(JSONObject(api!!.request("/api/v1/student/daily-goal")),JSONObject(api!!.request("/api/v1/student/daily-goal/comparison"))) },{ (overview,comparison) ->
    val today=overview.getJSONObject("today")
    val completed=today.getInt("completedLessons");val target=today.getInt("targetLessons");val met=today.getBoolean("isGoalMet")
    layout.addView(DailyGoalRing(this,completed,target,met),LinearLayout.LayoutParams(-1,-2).apply{topMargin=dp(8);bottomMargin=dp(8)})
@@ -140,6 +140,7 @@ class MainActivity : Activity() {
    text(today.getString("motivationalMessage"))
    val streak=overview.optInt("currentStreakDays")
    if(streak>0)text("Racha: $streak día(s) seguidos estudiando.")
+   scoreComparison(comparison)
    text("Tu semana de estudio",20)
    val week=overview.getJSONArray("weeklyHistory")
    for(i in 0 until week.length()){
@@ -157,6 +158,24 @@ class MainActivity : Activity() {
    }
    text("Es la misma meta que ves en la web. No cambia tus notas.")
   })
+ }
+
+ /** Short comparison of today's XP against yesterday's (HU-36). */
+ private fun scoreComparison(comparison: JSONObject) {
+  text("Hoy vs. ayer",20)
+  val todayXp=comparison.getInt("todayExperience");val yesterdayXp=comparison.getInt("yesterdayExperience")
+  val max=maxOf(todayXp,yesterdayXp,1)
+  fun row(label: String,xp: Int,lessons: Int,color: Int) {
+   text("$label · $xp XP · $lessons "+(if(lessons==1) "parada" else "paradas"),16)
+   val bar=ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal).apply{
+    this.max=max;progress=xp;progressTintList=android.content.res.ColorStateList.valueOf(color)
+    importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
+   }
+   layout.addView(bar,LinearLayout.LayoutParams(-1,dp(16)))
+  }
+  row("Hoy",todayXp,comparison.getInt("todayLessons"),Color.rgb(49,114,75))
+  row("Ayer",yesterdayXp,comparison.getInt("yesterdayLessons"),Color.rgb(167,154,133))
+  text(when(comparison.getString("trend")){"SUBE"->"↑ ";"BAJA"->"↓ ";else->"= "}+comparison.getString("message"))
  }
 
  private fun notifications() {

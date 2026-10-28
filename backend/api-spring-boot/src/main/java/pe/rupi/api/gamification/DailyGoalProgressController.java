@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import pe.rupi.api.gamification.DailyGoalDtos.DailyGoalOverviewResponse;
+import pe.rupi.api.gamification.DailyGoalDtos.ScoreComparisonResponse;
 import pe.rupi.api.gamification.DailyGoalDtos.UpdateTargetGoalRequest;
 import pe.rupi.api.shared.StudentSessionService;
 
@@ -30,6 +31,13 @@ public class DailyGoalProgressController {
     public DailyGoalOverviewResponse getDailyGoal(HttpServletRequest request) {
         StudentSessionService.Student student = resolveStudent(request);
         return goalService.getDailyGoalOverview(student.id());
+    }
+
+    /** Comparación del puntaje de hoy con el de ayer (HU-36). */
+    @GetMapping("/comparison")
+    public ScoreComparisonResponse getScoreComparison(HttpServletRequest request) {
+        StudentSessionService.Student student = resolveStudent(request);
+        return goalService.getScoreComparison(student.id());
     }
 
     @PutMapping("/target")

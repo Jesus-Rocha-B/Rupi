@@ -891,3 +891,9 @@
     justify-content: center;
   }
 }
+
+/* Meta del día (HU-34) y comparación hoy vs. ayer (HU-36) */
+.dashboard-daily-goal-section {
+  display: grid;
+  gap: 16px;
+}

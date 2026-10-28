@@ -19,6 +19,7 @@ import {
 } from '../../services/dashboardApi'
 import { RupiCharacter, type EquippedAccessories } from '../../components/RupiCharacter'
 import { DailyGoalRing } from '../../components/DailyGoalRing'
+import { ScoreComparison } from '../../components/ScoreComparison'
 import { speakText } from '../../utils/speech'
 import './StudentDashboardView.css'
 
@@ -238,6 +239,7 @@ export const StudentDashboardView: React.FC<Props> = ({
       {/* 2. Indicador Gráfico de Progreso Diario y Meta de Hoy (HU-34) */}
       <section className="dashboard-daily-goal-section" aria-label="Meta de aprendizaje del día">
         <DailyGoalRing refreshTrigger={refreshTrigger} />
+        <ScoreComparison refreshTrigger={refreshTrigger} />
       </section>
 
       {/* 3. Cuadrícula de Tarjetas Métricas (Recuento Exacto) */}

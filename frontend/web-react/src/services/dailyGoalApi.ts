@@ -70,3 +70,33 @@ export async function updateDailyGoalTarget(
 
   return (await res.json()) as DailyGoalOverview
 }
+
+/** Comparación breve entre el XP de hoy y el de ayer (HU-36). */
+export interface ScoreComparison {
+  today: string
+  yesterday: string
+  todayExperience: number
+  yesterdayExperience: number
+  difference: number
+  trend: 'SUBE' | 'BAJA' | 'IGUAL'
+  todayLessons: number
+  yesterdayLessons: number
+  message: string
+}
+
+export async function fetchScoreComparison(signal?: AbortSignal): Promise<ScoreComparison> {
+  const res = await fetch(`${BASE_URL}/student/daily-goal/comparison`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+    credentials: 'same-origin',
+    signal,
+  })
+
+  if (!res.ok) {
+    throw new Error(`Error ${res.status}: No se pudo comparar tu puntaje con el de ayer`)
+  }
+
+  return (await res.json()) as ScoreComparison
+}

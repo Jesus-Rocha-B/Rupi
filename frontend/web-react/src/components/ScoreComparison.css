@@ -1,0 +1,149 @@
+/**
+ * ScoreComparison.css
+ * Comparación del puntaje de hoy con el de ayer (HU-36).
+ * Misma materialidad que la tarjeta de meta diaria: papel, borde y sombra sólida.
+ */
+
+.score-compare-card {
+  background: #fffdf9;
+  border: 2px solid #e2d7c5;
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 0 #d0c3ae;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #173e30;
+}
+
+.score-compare-card.trend-sube { border-color: #31724b; box-shadow: 0 4px 0 #23553a; }
+.score-compare-card.trend-baja { border-color: #f2b37a; }
+
+.score-compare-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-compare-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.score-compare-head p {
+  margin: 2px 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.score-compare-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #e9f3e7;
+  color: #173e30;
+  flex: 0 0 40px;
+}
+
+.trend-baja .score-compare-icon { background: #fff1e2; color: #8a3a12; }
+.trend-igual .score-compare-icon { background: #fff5d8; }
+
+.score-compare-listen {
+  margin-left: auto;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 2px solid #173e30;
+  background: #ffd26a;
+  color: #173e30;
+  box-shadow: 0 3px 0 #173e30;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+}
+
+.score-compare-listen:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 #173e30;
+}
+
+.score-compare-listen:focus-visible {
+  outline: 3px solid #246a91;
+  outline-offset: 3px;
+}
+
+.score-compare-bars {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.score-compare-row {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-compare-row dt {
+  font-weight: 800;
+}
+
+.score-compare-row dd {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.score-bar {
+  height: 16px;
+  border-radius: 999px;
+  background: #efe7da;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.score-bar-fill.is-today { background: #31724b; }
+.score-bar-fill.is-yesterday { background: #a79a85; }
+
+.score-compare-row small {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4a5a50;
+  min-width: 64px;
+}
+
+.score-compare-message {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 4px solid #ffd26a;
+  background: #fff8e6;
+  border-radius: 8px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.score-compare-empty {
+  margin: 0;
+  font-weight: 600;
+}
+
+@media (max-width: 420px) {
+  .score-compare-row dd { grid-template-columns: 1fr auto; }
+  .score-compare-row small { grid-column: 1 / -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .score-bar-fill { transition: none; }
+}
