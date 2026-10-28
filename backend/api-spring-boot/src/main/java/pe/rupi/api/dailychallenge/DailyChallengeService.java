@@ -1,7 +1,10 @@
 package pe.rupi.api.dailychallenge;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -16,9 +19,17 @@ import pe.rupi.api.dailychallenge.DailyChallengeDtos.DailyChallengeResponse;
 import pe.rupi.api.evaluation.EvaluationService;
 import pe.rupi.api.evaluation.EvaluationDtos.QuestionDto;
 
+/**
+ * Retos diarios de razonamiento lógico y comprensión lectora con contexto peruano (HU-40).
+ *
+ * Si el grado tiene un reto publicado para hoy, se usa ese. Si no, se rota el banco de retos
+ * publicados del grado según el día de Lima, así cada día hay un reto distinto sin cargar uno a mano.
+ */
 @Service
 public class DailyChallengeService {
     private static final String DEFAULT_GRADE_ID = "00000000-0000-4000-8000-000000000002"; // 2.° de primaria
+    private static final ZoneId LIMA_ZONE = ZoneId.of("America/Lima");
+    static final int EXPERIENCE_REWARD = 30;
 
     private final NamedParameterJdbcTemplate jdbc;
     private final EvaluationService evaluationService;
@@ -28,75 +39,86 @@ public class DailyChallengeService {
         this.evaluationService = evaluationService;
     }
 
+    record ChallengeRaw(UUID id, String date, UUID activityVersionId, String title, String instructions, Integer minutes) {}
+
+    /** Índice del banco que corresponde a un día: avanza uno por día y vuelve a empezar al terminar. */
+    static int rotationIndex(LocalDate day, int bankSize) {
+        return bankSize <= 0 ? 0 : (int) Math.floorMod(day.toEpochDay(), (long) bankSize);
+    }
+
     public DailyChallengeResponse getTodayChallenge(UUID studentId) {
+        LocalDate today = LocalDate.now(LIMA_ZONE);
+        var challenge = selectChallenge(studentId, today);
+
+        // Lectura del reto (solo los de comprensión lectora tienen bloque TEXTO)
+        List<String> readings = jdbc.query("""
+                SELECT texto_cuerpo FROM aprendizaje_bloque_contenido
+                WHERE version_actividad_id = :actId AND tipo = 'TEXTO' AND texto_cuerpo IS NOT NULL
+                ORDER BY numero_secuencia
+                """, new MapSqlParameterSource("actId", challenge.activityVersionId().toString()),
+                (rs, rowNum) -> rs.getString("texto_cuerpo"));
+        String readingText = readings.isEmpty() ? null : String.join("\n\n", readings);
+
+        boolean isCompleted = rewardedToday(studentId, challenge.activityVersionId(), today);
+        List<QuestionDto> questions = evaluationService.findQuestionsForActivity(challenge.activityVersionId());
+
+        return new DailyChallengeResponse(
+                challenge.id(),
+                today.toString(),
+                challenge.activityVersionId(),
+                challenge.title(),
+                challenge.instructions(),
+                readingText == null ? DailyChallengeDtos.LOGICAL_REASONING : DailyChallengeDtos.READING_COMPREHENSION,
+                readingText,
+                challenge.minutes() != null && challenge.minutes() > 0 ? challenge.minutes() : 5,
+                isCompleted,
+                EXPERIENCE_REWARD,
+                questions
+        );
+    }
+
+    /** Reto que le toca hoy al estudiante según su grado. */
+    private ChallengeRaw selectChallenge(UUID studentId, LocalDate today) {
         // 1. Obtener el grado del estudiante
         String sqlGrade = """
                 SELECT a.grado_id
                 FROM escuela_membresia_aula m
                 JOIN escuela_aula a ON a.id = m.aula_id
                 WHERE m.usuario_id = :studentId AND m.estado = 'ACTIVO'
+                ORDER BY a.id
                 LIMIT 1
                 """;
         List<String> grades = jdbc.query(sqlGrade, new MapSqlParameterSource("studentId", studentId.toString()),
                 (rs, rowNum) -> rs.getString("grado_id"));
         String gradeId = grades.isEmpty() ? DEFAULT_GRADE_ID : grades.getFirst();
 
-        // 2. Buscar reto diario vigente para ese grado
-        String sqlChallenge = """
+        // 2. Reto publicado para hoy o, si no hay, el que toca en la rotación del banco del grado
+        String sqlChallenges = """
                 SELECT rd.id, rd.fecha, rd.version_actividad_id, va.titulo, va.instrucciones, va.minutos_estimados
                 FROM aprendizaje_reto_diario rd
                 JOIN aprendizaje_version_actividad va ON va.id = rd.version_actividad_id
-                WHERE rd.grado_id = :gradeId AND rd.estado = 'PUBLICADO'
-                ORDER BY rd.fecha DESC
-                LIMIT 1
+                WHERE rd.grado_id = :gradeId AND rd.estado = 'PUBLICADO' AND va.estado = 'PUBLICADO'
+                  AND rd.fecha <= :today
+                ORDER BY rd.fecha ASC, rd.id ASC
                 """;
-        var params = new MapSqlParameterSource("gradeId", gradeId);
-
-        record ChallengeRaw(UUID id, String date, UUID activityVersionId, String title, String instructions, Integer minutes) {}
-        var challengeOpt = jdbc.query(sqlChallenge, params, (rs, rowNum) -> new ChallengeRaw(
+        var params = new MapSqlParameterSource("gradeId", gradeId).addValue("today", Date.valueOf(today));
+        List<ChallengeRaw> bank = jdbc.query(sqlChallenges, params, (rs, rowNum) -> new ChallengeRaw(
                 UUID.fromString(rs.getString("id")),
                 rs.getString("fecha"),
                 UUID.fromString(rs.getString("version_actividad_id")),
                 rs.getString("titulo"),
                 rs.getString("instrucciones"),
                 rs.getInt("minutos_estimados")
-        )).stream().findFirst();
+        ));
 
-        if (challengeOpt.isEmpty()) {
+        if (bank.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay un reto diario disponible hoy para tu grado.");
         }
 
-        var challenge = challengeOpt.get();
-
-        // 3. Comprobar si ya se completó hoy
-        String sqlCompleted = """
-                SELECT COUNT(*)
-                FROM gamificacion_movimiento_experiencia
-                WHERE usuario_id = :studentId
-                  AND motivo = 'RETO'
-                  AND referencia_id = :actId
-                  AND DATE(ocurrido_en) = CURRENT_DATE
-                """;
-        Integer completedCount = jdbc.queryForObject(sqlCompleted, new MapSqlParameterSource()
-                .addValue("studentId", studentId.toString())
-                .addValue("actId", challenge.activityVersionId().toString()), Integer.class);
-
-        boolean isCompleted = completedCount != null && completedCount > 0;
-
-        // 4. Obtener preguntas interactivas asociadas
-        List<QuestionDto> questions = evaluationService.findQuestionsForActivity(challenge.activityVersionId());
-
-        return new DailyChallengeResponse(
-                challenge.id(),
-                challenge.date(),
-                challenge.activityVersionId(),
-                challenge.title(),
-                challenge.instructions(),
-                challenge.minutes() != null && challenge.minutes() > 0 ? challenge.minutes() : 5,
-                isCompleted,
-                30, // 30 XP de recompensa
-                questions
-        );
+        return bank.stream()
+                .filter(c -> today.toString().equals(c.date()))
+                .findFirst()
+                .orElse(bank.get(rotationIndex(today, bank.size())));
     }
 
     @Transactional
@@ -105,7 +127,7 @@ public class DailyChallengeService {
                 SELECT rd.id, rd.version_actividad_id, va.titulo
                 FROM aprendizaje_reto_diario rd
                 JOIN aprendizaje_version_actividad va ON va.id = rd.version_actividad_id
-                WHERE rd.id = :challengeId
+                WHERE rd.id = :challengeId AND rd.estado = 'PUBLICADO'
                 """;
         record ChallengeInfo(UUID id, UUID activityVersionId, String title) {}
         var challenge = jdbc.query(sqlChallenge, new MapSqlParameterSource("challengeId", challengeId.toString()),
@@ -117,24 +139,39 @@ public class DailyChallengeService {
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Reto diario no encontrado.")
         );
 
-        String today = LocalDate.now().toString();
+        LocalDate today = LocalDate.now(LIMA_ZONE);
+        if (!selectChallenge(studentId, today).id().equals(challenge.id())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este no es tu reto de hoy. Vuelve a abrir el reto del día.");
+        }
+
+        // Para terminar el reto hay que responder todas sus preguntas hoy (en cualquier orden).
+        int totalQuestions = countQuestions(challenge.activityVersionId());
+        var answers = jdbc.queryForMap("""
+                SELECT COUNT(DISTINCT r.pregunta_id) answered,
+                       COUNT(DISTINCT CASE WHEN r.es_correcta THEN r.pregunta_id END) correct
+                FROM evaluacion_intento i
+                JOIN evaluacion_respuesta r ON r.intento_id = i.id
+                JOIN evaluacion_pregunta q ON q.id = r.pregunta_id AND q.version_actividad_id = i.version_actividad_id
+                WHERE i.estudiante_id = :studentId
+                  AND i.version_actividad_id = :actId
+                  AND r.respondida_en >= :dayStart
+                """, new MapSqlParameterSource()
+                .addValue("studentId", studentId.toString())
+                .addValue("actId", challenge.activityVersionId().toString())
+                .addValue("dayStart", dayStart(today)));
+        int answered = ((Number) answers.get("answered")).intValue();
+        int correct = ((Number) answers.get("correct")).intValue();
+        if (totalQuestions == 0 || answered < totalQuestions) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Responde todas las preguntas del reto antes de terminarlo (" + answered + " de " + totalQuestions + ").");
+        }
+
         String idempotencyKey = UUID.nameUUIDFromBytes(
                 (studentId + ":" + challengeId + ":" + today).getBytes(StandardCharsets.UTF_8)
         ).toString();
 
-        String sqlCheckToday = """
-                SELECT COUNT(*) FROM gamificacion_movimiento_experiencia
-                WHERE usuario_id = :studentId
-                  AND motivo = 'RETO'
-                  AND referencia_id = :actId
-                  AND DATE(ocurrido_en) = CURRENT_DATE
-                """;
-        Integer completedToday = jdbc.queryForObject(sqlCheckToday, new MapSqlParameterSource()
-                .addValue("studentId", studentId.toString())
-                .addValue("actId", challenge.activityVersionId().toString()), Integer.class);
-
-        boolean wasAlreadyCompleted = completedToday != null && completedToday > 0;
-        int experienceEarned = wasAlreadyCompleted ? 0 : 30;
+        boolean wasAlreadyCompleted = rewardedToday(studentId, challenge.activityVersionId(), today);
+        int experienceEarned = wasAlreadyCompleted ? 0 : EXPERIENCE_REWARD;
 
         if (!wasAlreadyCompleted) {
             jdbc.update("""
@@ -155,16 +192,50 @@ public class DailyChallengeService {
                 WHERE usuario_id = :studentId
                 """, new MapSqlParameterSource("studentId", studentId.toString()), Integer.class);
 
-        String rupiMessage = wasAlreadyCompleted
-                ? "¡Ya habías completado el reto de hoy! Gracias por seguir practicando con entusiasmo."
-                : "¡Felicitaciones! Has completado el reto diario de hoy y sumaste +30 XP a tu cuenta.";
-
         return new DailyChallengeCompleteResponse(
                 challengeId,
                 true,
                 experienceEarned,
                 totalXp != null ? totalXp : 0,
-                rupiMessage
+                correct,
+                totalQuestions,
+                completionMessage(wasAlreadyCompleted, correct, totalQuestions)
         );
+    }
+
+    static String completionMessage(boolean wasAlreadyCompleted, int correct, int total) {
+        if (wasAlreadyCompleted) {
+            return "¡Ya habías completado el reto de hoy! Gracias por seguir practicando con entusiasmo.";
+        }
+        String result = correct == total
+                ? "¡Acertaste las " + total + " preguntas!"
+                : "Acertaste " + correct + " de " + total + ". Revisa las explicaciones para aprender de cada pregunta.";
+        return result + " Completaste el reto diario y sumaste +" + EXPERIENCE_REWARD + " XP. ¡Mañana te espera uno nuevo!";
+    }
+
+    private boolean rewardedToday(UUID studentId, UUID activityVersionId, LocalDate today) {
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*)
+                FROM gamificacion_movimiento_experiencia
+                WHERE usuario_id = :studentId
+                  AND motivo = 'RETO'
+                  AND referencia_id = :actId
+                  AND ocurrido_en >= :dayStart
+                """, new MapSqlParameterSource()
+                .addValue("studentId", studentId.toString())
+                .addValue("actId", activityVersionId.toString())
+                .addValue("dayStart", dayStart(today)), Integer.class);
+        return count != null && count > 0;
+    }
+
+    private int countQuestions(UUID activityVersionId) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM evaluacion_pregunta WHERE version_actividad_id = :actId",
+                new MapSqlParameterSource("actId", activityVersionId.toString()), Integer.class);
+        return count != null ? count : 0;
+    }
+
+    private static Timestamp dayStart(LocalDate day) {
+        return Timestamp.from(day.atStartOfDay(LIMA_ZONE).toInstant());
     }
 }

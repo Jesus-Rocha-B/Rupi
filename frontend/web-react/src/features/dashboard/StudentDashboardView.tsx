@@ -20,6 +20,7 @@ import {
 import { RupiCharacter, type EquippedAccessories } from '../../components/RupiCharacter'
 import { DailyGoalRing } from '../../components/DailyGoalRing'
 import { ScoreComparison } from '../../components/ScoreComparison'
+import { DailyChallengeCard } from './DailyChallengeCard'
 import { speakText } from '../../utils/speech'
 import './StudentDashboardView.css'
 
@@ -98,6 +99,13 @@ export const StudentDashboardView: React.FC<Props> = ({
     if (!data) return
     const msg = `¡Hola ${studentName}! Has completado ${data.metrics.totalCompletedLessons} lecciones escolares. Tienes ${data.metrics.totalPendingLessons} lecciones pendientes y tu avance general es de ${data.metrics.overallCompletionPercentage} por ciento. ¡Sigue adelante!`
     speakText(msg)
+  }
+
+  // Al terminar el reto del día cambia el XP de hoy: se vuelve a pedir la comparación (HU-36/HU-40).
+  const [scoreRefresh, setScoreRefresh] = useState(0)
+  const handleChallengeCompleted = () => {
+    setScoreRefresh((n) => n + 1)
+    handleRefreshClick()
   }
 
   const handleRefreshClick = () => {
@@ -239,8 +247,11 @@ export const StudentDashboardView: React.FC<Props> = ({
       {/* 2. Indicador Gráfico de Progreso Diario y Meta de Hoy (HU-34) */}
       <section className="dashboard-daily-goal-section" aria-label="Meta de aprendizaje del día">
         <DailyGoalRing refreshTrigger={refreshTrigger} />
-        <ScoreComparison refreshTrigger={refreshTrigger} />
+        <ScoreComparison refreshTrigger={refreshTrigger + scoreRefresh} />
       </section>
+
+      {/* Reto del día: razonamiento lógico o comprensión lectora (HU-40) */}
+      <DailyChallengeCard refreshTrigger={refreshTrigger} onCompleted={handleChallengeCompleted} />
 
       {/* 3. Cuadrícula de Tarjetas Métricas (Recuento Exacto) */}
       <section className="dashboard-metrics-grid" aria-label="Tarjetas métricas de aprendizaje">

@@ -24,6 +24,8 @@ class MainActivity : Activity() {
  private var cardMode=false
  private var currentTopic: JSONObject? = null
  private var voice: RupiVoice? = null
+ private val challengeAnswers = mutableMapOf<String,JSONObject>()
+ private var challengeDay = ""
  private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
 
  private val summaryConnectionReceiver=object:android.content.BroadcastReceiver(){
@@ -120,6 +122,7 @@ class MainActivity : Activity() {
  private fun topics() {
   currentTopic=null
   page("Mis temas")
+  button("Reto del día") {dailyChallenge()}
   button("Mi meta de hoy") {dailyGoal()}
   button("Resúmenes descargados") {savedSummaries()}
   button("Mi ritmo de estudio y avisos"){notifications()}
@@ -145,9 +148,10 @@ class MainActivity : Activity() {
     importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
    }
    layout.addView(bar,LinearLayout.LayoutParams(-1,dp(16)))
-   text(if(met) "¡Meta del día lograda! Completaste $completed de $target lecciones." else "Llevas $completed de $target lecciones. Te faltan "+today.getInt("pendingLessons")+".",20)
+   val lessons=if(target==1) "lección" else "lecciones"
+   text(if(met) "¡Meta del día lograda! Completaste $completed de $target $lessons." else "Llevas $completed de $target $lessons. Te faltan "+today.getInt("pendingLessons")+".",20)
    text(today.getString("motivationalMessage"))
-   listen("mi avance de hoy") { "Llevas $completed de $target lecciones. "+today.getString("motivationalMessage")+" "+comparison.getString("message") }
+   listen("mi avance de hoy") { "Llevas $completed de $target $lessons. "+today.getString("motivationalMessage")+" "+comparison.getString("message") }
    val streak=overview.optInt("currentStreakDays")
    if(streak>0)text("Racha: $streak día(s) seguidos estudiando.")
    scoreComparison(comparison)
@@ -167,6 +171,66 @@ class MainActivity : Activity() {
     }
    }
    text("Es la misma meta que ves en la web. No cambia tus notas.")
+  })
+ }
+
+ /** HU-40: daily logical reasoning or reading challenge with Peruvian context. Answers stay in memory until it is finished. */
+ private fun dailyChallenge(result: JSONObject? = null) {
+  summaryMode=false;cardMode=false;currentTopic=null
+  page("Reto del día")
+  button("Volver a mis temas"){topics()}
+  execute({ JSONObject(api!!.request("/api/v1/student/daily-challenge")) },{ challenge ->
+   // The bank can repeat a challenge on another day: answers only count for the day they were given.
+   if(challenge.getString("date")!=challengeDay){challengeAnswers.clear();challengeDay=challenge.getString("date")}
+   val activity=challenge.getString("activityVersionId")
+   val reading=if(challenge.isNull("readingText")) "" else challenge.getString("readingText")
+   text((if(challenge.getString("skill")=="COMPRENSION_LECTORA") "Comprensión lectora" else "Razonamiento lógico")+" · "+challenge.getInt("estimatedMinutes")+" min · +"+challenge.getInt("experienceReward")+" XP",16)
+   text(challenge.getString("title"),22)
+   val description=challenge.optString("description")
+   if(description.isNotBlank()) text(description)
+   listen("el reto") { challenge.getString("title")+". "+description+(if(reading.isNotBlank()) " Lectura. $reading" else "") }
+   if(result!=null || challenge.getBoolean("isCompleted")) {
+    text(result?.getString("rupiMessage") ?: "¡Ya completaste el reto de hoy! Mañana Rupi te trae uno nuevo.",20)
+    return@execute
+   }
+   if(reading.isNotBlank()) {
+    text("Lectura",20)
+    reading.split("\n\n").forEach { text(it) }
+    listen("la lectura") { reading }
+   }
+   val questions=challenge.getJSONArray("questions")
+   for(i in 0 until questions.length()) {
+    val q=questions.getJSONObject(i)
+    val options=q.getJSONArray("options")
+    text("${i+1}. "+q.getString("statement"),20)
+    listen("la pregunta ${i+1}") { RupiVoice.question(q.getString("statement"),(0 until options.length()).map{options.getJSONObject(it).getString("text")}) }
+    val feedback=challengeAnswers[q.getString("id")]
+    val group=RadioGroup(this)
+    val ids=mutableMapOf<Int,String>()
+    for(j in 0 until options.length()) {
+     val option=options.getJSONObject(j)
+     val radio=RadioButton(this).apply { id=j+1;text=option.getString("text");minHeight=dp(48);minWidth=dp(48);setSingleLine(false);setHorizontallyScrolling(false);setPadding(dp(12),dp(12),dp(12),dp(12));isEnabled=feedback==null;setTextColor(Color.rgb(23,62,48)) }
+     ids[j+1]=option.getString("id");group.addView(radio)
+     if(feedback!=null&&option.getString("id")==feedback.optString("correctOptionId")) radio.text="✓ "+option.getString("text")
+    }
+    layout.addView(group)
+    if(feedback!=null) {
+     val explanation=feedback.optString("explanation").ifBlank { q.optString("explanation") }
+     text((if(feedback.getBoolean("isCorrect")) "¡Muy bien! " else "Sigamos aprendiendo. ")+explanation)
+     listen("la explicación ${i+1}") { explanation }
+    } else {
+     val submit=button("Comprobar mi respuesta",false) {
+      val selected=ids[group.checkedRadioButtonId] ?: return@button
+      execute({ JSONObject(api!!.request("/api/v1/student/activities/$activity/questions/answer","POST",JSONObject().put("questionId",q.getString("id")).put("selectedOptionId",selected))) },
+       { challengeAnswers[q.getString("id")]=it;dailyChallenge() })
+     }
+     group.setOnCheckedChangeListener { _,checked -> submit.isEnabled=ids.containsKey(checked) }
+    }
+   }
+   val ready=(0 until questions.length()).all { challengeAnswers.containsKey(questions.getJSONObject(it).getString("id")) }
+   button(if(ready) "Terminar el reto" else "Responde las ${questions.length()} preguntas para terminar",ready) {
+    execute({ JSONObject(api!!.request("/api/v1/student/daily-challenge/"+challenge.getString("id")+"/complete","POST")) },{ dailyChallenge(it) })
+   }
   })
  }
 
