@@ -5,3 +5,11 @@
 .quiz-practice [role=alert] { border-left: 4px solid #a52d1d; padding: .75rem; }
 .quiz-practice .assigned-check { font-weight: 600; }
 .quiz-practice .assigned-check input[type=radio] { width: 24px; min-width: 24px; height: 24px; min-height: 24px; padding: 0; flex: 0 0 24px; accent-color: #31724b; }
+/* HU-37: pista para entender un error */
+.quiz-hint-ask { margin-top: .75rem; }
+.quiz-hint-ask button { min-height: 48px; }
+.quiz-hint { margin-top: .75rem; padding: .85rem 1rem; border: 2px solid #246a91; border-radius: 14px; background: #eef6fb; color: #173e30; }
+.quiz-hint p { margin: .35rem 0; line-height: 1.5; }
+.quiz-hint ol { margin: .5rem 0; padding-left: 1.4rem; line-height: 1.55; font-weight: 600; }
+.quiz-hint-level { font-weight: 800; color: #1b5574; }
+.quiz-hint-source { font-size: .85rem; color: #3d4f45; }

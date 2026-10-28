@@ -10,8 +10,8 @@ import static pe.rupi.api.quiz.QuizModels.*;
 
 @RestController
 public class QuizController {
- private final QuizService service;
- public QuizController(QuizService service){this.service=service;}
+ private final QuizService service;private final QuizHintService hints;
+ public QuizController(QuizService service,QuizHintService hints){this.service=service;this.hints=hints;}
  private String user(Principal p) {
   if(p==null)throw error(HttpStatus.UNAUTHORIZED,"Inicia sesión.");
   try{return UUID.fromString(p.getName()).toString();}catch(IllegalArgumentException e){throw error(HttpStatus.UNAUTHORIZED,"Inicia sesión.");}
@@ -33,6 +33,11 @@ public class QuizController {
  @PostMapping("/api/v1/student/ai-quizzes/{id}/answers")
  public View answer(@PathVariable UUID id,@RequestBody Answer body,Principal p,HttpServletRequest request) {
   SessionController.checkOrigin(request);return service.answer(user(p),id.toString(),body.questionId(),body.optionId());
+ }
+ /** HU-37: pista adaptada al nivel para entender una respuesta equivocada. */
+ @PostMapping("/api/v1/student/ai-quizzes/{id}/questions/{question}/hint")
+ public QuizHintService.Hint hint(@PathVariable UUID id,@PathVariable UUID question,Principal p,HttpServletRequest request) {
+  SessionController.checkOrigin(request);return hints.hint(user(p),id.toString(),question.toString());
  }
  @PostMapping("/api/v1/student/ai-quizzes/{id}/reports") @ResponseStatus(HttpStatus.NO_CONTENT)
  public void report(@PathVariable UUID id,@RequestBody Report body,Principal p,HttpServletRequest request) {

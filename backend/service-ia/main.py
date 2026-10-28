@@ -7,7 +7,7 @@ import traceback
 
 from extractor import extract_text_from_file
 from gemini_client import call_gemini, get_api_key
-from prompts import SYSTEM_ROADMAP_GENERATOR, SYSTEM_RUPI_TUTOR
+from prompts import SYSTEM_ROADMAP_GENERATOR, SYSTEM_RUPI_TUTOR, level_for_grade
 
 app = FastAPI(
     title="RUPI - Servicio de IA Educativa",
@@ -172,6 +172,7 @@ DOCUMENTO Y CONTEXTO COMPLETO DEL ROADMAP (GROUNDING NOTEBOOKLM):
 - Título del Roadmap Escolar: {ctx.roadmapTitle}
 - Descripción General de la Ruta: {ctx.roadmapDescription if ctx.roadmapDescription else "Aventura escolar de aprendizaje por etapas."}
 - Materia y Grado: {ctx.currentSubject} {ctx.currentGrade}
+- NIVEL DEL ESTUDIANTE: {level_for_grade(ctx.currentGrade)}
 - Paradas Didácticas que componen este Roadmap:
 {ctx.stopsSummary if ctx.stopsSummary else "Secuencia didáctica de paradas y lecciones interactivas."}
 

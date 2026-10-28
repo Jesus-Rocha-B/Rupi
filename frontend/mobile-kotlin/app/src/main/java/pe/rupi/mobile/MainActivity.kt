@@ -289,7 +289,12 @@ class MainActivity : Activity() {
     if(answered&&option.getString("id")==q.optString("selectedOption")) group.check(j+1)
    }
    layout.addView(group)
-   if(answered) text((if(q.optBoolean("correct")) "¡Buen trabajo! " else "Sigamos aprendiendo. ")+q.optString("explanation"))
+   if(answered) {
+    text((if(q.optBoolean("correct")) "¡Buen trabajo! " else "Sigamos aprendiendo. ")+q.optString("explanation"))
+    if(!q.optBoolean("correct")) button("¿Por qué me equivoqué?") {
+     execute({ JSONObject(api!!.request("/api/v1/student/ai-quizzes/"+view.getString("practiceId")+"/questions/"+q.getString("id")+"/hint","POST")) },{ showHint(it) })
+    }
+   }
    else {
     val submit=button("Comprobar mi respuesta",false) {
      val selected=ids[group.checkedRadioButtonId] ?: return@button
@@ -308,6 +313,17 @@ class MainActivity : Activity() {
    }
   }
   if(state=="COMPLETADO") text("¡Terminaste! "+view.getInt("correct")+" de "+questions.length()+" aciertos. Revisa las explicaciones.")
+ }
+
+ /** HU-37: explanation of a wrong answer adapted to the student's grade. */
+ private fun showHint(hint: JSONObject) {
+  val level=when(hint.getString("level")){"INICIAL"->"1.° y 2.° grado";"INTERMEDIO"->"3.° y 4.° grado";else->"5.° y 6.° grado"}
+  val steps=hint.getJSONArray("steps")
+  val body=StringBuilder(hint.getString("hint")).append("\n")
+  for(i in 0 until steps.length()) body.append("\n").append(i+1).append(". ").append(steps.getString(i))
+  body.append("\n\n").append(if(hint.optString("source")=="IA") "Pista asistida por IA · revisada automáticamente." else "Basada en la explicación revisada de la pregunta.")
+  AlertDialog.Builder(this).setTitle("Rupi te explica · $level"+(if(hint.optBoolean("reinforced")) " · paso a paso" else ""))
+   .setMessage(body.toString()).setPositiveButton("Entendido",null).show()
  }
 
  private fun cardsPath(topic: JSONObject) = path(topic).removeSuffix("ai-quiz")+"flashcards"

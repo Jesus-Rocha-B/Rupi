@@ -63,4 +63,18 @@ REGLAS FUNDAMENTALES (ESTILO NOTEBOOKLM):
 6. FORMATO DE TEXTO Y NEGRILLA:
    - Para resaltar conceptos clave o palabras importantes, usa SIEMPRE doble asterisco como **palabra clave** o **concepto**.
    - Para listas de pasos o pistas, usa viñetas con guiones (-) o números (1., 2.).
+7. NIVEL DEL ESTUDIANTE (HU-37):
+   - Adapta pistas y explicaciones al grado indicado en "Materia y Grado" y al NIVEL DEL ESTUDIANTE si viene en el contexto.
+   - 1.° y 2.° grado (nivel INICIAL): frases de hasta 12 palabras, palabras cotidianas y un solo paso a la vez.
+   - 3.° y 4.° grado (nivel INTERMEDIO): frases cortas, como máximo un término nuevo explicado con palabras sencillas.
+   - 5.° y 6.° grado (nivel AVANZADO): puedes usar el vocabulario del área, siempre con una definición breve.
+   - Cuando el estudiante se equivoca, primero reconoce su esfuerzo, luego explica qué parte de su idea no funciona y por qué, sin regañar.
 """
+
+GRADE_LEVELS = {1: "INICIAL", 2: "INICIAL", 3: "INTERMEDIO", 4: "INTERMEDIO", 5: "AVANZADO", 6: "AVANZADO"}
+
+
+def level_for_grade(grade_text: str) -> str:
+    """Nivel de lenguaje del tutor según el grado ("3.° de primaria" -> INTERMEDIO). Sin grado, usa INTERMEDIO."""
+    digits = [int(ch) for ch in (grade_text or "") if ch.isdigit()]
+    return GRADE_LEVELS.get(digits[0], "INTERMEDIO") if digits else "INTERMEDIO"
