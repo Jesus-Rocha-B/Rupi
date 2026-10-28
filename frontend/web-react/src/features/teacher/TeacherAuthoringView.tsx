@@ -2362,15 +2362,13 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
 
                               </span>
 
-                              <span className="stop-attachments">
-
-                                <FileText size={12} aria-hidden="true" />
-
-                                {n.resources.length} {n.resources.length === 1 ? 'recurso' : 'recursos'}
-                              </span>
-                              {n.resources.length > 0 && (
-                                <span className="stop-meta-pill doc-source" title={`Fuentes: ${n.resources.map((r) => r.title).join(', ')}`}>
-                                  <FileText size={11} aria-hidden="true" /> {n.resources.length > 1 ? `${n.resources.length} fuentes` : '1 doc base'}
+                              {n.resources.length > 0 ? (
+                                <span className="stop-meta-pill doc-source" title={`Fuentes base: ${n.resources.map((r) => r.title).join(", ")}`}>
+                                  <FileText size={11} aria-hidden="true" /> {n.resources.length === 1 ? "1 doc" : `${n.resources.length} docs`}
+                                </span>
+                              ) : (
+                                <span className="stop-attachments" title="Sin documentos adjuntos">
+                                  <FileText size={12} aria-hidden="true" /> 0 docs
                                 </span>
                               )}
 
