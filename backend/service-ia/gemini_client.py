@@ -33,7 +33,8 @@ def call_gemini(system_instruction: str, user_content: str, json_mode: bool = Fa
     if not api_key:
         raise ValueError("No se ha configurado GEMINI_API_KEY. Agrégala en .local/env.ps1")
         
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    # La clave va en la cabecera x-goog-api-key: en la URL quedaba en logs, proxies y mensajes de error.
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     
     payload = {
         "contents": [
@@ -53,7 +54,7 @@ def call_gemini(system_instruction: str, user_content: str, json_mode: bool = Fa
             "response_mime_type": "application/json"
         }
         
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}
     body_bytes = json.dumps(payload).encode("utf-8")
     
     req = urllib.request.Request(url, data=body_bytes, headers=headers, method="POST")
