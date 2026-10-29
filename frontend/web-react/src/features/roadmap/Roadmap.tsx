@@ -76,6 +76,8 @@ import type { RouteDetail, RouteNode } from '../../services/learningRoutesApi'
 
 import './UnitBands.css'
 
+import { unitBandsByNode } from './unitGroups'
+
 
 
 function createTrailPath(points: { x: number; y: number }[]): string {
@@ -359,11 +361,29 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
 
 
+  // Bandas curriculares por unidad del MINEDU (HU-04): cada banda empuja hacia abajo las paradas que le siguen
+
+  const unitBands = useMemo(() => unitBandsByNode(route), [route])
+
+  const UNIT_BAND_GAP = 140
+
+  const bandsBefore = useMemo(() => {
+
+    let count = 0
+
+    return route.nodes.map(node => (unitBands.has(node.id) ? ++count : count))
+
+  }, [route.nodes, unitBands])
+
+
+
   const totalMapHeight = useMemo(() => {
 
-    return Math.max(760, TOP_OFFSET + (route.nodes.length - 1) * STOP_VERTICAL_GAP + 120)
+    const bands = bandsBefore.length ? bandsBefore[bandsBefore.length - 1] : 0
 
-  }, [route.nodes.length])
+    return Math.max(760, TOP_OFFSET + (route.nodes.length - 1) * STOP_VERTICAL_GAP + bands * UNIT_BAND_GAP + 120)
+
+  }, [route.nodes.length, bandsBefore])
 
 
 
@@ -377,7 +397,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
       const xPercent = isGoal ? 50 : index % 2 ? 34 : 66
 
-      const yPixel = TOP_OFFSET + index * STOP_VERTICAL_GAP
+      const yPixel = TOP_OFFSET + index * STOP_VERTICAL_GAP + bandsBefore[index] * UNIT_BAND_GAP
 
       const yPercent = (yPixel / totalMapHeight) * 100
 
@@ -393,7 +413,7 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
     })
 
-  }, [route.nodes, totalMapHeight])
+  }, [route.nodes, totalMapHeight, bandsBefore])
 
 
 
@@ -717,11 +737,69 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
           const ThemeIcon = getStopThemeIcon(node, route.area?.code)
 
+          const unitBand = unitBands.get(node.id)
+
 
 
           return (
 
             <Fragment key={node.id}>
+
+              {/* Hito de encabezado de unidad curricular MINEDU (HU-04) */}
+
+              {unitBand && (
+
+                <div
+
+                  className="unit-band"
+
+                  style={{ top: `${posY - 60}px` }}
+
+                  role="region"
+
+                  aria-label={`Unidad curricular: ${unitBand.unit.title}`}
+
+                >
+
+                  <div className="unit-band-header">
+
+                    <span className="unit-band-badge">
+
+                      <BookOpen size={13} aria-hidden="true" />
+
+                      <span>{unitBand.unit.code || 'Unidad de Aprendizaje'}</span>
+
+                    </span>
+
+                    <span className="unit-band-progress">
+
+                      <Award size={13} aria-hidden="true" />
+
+                      <span>{unitBand.completed} de {unitBand.total} paradas</span>
+
+                    </span>
+
+                  </div>
+
+                  <div className="unit-band-text">
+
+                    <span className="unit-band-title">{unitBand.unit.title}</span>
+
+                    {unitBand.unit.competencies.length > 0 && (
+
+                      <span className="unit-band-competencies">
+
+                        Competencias: {unitBand.unit.competencies.map(c => c.name).join(' · ')}
+
+                      </span>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+              )}
 
               <div
 

@@ -236,3 +236,119 @@
     padding: 4px 10px;
   }
 }
+
+/* =============================================================================
+   Bandas de unidad curricular dentro del mapa (HU-04)
+   Marcan dónde empieza cada tramo; conviven con la cabecera de la unidad actual.
+   Se anclan por su borde inferior sobre la primera parada del tramo: si el texto
+   ocupa más líneas, la banda crece hacia arriba y no tapa la parada.
+   ============================================================================= */
+
+.unit-band {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: calc(100% - 48px);
+  max-width: 560px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 18px;
+  border: 2px solid #173e30;
+  border-radius: 16px;
+  background: #fffefa;
+  color: #173e30;
+  box-shadow: 0 4px 0 #173e30;
+  border-top: 5px solid #ffd26a;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.unit-band-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.unit-band-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #ffd26a;
+  color: #173e30;
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid #173e30;
+}
+
+.unit-band-progress {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #173e30;
+  color: #fffefa;
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 800;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.unit-band-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.unit-band-title {
+  font-family: var(--display-font, 'Nunito', sans-serif);
+  font-weight: 900;
+  font-size: 15px;
+  line-height: 1.3;
+  color: #173e30;
+}
+
+.unit-band-competencies {
+  font-family: var(--body-font, 'Nunito', sans-serif);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #31724b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .unit-band {
+    width: calc(100% - 24px);
+    padding: 10px 14px;
+  }
+  .unit-band-title {
+    font-size: 14px;
+  }
+  .unit-band-competencies {
+    font-size: 11px;
+  }
+}
+
+/* En celular el mapa se vuelve una lista: la banda entra en el flujo antes de su primera parada */
+@media (max-width: 640px) {
+  .unit-band {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    padding: 10px 12px;
+  }
+}
