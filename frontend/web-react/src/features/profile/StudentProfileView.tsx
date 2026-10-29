@@ -23,6 +23,7 @@ import { RupiCharacter, type EquippedAccessories } from '../../components/RupiCh
 import { DailyGoalRing } from '../../components/DailyGoalRing'
 import { ScoreComparison } from '../../components/ScoreComparison'
 import { DailyChallengeCard } from '../dashboard/DailyChallengeCard'
+import { StudyInbox } from './StudyInbox'
 import { RupiCustomizerModal } from '../../components/RupiCustomizerModal'
 import { ClassroomLeaderboardModal } from '../../components/ClassroomLeaderboardModal'
 import { StudentBadgesModal } from '../../components/StudentBadgesModal'
@@ -381,6 +382,9 @@ export function StudentProfileView({
 
       {/* Reto del día: razonamiento lógico o comprensión lectora (HU-40) */}
       <DailyChallengeCard refreshTrigger={refreshTrigger} onCompleted={handleChallengeCompleted} />
+
+      {/* Avisos del docente y de la racha (HU-28) */}
+      <StudyInbox />
 
       {/* 3. Cuadrícula de Tarjetas Métricas de Aprendizaje (HU-33) */}
       <section className="dashboard-metrics-grid" aria-label="Tarjetas métricas de aprendizaje">

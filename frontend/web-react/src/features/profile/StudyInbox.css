@@ -1,0 +1,140 @@
+/**
+ * StudyInbox.css
+ * Bandeja de avisos del estudiante (HU-28).
+ * Misma materialidad que las tarjetas del perfil: papel, borde y sombra sólida.
+ */
+
+.study-inbox {
+  background: #fffdf9;
+  border: 2px solid #e2d7c5;
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 0 #d0c3ae;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #173e30;
+}
+
+.study-inbox-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.study-inbox-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.study-inbox-head p {
+  margin: 2px 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.study-inbox-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #fff4d6;
+  color: #173e30;
+  border: 2px solid #ffd26a;
+}
+
+.study-inbox-quiet,
+.study-inbox-empty,
+.study-inbox-error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.study-inbox-quiet { background: #eef6fb; border-left: 4px solid #246a91; }
+.study-inbox-empty { background: #fff8e6; border-left: 4px solid #ffd26a; }
+.study-inbox-error { background: #fdecea; border-left: 4px solid #cc3a1d; color: #8a2412; }
+
+.study-inbox ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.study-inbox li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 2px solid #31724b;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.study-inbox li.is-read {
+  border-color: #e2d7c5;
+  background: #fbf8f2;
+}
+
+.study-inbox li strong {
+  font-weight: 800;
+}
+
+.study-inbox li p {
+  margin: 4px 0 0;
+  line-height: 1.45;
+}
+
+.study-inbox li button {
+  flex: none;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #31724b;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  box-shadow: 0 3px 0 #173e30;
+  cursor: pointer;
+}
+
+.study-inbox li button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #173e30;
+}
+
+.study-inbox li button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.study-inbox li button:focus-visible {
+  outline: 3px solid #246a91;
+  outline-offset: 3px;
+}
+
+.study-inbox-read {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #31724b;
+}
+
+@media (max-width: 640px) {
+  .study-inbox li {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
