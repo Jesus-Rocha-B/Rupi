@@ -37,7 +37,7 @@ class ConsoleOnlyAccountTest {
     @Test
     void loginAnswers403WithAHintForConsoleAccounts() {
         var sessions = mock(StudentSessionService.class);
-        when(sessions.authenticate(anyString(), anyString(), any()))
+        when(sessions.authenticate(anyString(), anyString(), any(), any()))
                 .thenReturn(StudentSessionService.AuthenticationResult.consoleAccount());
         var request = new MockHttpServletRequest("POST", "/api/v1/auth/login");
         request.setServerName("127.0.0.1");

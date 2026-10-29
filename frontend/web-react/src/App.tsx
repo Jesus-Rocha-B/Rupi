@@ -27,6 +27,7 @@ import {
   fetchStudentRoutes,
   fetchStudentBadges,
   fetchStudentExperience,
+  checkSession,
   fetchSession,
   fetchSessionOptions,
   login,
@@ -56,6 +57,7 @@ import { ExploreRoadmapsView } from './features/roadmap/ExploreRoadmapsView'
 import { StudentProfileView } from './features/profile/StudentProfileView'
 import { ClassroomLeaderboardModal } from './components/ClassroomLeaderboardModal'
 import { speakText } from './utils/speech'
+import { sessionEndMessage } from './utils/sessionEnd'
 import './App.css'
 
 export type AppView = 'inicio' | 'camino' | 'explorar' | 'perfil' | 'leccion'
@@ -134,6 +136,7 @@ function App() {
   const [guideIndex, setGuideIndex] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
   const [sessionBusy, setSessionBusy] = useState(false)
+  const [sessionNotice, setSessionNotice] = useState<string | null>(null)
   // Grado escolar real del alumno (aula activa); solo se actualiza con la respuesta de la sesión.
   const [studentEnrolledGrade, setStudentEnrolledGrade] = useState<number>(2)
   const [selectedGrade, setSelectedGrade] = useState<number | null>(() => {
@@ -371,6 +374,7 @@ function App() {
         const status = error instanceof ApiError ? error.status : 0
         setErrorType(status === 401 ? 'UNAUTHORIZED' : status === 404 ? 'NOT_FOUND' : 'NETWORK')
         if (status === 401) {
+          setSessionNotice(sessionEndMessage(error))
           setStudent(null)
           setRoutes([])
           setSelectedRoute(null)
@@ -392,6 +396,34 @@ function App() {
     const timer = setTimeout(() => setSlowLoading(true), SLOW_LOADING_MS)
     return () => clearTimeout(timer)
   }, [loading, reloadKey])
+
+  // HU-43: una sola sesión por cuenta. Si la misma cuenta se abre en el celular u otra computadora, esta pantalla
+  // se entera al volver a ella o en el siguiente minuto, aunque no esté pidiendo datos en ese momento.
+  const studentId = student?.id
+  useEffect(() => {
+    if (!studentId) return
+    let controller: AbortController | null = null
+    const check = () => {
+      if (document.visibilityState !== 'visible') return
+      controller?.abort()
+      controller = new AbortController()
+      checkSession(controller.signal).catch(error => {
+        if (!(error instanceof ApiError) || error.status !== 401) return
+        setSessionNotice(sessionEndMessage(error))
+        setStudent(null)
+        setRoutes([])
+        setSelectedRoute(null)
+        setErrorType('UNAUTHORIZED')
+      })
+    }
+    const timer = setInterval(check, 60_000)
+    document.addEventListener('visibilitychange', check)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', check)
+      controller?.abort()
+    }
+  }, [studentId])
 
   // Roadmap disponible si la ruta seleccionada tiene paradas cargadas para interactuar
   const isRoadmapAvailable = Boolean(selectedRoute && selectedRoute.nodes && selectedRoute.nodes.length > 0)
@@ -454,6 +486,7 @@ function App() {
 
     setSessionBusy(true)
     resetView()
+    setSessionNotice(null)
     try {
       await logout()
       // En tabletas compartidas, el siguiente alumno no debe heredar grado ni curso.
@@ -481,6 +514,7 @@ function App() {
     setErrorType(null)
     try {
       const current = await login(username, password)
+      setSessionNotice(null)
       clearStoredNavigation()
       resetView()
       setStudent(current)
@@ -500,6 +534,7 @@ function App() {
     setSessionBusy(true)
     try {
       const current = await loginDemo()
+      setSessionNotice(null)
       clearStoredNavigation()
       resetView()
       setStudent(current)
@@ -542,6 +577,7 @@ function App() {
         sessionBusy={sessionBusy}
         demoAvailable={demoAvailable}
         serviceError={errorType === 'NETWORK' ? 'No pudimos conectar con tu aula. Comprueba que el servidor esté disponible y vuelve a intentar.' : null}
+        sessionNotice={sessionNotice}
       />
     )
   }

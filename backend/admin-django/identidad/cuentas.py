@@ -66,7 +66,7 @@ def _ocupado(campo, valor, excepto=None):
     return consulta.exists()
 
 
-def _roles_por_cuenta(ids):
+def roles_por_cuenta(ids):
     roles = {}
     for usuario_id, codigo in UsuarioRol.objects.filter(usuario_id__in=ids).values_list('usuario_id', 'rol__codigo'):
         roles.setdefault(usuario_id, []).append(codigo)
@@ -144,7 +144,7 @@ def listar(q=None, rol=None, estado=None, pagina=1, ver_datos=True):
     pagina = max(1, pagina)
     cuentas = list(consulta[(pagina - 1) * POR_PAGINA: pagina * POR_PAGINA])
     ids = [c.id for c in cuentas]
-    roles = _roles_por_cuenta(ids)
+    roles = roles_por_cuenta(ids)
     sesiones = _sesiones_activas(ids, ahora)
     return {
         'items': [resumen(c, roles.get(c.id, []), sesiones.get(c.id), ahora, ver_datos) for c in cuentas],
@@ -164,7 +164,7 @@ def obtener(cuenta_id):
 def detalle(cuenta_id, ver_datos=True):
     ahora = timezone.now()
     cuenta = obtener(cuenta_id)
-    datos = resumen(cuenta, _roles_por_cuenta([cuenta.id]).get(cuenta.id, []),
+    datos = resumen(cuenta, roles_por_cuenta([cuenta.id]).get(cuenta.id, []),
                     _sesiones_activas([cuenta.id], ahora).get(cuenta.id), ahora, ver_datos)
     datos['ultimoIngreso'] = _iso(IntentoAcceso.objects.filter(usuario_id=cuenta.id, resultado='CORRECTO')
                                   .aggregate(m=Max('ocurrido_en'))['m'])

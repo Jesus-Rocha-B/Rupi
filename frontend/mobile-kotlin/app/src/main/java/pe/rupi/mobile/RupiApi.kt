@@ -8,7 +8,16 @@ import java.net.URI
 import java.util.UUID
 
 /** Only talks to Spring Boot. No provider key or database credential belongs in the app. */
-class RupiSessionExpired: IllegalStateException("Vuelve a iniciar sesión para recibir avisos.")
+class RupiSessionExpired(message: String = "Vuelve a iniciar sesión para recibir avisos.", val otherDevice: Boolean = false): IllegalStateException(message)
+
+/** HU-43: Rupi abre una sola sesión por cuenta. El servidor dice por qué se cerró esta y dónde se abrió la nueva. */
+fun sessionEnded(reason: String?, newClient: String?): RupiSessionExpired = when (reason) {
+ "OTRO_DISPOSITIVO" -> RupiSessionExpired(
+  if (newClient == "MOVIL") "Tu cuenta se abrió en otro celular, así que aquí se cerró la sesión. Si fuiste tú, todo está bien; si no, avísale a tu profe."
+  else "Tu cuenta se abrió en la web, así que aquí se cerró la sesión. Vuelve a ingresar si quieres seguir en este celular.", true)
+ "EXPIRADA" -> RupiSessionExpired("Pasó mucho tiempo y tu sesión terminó. Vuelve a ingresar.")
+ else -> RupiSessionExpired("Vuelve a iniciar sesión.")
+}
 class RupiApi(server: String) {
  private val base = URI(server.trim().trimEnd('/'))
  private val cookies = CookieManager(null, CookiePolicy.ACCEPT_ORIGINAL_SERVER)
@@ -30,6 +39,7 @@ class RupiApi(server: String) {
    connection.requestMethod = method
    connection.setRequestProperty("Content-Type", "application/json")
    connection.setRequestProperty("Origin", base.toString())
+   connection.setRequestProperty("X-Rupi-Cliente", "MOVIL")
    for ((name, values) in cookies.get(uri, emptyMap())) connection.setRequestProperty(name, values.joinToString("; "))
    if (body != null) {
     connection.doOutput = true
@@ -39,7 +49,7 @@ class RupiApi(server: String) {
    if (status !in 200..299) {
     val text = connection.errorStream?.bufferedReader()?.use { it.readText().take(4000) }.orEmpty()
     val message = try { JSONObject(text).optString("detail") } catch (_: Exception) { "" }
-    if (status == 401) { cookies.cookieStore.removeAll(); throw RupiSessionExpired() }
+    if (status == 401) { cookies.cookieStore.removeAll(); throw sessionEnded(connection.getHeaderField("X-Rupi-Sesion-Cerrada"), connection.getHeaderField("X-Rupi-Sesion-Nueva")) }
     throw IllegalStateException(message.ifBlank { "No pudimos consultar Rupi. Revisa tu conexión o vuelve a iniciar sesión." })
    }
    cookies.put(uri, connection.headerFields)

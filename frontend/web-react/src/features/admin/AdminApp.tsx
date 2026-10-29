@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import { LogOut, ShieldCheck, Users } from 'lucide-react'
+import { LogOut, MonitorSmartphone, ShieldCheck, Users } from 'lucide-react'
 import { AdminApiError, adminLogout, fetchAdminSession, type Administrator } from '../../services/adminApi'
 import { AdminLogin } from './AdminLogin'
 import { AccountsView } from './AccountsView'
 import { RolesView } from './RolesView'
+import { SessionsView } from './SessionsView'
 import './AdminConsole.css'
 
-type SectionId = 'cuentas' | 'roles'
+type SectionId = 'cuentas' | 'roles' | 'sesiones'
 
 interface Section {
   id: SectionId
@@ -18,6 +19,7 @@ interface Section {
 const SECTIONS: Section[] = [
   { id: 'cuentas', label: 'Cuentas', permission: 'cuentas.ver', icon: Users },
   { id: 'roles', label: 'Roles y permisos', permission: 'cuentas.ver', icon: ShieldCheck },
+  { id: 'sesiones', label: 'Sesiones', permission: 'sesiones.gestionar', icon: MonitorSmartphone },
 ]
 
 export function AdminApp() {
@@ -124,6 +126,7 @@ export function AdminApp() {
         )}
         {current?.id === 'cuentas' && <AccountsView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'roles' && <RolesView onSessionLost={handleSessionLost} />}
+        {current?.id === 'sesiones' && <SessionsView admin={admin} onSessionLost={handleSessionLost} />}
       </main>
     </div>
   )

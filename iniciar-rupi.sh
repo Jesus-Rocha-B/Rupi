@@ -38,8 +38,11 @@ esperar 8081
 ADMIN_PY="$ROOT/backend/admin-django/.venv/bin/python"
 if ! puerto_abierto 8082; then
   if [ -x "$ADMIN_PY" ]; then
-    (cd "$ROOT/backend/admin-django" && RUPI_ADMIN_DB_PORT="${RUPI_ADMIN_DB_PORT:-3307}" nohup "$ADMIN_PY" manage.py runserver 127.0.0.1:8082 --noreload \
-      >"$L/admin.log" 2>"$L/admin-error.log" & echo $! >"$L/admin.pid")
+    # cd va aparte: con «cd && cmd &» el pid guardado sería el del subshell y detener-rupi.sh no hallaría Django.
+    (cd "$ROOT/backend/admin-django" || exit 1
+     RUPI_ADMIN_DB_PORT="${RUPI_ADMIN_DB_PORT:-3307}" nohup "$ADMIN_PY" manage.py runserver 127.0.0.1:8082 --noreload \
+       >"$L/admin.log" 2>"$L/admin-error.log" &
+     echo $! >"$L/admin.pid")
     esperar 8082
   else
     echo "Sin entorno de Django: la consola /admin no estará disponible (ver backend/admin-django/README.md)." >&2

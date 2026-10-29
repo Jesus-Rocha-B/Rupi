@@ -1,4 +1,4 @@
-from . import cuentas, roles, sesion
+from . import cuentas, roles, sesion, sesiones
 from .respuestas import ErrorDePeticion, api, json_error, json_ok, leer_json
 from .sesion import requiere_permiso
 
@@ -21,7 +21,7 @@ def sesion_actual(request):
         sesion.poner_cookie(respuesta, request, token)
         return respuesta
     if request.administrador is None:
-        return json_error('No hay una sesión de administración abierta.', 401)
+        return sesion.sin_sesion(request)
     if request.method == 'DELETE':
         sesion.cerrar(request.administrador)
         respuesta = json_ok(None, 204)
@@ -83,3 +83,15 @@ def roles_de_cuenta(request, cuenta_id):
     datos = leer_json(request)
     return json_ok(roles.asignar(cuenta_id, datos.get('roles'), request.administrador,
                                  cuentas.ve_datos(request.administrador)))
+
+
+@api({'GET'})
+@requiere_permiso('sesiones.gestionar')
+def sesiones_activas(request):
+    return json_ok(sesiones.activas(request.GET.get('cliente')))
+
+
+@api({'POST'})
+@requiere_permiso('sesiones.gestionar')
+def cerrar_sesion_de_cuenta(request, cuenta_id):
+    return json_ok(sesiones.cerrar(cuenta_id, request.administrador, cuentas.ve_datos(request.administrador)))

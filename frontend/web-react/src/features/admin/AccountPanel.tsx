@@ -1,9 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Pencil, UserCheck, UserX, X } from 'lucide-react'
+import { LogOut, Pencil, UserCheck, UserX, X } from 'lucide-react'
 import {
   AdminApiError,
+  CLIENT_LABELS,
   ROLE_LABELS,
   assignRoles,
+  closeAccountSession,
   auditLabel,
   deactivateAccount,
   displayName,
@@ -37,6 +39,7 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
   const [message, setMessage] = useState<string | null>(null)
   const canManage = admin.permisos.includes('cuentas.gestionar')
   const canAssignRoles = admin.permisos.includes('roles.asignar')
+  const canManageSessions = admin.permisos.includes('sesiones.gestionar')
 
   useEffect(() => {
     if (created) return
@@ -45,7 +48,7 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
       .then(setAccount)
       .catch(failure => {
         if (controller.signal.aborted) return
-        if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(SESSION_LOST)
+        if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(failure.message || SESSION_LOST)
         else setError(failure instanceof AdminApiError ? failure.message : 'No pudimos abrir la cuenta.')
       })
     return () => controller.abort()
@@ -61,7 +64,7 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
       onChanged()
       return true
     } catch (failure) {
-      if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(SESSION_LOST)
+      if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(failure.message || SESSION_LOST)
       else setError(failure instanceof AdminApiError ? failure.message : 'No pudimos guardar el cambio.')
       return false
     } finally {
@@ -145,6 +148,31 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
             <div><dt>Creada</dt><dd>{formatDateTime(account.creadoEn)}</dd></div>
             <div><dt>Último ingreso</dt><dd>{formatDateTime(account.ultimoIngreso)}</dd></div>
           </dl>
+        )}
+      </div>
+
+      <div className="admin-panel-block">
+        <h3>Sesión</h3>
+        {account.sesionActiva ? (
+          <>
+            <p className="admin-muted">
+              Abierta en <strong>{CLIENT_LABELS[account.sesionActiva.cliente]}</strong> desde{' '}
+              {formatDateTime(account.sesionActiva.desde)}. Última actividad: {formatDateTime(account.sesionActiva.actividad)}.
+            </p>
+            {canManageSessions && !isSelf && (
+              <button
+                type="button"
+                className="admin-btn admin-btn--quiet"
+                disabled={busy}
+                onClick={() => run(() => closeAccountSession(account.id), 'Sesión cerrada. Tendrá que volver a ingresar.')}
+              >
+                <LogOut size={18} aria-hidden="true" />
+                Cerrar su sesión
+              </button>
+            )}
+          </>
+        ) : (
+          <p className="admin-muted">Sin sesión abierta. Rupi permite una sola sesión por cuenta entre la web y el celular.</p>
         )}
       </div>
 

@@ -7,8 +7,10 @@ import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class StudentSessionService {
     public static final String COOKIE = "rupi_session";
+    /** HU-43: el celular se identifica al iniciar sesión para que la consola y la web sepan dónde quedó abierta. */
+    public static final String CLIENT_HEADER = "X-Rupi-Cliente";
+    public static final String CLIENT_WEB = "WEB_USUARIO";
+    public static final String CLIENT_MOBILE = "MOVIL";
+    /** La última actividad se guarda como mucho cada 5 minutos por sesión: basta para la consola y evita una escritura por petición. */
+    private static final long ACTIVITY_EVERY_MS = 5 * 60 * 1000L;
 
     /**
      * Un solo rol y una sola aula por usuario, elegidos siempre igual. Con un JOIN directo, un usuario con dos roles
@@ -76,6 +84,7 @@ public class StudentSessionService {
     private final JdbcTemplate jdbc;
     private final PasswordService passwordService;
     private final SecureRandom secureRandom = new SecureRandom();
+    private final Map<String, Long> lastActivity = new ConcurrentHashMap<>();
 
     public StudentSessionService(JdbcTemplate jdbc, PasswordService passwordService) {
         this.jdbc = jdbc;
@@ -180,7 +189,7 @@ public class StudentSessionService {
                 JOIN identidad_cuenta_usuario u ON u.id = s.usuario_id
                 LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
                 WHERE s.token_hash = ? AND s.revocada_en IS NULL
-                  AND s.expira_en > UTC_TIMESTAMP(6) AND s.cliente = 'WEB_USUARIO'
+                  AND s.expira_en > UTC_TIMESTAMP(6) AND s.cliente IN ('WEB_USUARIO', 'MOVIL')
                   AND u.estado = 'ACTIVO' AND u.desactivado_en IS NULL
                   AND (u.bloqueado_hasta IS NULL OR u.bloqueado_hasta <= UTC_TIMESTAMP(6))
                 """, (rs, row) -> new Student(
@@ -191,11 +200,80 @@ public class StudentSessionService {
                         rs.getInt("numero_grado"),
                         rs.getString("grado_nombre")
                 ), hash)
+                .stream().findFirst()
+                .map(student -> {
+                    touchActivity(hash);
+                    return student;
+                });
+    }
+
+    private void touchActivity(byte[] tokenHash) {
+        String key = Base64.getEncoder().encodeToString(tokenHash);
+        long now = System.currentTimeMillis();
+        Long previous = lastActivity.get(key);
+        if (previous != null && now - previous < ACTIVITY_EVERY_MS) {
+            return;
+        }
+        if (lastActivity.size() > 20_000) {
+            lastActivity.clear();
+        }
+        lastActivity.put(key, now);
+        jdbc.update("""
+                UPDATE identidad_sesion_usuario SET actividad_en = UTC_TIMESTAMP(6)
+                WHERE token_hash = ? AND revocada_en IS NULL
+                """, tokenHash);
+    }
+
+    /**
+     * Por qué ya no vale un token (HU-43). Una sesión revocada justo cuando se abrió otra de la misma cuenta
+     * se cerró por la sesión única: la web y el celular lo explican en vez de mostrar solo el ingreso.
+     */
+    public record SessionEnd(String reason, String newClient) {
+        public static final String OTHER_DEVICE = "OTRO_DISPOSITIVO";
+        public static final String CLOSED = "CERRADA";
+        public static final String EXPIRED = "EXPIRADA";
+    }
+
+    public Optional<SessionEnd> sessionEnd(HttpServletRequest request) {
+        String token = extractToken(request);
+        if (token == null || !token.matches("[A-Za-z0-9_-]{43,128}")) {
+            return Optional.empty();
+        }
+        return jdbc.query("""
+                SELECT s.revocada_en IS NOT NULL AS revocada,
+                       s.expira_en <= UTC_TIMESTAMP(6) AS expirada,
+                       (SELECT n.cliente FROM identidad_sesion_usuario n
+                         WHERE n.usuario_id = s.usuario_id AND n.id <> s.id AND s.revocada_en IS NOT NULL
+                           AND n.creada_en > s.creada_en
+                           AND n.creada_en BETWEEN s.revocada_en - INTERVAL 1 SECOND AND s.revocada_en + INTERVAL 5 SECOND
+                         ORDER BY n.creada_en LIMIT 1) AS nuevo_cliente
+                FROM identidad_sesion_usuario s
+                WHERE s.token_hash = ?
+                """, (rs, row) -> {
+                    String newClient = rs.getString("nuevo_cliente");
+                    if (newClient != null) {
+                        return new SessionEnd(SessionEnd.OTHER_DEVICE, newClient);
+                    }
+                    if (!rs.getBoolean("revocada") && rs.getBoolean("expirada")) {
+                        return new SessionEnd(SessionEnd.EXPIRED, null);
+                    }
+                    return new SessionEnd(SessionEnd.CLOSED, null);
+                }, sha256(token))
                 .stream().findFirst();
+    }
+
+    public static String clientOf(HttpServletRequest request) {
+        return CLIENT_MOBILE.equalsIgnoreCase(request.getHeader(CLIENT_HEADER)) ? CLIENT_MOBILE : CLIENT_WEB;
     }
 
     @org.springframework.transaction.annotation.Transactional
     public AuthenticationResult authenticate(String rawUsername, String rawPassword, String clientIp) {
+        return authenticate(rawUsername, rawPassword, clientIp, CLIENT_WEB);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public AuthenticationResult authenticate(String rawUsername, String rawPassword, String clientIp, String client) {
+        String sessionClient = CLIENT_MOBILE.equals(client) ? CLIENT_MOBILE : CLIENT_WEB;
         if (rawUsername == null || rawUsername.isBlank() || rawPassword == null || rawPassword.isBlank()) {
             return AuthenticationResult.badCredentials();
         }
@@ -303,7 +381,8 @@ public class StudentSessionService {
                     VALUES (?, ?, 'CORRECTO', ?, UTC_TIMESTAMP(6))
                     """, account.id(), idHash, originHash);
 
-        // 5. Rotación de sesiones: revocar sesiones activas previas del estudiante
+        // 5. Sesión única (HU-43): abrir Rupi en la web o en el celular cierra la sesión que estuviera abierta en
+        // cualquier otro lugar. La columna generada usuario_activo_id es UNIQUE, así que MySQL también lo garantiza.
         jdbc.update("""
                 UPDATE identidad_sesion_usuario
                 SET revocada_en = UTC_TIMESTAMP(6)
@@ -319,8 +398,8 @@ public class StudentSessionService {
 
         jdbc.update("""
                 INSERT INTO identidad_sesion_usuario (id, usuario_id, token_hash, cliente, creada_en, actividad_en, expira_en)
-                VALUES (?, ?, ?, 'WEB_USUARIO', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6) + INTERVAL 30 DAY)
-                """, sessionId, account.id(), tokenHash);
+                VALUES (?, ?, ?, ?, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), UTC_TIMESTAMP(6) + INTERVAL 30 DAY)
+                """, sessionId, account.id(), tokenHash, sessionClient);
 
         return AuthenticationResult.success(new Student(account.id(), account.displayName(), account.schoolName(), account.role(), account.gradeNumber(), account.gradeName()), token);
     }

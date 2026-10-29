@@ -45,7 +45,7 @@ export function NewAccountForm({ onCancel, onCreated, onSessionLost }: Props) {
     try {
       onCreated(await createAccount(form))
     } catch (failure) {
-      if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(SESSION_LOST)
+      if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(failure.message || SESSION_LOST)
       else setError(failure instanceof AdminApiError ? failure.message : 'No pudimos crear la cuenta.')
     } finally {
       setBusy(false)

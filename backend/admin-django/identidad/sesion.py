@@ -136,6 +136,29 @@ def resolver(token):
     return Administrador(cuenta.id, cuenta.nombre_usuario, nombre_visible(cuenta), permisos, sesion.id)
 
 
+_LUGARES = {'WEB_ADMIN': 'en otra consola de administración', 'WEB_USUARIO': 'en la web de Rupi',
+            'MOVIL': 'en el celular'}
+
+
+def motivo_cierre(token):
+    """HU-43: mismo criterio que StudentSessionService.sessionEnd. Si la sesión se revocó justo cuando se abrió otra
+    de la misma cuenta, se explica dónde; si no, se pide ingresar de nuevo."""
+    if not token or len(token) > 128:
+        return None
+    sesion = SesionUsuario.objects.filter(token_hash=sha256(token)).first()
+    if sesion is None:
+        return None
+    if sesion.revocada_en is not None:
+        nueva = (SesionUsuario.objects.filter(usuario_id=sesion.usuario_id, creada_en__gt=sesion.creada_en,
+                                              creada_en__gte=sesion.revocada_en - timedelta(seconds=1),
+                                              creada_en__lte=sesion.revocada_en + timedelta(seconds=5))
+                 .exclude(id=sesion.id).order_by('creada_en').first())
+        if nueva is not None:
+            return (f'Tu cuenta se abrió {_LUGARES.get(nueva.cliente, "en otro lugar")} y Rupi permite una sola '
+                    'sesión por cuenta: aquí se cerró la consola.')
+    return None
+
+
 def poner_cookie(respuesta, request, token):
     respuesta.set_cookie(COOKIE, token, max_age=int(DURACION.total_seconds()), path=RUTA_COOKIE,
                          secure=request.is_secure(), httponly=True, samesite='Strict')
@@ -158,12 +181,17 @@ class SesionAdministradorMiddleware:
         return respuesta
 
 
+def sin_sesion(request):
+    motivo = motivo_cierre(request.COOKIES.get(COOKIE))
+    return json_error(motivo or 'Tu sesión de administración terminó. Vuelve a ingresar.', 401)
+
+
 def requiere_permiso(permiso):
     def decorador(vista):
         @wraps(vista)
         def envoltura(request, *args, **kwargs):
             if request.administrador is None:
-                return json_error('Tu sesión de administración terminó. Vuelve a ingresar.', 401)
+                return sin_sesion(request)
             if not request.administrador.puede(permiso):
                 return json_error('Tu rol no tiene permiso para esta acción.', 403)
             return vista(request, *args, **kwargs)

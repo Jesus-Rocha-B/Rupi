@@ -81,7 +81,8 @@ try:
     print('HU-41 · altas, bajas y modificaciones')
     a = cliente()
     comprobar(admin(a, 'cuentas')[0] == 401, 'sin sesión la consola responde 401')
-    comprobar(admin(a, 'sesion', 'POST', {'usuario': args.usuario, 'clave': 'mal'})[0] == 401, 'clave errada da 401')
+    # Usuario inventado: así cada corrida no suma fallos a la cuenta de administración (límite de 5 en 5 minutos).
+    comprobar(admin(a, 'sesion', 'POST', {'usuario': f'nadie.{sufijo}', 'clave': 'mal'})[0] == 401, 'credenciales erradas dan 401')
     estado, yo, _ = admin(a, 'sesion', 'POST', {'usuario': args.usuario, 'clave': clave_admin})
     comprobar(estado == 200 and 'cuentas.gestionar' in yo['permisos'], 'la administración ingresa con sus permisos')
 
@@ -146,7 +147,9 @@ try:
 
     s = cliente()
     estado, soporte, _ = admin(s, 'sesion', 'POST', {'usuario': f'mesa.{sufijo}', 'clave': mesa['claveTemporal']})
-    comprobar(estado == 200 and soporte['permisos'] == ['consola.ingresar', 'cuentas.ver'], 'mesa de ayuda entra con permisos acotados')
+    comprobar(estado == 200 and 'cuentas.ver' in soporte['permisos']
+              and not {'cuentas.gestionar', 'roles.asignar', 'cuentas.datos_personales'} & set(soporte['permisos']),
+              'mesa de ayuda entra con permisos acotados')
     estado, vista, _ = admin(s, f'cuentas/{mesa["id"]}')
     comprobar(estado == 200 and vista['correo'].startswith('e•••@') and not vista['datosCompletos'],
               'mesa de ayuda ve el correo enmascarado')
@@ -160,6 +163,40 @@ try:
     comprobar(admin(s, 'cuentas')[0] == 401, 'al retirarle el rol pierde la consola en la siguiente petición')
     acciones = [h['accion'] for h in admin(a, f'cuentas/{mesa["id"]}')[1]['historial']]
     comprobar('ROL_RETIRADO:SOPORTE' in acciones and 'ROL_ASIGNADO:SOPORTE' in acciones, 'los cambios de rol quedan auditados')
+
+    print('HU-43 · sesión única entre la web y el celular')
+    clave = nueva['claveTemporal']
+    web, movil = cliente(), cliente()
+    comprobar(api(web, 'auth/login', 'POST', {'username': f'prueba.{sufijo}', 'password': clave})[0] == 200, 'ingresa en la web')
+    comprobar(api(web, 'student/session')[0] == 200, 'la web tiene su sesión')
+    estado, _, _ = api(movil, 'auth/login', 'POST', {'username': f'prueba.{sufijo}', 'password': clave},
+                       {'X-Rupi-Cliente': 'MOVIL'})
+    comprobar(estado == 200, 'ingresa en el celular con la misma cuenta')
+    estado, _, cabeceras = api(web, 'student/learning-routes')
+    comprobar(estado == 401 and cabeceras.get('X-Rupi-Sesion-Cerrada') == 'OTRO_DISPOSITIVO'
+              and cabeceras.get('X-Rupi-Sesion-Nueva') == 'MOVIL', 'la web recibe 401 explicando que se abrió en un celular')
+    estado, _, cabeceras = api(web, 'auth/session')
+    comprobar(estado == 401 and cabeceras.get('X-Rupi-Sesion-Cerrada') == 'OTRO_DISPOSITIVO', 'la comprobación periódica también lo explica')
+    comprobar(api(movil, 'student/session')[0] == 200, 'el celular sigue con su sesión')
+    activas = int(sql(f"SELECT COUNT(*) FROM identidad_sesion_usuario WHERE usuario_id = '{nueva['id']}' AND revocada_en IS NULL"))
+    comprobar(activas == 1, 'en la base queda una sola sesión activa')
+    estado, lista, _ = admin(a, 'sesiones?cliente=MOVIL')
+    comprobar(estado == 200 and any(i['cuentaId'] == nueva['id'] and i['cliente'] == 'MOVIL' for i in lista['items']),
+              'la consola la muestra abierta en el celular')
+    comprobar(admin(a, f'cuentas/{nueva["id"]}')[1]['sesionActiva']['cliente'] == 'MOVIL', 'el detalle de la cuenta dice dónde está abierta')
+    estado, cerrada, _ = admin(a, f'cuentas/{nueva["id"]}/cerrar-sesion', 'POST')
+    comprobar(estado == 200 and cerrada['sesionActiva'] is None, 'la administración cierra la sesión del celular')
+    estado, _, cabeceras = api(movil, 'student/session')
+    comprobar(estado == 401 and cabeceras.get('X-Rupi-Sesion-Cerrada') == 'CERRADA', 'el celular recibe 401 de sesión cerrada')
+    comprobar(admin(a, f'cuentas/{yo["id"]}/cerrar-sesion', 'POST')[0] == 409, 'la consola no cierra su propia sesión por esta vía')
+    comprobar('SESION_CERRADA' in [h['accion'] for h in admin(a, f'cuentas/{nueva["id"]}')[1]['historial']],
+              'el cierre queda auditado')
+    otra_consola = cliente()
+    comprobar(admin(otra_consola, 'sesion', 'POST', {'usuario': args.usuario, 'clave': clave_admin})[0] == 200,
+              'la misma administración abre otra consola')
+    estado, cuerpo, _ = admin(a, 'cuentas')
+    comprobar(estado == 401 and 'otra consola' in cuerpo['detail'], 'la primera consola explica por qué se cerró')
+    a = otra_consola
     print('Todo correcto.')
 finally:
     for cuenta_id in creadas:

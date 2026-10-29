@@ -26,7 +26,11 @@ public class StudentAuthenticationFilter extends OncePerRequestFilter {
         final StudentSessionService.Student user;
         try { user = sessions.resolve(request).orElse(null); }
         catch (DataAccessException exception) { response.sendError(503); return; }
-        if (user == null) { response.sendError(401); return; }
+        if (user == null) {
+            explainSessionEnd(sessions, request, response);
+            response.sendError(401);
+            return;
+        }
 
         if (request.getRequestURI().startsWith("/api/v1/teacher/") && !"DOCENTE".equalsIgnoreCase(user.role())) {
             response.sendError(403);
@@ -40,5 +44,22 @@ public class StudentAuthenticationFilter extends OncePerRequestFilter {
         chain.doFilter(new HttpServletRequestWrapper(request) {
             @Override public Principal getUserPrincipal() { return principal; }
         }, response);
+    }
+
+    public static final String SESSION_END_HEADER = "X-Rupi-Sesion-Cerrada";
+    public static final String SESSION_NEW_CLIENT_HEADER = "X-Rupi-Sesion-Nueva";
+
+    /** HU-43: un 401 dice si la sesión se cerró porque la cuenta se abrió en otro dispositivo, se cerró o expiró. */
+    static void explainSessionEnd(StudentSessionService sessions, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            sessions.sessionEnd(request).ifPresent(end -> {
+                response.setHeader(SESSION_END_HEADER, end.reason());
+                if (end.newClient() != null) {
+                    response.setHeader(SESSION_NEW_CLIENT_HEADER, end.newClient());
+                }
+            });
+        } catch (DataAccessException ignored) {
+            // Sin el motivo, el cliente muestra el ingreso de siempre.
+        }
     }
 }

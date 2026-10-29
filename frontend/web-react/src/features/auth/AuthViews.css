@@ -1396,6 +1396,11 @@
   margin: 0;
 }
 
+.login-alert-banner svg {
+  flex: none;
+  margin-top: 1px;
+}
+
 /* Botón principal único con volumen 3D */
 .primary-login-btn {
   width: 100%;

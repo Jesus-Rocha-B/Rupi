@@ -11,6 +11,7 @@ import {
   HelpCircle,
   KeyRound,
   Lock,
+  Smartphone,
   Sparkles,
   User,
   Volume2,
@@ -25,6 +26,8 @@ type Props = {
   sessionBusy: boolean
   demoAvailable: boolean
   serviceError?: string | null
+  /** HU-43: por qué se cerró la sesión anterior (p. ej., la cuenta se abrió en un celular). */
+  sessionNotice?: string | null
 }
 
 interface RupiCourseCharacter {
@@ -59,7 +62,7 @@ const RUPI_COURSES: RupiCourseCharacter[] = [
   },
 ]
 
-export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, serviceError }: Props) {
+export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, serviceError, sessionNotice }: Props) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -374,6 +377,12 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
 
           <form className="student-login-form" onSubmit={handleSubmit} noValidate>
               {serviceError && <p role="alert" className="auth-feedback error">{serviceError}</p>}
+              {sessionNotice && !feedback && (
+                <div className="login-alert-banner info" role="status">
+                  <Smartphone size={18} aria-hidden="true" />
+                  <p>{sessionNotice}</p>
+                </div>
+              )}
             {/* Campo Usuario */}
             <div className="form-group">
               <label htmlFor="student-username" className="field-label">

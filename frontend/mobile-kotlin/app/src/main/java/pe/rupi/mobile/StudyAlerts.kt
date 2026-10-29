@@ -51,6 +51,16 @@ object StudyAlerts {
   file(context).delete()
   (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancelAll()
  }
+ /** HU-43: si la cuenta se abrió en otro lugar, avisa una vez que los recordatorios quedaron en pausa. */
+ fun paused(context:Context,reason:String) {
+  if(!allowed(context))return
+  val pending=PendingIntent.getActivity(context,JOB,Intent(context,MainActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+  val notification=Notification.Builder(context,CHANNEL).setSmallIcon(android.R.drawable.ic_dialog_info)
+   .setContentTitle("Tus avisos de Rupi están en pausa").setContentText(reason)
+   .setStyle(Notification.BigTextStyle().bigText(reason)).setAutoCancel(true)
+   .setVisibility(Notification.VISIBILITY_PRIVATE).setContentIntent(pending).build()
+  (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify("sesion-unica",0,notification)
+ }
  fun allowed(context:Context):Boolean {
   val manager=context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
   manager.createNotificationChannel(NotificationChannel(CHANNEL,"Recordatorios de estudio",NotificationManager.IMPORTANCE_DEFAULT))
@@ -86,7 +96,7 @@ class StudyAlertJob:JobService() {
   Thread {
    var retry=false
    try { StudyAlerts.restore(this)?.let { StudyAlerts.deliver(this,it){active && generation==StudyAlerts.generation(this)} } }
-   catch(_:RupiSessionExpired){if(generation==StudyAlerts.generation(this))StudyAlerts.disable(this)}
+   catch(e:RupiSessionExpired){if(generation==StudyAlerts.generation(this)){StudyAlerts.disable(this);if(e.otherDevice)StudyAlerts.paused(this,e.message.orEmpty())}}
    catch(_:Exception){retry=true}
    finally { if(active)jobFinished(params,retry) }
   }.start()

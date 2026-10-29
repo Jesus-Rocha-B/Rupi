@@ -78,7 +78,7 @@ class StudentAuthenticationFilterTest {
     void loginWithValidCredentialsReturnsStudentAndSetsCookie() {
         var sessions = mock(StudentSessionService.class);
         var student = new StudentSessionService.Student("11111111-1111-4111-8111-111111111111", "Mateo");
-        when(sessions.authenticate("mateo", "clave123", "127.0.0.1"))
+        when(sessions.authenticate("mateo", "clave123", "127.0.0.1", "WEB_USUARIO"))
                 .thenReturn(StudentSessionService.AuthenticationResult.success(student, "token-seguro-123456789012345678901234567890123"));
 
         var controller = new SessionController(sessions, "");
@@ -104,7 +104,7 @@ class StudentAuthenticationFilterTest {
     @Test
     void loginWithInvalidCredentialsReturns401() {
         var sessions = mock(StudentSessionService.class);
-        when(sessions.authenticate(anyString(), anyString(), anyString()))
+        when(sessions.authenticate(anyString(), anyString(), anyString(), anyString()))
                 .thenReturn(StudentSessionService.AuthenticationResult.badCredentials());
 
         var controller = new SessionController(sessions, "");
@@ -124,7 +124,7 @@ class StudentAuthenticationFilterTest {
     @Test
     void loginWithRateLimitingReturns429() {
         var sessions = mock(StudentSessionService.class);
-        when(sessions.authenticate(anyString(), anyString(), anyString()))
+        when(sessions.authenticate(anyString(), anyString(), anyString(), anyString()))
                 .thenReturn(StudentSessionService.AuthenticationResult.throttled());
 
         var controller = new SessionController(sessions, "");

@@ -142,6 +142,32 @@ export const fetchRoleCatalog = (signal?: AbortSignal) => request<RoleCatalog>('
 export const assignRoles = (id: string, roles: string[]) =>
   request<AccountDetail>(`cuentas/${encodeURIComponent(id)}/roles`, { method: 'PUT', body: JSON.stringify({ roles }) })
 
+export interface ActiveSession {
+  cuentaId: string
+  usuario: string
+  nombre: string
+  roles: string[]
+  cliente: SessionClient
+  desde: string
+  actividad: string
+  expira: string
+}
+
+export interface ActiveSessions {
+  totales: Record<SessionClient, number>
+  items: ActiveSession[]
+}
+
+export const fetchActiveSessions = (client: SessionClient | '', signal?: AbortSignal) =>
+  request<ActiveSessions>(`sesiones${client ? `?cliente=${client}` : ''}`, { signal })
+export const closeAccountSession = (id: string) => post<AccountDetail>(`cuentas/${encodeURIComponent(id)}/cerrar-sesion`)
+
+export const CLIENT_LABELS: Record<SessionClient, string> = {
+  WEB_USUARIO: 'Web',
+  MOVIL: 'Celular',
+  WEB_ADMIN: 'Consola',
+}
+
 export const ROLE_LABELS: Record<string, string> = {
   ESTUDIANTE: 'Estudiante',
   DOCENTE: 'Docente',
@@ -155,6 +181,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'cuentas.gestionar': 'Crear, editar y dar de baja cuentas',
   'cuentas.datos_personales': 'Ver correos y datos personales completos',
   'roles.asignar': 'Asignar y retirar roles',
+  'sesiones.gestionar': 'Ver y cerrar sesiones abiertas',
 }
 
 export const STATE_LABELS: Record<AccountState, string> = {
@@ -169,6 +196,7 @@ export const AUDIT_LABELS: Record<string, string> = {
   CUENTA_MODIFICADA: 'Datos modificados',
   CUENTA_DADA_DE_BAJA: 'Dada de baja',
   CUENTA_REACTIVADA: 'Reactivada',
+  SESION_CERRADA: 'Sesión cerrada desde la consola',
 }
 
 export function auditLabel(action: string) {

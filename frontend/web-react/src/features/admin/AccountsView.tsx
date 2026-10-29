@@ -49,7 +49,7 @@ export function AccountsView({ admin, onSessionLost }: Props) {
       .then(found => setResult({ key: requestKey, page: found, error: null }))
       .catch(failure => {
         if (controller.signal.aborted) return
-        if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(SESSION_LOST)
+        if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(failure.message || SESSION_LOST)
         setResult(previous => ({
           key: requestKey,
           page: previous?.page ?? null,

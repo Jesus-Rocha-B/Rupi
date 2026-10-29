@@ -213,10 +213,15 @@ export interface RouteDiplomaResponse {
 
 export class ApiError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  /** HU-43: por qué terminó la sesión (`OTRO_DISPOSITIVO`, `CERRADA` o `EXPIRADA`) y dónde se abrió la nueva. */
+  sessionEnd: string | null
+  sessionNewClient: string | null
+  constructor(status: number, message: string, sessionEnd: string | null = null, sessionNewClient: string | null = null) {
     super(message)
     this.status = status
     this.name = 'ApiError'
+    this.sessionEnd = sessionEnd
+    this.sessionNewClient = sessionNewClient
   }
 }
 
@@ -256,7 +261,8 @@ async function apiErrorFrom(response: Response): Promise<ApiError> {
   } catch {
     // Ignora error de parseo si no es JSON
   }
-  return new ApiError(response.status, msg)
+  return new ApiError(response.status, msg, response.headers.get('X-Rupi-Sesion-Cerrada'),
+    response.headers.get('X-Rupi-Sesion-Nueva'))
 }
 
 export interface UnitPackage {
@@ -294,6 +300,8 @@ export async function downloadStudyPackage(path: string, fallbackName: string, s
 }
 
 export const fetchSession = (signal?: AbortSignal) => request<Student>('student/session', { signal })
+/** Comprobación liviana de la sesión única (HU-43): sirve igual para estudiantes y docentes. */
+export const checkSession = (signal?: AbortSignal) => request<Student>('auth/session', { signal })
 export const fetchSessionOptions = (signal?: AbortSignal) => request<{ demoAvailable: boolean }>('auth/options', { signal })
 export const login = (username: string, password: string) =>
   request<Student>('auth/login', {

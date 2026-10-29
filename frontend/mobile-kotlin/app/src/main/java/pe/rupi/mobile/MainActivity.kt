@@ -101,7 +101,7 @@ class MainActivity : Activity() {
     val result=job()
     runOnUiThread { if(alive) { busy=false; if(ticket==screen) { notice.text=""; done(result) } } }
    } catch(e: Exception) {
-    runOnUiThread { if(alive) { busy=false; if(e is RupiSessionExpired){StudyAlerts.disable(this);api=null;loginScreen();notice.text="Vuelve a iniciar sesión.";return@runOnUiThread}; if(ticket==screen) notice.text=e.message ?: "No pudimos continuar. Revisa tu conexión." } }
+    runOnUiThread { if(alive) { busy=false; if(e is RupiSessionExpired){StudyAlerts.disable(this);api=null;loginScreen();notice.text=e.message ?: "Vuelve a iniciar sesión.";return@runOnUiThread}; if(ticket==screen) notice.text=e.message ?: "No pudimos continuar. Revisa tu conexión." } }
    }
   }
  }

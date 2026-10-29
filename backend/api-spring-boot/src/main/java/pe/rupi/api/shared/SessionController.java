@@ -40,12 +40,13 @@ public class SessionController {
     }
 
     @GetMapping("/api/v1/auth/session")
-    public StudentSessionService.Student currentAuth(HttpServletRequest request) {
+    public StudentSessionService.Student currentAuth(HttpServletRequest request, HttpServletResponse response) {
         var user = (StudentSessionService.Student) request.getAttribute("user");
         if (user == null) {
             user = sessions.resolve(request).orElse(null);
         }
         if (user == null) {
+            StudentAuthenticationFilter.explainSessionEnd(sessions, request, response);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
         return user;
@@ -67,7 +68,8 @@ public class SessionController {
         }
 
         String clientIp = resolveClientIp(request);
-        var result = sessions.authenticate(body.username(), body.password(), clientIp);
+        var result = sessions.authenticate(body.username(), body.password(), clientIp,
+                StudentSessionService.clientOf(request));
 
         if (result.rateLimited()) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS);

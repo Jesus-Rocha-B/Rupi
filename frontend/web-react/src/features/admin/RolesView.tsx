@@ -18,7 +18,7 @@ export function RolesView({ onSessionLost }: Props) {
       .then(setCatalog)
       .catch(failure => {
         if (controller.signal.aborted) return
-        if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(SESSION_LOST)
+        if (failure instanceof AdminApiError && failure.status === 401) onSessionLost(failure.message || SESSION_LOST)
         else setError(failure instanceof AdminApiError ? failure.message : 'No pudimos cargar los roles.')
       })
     return () => controller.abort()
