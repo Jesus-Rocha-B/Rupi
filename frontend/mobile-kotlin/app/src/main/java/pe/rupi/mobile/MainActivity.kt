@@ -44,7 +44,9 @@ class MainActivity : Activity() {
 
  override fun onCreate(state: Bundle?) {
   super.onCreate(state)
-  window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+  // Barra de estado sobre la tinta de bosque (íconos claros) y navegación sobre el papel (íconos oscuros).
+  @Suppress("DEPRECATION") window.statusBarColor = RupiUi.FOREST
+  @Suppress("DEPRECATION") window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
   voice=RupiVoice(this)
   registerReceiver(summaryConnectionReceiver,android.content.IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION))
   if(android.os.Build.VERSION.SDK_INT>=33) onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT) { goBack() }
@@ -63,56 +65,110 @@ class MainActivity : Activity() {
   if(back==null) { finish(); return }
   if(!busy) back()
  }
+ /** Barra superior de la consola: marca «R», «Rupi» y el nombre de la pantalla, sobre tinta de bosque. */
+ private fun header(title: String): LinearLayout {
+  val bar = LinearLayout(this).apply {
+   orientation=LinearLayout.HORIZONTAL; gravity=android.view.Gravity.CENTER_VERTICAL
+   background=RupiUi.topbar(this@MainActivity)
+  }
+  bar.addView(TextView(this).apply {
+   text="R"; typeface=RupiUi.TITLE; textSize=22f; setTextColor(Color.WHITE); gravity=android.view.Gravity.CENTER
+   background=RupiUi.brandMark(this@MainActivity); setPadding(0,0,0,dp(4)); importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
+  }, LinearLayout.LayoutParams(dp(44),dp(48)))
+  val names = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(dp(12),0,0,0) }
+  names.addView(TextView(this).apply { text="Rupi"; typeface=RupiUi.TITLE; textSize=20f; setTextColor(Color.WHITE) })
+  names.addView(TextView(this).apply {
+   text=title; typeface=RupiUi.BOLD; textSize=14f; setTextColor(Color.rgb(214,232,220))
+   if(android.os.Build.VERSION.SDK_INT>=28) isAccessibilityHeading=true
+  })
+  bar.addView(names, LinearLayout.LayoutParams(0,-2,1f))
+  return bar
+ }
  private fun page(title: String, back: (() -> Unit)? = null) {
   screen++
   onBack=back
   restoreScroll=pendingScroll;pendingScroll=0
   voice?.stop()
+  val frame = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; background=RupiUi.Paper(this@MainActivity) }
+  val bar = header(title)
+  bar.setPadding(dp(16),dp(12),dp(16),dp(16))
+  frame.addView(bar, LinearLayout.LayoutParams(-1,-2))
   val scroll = ScrollView(this)
   root=scroll
-  scroll.setBackgroundColor(Color.rgb(250, 248, 245))
-  scroll.setPadding(dp(16), dp(32), dp(16), dp(24))
   scroll.isFillViewport = true
-  layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; fitsSystemWindows = true }
+  scroll.clipToPadding = false
+  layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16),dp(8),dp(16),dp(24)) }
   scroll.addView(layout, android.widget.FrameLayout.LayoutParams(-1,-2))
-  setContentView(scroll)
-  if(android.os.Build.VERSION.SDK_INT>=30) layout.setOnApplyWindowInsetsListener { view,insets -> val bars=insets.getInsets(android.view.WindowInsets.Type.systemBars());view.setPadding(0,bars.top,0,bars.bottom);insets }
-  text("rupi · $title", 24)
-  notice = TextView(this).apply { setTextColor(Color.rgb(23,62,48)); setPadding(0,dp(12),0,dp(12)) }
-  layout.addView(notice)
+  frame.addView(scroll, LinearLayout.LayoutParams(-1,0,1f))
+  setContentView(frame)
+  // Pantalla completa (obligatoria desde Android 15): la barra verde ocupa la zona de la hora y el contenido no
+  // queda bajo los botones de navegación.
+  frame.setOnApplyWindowInsetsListener { _,insets ->
+   @Suppress("DEPRECATION") val top=insets.systemWindowInsetTop
+   @Suppress("DEPRECATION") val bottom=insets.systemWindowInsetBottom
+   bar.setPadding(dp(16),top+dp(12),dp(16),dp(16))
+   layout.setPadding(dp(16),dp(8),dp(16),dp(24)+bottom)
+   insets
+  }
+  notice = TextView(this).apply {
+   typeface=RupiUi.BOLD; textSize=16f; setPadding(dp(14),dp(12),dp(14),dp(12)); visibility=View.GONE
+   accessibilityLiveRegion=View.ACCESSIBILITY_LIVE_REGION_POLITE
+   addTextChangedListener(object: android.text.TextWatcher {
+    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+    override fun afterTextChanged(s: android.text.Editable?) { paintNotice() }
+   })
+  }
+  layout.addView(notice, LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(8); bottomMargin=dp(4) })
  }
+ /** Mensaje arriba de la pantalla con los colores de la consola: información, error o logro. */
+ private var noticeTone = RupiUi.Tone.INFO
+ private fun paintNotice() {
+  notice.visibility = if(notice.text.isNullOrEmpty()) View.GONE else View.VISIBLE
+  notice.background = RupiUi.rounded(noticeTone.back, dp(14).toFloat(), dp(2), noticeTone.border)
+  notice.setTextColor(noticeTone.text)
+ }
+ private fun setNotice(message: String, tone: RupiUi.Tone = RupiUi.Tone.INFO) { noticeTone=tone; notice.text=message; paintNotice() }
  private fun text(value: String, size: Int = 18) {
-  layout.addView(TextView(this).apply { text=value; textSize=size.toFloat(); setTextColor(Color.rgb(23,62,48)); setPadding(0,dp(10),0,dp(10)) })
+  layout.addView(TextView(this).apply {
+   text=value; textSize=size.toFloat(); setPadding(0,dp(8),0,dp(8)); setLineSpacing(0f,1.15f)
+   // Desde 20 sp son títulos: tinta de bosque y trazo grueso, como los h2 de la consola.
+   if(size>=20) { typeface=RupiUi.TITLE; setTextColor(RupiUi.FOREST); if(android.os.Build.VERSION.SDK_INT>=28) isAccessibilityHeading=true } else setTextColor(RupiUi.INK)
+  })
  }
  /** HU-39: button that reads instructions or explanations aloud. */
  private fun listen(subject: String, value: () -> String) {
-  button("🔊 Escuchar $subject") {
+  button("🔊 Escuchar $subject", kind=RupiUi.Kind.SKY) {
    if(voice?.speak(value())!=true) showNotice("Para escuchar, instala o activa una voz en español en los ajustes de Android (Texto a voz).")
   }.contentDescription="Escuchar $subject"
  }
  private fun input(label: String, password: Boolean = false): EditText {
-  text(label)
+  layout.addView(TextView(this).apply {
+   text=label; typeface=RupiUi.BOLD; textSize=15f; setTextColor(RupiUi.FOREST); setPadding(0,dp(12),0,dp(6))
+  })
   val field = EditText(this).apply {
-   hint=label; contentDescription=label; minHeight=dp(48); isSaveEnabled=false
+   hint=label; contentDescription=label; minHeight=dp(52); isSaveEnabled=false; textSize=17f
+   setTextColor(RupiUi.INK); setHintTextColor(Color.rgb(122,135,124)); background=RupiUi.field(this@MainActivity)
+   setPadding(dp(14),dp(12),dp(14),dp(12))
    inputType=if(password) InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD else InputType.TYPE_CLASS_TEXT
+   // Android pone letra de máquina en las contraseñas; se mantiene la misma letra que el resto.
+   typeface=android.graphics.Typeface.DEFAULT
   }
-  layout.addView(field); return field
+  layout.addView(field, LinearLayout.LayoutParams(-1,-2)); return field
  }
- private fun button(label: String, enabled: Boolean = true, action: () -> Unit): Button {
+ /** Botón táctil de la consola. PRIMARY para la acción principal, QUIET para volver o actualizar, DANGER para salir o reportar. */
+ private fun button(label: String, enabled: Boolean = true, kind: RupiUi.Kind = RupiUi.Kind.PRIMARY, action: () -> Unit): Button {
   val button = Button(this).apply {
-   text=label; setAllCaps(false); minHeight=dp(48); isEnabled=enabled
-   // Deshabilitado debe verse distinto: antes «Comprobar mi respuesta» sin elegir parecía listo para tocar.
-   fun shape(color: Int) = android.graphics.drawable.GradientDrawable().apply { setColor(color); cornerRadius=dp(14).toFloat() }
-   background=android.graphics.drawable.StateListDrawable().apply {
-    addState(intArrayOf(-android.R.attr.state_enabled),shape(Color.rgb(226,221,210)))
-    addState(intArrayOf(android.R.attr.state_pressed),shape(Color.rgb(31,79,51)))
-    addState(intArrayOf(),shape(Color.rgb(49,114,75)))
-   }
-   setTextColor(android.content.res.ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled),intArrayOf()),intArrayOf(Color.rgb(92,84,72),Color.WHITE)))
+   text=label; setAllCaps(false); minHeight=dp(52); isEnabled=enabled; typeface=RupiUi.BOLD; textSize=16f
+   stateListAnimator=null; elevation=0f
+   // Deshabilitado se ve plano y color papel: antes «Comprobar mi respuesta» sin elegir parecía listo para tocar.
+   background=RupiUi.tactile(this@MainActivity,kind)
+   setTextColor(RupiUi.tactileText(kind))
    setOnClickListener { if(!busy) action() }
   }
-  button.isSingleLine=false;button.maxLines=Int.MAX_VALUE;button.setHorizontallyScrolling(false);button.minWidth=dp(48);button.setPadding(dp(16),dp(12),dp(16),dp(12))
-  layout.addView(button, LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(12); bottomMargin=dp(8) })
+  // La base del botón ocupa 4 dp abajo: el texto se centra en la cara.
+  button.isSingleLine=false;button.maxLines=Int.MAX_VALUE;button.setHorizontallyScrolling(false);button.minWidth=dp(48);button.setPadding(dp(16),dp(12),dp(16),dp(16))
+  layout.addView(button, LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(10); bottomMargin=dp(6) })
   return button
  }
  /** Guarda la altura actual para la próxima pantalla: responder no debe mandar al niño arriba. */
@@ -122,28 +178,28 @@ class MainActivity : Activity() {
   if(y>0) { restoreScroll=0; root.post { root.scrollTo(0,y) } }
  }
  /** Los mensajes están arriba: si el niño bajó, se sube para que lea lo que pasó. */
- private fun showNotice(message: String) {
-  notice.text=message
+ private fun showNotice(message: String, tone: RupiUi.Tone = RupiUi.Tone.INFO) {
+  setNotice(message,tone)
   root.post { root.smoothScrollTo(0,0) }
  }
  private fun <T> execute(job: () -> T, done: (T) -> Unit) {
   if(busy) return
   busy=true
   val ticket=screen
-  notice.text="Un momento, estamos consultando Rupi…"
+  setNotice("Un momento, estamos consultando Rupi…")
   worker.execute {
    try {
     val result=job()
     runOnUiThread { if(alive) { busy=false; if(ticket==screen) { notice.text=""; done(result); if(ticket==screen) restorePlace() } } }
    } catch(e: Exception) {
-    runOnUiThread { if(alive) { busy=false; if(e is RupiSessionExpired){StudyAlerts.disable(this);api=null;loginScreen();notice.text=e.message ?: "Vuelve a iniciar sesión.";return@runOnUiThread}; if(ticket==screen) showNotice(e.message ?: "No pudimos continuar. Revisa tu conexión.") } }
+    runOnUiThread { if(alive) { busy=false; if(e is RupiSessionExpired){StudyAlerts.disable(this);api=null;loginScreen();setNotice(e.message ?: "Vuelve a iniciar sesión.");return@runOnUiThread}; if(ticket==screen) showNotice(e.message ?: "No pudimos continuar. Revisa tu conexión.",RupiUi.Tone.ERROR) } }
    }
   }
  }
  private fun loginScreen() {
   currentTopic=null
   page("Entra a tu aula")
-  button("Resúmenes descargados") {savedSummaries()}
+  button("Resúmenes descargados", kind=RupiUi.Kind.QUIET) {savedSummaries()}
   val server=input("Servidor Rupi (HTTPS)")
   if(BuildConfig.DEBUG) server.setText("http://10.0.2.2:8081")
   val user=input("Usuario escolar")
@@ -158,22 +214,22 @@ class MainActivity : Activity() {
   currentTopic=null
   page("Mis temas")
   button("Reto del día") {dailyChallenge()}
-  button("Mi meta de hoy") {dailyGoal()}
-  button("Resúmenes descargados") {savedSummaries()}
-  button("Mi ritmo de estudio y avisos"){notifications()}
-  button("Actualizar temas") { topics() }
-  button("Salir") { StudyAlerts.disable(this);execute({ api?.request("/api/v1/auth/logout","POST") },{ api?.clear();api=null;loginScreen() }) }
+  button("Mi meta de hoy", kind=RupiUi.Kind.LEAF) {dailyGoal()}
+  button("Resúmenes descargados", kind=RupiUi.Kind.QUIET) {savedSummaries()}
+  button("Mi ritmo de estudio y avisos", kind=RupiUi.Kind.LEAF){notifications()}
+  button("Actualizar temas", kind=RupiUi.Kind.QUIET) { topics() }
+  button("Salir", kind=RupiUi.Kind.DANGER) { StudyAlerts.disable(this);execute({ api?.request("/api/v1/auth/logout","POST") },{ api?.clear();api=null;loginScreen() }) }
   execute({ JSONArray(api!!.request("/api/v1/student/ai-quizzes/topics")) },{ items ->
    if(items.length()==0) text("Todavía no tienes paradas disponibles. Únete a una ruta en Rupi y vuelve a consultar.")
-   for(i in 0 until items.length()) { val item=items.getJSONObject(i); button(item.getString("routeTitle")+" · "+item.getString("title")) { loadTopic(item) } }
+   for(i in 0 until items.length()) { val item=items.getJSONObject(i); button(item.getString("routeTitle")+" · "+item.getString("title"), kind=RupiUi.Kind.LEAF) { loadTopic(item) } }
   })
  }
 
  private fun dailyGoal() {
   summaryMode=false;cardMode=false;currentTopic=null
   page("Mi meta de hoy") { topics() }
-  button("Volver a mis temas"){topics()}
-  button("Actualizar mi avance"){dailyGoal()}
+  button("Volver a mis temas", kind=RupiUi.Kind.QUIET){topics()}
+  button("Actualizar mi avance", kind=RupiUi.Kind.QUIET){dailyGoal()}
   execute({ Pair(JSONObject(api!!.request("/api/v1/student/daily-goal")),JSONObject(api!!.request("/api/v1/student/daily-goal/comparison"))) },{ (overview,comparison) ->
    val today=overview.getJSONObject("today")
    val completed=today.getInt("completedLessons");val target=today.getInt("targetLessons");val met=today.getBoolean("isGoalMet")
@@ -201,7 +257,7 @@ class MainActivity : Activity() {
    val options=overview.getJSONArray("availableTargetOptions")
    for(i in 0 until options.length()){
     val option=options.getInt(i)
-    button((if(option==overview.getInt("currentDailyTargetSetting")) "✓ " else "")+"$option "+(if(option==1) "parada" else "paradas"),option!=overview.getInt("currentDailyTargetSetting")){
+    button((if(option==overview.getInt("currentDailyTargetSetting")) "✓ " else "")+"$option "+(if(option==1) "parada" else "paradas"),option!=overview.getInt("currentDailyTargetSetting"),RupiUi.Kind.QUIET){
      execute({ api!!.request("/api/v1/student/daily-goal/target?target=$option","PUT") },{ dailyGoal() })
     }
    }
@@ -213,7 +269,7 @@ class MainActivity : Activity() {
  private fun dailyChallenge(result: JSONObject? = null) {
   summaryMode=false;cardMode=false;currentTopic=null
   page("Reto del día") { topics() }
-  button("Volver a mis temas"){topics()}
+  button("Volver a mis temas", kind=RupiUi.Kind.QUIET){topics()}
   execute({ JSONObject(api!!.request("/api/v1/student/daily-challenge")) },{ challenge ->
    // The bank can repeat a challenge on another day: answers only count for the day they were given.
    if(challenge.getString("date")!=challengeDay){challengeAnswers.clear();challengeDay=challenge.getString("date")}
@@ -293,7 +349,7 @@ class MainActivity : Activity() {
  private fun notifications() {
   summaryMode=false;cardMode=false;currentTopic=null
   page("Mi ritmo de estudio") { topics() }
-  button("Volver a mis temas"){topics()}
+  button("Volver a mis temas", kind=RupiUi.Kind.QUIET){topics()}
   execute({
    Pair(JSONObject(api!!.request("/api/v1/student/notifications/preferences")),JSONObject(api!!.request("/api/v1/student/notifications")))
   },{ (status,inbox) ->
@@ -330,10 +386,10 @@ class MainActivity : Activity() {
       if(android.os.Build.VERSION.SDK_INT>=33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED)
        requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),25)
       else activateAlerts()
-     }else{StudyAlerts.disable(this);showNotice("Preferencias guardadas. Avisos del dispositivo desactivados.")}
+     }else{StudyAlerts.disable(this);showNotice("Preferencias guardadas. Avisos del dispositivo desactivados.",RupiUi.Tone.OK)}
     })
    }
-   button("Recargar preferencias guardadas"){notifications()}
+   button("Recargar preferencias guardadas", kind=RupiUi.Kind.QUIET){notifications()}
    text("Android consulta periódicamente con conexión. El ahorro de batería puede retrasar los avisos. Si cierras la sesión, se detienen.")
    text("Mis avisos",22)
    if(inbox.optBoolean("quiet"))text("Horario de descanso: los avisos del dispositivo están pausados.")
@@ -341,7 +397,7 @@ class MainActivity : Activity() {
    if(items.length()==0)text("No tienes recordatorios pendientes.")
    for(i in 0 until items.length()){
     val item=items.getJSONObject(i);text(item.getString("title"),20);text(item.getString("body"))
-    if(item.getBoolean("read"))text("Leído") else button("Marcar como leído"){
+    if(item.getBoolean("read"))text("Leído") else button("Marcar como leído", kind=RupiUi.Kind.QUIET){
      execute({api!!.request("/api/v1/student/notifications/"+item.getString("id")+"/read","PUT")},{keepPlace();notifications()})
     }
    }
@@ -349,7 +405,7 @@ class MainActivity : Activity() {
  }
  private fun activateAlerts(){
   if(!StudyAlerts.allowed(this)){showNotice("Preferencias guardadas. Permite las notificaciones en los ajustes de Android para recibir avisos.");return}
-  execute({StudyAlerts.enable(this,api!!)},{showNotice("Preferencias guardadas. Avisos activados en este dispositivo.")})
+  execute({StudyAlerts.enable(this,api!!)},{showNotice("Preferencias guardadas. Avisos activados en este dispositivo.",RupiUi.Tone.OK)})
  }
  override fun onRequestPermissionsResult(code:Int,permissions:Array<out String>,results:IntArray){
   super.onRequestPermissionsResult(code,permissions,results)
@@ -364,10 +420,10 @@ class MainActivity : Activity() {
   summaryMode=false;cardMode=false
   currentTopic=topic
   page(topic.getString("title")) { topics() }
-  button("Volver a mis temas") { topics() }
-  button("Consultar mi práctica") { loadTopic(topic) }
-  button("Ver resumen visual") {loadSummary(topic)}
-  button("Repasar con tarjetas") { loadCards(topic) }
+  button("Volver a mis temas", kind=RupiUi.Kind.QUIET) { topics() }
+  button("Consultar mi práctica", kind=RupiUi.Kind.QUIET) { loadTopic(topic) }
+  button("Ver resumen visual", kind=RupiUi.Kind.LEAF) {loadSummary(topic)}
+  button("Repasar con tarjetas", kind=RupiUi.Kind.LEAF) { loadCards(topic) }
   execute({ JSONObject(api!!.request(path(topic))) },{ status ->
    val practice=status.optJSONObject("practice")
    text("Práctica formativa: no cambia tus calificaciones.")
@@ -410,7 +466,7 @@ class MainActivity : Activity() {
    if(answered) {
     text((if(q.optBoolean("correct")) "¡Buen trabajo! " else "Sigamos aprendiendo. ")+q.optString("explanation"))
     listen("la explicación") { q.optString("explanation") }
-    if(!q.optBoolean("correct")) button("¿Por qué me equivoqué?") {
+    if(!q.optBoolean("correct")) button("¿Por qué me equivoqué?", kind=RupiUi.Kind.SKY) {
      execute({ JSONObject(api!!.request("/api/v1/student/ai-quizzes/"+view.getString("practiceId")+"/questions/"+q.getString("id")+"/hint","POST")) },{ showHint(it) })
     }
    }
@@ -422,7 +478,7 @@ class MainActivity : Activity() {
     }
     group.setOnCheckedChangeListener { _,checked -> submit.isEnabled=ids.containsKey(checked) }
    }
-   button("Reportar esta pregunta") {
+   button("Reportar esta pregunta", kind=RupiUi.Kind.DANGER) {
     val reason=EditText(this).apply { hint="¿Qué debemos revisar?";minHeight=dp(48);filters=arrayOf(android.text.InputFilter.LengthFilter(500)) }
     AlertDialog.Builder(this).setTitle("Revisar pregunta").setView(reason).setNegativeButton("Cancelar",null)
      .setPositiveButton("Enviar") { _,_ ->
@@ -452,8 +508,8 @@ class MainActivity : Activity() {
   currentTopic=topic
   cardMode=true
   page("Repasar con tarjetas") { cardMode=false;loadTopic(topic) }
-  button("Volver al tema") { cardMode=false;loadTopic(topic) }
-  button("Recuperar mi repaso") { loadCards(topic) }
+  button("Volver al tema", kind=RupiUi.Kind.QUIET) { cardMode=false;loadTopic(topic) }
+  button("Recuperar mi repaso", kind=RupiUi.Kind.QUIET) { loadCards(topic) }
   execute({ JSONObject(api!!.request(cardsPath(topic))) },{ renderCards(topic,it) })
  }
  private fun renderCards(topic: JSONObject,deck: JSONObject) {
@@ -494,16 +550,16 @@ class MainActivity : Activity() {
    }
   }
   listen(if(revealed) "la respuesta" else "la pregunta") { card.getString(if(revealed) "answer" else "question") }
-  button(if(revealed) "Ver pregunta" else "Ver respuesta") {command(if(revealed)"NAVIGATE" else "REVEAL")}
-  button("Anterior",index>0) {move(-1)}
-  button("Siguiente",index<cards.length()-1) {move(1)}
+  button(if(revealed) "Ver pregunta" else "Ver respuesta", kind=RupiUi.Kind.QUIET) {command(if(revealed)"NAVIGATE" else "REVEAL")}
+  button("Anterior",index>0, kind=RupiUi.Kind.QUIET) {move(-1)}
+  button("Siguiente",index<cards.length()-1, kind=RupiUi.Kind.QUIET) {move(1)}
   if(revealed) {
    button("Lo recuerdo") {command("REMEMBER")}
-   button("Necesito practicar") {command("PRACTICE")}
+   button("Necesito practicar", kind=RupiUi.Kind.QUIET) {command("PRACTICE")}
   }
   text("Fuente indicada por tu docente: "+card.getString("source"))
   text("Primero repasamos lo que necesita práctica; después las tarjetas nuevas y lo que recuerdas.")
-  button("Volver a repasar") {command("RESTART")}
+  button("Volver a repasar", kind=RupiUi.Kind.QUIET) {command("RESTART")}
  }
 
  private fun summaryPath(topic: JSONObject)=path(topic).removeSuffix("ai-quiz")+"visual-summary"
@@ -515,16 +571,16 @@ class MainActivity : Activity() {
   summaryMode=false;currentTopic=null
   page("Resúmenes descargados") { if(api==null)loginScreen() else topics() }
   text("Copias guardadas en este dispositivo. Pueden estar desactualizadas; vuelve al tema con conexión para comprobar su vigencia.")
-  button("Volver") {if(api==null)loginScreen() else topics()}
+  button("Volver", kind=RupiUi.Kind.QUIET) {if(api==null)loginScreen() else topics()}
   val files=java.io.File(filesDir,"visual-summaries").listFiles().orEmpty()
   if(files.isEmpty())text("Todavía no guardaste resúmenes.")
   files.forEach { file ->
    try {
     val saved=JSONObject(file.readText(Charsets.UTF_8));val topic=saved.getJSONObject("topic")
-    button(topic.getString("title")) {
+    button(topic.getString("title"), kind=RupiUi.Kind.LEAF) {
      currentTopic=topic;summaryMode=true;page("Copia descargada") { summaryMode=false;savedSummaries() }
-     button("Volver a mis descargas") {savedSummaries()}
-     if(api!=null)button("Comprobar vigencia") {loadSummary(topic)}
+     button("Volver a mis descargas", kind=RupiUi.Kind.QUIET) {savedSummaries()}
+     if(api!=null)button("Comprobar vigencia", kind=RupiUi.Kind.QUIET) {loadSummary(topic)}
      renderSummary(topic,saved.getJSONObject("resource"),true)
     }
    }catch(_:Exception){text("No pudimos leer una descarga.")}
@@ -533,8 +589,8 @@ class MainActivity : Activity() {
  private fun loadSummary(topic: JSONObject) {
   summaryMode=true;cardMode=false;currentTopic=topic
   page("Ver resumen visual") { summaryMode=false;loadTopic(topic) }
-  button("Volver al tema") {summaryMode=false;loadTopic(topic)}
-  button("Comprobar versión y revisión") {loadSummary(topic)}
+  button("Volver al tema", kind=RupiUi.Kind.QUIET) {summaryMode=false;loadTopic(topic)}
+  button("Comprobar versión y revisión", kind=RupiUi.Kind.QUIET) {loadSummary(topic)}
   execute({
    try {JSONObject(api!!.request(summaryPath(topic))).put("offline",false)}
    catch(e:Exception){
@@ -587,7 +643,7 @@ class MainActivity : Activity() {
   text("Para recordar",20);text(content.getString("remember"))
   text("Fuente: "+resource.optString("source"))
   if(!offline) {
-   button("Guardar para consultar sin conexión"){
+   button("Guardar para consultar sin conexión", kind=RupiUi.Kind.LEAF){
     execute({
      val bytes=api!!.download(summaryPath(topic)+"/"+resource.getString("id")+"/package")
      var payload:JSONObject?=null
@@ -599,9 +655,9 @@ class MainActivity : Activity() {
      val file=summaryFile(topic);val temporary=java.io.File(file.parentFile,file.name+".tmp")
      temporary.writeText(JSONObject().put("topic",topic).put("resource",saved.getJSONObject("resource")).toString(),Charsets.UTF_8)
      java.nio.file.Files.move(temporary.toPath(),file.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-    },{showNotice("Resumen guardado. Puedes abrirlo desde Resúmenes descargados incluso sin iniciar sesión.")})
+    },{showNotice("Resumen guardado. Puedes abrirlo desde Resúmenes descargados incluso sin iniciar sesión.",RupiUi.Tone.OK)})
    }
-   button("Reportar contenido incorrecto"){
+   button("Reportar contenido incorrecto", kind=RupiUi.Kind.DANGER){
     val reason=EditText(this).apply{hint="¿Qué debemos revisar?";minHeight=dp(48);filters=arrayOf(android.text.InputFilter.LengthFilter(500))}
     AlertDialog.Builder(this).setTitle("Revisar resumen").setView(reason).setNegativeButton("Cancelar",null).setPositiveButton("Enviar"){_,_->
      if(reason.text.isNotBlank())execute({api!!.request(summaryPath(topic)+"/"+resource.getString("id")+"/report","POST",JSONObject().put("reason",reason.text.toString()))},{loadSummary(topic)})
