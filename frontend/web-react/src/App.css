@@ -178,9 +178,21 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   box-shadow: 0 1px 0 #173e30;
 }
 .profile-student-card.active-profile {
-  background-color: #f2f7f4;
+  background-color: #daf0e1;
+  border: 2px solid #173e30;
+  box-shadow: 0 3px 0 #173e30;
+}
+.profile-student-card.active-profile:hover {
+  background-color: #cbe7d3;
   border-color: #173e30;
-  box-shadow: 0 2px 0 #173e30;
+  box-shadow: 0 4px 0 #173e30;
+}
+.profile-student-card.active-profile .profile-student-name {
+  color: #173e30;
+}
+.profile-student-card.active-profile .profile-school-name {
+  color: #1e5c38;
+  font-weight: 800;
 }
 .profile-text-col {
   display: flex;
@@ -205,6 +217,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   align-items: center;
   gap: 5px;
   padding: 8px 12px;
+  white-space: nowrap;
   border-radius: 12px;
   background: #fff0f0;
   color: #c53030;

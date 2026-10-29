@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
   ArrowRight,
-  Award,
   BookOpen,
   Calculator,
   Compass,
@@ -12,10 +11,8 @@ import {
   Heart,
   House,
   KeyRound,
-  LayoutDashboard,
   LogOut,
   RefreshCw,
-  Shirt,
   Sparkles,
   Star,
   Trophy,
@@ -57,9 +54,7 @@ import { TeacherAuthoringView } from './features/teacher/TeacherAuthoringView'
 import { StudentAvatar } from './components/StudentAvatar'
 import { ExploreRoadmapsView } from './features/roadmap/ExploreRoadmapsView'
 import { StudentProfileView } from './features/profile/StudentProfileView'
-import { RupiCustomizerModal } from './components/RupiCustomizerModal'
 import { ClassroomLeaderboardModal } from './components/ClassroomLeaderboardModal'
-import { StudentDashboardView } from './features/dashboard/StudentDashboardView'
 import { speakText } from './utils/speech'
 import './App.css'
 
@@ -127,7 +122,6 @@ function App() {
   const [badgesModalOpen, setBadgesModalOpen] = useState(false)
   const [highlightBadge, setHighlightBadge] = useState<BadgeDto | null>(null)
   const [joinModalOpen, setJoinModalOpen] = useState(false)
-  const [showRupiStore, setShowRupiStore] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [loading, setLoading] = useState(true)
   const [slowLoading, setSlowLoading] = useState(false)
@@ -208,27 +202,6 @@ function App() {
     } finally {
       setActivityLoading(false)
     }
-  }
-
-  async function handleContinueFromDashboard(targetRouteId: string, targetNodeId: string) {
-    try {
-      setRouteId(targetRouteId)
-      const detail = await fetchRouteDetail(targetRouteId)
-      setSelectedRoute(detail)
-      const targetNode = detail.nodes.find(n => n.id === targetNodeId)
-      if (targetNode) {
-        await handleOpenNode(targetNode)
-      } else {
-        setCurrentView('camino')
-      }
-    } catch {
-      setCurrentView('camino')
-    }
-  }
-
-  function handleNavigateToRouteFromDashboard(targetRouteId: string) {
-    setRouteId(targetRouteId)
-    setCurrentView('camino')
   }
 
   function handleActivityCompleted(result: ActivityCompleteResult) {
@@ -669,16 +642,6 @@ function App() {
         <nav className="main-nav" aria-label="Navegación principal">
           <button
             type="button"
-            className={`nav-item ${currentView === 'inicio' ? 'selected' : ''}`}
-            onClick={() => setCurrentView('inicio')}
-            aria-current={currentView === 'inicio' ? 'page' : undefined}
-            title="Ver mi panel principal con resumen métrico de lecciones"
-          >
-            <LayoutDashboard aria-hidden="true" />
-            <span>Mi Panel</span>
-          </button>
-          <button
-            type="button"
             className={`nav-item ${currentView === 'camino' ? 'selected' : ''}`}
             onClick={() => setCurrentView('camino')}
             aria-current={currentView === 'camino' ? 'page' : undefined}
@@ -698,28 +661,6 @@ function App() {
           </button>
           <button
             type="button"
-            className={`nav-item ${currentView === 'perfil' ? 'selected' : ''}`}
-            onClick={() => setCurrentView('perfil')}
-            aria-current={currentView === 'perfil' ? 'page' : undefined}
-            title="Ver mi perfil e insignias escolares"
-          >
-            <Award aria-hidden="true" />
-            <span>Mi Perfil</span>
-            {badges.length > 0 && (
-              <span className="nav-badge-count">{badges.length}</span>
-            )}
-          </button>
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() => setShowRupiStore(true)}
-            title="Abrir la Tienda y Armario de Rupi"
-          >
-            <Shirt aria-hidden="true" />
-            <span>Tienda Rupi</span>
-          </button>
-          <button
-            type="button"
             className="nav-item"
             onClick={() => setShowLeaderboard(true)}
             title="Ver la Tabla de Logros y Posiciones del Aula"
@@ -734,7 +675,7 @@ function App() {
               type="button"
               className={`profile-student-card ${currentView === 'perfil' ? 'active-profile' : ''}`}
               onClick={() => setCurrentView('perfil')}
-              title={`Ver perfil e insignias de ${student.name}`}
+              title={`Ver perfil y panel de ${student.name}`}
             >
               <StudentAvatar
                 name={student.name}
@@ -758,7 +699,7 @@ function App() {
               title="Cerrar sesión"
             >
               <LogOut size={16} aria-hidden="true" />
-              <span>Salir</span>
+              <span>Cerrar sesión</span>
             </button>
           </div>
         </div>
@@ -784,24 +725,6 @@ function App() {
               <span>Volver a Panel de Autoría</span>
             </button>
           </div>
-        )}
-
-        {/* Pantalla 0: Panel Principal Inicial con Resumen Métrico de Lecciones (HU-33) */}
-        {currentView === 'inicio' && (
-          <StudentDashboardView
-            studentName={student.name}
-            refreshTrigger={dailyGoalRefreshKey}
-            onContinueLesson={(targetRouteId, targetNodeId) => {
-              void handleContinueFromDashboard(targetRouteId, targetNodeId)
-            }}
-            onNavigateToRoute={(targetRouteId) => {
-              handleNavigateToRouteFromDashboard(targetRouteId)
-            }}
-            onOpenStore={() => setShowRupiStore(true)}
-            onOpenLeaderboard={() => setShowLeaderboard(true)}
-            onNavigateToCamino={() => setCurrentView('camino')}
-            onNavigateToExplorar={() => setCurrentView('explorar')}
-          />
         )}
 
         {/* Pantalla 1: Explorar Roadmaps (Oficial CNEB 1.°-6.° vs Comunidad/Profesores) */}
@@ -833,32 +756,14 @@ function App() {
           />
         )}
 
-        {/* Pantalla 2: Mi Perfil Escolar e Insignias Integradas */}
-        {currentView === 'perfil' && (
+        {/* Pantalla 2: Mi Perfil y Panel Escolar Integrado */}
+        {(currentView === 'perfil' || currentView === 'inicio') && (
           <StudentProfileView
             student={student}
             enrolledGrade={studentEnrolledGrade}
             earnedBadges={badges}
             enrolledRoutes={routes}
-            onSelectRoute={(versionRouteId, gradeNumber, areaCode) => {
-              if (gradeNumber != null) {
-                setSelectedGrade(gradeNumber)
-                writeStorage('rupi_selected_grade', String(gradeNumber))
-              }
-              if (areaCode) {
-                const code = areaCode.toUpperCase()
-                let normalized: string
-                if (code.includes('COM')) normalized = 'COMUNICACION'
-                else if (code.includes('CYT')) normalized = 'CYT'
-                else if (code.includes('MAT')) normalized = 'MATEMATICA'
-                else normalized = code
-                setSelectedCourse(normalized)
-                writeStorage('rupi_selected_course', normalized)
-              }
-              setRouteId(versionRouteId)
-              resetView()
-              setCurrentView('camino')
-            }}
+            refreshTrigger={dailyGoalRefreshKey}
             onChangeGrade={() => {
               setSelectedGrade(null)
               setSelectedCourse(null)
@@ -866,6 +771,7 @@ function App() {
               writeStorage('rupi_selected_course', null)
             }}
             onOpenJoinModal={() => setJoinModalOpen(true)}
+            onOpenLeaderboard={() => setShowLeaderboard(true)}
             onLogout={() => void handleLogout()}
           />
         )}
@@ -1197,10 +1103,6 @@ function App() {
         onJoined={handleJoinedClass}
       />
 
-      <RupiCustomizerModal
-        isOpen={showRupiStore}
-        onClose={() => setShowRupiStore(false)}
-      />
 
       <ClassroomLeaderboardModal
         isOpen={showLeaderboard}

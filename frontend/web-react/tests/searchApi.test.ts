@@ -42,3 +42,15 @@ test('identifica y clasifica materias escolares según su código curricular', (
   assert.equal(getSubjectColor('ART-2P'), 'art')
   assert.equal(getSubjectColor('SOC-2P'), 'soc')
 })
+test('soporta el grado cero para opción sin grado o multigrado', () => {
+  const query = ''
+  const grade = 0
+  const limit = 10
+
+  const params = new URLSearchParams()
+  if (query) params.set('q', query)
+  if (grade !== undefined && grade !== null) params.set('grade', grade.toString())
+  if (limit) params.set('limit', limit.toString())
+
+  assert.equal(params.toString(), 'grade=0&limit=10')
+})

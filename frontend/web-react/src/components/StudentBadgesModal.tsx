@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Award, BookOpen, Calculator, Check, Feather, Lock, Sparkles, Star, Volume2, X } from 'lucide-react'
 import type { BadgeDto } from '../services/learningRoutesApi'
 import { RupiCharacter } from './RupiCharacter'
@@ -100,8 +101,24 @@ export function StudentBadgesModal({
     speakText(text)
   }
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   return (
-    <div className="badges-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="badges-modal-title">
+    <div
+      className="badges-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="badges-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div className="badges-modal-container">
         {/* Cabecera con datos del estudiante */}
         <header className="badges-modal-header">
@@ -110,7 +127,7 @@ export function StudentBadgesModal({
               {studentName ? studentName.charAt(0).toUpperCase() : 'E'}
             </div>
             <div className="badges-header-text">
-              <h2 id="badges-modal-title">Mis Insignias de Perfil</h2>
+              <h2 id="badges-modal-title">Mis Insignias Escolares</h2>
               <p className="badges-header-sub">
                 {studentName} · {gradeName} · {schoolName}
               </p>

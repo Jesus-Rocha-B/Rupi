@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import {
   BookOpen,
   Calculator,
-  Compass,
+  SlidersHorizontal,
   GraduationCap,
   KeyRound,
   Search,
@@ -30,7 +30,7 @@ interface ExploreRoadmapsViewProps {
   currentCourse: string | null
   enrolledRoutes: RouteSummary[]
   onSelectRoute: (versionRouteId: string, gradeNumber?: number, areaCode?: string) => void
-  onOpenJoinModal: () => void
+  onOpenJoinModal?: () => void
 }
 
 type CategoryTab = 'OFICIAL' | 'COMUNIDAD'
@@ -38,12 +38,14 @@ type CategoryTab = 'OFICIAL' | 'COMUNIDAD'
 export function ExploreRoadmapsView({
   enrolledRoutes,
   onSelectRoute,
-  onOpenJoinModal,
 }: ExploreRoadmapsViewProps) {
   const [activeTab, setActiveTab] = useState<CategoryTab>('OFICIAL')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterGrade, setFilterGrade] = useState<number | null>(null)
   const [filterArea, setFilterArea] = useState<string>('TODAS')
+  const [showFilters, setShowFilters] = useState(true)
+
+  const hasActiveFilters = filterGrade !== null || filterArea !== 'TODAS'
   const [results, setResults] = useState<RouteSearchResult[]>([])
   const [loading, setLoading] = useState(true)
   const [enrollingId, setEnrollingId] = useState<string | null>(null)
@@ -186,10 +188,6 @@ export function ExploreRoadmapsView({
       {/* Cabecera de la sección de exploración estilo Storybook con la Mascota Rupi */}
       <header className="explore-header">
         <div className="explore-header-text">
-          <div className="explore-eyebrow">
-            <Compass size={18} aria-hidden="true" />
-            <span>Rutas Escolares de Primaria</span>
-          </div>
           <h1 className="explore-title">¡Elige tu próxima gran aventura!</h1>
           <p className="explore-subtitle">
             Descubre los caminos de aprendizaje oficiales creados por RUPI o accede a las rutas creadas por tus profesores para tu aula.
@@ -203,15 +201,6 @@ export function ExploreRoadmapsView({
           </div>
           <div className="explore-companion-actions">
             <RupiCharacter mood="cheering" role="matematica" className="explore-companion-rupi" />
-            <button
-              type="button"
-              className="btn-join-code-highlight"
-              onClick={onOpenJoinModal}
-              title="Unirme con el código que me dio mi profesor"
-            >
-              <KeyRound size={18} aria-hidden="true" />
-              <span>Ingresar código de clase</span>
-            </button>
           </div>
         </div>
       </header>
@@ -246,7 +235,7 @@ export function ExploreRoadmapsView({
       </nav>
 
       {/* Barra de Filtros: Buscador + Grados + Materias */}
-      <section className="explore-filters-bar" aria-label="Filtros de búsqueda">
+      <section className={`explore-filters-bar ${!showFilters ? 'is-collapsed' : ''}`} aria-label="Filtros de búsqueda">
         {/* Buscador de texto */}
         <div className="explore-search-input-wrap">
           <Search size={18} className="search-icon" aria-hidden="true" />
@@ -264,67 +253,93 @@ export function ExploreRoadmapsView({
               className="clear-search-btn"
               onClick={() => setSearchQuery('')}
               aria-label="Borrar búsqueda"
+              title="Borrar texto"
             >
               ×
             </button>
           )}
+          <button
+            type="button"
+            className={`btn-toggle-filters ${showFilters ? 'is-open' : ''} ${hasActiveFilters ? 'has-active' : ''}`}
+            onClick={() => setShowFilters((prev) => !prev)}
+            aria-expanded={showFilters}
+            aria-label={showFilters ? 'Ocultar opciones de filtros de grado y materia' : 'Mostrar opciones de filtros de grado y materia'}
+            title={showFilters ? 'Ocultar opciones de filtros' : 'Mostrar opciones de filtros'}
+          >
+            <SlidersHorizontal size={18} aria-hidden="true" />
+            {hasActiveFilters && !showFilters && (
+              <span className="filter-active-dot" aria-label="Filtros aplicados" />
+            )}
+          </button>
         </div>
 
-        {/* Filtro por Grado de Primaria (1.° a 6.°) */}
-        <div className="explore-grade-chips" role="group" aria-label="Filtrar por grado de primaria">
-          <span className="chips-label">
-            <Filter size={14} aria-hidden="true" /> Grado:
-          </span>
-          <button
-            type="button"
-            className={`grade-chip-btn ${filterGrade === null ? 'active' : ''}`}
-            onClick={() => setFilterGrade(null)}
-          >
-            Todos
-          </button>
-          {[1, 2, 3, 4, 5, 6].map((num) => (
-            <button
-              key={num}
-              type="button"
-              className={`grade-chip-btn ${filterGrade === num ? 'active' : ''}`}
-              onClick={() => setFilterGrade(num)}
-            >
-              {num}.° Primaria
-            </button>
-          ))}
-        </div>
+        {/* Opciones colapsables de filtros */}
+        {showFilters && (
+          <div className="explore-collapsible-filters">
+            {/* Filtro por Grado de Primaria (1.° a 6.° y Sin grado) */}
+            <div className="explore-grade-chips" role="group" aria-label="Filtrar por grado de primaria">
+              <span className="chips-label">
+                <Filter size={14} aria-hidden="true" /> Grado:
+              </span>
+              <button
+                type="button"
+                className={`grade-chip-btn ${filterGrade === null ? 'active' : ''}`}
+                onClick={() => setFilterGrade(null)}
+              >
+                Todos
+              </button>
+              {[1, 2, 3, 4, 5, 6].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  className={`grade-chip-btn ${filterGrade === num ? 'active' : ''}`}
+                  onClick={() => setFilterGrade(num)}
+                >
+                  {num}.° Primaria
+                </button>
+              ))}
+              <button
+                type="button"
+                className={`grade-chip-btn ${filterGrade === 0 ? 'active' : ''}`}
+                onClick={() => setFilterGrade(0)}
+              >
+                Sin grado
+              </button>
+            </div>
 
-        {/* Filtro por Materia Escolar */}
-        <div className="explore-area-chips" role="group" aria-label="Filtrar por materia">
-          <button
-            type="button"
-            className={`area-chip-btn ${filterArea === 'TODAS' ? 'active' : ''}`}
-            onClick={() => setFilterArea('TODAS')}
-          >
-            Todas las materias
-          </button>
-          <button
-            type="button"
-            className={`area-chip-btn ${filterArea === 'COM' ? 'active' : ''}`}
-            onClick={() => setFilterArea('COM')}
-          >
-            <BookOpen size={14} aria-hidden="true" /> Comunicación
-          </button>
-          <button
-            type="button"
-            className={`area-chip-btn ${filterArea === 'MAT' ? 'active' : ''}`}
-            onClick={() => setFilterArea('MAT')}
-          >
-            <Calculator size={14} aria-hidden="true" /> Matemática
-          </button>
-          <button
-            type="button"
-            className={`area-chip-btn ${filterArea === 'CYT' ? 'active' : ''}`}
-            onClick={() => setFilterArea('CYT')}
-          >
-            <FlaskConical size={14} aria-hidden="true" /> Ciencia y Tecnología
-          </button>
-        </div>
+            {/* Filtro por Materia Escolar */}
+            <div className="explore-area-chips" role="group" aria-label="Filtrar por materia">
+              <button
+                type="button"
+                className={`area-chip-btn ${filterArea === 'TODAS' ? 'active' : ''}`}
+                onClick={() => setFilterArea('TODAS')}
+              >
+                Todas las materias
+              </button>
+              <button
+                type="button"
+                className={`area-chip-btn ${filterArea === 'COM' ? 'active' : ''}`}
+                onClick={() => setFilterArea('COM')}
+              >
+                <BookOpen size={14} aria-hidden="true" /> Comunicación
+              </button>
+              <button
+                type="button"
+                className={`area-chip-btn ${filterArea === 'MAT' ? 'active' : ''}`}
+                onClick={() => setFilterArea('MAT')}
+              >
+                <Calculator size={14} aria-hidden="true" /> Matemática
+              </button>
+              <button
+                type="button"
+                className={`area-chip-btn ${filterArea === 'CYT' ? 'active' : ''}`}
+                onClick={() => setFilterArea('CYT')}
+              >
+                <FlaskConical size={14} aria-hidden="true" /> Ciencia y Tecnología
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Mensaje de error si la conexión falla */}

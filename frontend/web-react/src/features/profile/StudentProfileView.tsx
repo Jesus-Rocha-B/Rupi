@@ -1,14 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import {
   Award,
-  BookOpen,
-  Calculator,
   CheckCircle2,
-  Feather,
+  Flame,
   GraduationCap,
-  KeyRound,
-  Lock,
-  LogOut,
+  MapPin,
   School,
   Shirt,
   Sparkles,
@@ -17,24 +13,34 @@ import {
   Volume2,
 } from 'lucide-react'
 import type { BadgeDto, RouteSummary, Student } from '../../services/learningRoutesApi'
+import {
+  fetchDashboardSummary,
+  type DashboardSummaryResponse,
+} from '../../services/dashboardApi'
+import { fetchEquippedAccessories } from '../../services/accessoriesApi'
 import { StudentAvatar } from '../../components/StudentAvatar'
 import { RupiCharacter, type EquippedAccessories } from '../../components/RupiCharacter'
+import { DailyGoalRing } from '../../components/DailyGoalRing'
+import { ScoreComparison } from '../../components/ScoreComparison'
+import { DailyChallengeCard } from '../dashboard/DailyChallengeCard'
 import { RupiCustomizerModal } from '../../components/RupiCustomizerModal'
 import { ClassroomLeaderboardModal } from '../../components/ClassroomLeaderboardModal'
-import { fetchEquippedAccessories } from '../../services/accessoriesApi'
-import { RoadmapCard } from '../../components/RoadmapCard'
+import { StudentBadgesModal } from '../../components/StudentBadgesModal'
 import { speakText } from '../../utils/speech'
+import '../dashboard/StudentDashboardView.css'
 import './StudentProfileView.css'
 
-interface StudentProfileViewProps {
+export interface StudentProfileViewProps {
   student: Student
   enrolledGrade: number
-  earnedBadges: BadgeDto[]
-  enrolledRoutes: RouteSummary[]
-  onSelectRoute?: (versionRouteId: string, gradeNumber?: number, areaCode?: string) => void
+  earnedBadges?: BadgeDto[]
+  enrolledRoutes?: RouteSummary[]
+  refreshTrigger?: number
   onChangeGrade: () => void
-  onOpenJoinModal: () => void
-  onLogout: () => void
+  onOpenJoinModal?: () => void
+  onOpenLeaderboard?: () => void
+  onOpenBadges?: () => void
+  onLogout?: () => void
 }
 
 interface CatalogBadge {
@@ -83,30 +89,78 @@ const PRIMARY_BADGES_CATALOG: CatalogBadge[] = [
   },
 ]
 
+function parseEquippedAccessories(codes: string[]): EquippedAccessories {
+  const acc: EquippedAccessories = {
+    sombrero: null,
+    vestimenta: null,
+    fondo: null,
+  }
+  for (const c of codes) {
+    if (c.includes('CHULLO') || c.includes('BIRRETE') || c.includes('GORRO')) {
+      acc.sombrero = c
+    } else if (c.includes('CHALECO') || c.includes('PONCHO') || c.includes('CAPA')) {
+      acc.vestimenta = c
+    } else if (c.includes('FONDO')) {
+      acc.fondo = c
+    }
+  }
+  return acc
+}
+
 export function StudentProfileView({
   student,
   enrolledGrade,
   earnedBadges = [],
-  enrolledRoutes = [],
-  onSelectRoute,
+  refreshTrigger = 0,
   onChangeGrade,
-  onOpenJoinModal,
-  onLogout,
+  onOpenLeaderboard,
+  onOpenBadges,
 }: StudentProfileViewProps) {
-  const [selectedBadge, setSelectedBadge] = useState<CatalogBadge | null>(null)
+  const [data, setData] = useState<DashboardSummaryResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showBadgesModal, setShowBadgesModal] = useState(false)
   const [showCustomizer, setShowCustomizer] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
-  const [equippedAccessories, setEquippedAccessories] = useState<EquippedAccessories>({})
+  const [equippedFallback, setEquippedFallback] = useState<EquippedAccessories>({})
+  const [scoreRefresh, setScoreRefresh] = useState(0)
+  const [, startTransition] = useTransition()
 
+  // Sincronización inicial y ante cambios de refreshTrigger
+  useEffect(() => {
+    let ignore = false
+    fetchDashboardSummary({ forceRefresh: false })
+      .then((res) => {
+        if (ignore) return
+        startTransition(() => {
+          setData(res.data)
+          setLoading(false)
+          setError(null)
+        })
+      })
+      .catch((err: unknown) => {
+        if (ignore) return
+        startTransition(() => {
+          setLoading(false)
+          setError(err instanceof Error ? err.message : 'No se pudo cargar el panel de aprendizaje')
+        })
+      })
+
+    return () => {
+      ignore = true
+    }
+  }, [refreshTrigger])
+
+  // Carga complementaria de accesorios equipados
   useEffect(() => {
     let active = true
     fetchEquippedAccessories()
-      .then((data) => {
+      .then((dataAcc) => {
         if (!active) return
-        setEquippedAccessories({
-          sombrero: data.sombrero,
-          vestimenta: data.vestimenta,
-          fondo: data.fondo,
+        setEquippedFallback({
+          sombrero: dataAcc.sombrero,
+          vestimenta: dataAcc.vestimenta,
+          fondo: dataAcc.fondo,
         })
       })
       .catch(() => {
@@ -117,9 +171,45 @@ export function StudentProfileView({
     }
   }, [])
 
-  const earnedCodes = new Set(earnedBadges.map((b) => b.code))
+  const handleRefreshClick = () => {
+    fetchDashboardSummary({ forceRefresh: true })
+      .then((res) => {
+        startTransition(() => {
+          setData(res.data)
+          setError(null)
+        })
+      })
+      .catch((err: unknown) => {
+        startTransition(() => {
+          setError(err instanceof Error ? err.message : 'No se pudo sincronizar el panel')
+        })
+      })
+  }
 
-  // Combinar catálogo predefinido con cualquier insignia ganada desde el backend
+  const handleChallengeCompleted = () => {
+    setScoreRefresh((n) => n + 1)
+    handleRefreshClick()
+  }
+
+  const metrics = data?.metrics ?? {
+    totalCompletedLessons: 0,
+    totalPendingLessons: 0,
+    totalEnrolledLessons: 0,
+    overallCompletionPercentage: 0,
+    lessonsCompletedToday: 0,
+    currentStreakDays: 0,
+    totalXp: 0,
+    activeRoutesCount: 0,
+  }
+
+  const equipped = parseEquippedAccessories(
+    data?.student?.equippedAccessories && data.student.equippedAccessories.length > 0
+      ? data.student.equippedAccessories
+      : [equippedFallback.sombrero, equippedFallback.vestimenta, equippedFallback.fondo].filter(Boolean) as string[]
+  )
+
+  // Catálogo de insignias
+  const earnedCodes = new Set(earnedBadges.map((b) => b.code))
   const displayCatalog = [...PRIMARY_BADGES_CATALOG]
   for (const b of earnedBadges) {
     if (!displayCatalog.some((c) => c.code === b.code)) {
@@ -134,369 +224,302 @@ export function StudentProfileView({
   }
 
   const unlockedCount = displayCatalog.filter((b) => earnedCodes.has(b.code)).length
-  const totalCompletedRoutes = enrolledRoutes.filter(
-    (r) => r.totalNodes > 0 && r.completedNodes >= r.totalNodes
-  ).length
-
-  // Cálculo de XP total aproximado
-  const totalBadgesXp = displayCatalog
-    .filter((b) => earnedCodes.has(b.code))
-    .reduce((sum, b) => sum + b.xpBonus, 0)
-  const totalNodesXp = enrolledRoutes.reduce((sum, r) => sum + r.completedNodes * 10, 0)
-  const totalXp = totalBadgesXp + totalNodesXp
-
-  function handleSpeakBadge(badge: CatalogBadge, isEarned: boolean) {
-    const text = isEarned
-      ? `Insignia ganada: ${badge.name}. ${badge.description}. Ganaste ${badge.xpBonus} puntos de experiencia.`
-      : `Insignia por desbloquear: ${badge.name}. ${badge.description}. Sigue avanzando en tus lecciones escolares para ganarla.`
-    speakText(text)
-  }
 
   function handleSpeakSummary() {
-    const speech = `Perfil de ${student.name}. Tienes ${totalXp} puntos de experiencia, ${unlockedCount} de ${displayCatalog.length} insignias ganadas y ${enrolledRoutes.length} rutas activas. ¡Buen trabajo!`
-    speakText(speech)
+    if (!data) return
+    const msg = `¡Hola ${student.name}! Has completado ${metrics.totalCompletedLessons} lecciones escolares. Tienes ${metrics.totalPendingLessons} lecciones pendientes y tu avance general es de ${metrics.overallCompletionPercentage} por ciento. Tienes ${unlockedCount} de ${displayCatalog.length} insignias ganadas. ¡Sigue adelante!`
+    speakText(msg)
   }
 
-  function renderBadgeIcon(icon: CatalogBadge['icon']) {
-    switch (icon) {
-      case 'feather':
-        return <Feather size={28} aria-hidden="true" />
-      case 'sparkles':
-        return <Sparkles size={28} aria-hidden="true" />
-      case 'math':
-        return <Calculator size={28} aria-hidden="true" />
-      case 'book':
-        return <BookOpen size={28} aria-hidden="true" />
-      default:
-        return <Award size={28} aria-hidden="true" />
+  function handleOpenBadges() {
+    if (onOpenBadges) {
+      onOpenBadges()
+    } else {
+      setShowBadgesModal(true)
     }
   }
 
+  if (loading && !data) {
+    return (
+      <div className="dashboard-loading-state" role="status">
+        <div className="dashboard-spinner" aria-hidden="true" />
+        <p>Cargando tu perfil y panel de aprendizaje...</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="profile-view-container" id="mi-perfil">
-      {/* Tarjeta Principal del Perfil */}
-      <section className="profile-hero-card" aria-labelledby="profile-student-title">
-        <div className="profile-hero-avatar-col">
-          <StudentAvatar
-            name={student.name}
-            role={student.role}
-            size="lg"
-            showBadge
-          />
-        </div>
+    <div
+      className="profile-view-container student-dashboard"
+      id="mi-perfil"
+      role="region"
+      aria-label="Perfil y panel de estudio"
+    >
+      {/* 1. Hero de Bienvenida, Identidad Escolar y Guía Rupi */}
+      <section className="dashboard-hero" aria-labelledby="profile-heading">
+        <div className="dashboard-hero-content">
+          <div className="dashboard-hero-text">
 
-        <div className="profile-hero-info-col">
-          <div className="profile-role-pill">
-            {student.role === 'DOCENTE' ? (
-              <>
-                <GraduationCap size={15} aria-hidden="true" />
-                <span>Docente de Primaria</span>
-              </>
-            ) : (
-              <>
-                <Sparkles size={15} aria-hidden="true" />
-                <span>Estudiante de Primaria</span>
-              </>
-            )}
-          </div>
 
-          <h1 id="profile-student-title" className="profile-name">
-            {student.name}
-          </h1>
-
-          <div className="profile-school-row">
-            <School size={16} aria-hidden="true" />
-            <span>{student.schoolName || student.institutionName || 'I.E. 38001 Mariscal Sucre'}</span>
-          </div>
-
-          <div className="profile-grade-row">
-            <span className="profile-grade-badge">
-              <GraduationCap size={15} aria-hidden="true" />
-              <span>{enrolledGrade ? `${enrolledGrade}.° de Primaria (Matriculado)` : 'Primaria'}</span>
-            </span>
-
-            <button
-              type="button"
-              className="btn-change-grade-pill"
-              onClick={onChangeGrade}
-              title="Cambiar mi grado escolar oficial"
-            >
-              Cambiar de grado
-            </button>
-          </div>
-        </div>
-
-        {/* Resumen Métrico de Logros */}
-        <div className="profile-stats-grid">
-          <div className="stat-card xp-stat">
-            <div className="stat-icon-wrap xp">
-              <Star size={20} aria-hidden="true" />
+            <div className="dashboard-greeting-wrap">
+              <StudentAvatar
+                name={student.name}
+                role={student.role}
+                size="md"
+                showBadge
+              />
+              <h1 id="profile-heading" className="dashboard-greeting">
+                ¡Hola, <span className="greeting-name">{student.name}</span>!
+              </h1>
             </div>
-            <div className="stat-content">
-              <strong className="stat-number">{totalXp}</strong>
-              <span className="stat-label">Puntos XP</span>
-            </div>
-          </div>
 
-          <div className="stat-card badges-stat">
-            <div className="stat-icon-wrap badge">
-              <Award size={20} aria-hidden="true" />
-            </div>
-            <div className="stat-content">
-              <strong className="stat-number">{unlockedCount} / {displayCatalog.length}</strong>
-              <span className="stat-label">Insignias</span>
-            </div>
-          </div>
-
-          <div className="stat-card routes-stat">
-            <div className="stat-icon-wrap routes">
-              <BookOpen size={20} aria-hidden="true" />
-            </div>
-            <div className="stat-content">
-              <strong className="stat-number">{enrolledRoutes.length}</strong>
-              <span className="stat-label">
-                {totalCompletedRoutes > 0 ? `${totalCompletedRoutes} completadas` : 'Rutas activas'}
+            <div className="dashboard-school-info-row">
+              <span className="school-name">
+                <School size={16} aria-hidden="true" />
+                <span>{data?.student?.schoolName || student.schoolName || student.institutionName || 'I.E. 38001 Mariscal Sucre'}</span>
               </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mi Compañero Rupi y Armario (HU-31) */}
-      <section className="profile-rupi-section" aria-labelledby="profile-rupi-title">
-        <div className="profile-rupi-content">
-          <h2 id="profile-rupi-title" className="profile-rupi-title">
-            <Shirt size={22} aria-hidden="true" />
-            <span>Mi Compañero Rupi</span>
-          </h2>
-          <p className="profile-rupi-subtitle">
-            Personaliza a Rupi con sombreros tradicionales, vestimentas andinas y auras mágicas desbloqueados con tus puntos XP.
-          </p>
-          <div className="profile-rupi-buttons-row">
-            <button
-              type="button"
-              className="btn-open-rupi-store"
-              onClick={() => setShowCustomizer(true)}
-              title="Abrir la tienda y vestir a Rupi"
-              aria-label="Abrir la tienda y vestir a Rupi"
-            >
-              <Sparkles size={18} aria-hidden="true" />
-              <span>Abrir Armario y Tienda</span>
-            </button>
-            <button
-              type="button"
-              className="btn-open-classroom-leaderboard"
-              onClick={() => setShowLeaderboard(true)}
-              title="Ver la tabla de logros y posiciones del aula"
-              aria-label="Ver la tabla de logros y posiciones del aula"
-            >
-              <Trophy size={18} aria-hidden="true" />
-              <span>Tabla de Logros del Aula</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="profile-rupi-avatar-wrap">
-          <RupiCharacter
-            mood="cheering"
-            accessories={equippedAccessories}
-            className="profile-rupi-character"
-          />
-        </div>
-      </section>
-
-      {/* Mis Rutas de Aprendizaje en Marcha */}
-      <section className="profile-routes-section" aria-labelledby="profile-routes-title">
-        <div className="routes-header-row">
-          <div>
-            <h2 id="profile-routes-title" className="profile-routes-title">
-              <BookOpen size={22} aria-hidden="true" />
-              <span>Mis Rutas de Aprendizaje</span>
-            </h2>
-            <p className="profile-routes-subtitle">
-              Tus aventuras activas: tanto las de tu grado como las de tus profesores y proyectos escolares a los que te has unido.
-            </p>
-          </div>
-        </div>
-
-        {enrolledRoutes.length > 0 ? (
-          <div className="profile-routes-grid">
-            {enrolledRoutes.map((route) => {
-              const areaUpper = (route.area.code || '').toUpperCase()
-              const courseCode = areaUpper.includes('COM')
-                ? 'COMUNICACION'
-                : areaUpper.includes('CYT')
-                ? 'CYT'
-                : 'MATEMATICA'
-
-              return (
-                <RoadmapCard
-                  key={route.versionRouteId}
-                  route={route}
-                  isEnrolled={true}
-                  completedNodes={route.completedNodes}
-                  totalNodes={route.totalNodes}
-                  onAction={() => {
-                    if (onSelectRoute) {
-                      onSelectRoute(route.versionRouteId, route.grade.number, courseCode)
-                    }
-                  }}
-                />
-              )
-            })}
-          </div>
-        ) : (
-          <div className="profile-empty-routes">
-            <p>Aún no te has inscrito en ninguna ruta. Explora el catálogo escolar para comenzar.</p>
-          </div>
-        )}
-      </section>
-
-      {/* Vitrina de Insignias Integrada en la Pantalla */}
-      <section className="profile-badges-section" aria-labelledby="badges-section-title">
-        <div className="badges-header-row">
-          <div>
-            <h2 id="badges-section-title" className="badges-title">
-              <Award size={22} aria-hidden="true" />
-              <span>Mis Insignias Escolares</span>
-            </h2>
-            <p className="badges-subtitle">
-              Celebramos tu constancia, tus descubrimientos y cada lección aprendida.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="btn-speak-summary"
-            onClick={handleSpeakSummary}
-            title="Escuchar resumen de logros"
-            aria-label="Escuchar resumen de logros escolares"
-          >
-            <Volume2 size={18} aria-hidden="true" />
-            <span>Escuchar logros</span>
-          </button>
-        </div>
-
-        {/* Grilla de Insignias */}
-        <div className="badges-grid-layout" role="list">
-          {displayCatalog.map((badge) => {
-            const isEarned = earnedCodes.has(badge.code)
-            const isSelected = selectedBadge?.code === badge.code
-
-            return (
-              <div
-                key={badge.code}
-                role="listitem"
-                className={`profile-badge-card ${isEarned ? 'earned' : 'locked'} ${
-                  isSelected ? 'selected' : ''
-                }`}
-                onClick={() => {
-                  setSelectedBadge(badge)
-                  handleSpeakBadge(badge, isEarned)
-                }}
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    setSelectedBadge(badge)
-                    handleSpeakBadge(badge, isEarned)
-                  }
-                }}
-                aria-label={`${badge.name}: ${isEarned ? 'Insignia ganada' : 'Por desbloquear'}`}
+              <span className="grade-badge-tag">
+                <GraduationCap size={15} aria-hidden="true" />
+                <span>{data?.student?.gradeName || (enrolledGrade ? `${enrolledGrade}.° de Primaria` : 'Primaria')}</span>
+              </span>
+              <button
+                type="button"
+                className="btn-change-grade-pill"
+                onClick={onChangeGrade}
+                title="Cambiar mi grado escolar oficial"
+                aria-label="Cambiar mi grado escolar oficial"
               >
-                <div className="badge-icon-disc">
-                  {isEarned ? (
-                    renderBadgeIcon(badge.icon)
-                  ) : (
-                    <Lock size={24} aria-hidden="true" />
-                  )}
-                </div>
+                Cambiar de grado
+              </button>
+            </div>
 
-                <div className="badge-info-col">
-                  <div className="badge-name-row">
-                    <strong className="badge-name">{badge.name}</strong>
-                    {isEarned && (
-                      <span className="badge-check-tag" title="Ganada">
-                        <CheckCircle2 size={14} aria-hidden="true" />
-                      </span>
-                    )}
-                  </div>
+            <div className="dashboard-speech-bubble" role="note">
+              <Sparkles size={18} className="bubble-sparkle" aria-hidden="true" />
+              <p>
+                {metrics.totalCompletedLessons > 0
+                  ? `¡Gran trabajo, ${student.name}! Llevas ${metrics.totalCompletedLessons} lecciones superadas. Te faltan ${metrics.totalPendingLessons} para completar tus metas escolares.`
+                  : `¡Bienvenido a tu perfil y panel escolar, ${student.name}! Empieza tu primera lección para encender tu racha de estudio.`}
+              </p>
+            </div>
 
-                  <p className="badge-description">{badge.description}</p>
+            <div className="dashboard-hero-actions">
+              <button
+                type="button"
+                className="action-btn action-audio"
+                onClick={handleSpeakSummary}
+                aria-label="Escuchar resumen de logros"
+                title="Escuchar a Rupi leer mi resumen escolar"
+              >
+                <Volume2 size={18} aria-hidden="true" />
+                <span>Escuchar</span>
+              </button>
 
-                  <div className="badge-footer-row">
-                    <span className="badge-xp-bonus">
-                      <Star size={13} aria-hidden="true" /> +{badge.xpBonus} XP
-                    </span>
-                    <span className={`badge-status-pill ${isEarned ? 'unlocked' : 'pending'}`}>
-                      {isEarned ? 'Desbloqueada' : 'Por descubrir'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+              <button
+                type="button"
+                className="action-btn action-badges"
+                onClick={handleOpenBadges}
+                aria-label="Ver mis insignias escolares en ventana flotante"
+                title="Abrir vitrina de insignias escolares"
+              >
+                <Award size={18} aria-hidden="true" />
+                <span>Mis Insignias</span>
+                <span className="badges-btn-pill" aria-hidden="true">
+                  {unlockedCount}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div className="dashboard-hero-avatar-col">
+            <div
+              className="dashboard-rupi-podium"
+              role="region"
+              aria-label="Armario de Rupi"
+            >
+              <button
+                type="button"
+                className="rupi-avatar-click-btn"
+                onClick={() => setShowCustomizer(true)}
+                title="Abrir Armario de Rupi para cambiar vestuario"
+                aria-label="Cambiar vestuario de Rupi"
+              >
+                <RupiCharacter
+                  className="dashboard-rupi-avatar"
+                  mood={metrics.totalCompletedLessons > 0 ? 'cheering' : 'idle'}
+                  accessories={equipped}
+                />
+              </button>
+              <button
+                type="button"
+                className="customize-avatar-link"
+                onClick={() => setShowCustomizer(true)}
+                title="Abrir Armario de Rupi para cambiar vestuario y accesorios"
+                aria-label="Abrir Armario de Rupi para cambiar vestuario"
+              >
+                <Shirt size={14} aria-hidden="true" />
+                <span>Armario Rupi</span>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Opciones y Acciones Rápidas */}
-      <section className="profile-actions-section" aria-label="Acciones del perfil">
-        <h2 className="section-small-title">Opciones Escolares</h2>
-        <div className="profile-actions-grid">
-          <button
-            type="button"
-            className="profile-action-box"
-            onClick={onOpenJoinModal}
-          >
-            <div className="action-box-icon code">
-              <KeyRound size={22} aria-hidden="true" />
-            </div>
-            <div className="action-box-text">
-              <strong>Unirse con código de clase</strong>
-              <span>Ingresa el código que te compartió tu docente</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            className="profile-action-box"
-            onClick={onChangeGrade}
-          >
-            <div className="action-box-icon grade">
-              <GraduationCap size={22} aria-hidden="true" />
-            </div>
-            <div className="action-box-text">
-              <strong>Cambiar de grado de primaria</strong>
-              <span>Modifica tu grado escolar predeterminado (1.° a 6.°)</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            className="profile-action-box logout-box"
-            onClick={onLogout}
-          >
-            <div className="action-box-icon logout">
-              <LogOut size={22} aria-hidden="true" />
-            </div>
-            <div className="action-box-text">
-              <strong>Cerrar sesión</strong>
-              <span>Salir de forma segura de tu cuenta escolar</span>
-            </div>
+      {error && (
+        <div className="dashboard-error-banner" role="alert">
+          <p>⚠️ {error}</p>
+          <button type="button" onClick={handleRefreshClick}>
+            Reintentar
           </button>
         </div>
+      )}
+
+      {/* 2. Indicador Gráfico de Progreso Diario y Meta de Hoy (HU-34) */}
+      <section className="dashboard-daily-goal-section" aria-label="Meta de aprendizaje del día">
+        <DailyGoalRing refreshTrigger={refreshTrigger} />
+        <ScoreComparison refreshTrigger={refreshTrigger + scoreRefresh} />
       </section>
+
+      {/* Reto del día: razonamiento lógico o comprensión lectora (HU-40) */}
+      <DailyChallengeCard refreshTrigger={refreshTrigger} onCompleted={handleChallengeCompleted} />
+
+      {/* 3. Cuadrícula de Tarjetas Métricas de Aprendizaje (HU-33) */}
+      <section className="dashboard-metrics-grid" aria-label="Tarjetas métricas de aprendizaje">
+        {/* Tarjeta 1: Lecciones Completadas */}
+        <article className="metric-card metric-completed">
+          <div className="metric-card-top">
+            <span className="metric-icon-box box-green" aria-hidden="true">
+              <CheckCircle2 size={24} />
+            </span>
+            <span className="metric-badge-tag green">Completadas</span>
+          </div>
+          <div className="metric-value-row">
+            <span className="metric-large-number">{metrics.totalCompletedLessons}</span>
+            <span className="metric-unit-label">lecciones</span>
+          </div>
+          <p className="metric-subtext">
+            de {metrics.totalEnrolledLessons} inscritas en total
+          </p>
+          <div className="metric-progress-track" aria-hidden="true">
+            <div
+              className="metric-progress-fill fill-green"
+              style={{ width: `${Math.min(100, Math.max(0, metrics.overallCompletionPercentage))}%` }}
+            />
+          </div>
+          <footer className="metric-card-footer">
+            <span>{metrics.overallCompletionPercentage}% de avance</span>
+            {metrics.lessonsCompletedToday > 0 && (
+              <span className="today-chip">+{metrics.lessonsCompletedToday} hoy</span>
+            )}
+          </footer>
+        </article>
+
+        {/* Tarjeta 2: Lecciones Pendientes */}
+        <article className="metric-card metric-pending">
+          <div className="metric-card-top">
+            <span className="metric-icon-box box-orange" aria-hidden="true">
+              <MapPin size={24} />
+            </span>
+            <span className="metric-badge-tag orange">Por Realizar</span>
+          </div>
+          <div className="metric-value-row">
+            <span className="metric-large-number">{metrics.totalPendingLessons}</span>
+            <span className="metric-unit-label">pendientes</span>
+          </div>
+          <p className="metric-subtext">
+            para completar todas tus materias
+          </p>
+          <div className="metric-progress-track" aria-hidden="true">
+            <div
+              className="metric-progress-fill fill-orange"
+              style={{ width: `${Math.min(100, Math.max(0, 100 - metrics.overallCompletionPercentage))}%` }}
+            />
+          </div>
+          <footer className="metric-card-footer">
+            <span>¡Cada paso cuenta!</span>
+          </footer>
+        </article>
+
+        {/* Tarjeta 3: Racha de Estudio */}
+        <article className="metric-card metric-streak">
+          <div className="metric-card-top">
+            <span className="metric-icon-box box-flame" aria-hidden="true">
+              <Flame size={24} />
+            </span>
+            <span className="metric-badge-tag flame">Racha Activa</span>
+          </div>
+          <div className="metric-value-row">
+            <span className="metric-large-number">{metrics.currentStreakDays}</span>
+            <span className="metric-unit-label">días</span>
+          </div>
+          <p className="metric-subtext">
+            {metrics.currentStreakDays > 0
+              ? '¡Excelente constancia escolar!'
+              : '¡Haz una lección hoy para encenderla!'}
+          </p>
+          <footer className="metric-card-footer">
+            <button
+              type="button"
+              className="metric-link-btn"
+              onClick={() => {
+                if (onOpenLeaderboard) onOpenLeaderboard()
+                else setShowLeaderboard(true)
+              }}
+            >
+              <Trophy size={14} aria-hidden="true" />
+              <span>Ver Tabla del Aula</span>
+            </button>
+          </footer>
+        </article>
+
+        {/* Tarjeta 4: Puntos XP */}
+        <article className="metric-card metric-xp">
+          <div className="metric-card-top">
+            <span className="metric-icon-box box-yellow" aria-hidden="true">
+              <Star size={24} />
+            </span>
+            <span className="metric-badge-tag yellow">Experiencia</span>
+          </div>
+          <div className="metric-value-row">
+            <span className="metric-large-number">{metrics.totalXp}</span>
+            <span className="metric-unit-label">XP</span>
+          </div>
+          <p className="metric-subtext">
+            ganados con tus aciertos y paradas
+          </p>
+          <footer className="metric-card-footer">
+            <span>¡Puntos de experiencia para tu aventura escolar!</span>
+          </footer>
+        </article>
+      </section>
+
+
+
+
 
       <RupiCustomizerModal
         isOpen={showCustomizer}
         onClose={() => setShowCustomizer(false)}
-        onEquippedChange={setEquippedAccessories}
+        onEquippedChange={(acc) => {
+          setEquippedFallback(acc)
+          handleRefreshClick()
+        }}
       />
 
       <ClassroomLeaderboardModal
         isOpen={showLeaderboard}
         onClose={() => setShowLeaderboard(false)}
       />
+
+      {showBadgesModal && (
+        <StudentBadgesModal
+          studentName={student.name}
+          schoolName={data?.student?.schoolName || student.schoolName || student.institutionName || 'I.E. 38001 Mariscal Sucre'}
+          gradeName={data?.student?.gradeName || (enrolledGrade ? `${enrolledGrade}.° de primaria` : 'Primaria')}
+          earnedBadges={earnedBadges}
+          totalXp={metrics.totalXp}
+          onClose={() => setShowBadgesModal(false)}
+        />
+      )}
     </div>
   )
 }

@@ -49,7 +49,7 @@ export function RoadmapCard({
   return (
     <article
       className={`roadmap-card-toy ${isTeacherRoute ? 'theme-community' : isMat ? 'theme-math' : isCyt ? 'theme-cyt' : 'theme-com'}`}
-      aria-label={`Roadmap de ${title}, ${gradeNumber}.° de Primaria`}
+      aria-label={`Roadmap de ${title}, ${gradeNumber === 0 ? 'Sin grado' : `${gradeNumber}.° de Primaria`}`}
       role="button"
       tabIndex={0}
       onClick={onAction}
@@ -138,7 +138,7 @@ export function RoadmapCard({
         {/* Badge de Grado Escolar superpuesto en la portada */}
         <span className="card-floating-grade-badge">
           <GraduationCap size={15} aria-hidden="true" />
-          <span>{gradeNumber}.° de Primaria</span>
+          <span>{gradeNumber === 0 ? 'Sin grado' : `${gradeNumber}.° de Primaria`}</span>
         </span>
 
         {/* Píldora de Materia */}

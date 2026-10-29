@@ -397,11 +397,13 @@ export const searchAlternativeRoutes = (
   const params = new URLSearchParams()
   if (typeof filterOrQuery === 'string') {
     if (filterOrQuery) params.set('q', filterOrQuery)
-    if (gradeNumber) params.set('grade', gradeNumber.toString())
+    if (gradeNumber !== undefined && gradeNumber !== null) params.set('grade', gradeNumber.toString())
     if (limit) params.set('limit', limit.toString())
   } else {
     if (filterOrQuery.query) params.set('q', filterOrQuery.query)
-    if (filterOrQuery.gradeNumber) params.set('grade', filterOrQuery.gradeNumber.toString())
+    if (filterOrQuery.gradeNumber !== undefined && filterOrQuery.gradeNumber !== null) {
+      params.set('grade', filterOrQuery.gradeNumber.toString())
+    }
     if (filterOrQuery.grades && filterOrQuery.grades.length > 0) {
       filterOrQuery.grades.forEach((g) => params.append('grades', g.toString()))
     }

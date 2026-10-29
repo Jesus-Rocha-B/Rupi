@@ -231,6 +231,12 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  transition: padding 0.18s ease, gap 0.18s ease;
+}
+
+.explore-filters-bar.is-collapsed {
+  gap: 0;
+  padding: 1.2rem 1.6rem;
 }
 
 .explore-search-input-wrap {
@@ -250,7 +256,7 @@
 
 .explore-search-input {
   width: 100%;
-  padding: 0.95rem 2.8rem 0.95rem 3.2rem;
+  padding: 0.95rem 6.2rem 0.95rem 3.2rem;
   font-size: 1.05rem;
   font-weight: 700;
   font-family: inherit;
@@ -275,7 +281,7 @@
 
 .clear-search-btn {
   position: absolute;
-  right: 14px;
+  right: 56px;
   display: grid;
   place-items: center;
   width: 32px;
@@ -289,11 +295,81 @@
   cursor: pointer;
   padding: 0;
   transition: transform 0.1s var(--ease-snappy);
+  z-index: 2;
 }
 
 .clear-search-btn:hover {
   transform: scale(1.1);
   background: #ffd26a;
+}
+
+.btn-toggle-filters {
+  position: absolute;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #f3f6f4;
+  color: #173e30;
+  border: 2px solid #173e30;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #173e30;
+  transition: transform 0.1s var(--ease-snappy), background-color 0.15s ease, box-shadow 0.1s ease;
+  user-select: none;
+  z-index: 2;
+}
+
+.btn-toggle-filters:hover {
+  background-color: #ffd26a;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #173e30;
+}
+
+.btn-toggle-filters:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 #173e30;
+}
+
+.btn-toggle-filters.is-open {
+  background-color: #ffd26a;
+  color: #173e30;
+}
+
+.btn-toggle-filters:focus-visible {
+  outline: 3px solid #f95738;
+  outline-offset: 2px;
+}
+
+.filter-active-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 9px;
+  height: 9px;
+  background-color: #f95738;
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+}
+
+.explore-collapsible-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: filterSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes filterSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Filtro por Grado (Píldoras tipo Sticker con relieve 3D) */
