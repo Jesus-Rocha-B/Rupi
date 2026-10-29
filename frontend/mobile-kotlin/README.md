@@ -12,8 +12,26 @@ Cliente Kotlin nativo con vistas Android, sin WebView. Permite iniciar sesión c
 
 La sesión permanece en memoria y se solicita de nuevo al cerrar el proceso. Los avances pertenecen al alumno autenticado y se recuperan del servidor. No se guardan claves del alumno en preferencias. La disponibilidad de IA depende de la configuración del backend; sin proveedor no se simula generación.
 
-## Estado verificado
-Fuentes Kotlin compiladas con stubs Android; no es una compilación APK. El intento Gradle falló al establecer su conexión local (Unable to establish loopback connection). Falta verificar build Android completo y flujo en dispositivo/emulador. Revisar también insets y accesibilidad con SDK 36.
+## Estado verificado (29 oct 2026)
+- `assembleDebug` correcto (`ANDROID_HOME=~/Android/Sdk bash ./gradlew assembleDebug`) y recorrido completo en el emulador `Pixel_8` (API 35) contra el backend local:
+  - ingreso;
+  - Reto del día;
+  - Mi meta de hoy;
+  - Mi ritmo de estudio y avisos (con permiso de Android y tarea en segundo plano);
+  - sesión única (HU-43).
+- **Atrás** vuelve a la pantalla anterior (tarjetas y resumen al tema; el resto a Mis temas) y solo sale desde Mis temas o el ingreso. Usa `OnBackInvokedDispatcher` en Android 13+.
+- **Al responder** se conserva la altura de la pantalla. Los mensajes suben la vista para que se lean.
+- **Los botones deshabilitados** se ven color papel; antes parecían activos.
+- **El reto del día** recupera las respuestas guardadas hoy (`answeredToday`) aunque se cierre la app.
+- **Una sola meta diaria:** «Mi meta de hoy» y «Mi ritmo de estudio» comparten la misma meta, de 1 a 5.
+- **Depende de contenido o IA:** práctica con IA, pistas, tarjetas y resumen visual muestran su estado vacío si no hay proveedor de IA ni contenido revisado.
+- **Pendiente:**
+  - Mi Camino y las lecciones de las paradas (la app es de repaso);
+  - XP total y medallas;
+  - tienda, leaderboard y tutor;
+  - ícono propio;
+  - servidor HTTPS para la versión release;
+  - sesión que sobreviva al cierre del proceso cuando los avisos están apagados.
 
 La HU completa y configuración de backend están en ../../docs/implementacion/HU-21-cuestionarios-ia.md.
 

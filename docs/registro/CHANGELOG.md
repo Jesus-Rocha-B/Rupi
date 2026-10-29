@@ -2,6 +2,25 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-29 · Correcciones tras revisar la app Android y el servicio de IA
+
+- `302cdc9` fix(db): `grants-spring-boot.sql` no daba a Spring escritura sobre `notificacion_*` (guardar avisos de HU-25 daba 503) ni sobre la privacidad del leaderboard (HU-32). La excepción sobre `identidad_perfil_usuario` queda limitada a 3 columnas y documentada.
+- `ef35bcc` fix(metas): una sola meta diaria (`DailyGoalTarget`, de 1 a 5, en `gamificacion_preferencia_estudio`) para el anillo y los avisos. El anillo escribía en una tabla de Django (503) y el alumno veía dos metas distintas.
+- `122ea31` fix(android): Atrás vuelve a la pantalla anterior en lugar de cerrar la app.
+- `f5c09e9` fix(android): se conserva la posición al responder y los mensajes quedan a la vista.
+- `97d7f91` fix(android): los botones deshabilitados se distinguen y los activos responden al presionar.
+- `938c86a` fix(android): explica que los avisos del teléfono necesitan al menos un tipo de aviso.
+- `f164cff` fix(retos): el reto devuelve `answeredToday`; la web y Android recuperan lo respondido al recargar.
+- `778cf74`, `8c636c6`, `86820a5`, `37b4ac6`, `5d84e47` fix(ia):
+  - clave de Gemini en cabecera;
+  - sin errores internos al cliente (503, 502 o 400);
+  - CORS limitado a la web y sin credenciales;
+  - lectura de archivos y Gemini fuera del hilo del servidor;
+  - validación de la ruta generada y límites de entrada.
+
+  Pruebas: `backend/service-ia/test_servicio_ia.py` (10).
+- Base local: se aplicaron V22 a V30, que faltaban (V28 sin sus datos demo).
+
 ## 2026-10-29 · HU-41 a HU-45: consola de administración
 
 - `9f8a132` HU-41: se inicializa Django como API de administración (`/api/admin/v1`, puerto 8082) sin tablas propias ni apps de Django que creen tablas. Altas con clave temporal, edición, baja y reactivación con auditoría. Consola React en `/admin`. V31 y `grants-django-admin.sql`.
