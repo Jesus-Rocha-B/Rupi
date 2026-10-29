@@ -217,6 +217,9 @@ class MainActivity : Activity() {
   execute({ JSONObject(api!!.request("/api/v1/student/daily-challenge")) },{ challenge ->
    // The bank can repeat a challenge on another day: answers only count for the day they were given.
    if(challenge.getString("date")!=challengeDay){challengeAnswers.clear();challengeDay=challenge.getString("date")}
+   // Lo respondido hoy viene del servidor: al reabrir la app no hay que responder otra vez.
+   val saved=challenge.optJSONArray("answeredToday")
+   if(saved!=null)for(i in 0 until saved.length()){val answer=saved.getJSONObject(i);challengeAnswers.putIfAbsent(answer.getString("questionId"),answer)}
    val activity=challenge.getString("activityVersionId")
    val reading=if(challenge.isNull("readingText")) "" else challenge.getString("readingText")
    text((if(challenge.getString("skill")=="COMPRENSION_LECTORA") "Comprensión lectora" else "Razonamiento lógico")+" · "+challenge.getInt("estimatedMinutes")+" min · +"+challenge.getInt("experienceReward")+" XP",16)

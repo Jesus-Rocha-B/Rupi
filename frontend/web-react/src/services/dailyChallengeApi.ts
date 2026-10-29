@@ -4,7 +4,7 @@
  * Las respuestas se guardan con submitQuestionAnswer (mismo endpoint de las lecciones).
  */
 import { quizRequest } from './quizzesApi'
-import type { QuestionDto } from './learningRoutesApi'
+import type { AnswerFeedbackResponse, QuestionDto } from './learningRoutesApi'
 
 export type ChallengeSkill = 'RAZONAMIENTO_LOGICO' | 'COMPRENSION_LECTORA'
 
@@ -20,6 +20,8 @@ export interface DailyChallenge {
   isCompleted: boolean
   experienceReward: number
   questions: QuestionDto[]
+  /** Respuestas que ya dio hoy: al recargar la página no se pierde lo avanzado. */
+  answeredToday?: AnswerFeedbackResponse[]
 }
 
 export interface DailyChallengeResult {

@@ -101,6 +101,11 @@ export const DailyChallengeCard: React.FC<Props> = ({ refreshTrigger = 0, onComp
     fetchDailyChallenge(controller.signal)
       .then(data => {
         setChallenge(data)
+        // Lo respondido hoy viene del servidor: lo de esta pantalla manda si ya respondió aquí mismo.
+        setAnswers(previous => ({
+          ...Object.fromEntries((data.answeredToday ?? []).map(answer => [answer.questionId, answer])),
+          ...previous,
+        }))
         setMessage('')
       })
       .catch((e: Error) => {

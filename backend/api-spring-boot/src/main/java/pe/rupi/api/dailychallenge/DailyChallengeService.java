@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pe.rupi.api.dailychallenge.DailyChallengeDtos.DailyChallengeCompleteResponse;
 import pe.rupi.api.dailychallenge.DailyChallengeDtos.DailyChallengeResponse;
 import pe.rupi.api.evaluation.EvaluationService;
+import pe.rupi.api.evaluation.EvaluationDtos.AnswerFeedbackResponse;
 import pe.rupi.api.evaluation.EvaluationDtos.QuestionDto;
 
 /**
@@ -73,8 +74,50 @@ public class DailyChallengeService {
                 challenge.minutes() != null && challenge.minutes() > 0 ? challenge.minutes() : 5,
                 isCompleted,
                 EXPERIENCE_REWARD,
-                questions
+                questions,
+                answeredToday(studentId, challenge.activityVersionId(), today, questions)
         );
+    }
+
+    /**
+     * Respuestas que el estudiante ya dio hoy a este reto, con la misma retroalimentación que recibió al responder.
+     * Antes vivían solo en la memoria de la pantalla: al recargar o reabrir la app había que responder de nuevo.
+     */
+    private List<AnswerFeedbackResponse> answeredToday(UUID studentId, UUID activityVersionId, LocalDate today,
+                                                      List<QuestionDto> questions) {
+        var explanations = new java.util.HashMap<String, String>();
+        questions.forEach(q -> explanations.put(q.id().toString(), q.explanation()));
+        return jdbc.query("""
+                SELECT r.pregunta_id, r.es_correcta,
+                       (SELECT o.id FROM evaluacion_opcion_respuesta o
+                         WHERE o.pregunta_id = r.pregunta_id AND o.es_correcta = TRUE
+                         ORDER BY o.numero_secuencia LIMIT 1) AS opcion_correcta
+                FROM evaluacion_intento i
+                JOIN evaluacion_respuesta r ON r.intento_id = i.id
+                WHERE i.estudiante_id = :studentId
+                  AND i.version_actividad_id = :actId
+                  AND r.respondida_en >= :dayStart
+                  AND r.respondida_en = (SELECT MAX(r2.respondida_en) FROM evaluacion_respuesta r2
+                                          JOIN evaluacion_intento i2 ON i2.id = r2.intento_id
+                                         WHERE i2.estudiante_id = i.estudiante_id
+                                           AND i2.version_actividad_id = i.version_actividad_id
+                                           AND r2.pregunta_id = r.pregunta_id)
+                """, new MapSqlParameterSource()
+                .addValue("studentId", studentId.toString())
+                .addValue("actId", activityVersionId.toString())
+                .addValue("dayStart", dayStart(today)), (rs, row) -> {
+                    String questionId = rs.getString("pregunta_id");
+                    boolean correct = rs.getBoolean("es_correcta");
+                    String explanation = explanations.getOrDefault(questionId, "");
+                    String correctOption = rs.getString("opcion_correcta");
+                    return new AnswerFeedbackResponse(
+                            UUID.fromString(questionId),
+                            correct,
+                            correct ? "¡Excelente, explorador! ¡Descubriste la respuesta correcta!" : explanation,
+                            correctOption == null ? null : UUID.fromString(correctOption),
+                            explanation
+                    );
+                });
     }
 
     /** Reto que le toca hoy al estudiante según su grado. */

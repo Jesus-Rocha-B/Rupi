@@ -2,6 +2,7 @@ package pe.rupi.api.dailychallenge;
 
 import java.util.List;
 import java.util.UUID;
+import pe.rupi.api.evaluation.EvaluationDtos.AnswerFeedbackResponse;
 import pe.rupi.api.evaluation.EvaluationDtos.QuestionDto;
 
 public final class DailyChallengeDtos {
@@ -22,7 +23,9 @@ public final class DailyChallengeDtos {
             Integer estimatedMinutes,
             boolean isCompleted,
             int experienceReward,
-            List<QuestionDto> questions
+            List<QuestionDto> questions,
+            /** Lo que ya respondió hoy: al recargar la web o reabrir la app no se pierde lo avanzado. */
+            List<AnswerFeedbackResponse> answeredToday
     ) {}
 
     public record DailyChallengeCompleteResponse(
