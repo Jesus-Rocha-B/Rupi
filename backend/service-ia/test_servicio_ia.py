@@ -4,6 +4,7 @@ Ejecutar: .venv/bin/python -m unittest test_servicio_ia
 """
 import json
 import os
+import threading
 import unittest
 from unittest import mock
 
@@ -66,6 +67,23 @@ class CorsTest(unittest.TestCase):
         propia = cliente.options('/api/v1/ia/tutor/chat', headers={'Origin': 'http://127.0.0.1:5173', **preflight})
         self.assertEqual(propia.headers.get('access-control-allow-origin'), 'http://127.0.0.1:5173')
         self.assertNotIn('access-control-allow-credentials', propia.headers)
+
+
+
+class SinBloqueosTest(unittest.TestCase):
+    def test_leer_archivos_y_llamar_a_gemini_no_ocupa_el_hilo_del_servidor(self):
+        hilos = []
+
+        def gemini_falso(**_):
+            hilos.append(threading.current_thread().name)
+            return json.dumps({'title': 'Fracciones', 'stops': [{'title': 'Mitades'}]})
+
+        with mock.patch.object(main, 'call_gemini', side_effect=gemini_falso):
+            r = cliente.post('/api/v1/ia/roadmap/generate-from-file',
+                             files=[('files', ('fracciones.txt', 'La mitad de 8 es 4.'.encode(), 'text/plain'))])
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()['roadmap']['stops'][0]['sourceDocuments'], ['fracciones.txt'])
+        self.assertIn('worker', hilos[0].lower())
 
 
 if __name__ == '__main__':

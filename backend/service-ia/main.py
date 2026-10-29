@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
@@ -99,8 +100,10 @@ async def generate_roadmap_from_file(
             content_bytes = await f.read()
             if not content_bytes:
                 continue
+            # Leer PDF o Word y llamar a Gemini bloquea: en un endpoint async congelaba todo el servicio, también el
+            # tutor de otros estudiantes. Ese trabajo va a un hilo aparte.
             try:
-                text = extract_text_from_file(content_bytes, f.filename)
+                text = await run_in_threadpool(extract_text_from_file, content_bytes, f.filename)
             except ValueError as e:
                 raise HTTPException(status_code=400, detail=str(e))
             except Exception:
@@ -125,7 +128,8 @@ async def generate_roadmap_from_file(
             user_prompt += f"PREFERENCIA: Área curricular {subjectCode}.\n"
         user_prompt += "Genera el JSON completo de la ruta de aprendizaje siguiendo el esquema estricto."
         
-        gemini_response = call_gemini(
+        gemini_response = await run_in_threadpool(
+            call_gemini,
             system_instruction=SYSTEM_ROADMAP_GENERATOR,
             user_content=user_prompt,
             json_mode=True
