@@ -313,6 +313,11 @@ class MainActivity : Activity() {
    val from=input("Descansar desde (HH:mm)").apply{setText(prefs.getString("quietFrom"))}
    val until=input("Volver a recibir avisos (HH:mm)").apply{setText(prefs.getString("quietUntil"))}
    button("Guardar mis preferencias"){
+    // El servidor solo activa los avisos del teléfono para las categorías marcadas: sin ninguna, se apagaban sin decir por qué.
+    if(system.isChecked&&!goals.isChecked&&!evaluations.isChecked){
+     showNotice("Para recibir avisos en el teléfono, marca también qué avisos quieres: tu meta y racha, o los de tu docente.")
+     return@button
+    }
     val value=JSONObject().put("dailyGoal",goal.selectedItemPosition+1).put("goals",goals.isChecked)
      .put("evaluations",evaluations.isChecked).put("system",system.isChecked)
      .put("remindAt",at.text.toString()).put("quietFrom",from.text.toString()).put("quietUntil",until.text.toString()).put("revision",prefs.getLong("revision"))
