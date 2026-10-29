@@ -765,7 +765,7 @@ function App() {
       </aside>
 
       <main className="main-content" id="main-content">
-        {student.role === 'ESTUDIANTE' && <StudentAssignments key={student.id} />}
+        {student.role === 'ESTUDIANTE' && currentView !== 'perfil' && <StudentAssignments key={student.id} />}
         {student.role === 'DOCENTE' && (
           <div className="teacher-preview-topbar" role="status">
             <div className="teacher-preview-info">
