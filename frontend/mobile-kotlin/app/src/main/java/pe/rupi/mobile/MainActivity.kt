@@ -296,6 +296,7 @@ class MainActivity : Activity() {
    muted("Un reto nuevo cada día y tu meta de paradas.")
    button("Reto del día") {dailyChallenge()}
    button("Mi meta de hoy", kind=RupiUi.Kind.LEAF) {dailyGoal()}
+   button("Mis logros y mi aula", kind=RupiUi.Kind.SKY) {achievements()}
   }
   section("Mis rutas","Tu camino de aprendizaje, como en la web. Entra a una ruta para seguir con tus paradas.")
   // La lista llega después: se reserva su lugar para que «Más» quede siempre al final.
@@ -333,6 +334,46 @@ class MainActivity : Activity() {
      tile(route.getString("title"), listOf(area,grade,"$done de $total paradas").filter { it.isNotBlank() }.joinToString(" · "),
       if(total>0 && done>=total) "✓" else "›") { routeScreen(route) }
     }
+   }
+  })
+ }
+
+ /** HU-29 y HU-32: XP total, racha, insignias y la tabla del aula, como «Mi Perfil» y «Tabla de Aula» en la web. */
+ private fun achievements() {
+  summaryMode=false;cardMode=false;currentTopic=null;currentRoute=null;currentNode=null
+  page("Mis logros") { topics() }
+  button("Volver a mis temas", kind=RupiUi.Kind.QUIET){topics()}
+  execute({ listOf(JSONObject(api!!.request("/api/v1/student/experience")),JSONObject(api!!.request("/api/v1/student/streak")),
+   JSONObject(api!!.request("/api/v1/student/leaderboard"))) to JSONArray(api!!.request("/api/v1/student/badges")) },{ (data,badges) ->
+   val (experience,streak,board)=data
+   card {
+    text("${experience.optInt("totalXp")} XP",28)
+    muted("Tu experiencia total en Rupi: sube con cada parada, reto y práctica.")
+    val days=streak.optInt("days")
+    if(days>0) chip("🔥 Racha: $days "+(if(days==1) "día seguido" else "días seguidos")+(if(streak.optBoolean("atRisk")) " · ¡estudia hoy para no perderla!" else ""),
+     Color.rgb(255,248,230),RupiUi.SUN,Color.rgb(107,71,5))
+    else chip("Empieza tu racha completando una parada hoy",Color.WHITE,RupiUi.LINE,RupiUi.MUTED)
+   }
+   card {
+    text("Mis insignias",20)
+    if(badges.length()==0) muted("Todavía no tienes insignias. Termina paradas y rutas para ganarlas.")
+    for(i in 0 until badges.length()) {
+     val badge=badges.getJSONObject(i)
+     chip("🏅 "+badge.optString("name"),Color.rgb(255,248,230),RupiUi.SUN,Color.rgb(107,71,5))
+     badge.optString("description").takeIf { it.isNotBlank() && it!="null" }?.let { muted(it) }
+    }
+   }
+   card {
+    text("Tabla de mi aula",20)
+    muted(board.optString("classroomName")+" · puesto ${board.optInt("myRank")} de ${board.optInt("totalStudents")}")
+    val entries=board.optJSONArray("entries") ?: JSONArray()
+    for(i in 0 until entries.length()) {
+     val entry=entries.getJSONObject(i)
+     val line="${entry.optInt("rank")}. ${entry.optString("displayName")} · ${entry.optInt("totalXp")} XP"+(if(entry.optInt("streakDays")>0) " · 🔥${entry.optInt("streakDays")}" else "")
+     if(entry.optBoolean("esUsuarioActual")) chip(line,Color.rgb(238,246,251),Color.rgb(147,196,223),RupiUi.SKY_DARK)
+     else chip(line,Color.WHITE,RupiUi.LINE,RupiUi.INK)
+    }
+    muted("Tus compañeros te ven con tu alias solo si lo eliges en la web (Tabla de Aula).")
    }
   })
  }
