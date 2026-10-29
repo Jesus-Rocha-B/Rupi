@@ -723,17 +723,17 @@ export function Roadmap({ route, guideMessage, onGuideClick, onSelectNode }: Pro
 
           const canOpen = cssClass !== 'locked'
 
-          const posX = points[index].x
+          const isGoal = index === route.nodes.length - 1
 
-          const posY = points[index].pixelY
+          const posX = points[index]?.x ?? (isGoal ? 50 : index % 2 ? 34 : 66)
+
+          const posY = points[index]?.pixelY ?? (TOP_OFFSET + index * STOP_VERTICAL_GAP)
 
           // Etiquetas orientadas siempre al EXTERIOR del sendero
 
           const labelSide = posX >= 50 ? 'right' : 'left'
 
           const isActive = index === activeIndex
-
-          const isGoal = index === route.nodes.length - 1
 
           const ThemeIcon = getStopThemeIcon(node, route.area?.code)
 

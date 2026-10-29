@@ -278,7 +278,8 @@ function App() {
         const current = await fetchSession(signal)
         setStudent(current)
         const currentList = await fetchStudentRoutes(signal)
-        setStudentEnrolledGrade(parseGrade(current.gradeNumber) ?? 2)
+        const enrolledGrade = parseGrade(current.gradeNumber) ?? 2
+        setStudentEnrolledGrade(enrolledGrade)
 
         // Sin inscripciones no se inscribe a nadie al cargar: el alumno elige su ruta en «Explorar» o con un código de clase.
         setRoutes(currentList)
@@ -289,29 +290,41 @@ function App() {
           setLoading(false)
           return
         }
-        // Si el estudiante aún no ha elegido su grado y curso (y no hay ruta específica por id en la URL),
-        // no forzamos una ruta por defecto para permitir que el estudiante elija en GradeSelectView
-        if (current.role === 'ESTUDIANTE' && !routeId && (selectedGrade == null || selectedCourse == null)) {
-          setSelectedRoute(null)
-          setLoading(false)
-          return
+        // Determinar grado y materia escolar: si es la primera vez que ingresa el estudiante,
+        // se inicia con su grado oficial matriculado y Matemática (la ruta principal de Rupi),
+        // cargando inmediatamente sus nodos en vez de dejar el mapa vacío.
+        const effectiveGrade = selectedGrade ?? (current.role === 'ESTUDIANTE' ? enrolledGrade : null)
+        const effectiveCourse = selectedCourse ?? (current.role === 'ESTUDIANTE' ? 'MATEMATICA' : null)
+
+        if (selectedGrade == null && effectiveGrade != null) {
+          setSelectedGrade(effectiveGrade)
+          writeStorage('rupi_selected_grade', String(effectiveGrade))
+        }
+        if (selectedCourse == null && effectiveCourse != null) {
+          setSelectedCourse(effectiveCourse)
+          writeStorage('rupi_selected_course', effectiveCourse)
         }
 
         // Buscar ruta que coincida con routeId, o con el curso y grado seleccionados
         let targetRoute = currentList.find(r => r.versionRouteId === routeId)
-        if (!targetRoute && selectedCourse) {
-          const courseCode = selectedCourse.toUpperCase()
-          targetRoute = currentList.find(r => {
-            const matchesGrade = selectedGrade == null || r.grade.number === selectedGrade
+        if (!targetRoute && effectiveCourse) {
+          const courseCode = effectiveCourse.toUpperCase()
+          const matching = currentList.filter(r => {
+            const matchesGrade = effectiveGrade == null || r.grade.number === effectiveGrade
             const matchesArea = r.area.code.toUpperCase().includes(courseCode) ||
               (courseCode === 'COMUNICACION' && r.area.code === 'COM') ||
               (courseCode === 'MATEMATICA' && r.area.code === 'MAT') ||
               (courseCode === 'CYT' && r.area.code === 'CYT')
             return matchesGrade && matchesArea
           })
+          // Preferir rutas completas (con mayor número de nodos)
+          matching.sort((a, b) => (b.totalNodes || 0) - (a.totalNodes || 0))
+          targetRoute = matching[0]
         }
-        if (!targetRoute && selectedGrade) {
-          targetRoute = currentList.find(r => r.grade.number === selectedGrade)
+        if (!targetRoute && effectiveGrade) {
+          const matching = currentList.filter(r => r.grade.number === effectiveGrade)
+          matching.sort((a, b) => (b.totalNodes || 0) - (a.totalNodes || 0))
+          targetRoute = matching[0]
         }
         const id = routeId || (targetRoute ? targetRoute.versionRouteId : (currentList.length > 0 ? currentList[0].versionRouteId : ''))
         if (!id) {
