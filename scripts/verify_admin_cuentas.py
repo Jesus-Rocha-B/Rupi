@@ -239,6 +239,26 @@ try:
     comprobar(admin(a, f'cuentas/{nueva["id"]}/clave', 'POST', {})[0] == 409, 'una cuenta dada de baja no recibe clave')
     acciones = [h['accion'] for h in admin(a, f'cuentas/{nueva["id"]}')[1]['historial']]
     comprobar({'CLAVE_RESTABLECIDA', 'CUENTA_BLOQUEADA', 'CUENTA_DESBLOQUEADA'} <= set(acciones), 'todo queda auditado')
+
+    print('HU-45 · salud de los servidores y tiempos de respuesta')
+    comprobar(api(cliente(), 'monitor/health')[0] == 401, 'Spring no entrega sus tiempos sin token')
+    comprobar(api(cliente(), 'monitor/health', cabeceras={'X-Rupi-Monitor-Token': 'adivinado'})[0] == 401,
+              'ni con un token equivocado')
+    for _ in range(3):
+        api(cliente(), 'auth/options')
+    estado, salud, _ = admin(a, 'salud')
+    servicios = {srv['clave']: srv for srv in (salud or {}).get('servicios', [])}
+    comprobar(estado == 200 and {'base', 'api', 'ia', 'consola'} <= servicios.keys(), 'la consola revisa base, API, IA y consola')
+    comprobar(servicios['base']['estado'] in ('OK', 'LENTO') and servicios['base']['latenciaMs'] is not None,
+              'mide cuánto tarda MySQL')
+    comprobar(servicios['api']['estado'] in ('OK', 'LENTO'), 'la API responde al monitor con el token compartido')
+    rutas = [r['route'] for r in servicios['api']['peticiones']['rutasLentas']]
+    comprobar('GET /api/v1/auth/options' in rutas and servicios['api']['peticiones']['ventana']['requests'] >= 3,
+              'agrupa los tiempos por ruta sin ids')
+    comprobar(not any('/monitor' in r for r in rutas), 'el propio monitor no se cuenta')
+    comprobar(salud['estado'] in ('OK', 'ATENCION') and (servicios['ia']['estado'] == 'OK') == (salud['estado'] == 'OK'),
+              f'estado general coherente (IA: {servicios["ia"]["estado"]})')
+    comprobar(admin(s, 'salud')[0] == 403, 'mesa de ayuda no ve la salud de la plataforma')
     print('Todo correcto.')
 finally:
     for cuenta_id in creadas:

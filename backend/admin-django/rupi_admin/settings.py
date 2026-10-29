@@ -65,6 +65,11 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 X_FRAME_OPTIONS = 'DENY'
 
+# Salud de la plataforma (HU-45). La API Spring Boot solo entrega sus tiempos a quien presente este token.
+RUPI_API_URL = os.environ.get('RUPI_API_URL', 'http://127.0.0.1:8081').rstrip('/')
+RUPI_IA_URL = os.environ.get('RUPI_IA_URL', 'http://127.0.0.1:8000').rstrip('/')
+RUPI_MONITOR_TOKEN = os.environ.get('RUPI_MONITOR_TOKEN', '')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

@@ -9,6 +9,13 @@ ROOT="$PWD"; L="$ROOT/.local"
 . "$L/env.sh"
 export PATH="$JAVA_HOME/bin:$PATH"
 MYSQL_HOME=$(ls -d "$L"/mysql-8.4*-linux-* | head -n1)
+# HU-45: la API y la consola comparten el token del monitor; se guarda en .local para que sigan coincidiendo
+# aunque solo se reinicie una de las dos.
+if [ -z "${RUPI_MONITOR_TOKEN:-}" ]; then
+  [ -s "$L/monitor.token" ] || (umask 077; head -c 32 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' >"$L/monitor.token")
+  RUPI_MONITOR_TOKEN=$(cat "$L/monitor.token")
+fi
+export RUPI_MONITOR_TOKEN
 mkdir -p "$L/sockets"
 
 puerto_abierto() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }

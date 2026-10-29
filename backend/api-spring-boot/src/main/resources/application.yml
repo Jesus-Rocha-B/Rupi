@@ -26,6 +26,9 @@ server:
 rupi:
   auth:
     demo-session-token: ${RUPI_DEMO_SESSION_TOKEN:}
+  # HU-45: la consola de administración (Django) consulta /api/v1/monitor/health con este token.
+  monitor:
+    token: ${RUPI_MONITOR_TOKEN:}
 
 
   ai:

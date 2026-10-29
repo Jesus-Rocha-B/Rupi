@@ -171,6 +171,45 @@ export const resetPassword = (id: string, clave?: string) =>
 export const lockAccount = (id: string) => post<AccountDetail>(`cuentas/${encodeURIComponent(id)}/bloquear`)
 export const unlockAccount = (id: string) => post<AccountDetail>(`cuentas/${encodeURIComponent(id)}/desbloquear`)
 
+export type ServiceState = 'OK' | 'LENTO' | 'CAIDO' | 'SIN_CONFIGURAR'
+
+export interface RouteTiming {
+  route: string
+  requests: number
+  p50Ms: number
+  p95Ms: number
+  maxMs: number
+  serverErrors: number
+  lastAt: string
+}
+
+export interface RequestWindow {
+  requests: number
+  p50Ms: number
+  p95Ms: number
+  maxMs: number
+  serverErrors: number
+  perMinute: number
+}
+
+export interface ServiceHealth {
+  clave: 'base' | 'api' | 'ia' | 'consola'
+  nombre: string
+  estado: ServiceState
+  latenciaMs: number | null
+  detalle: Record<string, unknown>
+  peticiones?: { ventana: RequestWindow; total: number; rutasLentas: RouteTiming[] }
+}
+
+export interface PlatformHealth {
+  estado: 'OK' | 'ATENCION' | 'FALLA'
+  revisadoEn: string
+  umbrales: { latenciaLentaMs: number; p95LentoMs: number; erroresAlerta: number }
+  servicios: ServiceHealth[]
+}
+
+export const fetchPlatformHealth = (signal?: AbortSignal) => request<PlatformHealth>('salud', { signal })
+
 export const CLIENT_LABELS: Record<SessionClient, string> = {
   WEB_USUARIO: 'Web',
   MOVIL: 'Celular',
@@ -192,6 +231,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'roles.asignar': 'Asignar y retirar roles',
   'sesiones.gestionar': 'Ver y cerrar sesiones abiertas',
   'credenciales.restablecer': 'Restablecer contraseñas y desbloquear cuentas',
+  'plataforma.monitorear': 'Ver la salud de los servidores',
 }
 
 export const STATE_LABELS: Record<AccountState, string> = {

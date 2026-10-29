@@ -24,7 +24,7 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 
 1. Crear el usuario MySQL `rupi_admin` y darle permisos (como root):
    `mysql -e "SET @admin_usuario='rupi_admin'; SOURCE database/mysql/grants-django-admin.sql"`
-2. Aplicar `database/mysql/migrations/V31__consola_administracion_cuentas_hu41.sql`, `V32__roles_permisos_estrictos_hu42.sql`, `V33` y `V34`.
+2. Aplicar `database/mysql/migrations/V31__consola_administracion_cuentas_hu41.sql`, `V32__roles_permisos_estrictos_hu42.sql`, `V33`, `V34` y `V35`.
 3. Variables en `.local/env.sh` (o `.local/env.ps1`): `RUPI_ADMIN_DB_PORT`, `RUPI_ADMIN_DB_USERNAME`, `RUPI_ADMIN_DB_PASSWORD`.
 4. Crear la primera cuenta de administración (pide la contraseña sin mostrarla):
    `.venv/bin/python manage.py crear_administrador --usuario admin.rupi --nombre Rosa --apellido Quispe`
@@ -42,6 +42,8 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 | `RUPI_ADMIN_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Orígenes que pueden escribir |
 | `RUPI_ADMIN_SECRET_KEY` | aleatoria por proceso | Fijarla en despliegue |
 | `RUPI_ADMIN_DEBUG` | apagado | Solo en desarrollo |
+| `RUPI_API_URL` / `RUPI_IA_URL` | `http://127.0.0.1:8081` / `:8000` | Servicios que revisa la salud |
+| `RUPI_MONITOR_TOKEN` | vacío | Token compartido con Spring (HU-45) |
 
 ## API (`/api/admin/v1`)
 
@@ -57,6 +59,7 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 | `GET sesiones?cliente=` · `POST cuentas/{id}/cerrar-sesion` | `sesiones.gestionar` | HU-43 |
 | `POST cuentas/{id}/clave` `{"clave"?: "..."}` | `credenciales.restablecer` | HU-44 · sin `clave` genera una temporal |
 | `POST cuentas/{id}/bloquear` · `POST cuentas/{id}/desbloquear` | `credenciales.restablecer` | HU-44 |
+| `GET salud` | `plataforma.monitorear` | HU-45 · base, API, IA y consola, con tiempos por ruta |
 
 ### Roles y permisos (HU-42)
 
@@ -75,6 +78,12 @@ Una cuenta tiene como mucho una sesión activa entre la web, el celular y la con
 - Restablecer genera una clave temporal (se muestra una vez) o guarda la que se escriba (no se devuelve). Cierra la sesión abierta.
 - Bloquear deja la cuenta en `BLOQUEADO` y cierra su sesión; desbloquear la devuelve a `ACTIVO`. Con la clave correcta, Spring responde 423 para que la persona pida el desbloqueo; con una clave errada responde el 401 de siempre.
 - Nadie cambia el acceso de su propia cuenta desde aquí, ni de una cuenta dada de baja. La mesa de ayuda no toca cuentas de consola.
+
+### Salud de la plataforma (HU-45)
+
+`operaciones/salud.py` mide en el momento MySQL (`SELECT 1`, versión y conexiones), la API Spring (`GET /api/v1/monitor/health` con `X-Rupi-Monitor-Token`) y el servicio de IA (`/health`). Spring guarda en memoria los tiempos de las últimas peticiones, agrupados por patrón de ruta. Estado general: `FALLA` si cae la base o la API, `ATENCION` si algo está lento o falta la IA. Umbrales: 800 ms por revisión, p95 de 1500 ms y 5 % de errores 5xx.
+
+`RUPI_MONITOR_TOKEN` debe ser el mismo en la API y en la consola: `iniciar-rupi.sh` e `Iniciar-Rupi.ps1` lo generan una vez en `.local/monitor.token`. Sin token, el endpoint de Spring no existe (404).
 
 Los errores responden `{"detail": "..."}` en español.
 

@@ -556,6 +556,76 @@
 .admin-session-place--web_admin { color: #7f2410; }
 .admin-session-times { display: grid; gap: 2px; color: var(--adm-muted); font-weight: 700; font-size: 0.9rem; }
 
+/* Salud de la plataforma (HU-45) */
+.admin-health { display: grid; gap: 20px; }
+.admin-health-banner {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 2px solid;
+  border-radius: 14px;
+}
+.admin-health-banner svg { flex: none; }
+.admin-health-banner strong { font-size: 1.15rem; font-weight: 900; }
+.admin-health-banner p { margin: 4px 0 0; font-weight: 700; line-height: 1.45; }
+.admin-health-banner--ok { background: #eef5e8; border-color: #b6d3a8; color: var(--adm-leaf-dark); }
+.admin-health-banner--atencion { background: #fff6dc; border-color: var(--adm-sun-dark); color: #6b4705; }
+.admin-health-banner--falla { background: #fff1ed; border-color: #e3a595; color: #7f2410; }
+
+.admin-service-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.admin-service {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 16px;
+  border: 2px solid var(--adm-line);
+  border-left: 8px solid var(--adm-line);
+  border-radius: 14px;
+  background: #fff;
+}
+.admin-service--ok { border-left-color: var(--adm-leaf); }
+.admin-service--lento { border-left-color: var(--adm-sun-dark); }
+.admin-service--caido { border-left-color: var(--adm-danger); background: #fff7f4; }
+.admin-service--sin_configurar { border-left-color: var(--adm-sky); }
+.admin-service-head { display: grid; gap: 6px; }
+.admin-service-head h3 { font-size: 1rem; }
+.admin-service-state { display: inline-flex; align-items: center; gap: 6px; font-weight: 900; }
+.admin-service-state svg { flex: none; }
+.admin-service--ok .admin-service-state { color: var(--adm-leaf-dark); }
+.admin-service--lento .admin-service-state { color: #6b4705; }
+.admin-service--caido .admin-service-state { color: var(--adm-danger); }
+.admin-service--sin_configurar .admin-service-state { color: var(--adm-sky-dark); }
+.admin-service-latency { margin: 0; font-size: 1.8rem; font-weight: 900; color: var(--adm-forest); }
+.admin-service-latency span { font-size: 0.9rem; font-weight: 700; color: var(--adm-muted); }
+.admin-service-error { margin: 0; font-weight: 700; color: #7f2410; line-height: 1.4; }
+.admin-service .admin-facts div { grid-template-columns: minmax(0, 1fr); gap: 0; }
+
+.admin-timing-tiles {
+  margin: 16px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+.admin-timing-tiles div { padding: 12px 14px; border: 2px solid var(--adm-line); border-radius: 12px; background: var(--adm-paper); }
+.admin-timing-tiles dt { font-weight: 800; color: var(--adm-muted); }
+.admin-timing-tiles dd { margin: 2px 0 0; font-size: 1.5rem; font-weight: 900; color: var(--adm-forest); }
+.admin-timing-tiles .is-warn { border-color: var(--adm-sun-dark); background: #fff6dc; }
+.admin-subtitle { margin: 8px 0 10px !important; }
+.admin-timing-table { min-width: 640px; }
+.admin-timing-table tbody th code { display: inline; margin: 0; font-size: 0.85rem; color: var(--adm-forest); font-weight: 700; overflow-wrap: anywhere; }
+.admin-timing-table td { color: var(--adm-ink); font-weight: 700; }
+.admin-timing-table td.is-warn { background: #fff6dc; color: #6b4705; }
+.admin-thresholds { font-size: 0.9rem; margin-top: 12px; }
+
 @media (max-width: 900px) {
   .admin-session-row { grid-template-columns: auto minmax(0, 1fr); }
   .admin-session-times { grid-column: 1 / -1; }

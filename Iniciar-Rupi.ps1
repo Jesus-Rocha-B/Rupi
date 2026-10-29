@@ -4,6 +4,14 @@ Set-Location $PSScriptRoot
 . "$PSScriptRoot\.local\env.ps1"
 . "$PSScriptRoot\scripts\Cargar-IA.ps1"
 New-Item -ItemType Directory -Force "$PSScriptRoot/.local/sockets" | Out-Null
+# HU-45: la API y la consola comparten el token del monitor; se guarda en .local para que sigan coincidiendo.
+if (!$env:RUPI_MONITOR_TOKEN) {
+    $monitorFile = "$PSScriptRoot\.local\monitor.token"
+    if (!(Test-Path $monitorFile)) {
+        ([Guid]::NewGuid().ToString('N') + [Guid]::NewGuid().ToString('N')) | Set-Content -NoNewline -Encoding ASCII $monitorFile
+    }
+    $env:RUPI_MONITOR_TOKEN = (Get-Content -Raw $monitorFile).Trim()
+}
 
 function Test-Port([int]$Port) {
     $client = New-Object Net.Sockets.TcpClient
