@@ -7,7 +7,12 @@ import os
 import unittest
 from unittest import mock
 
+from fastapi.testclient import TestClient
+
 import gemini_client
+import main
+
+cliente = TestClient(main.app)
 
 
 class _Respuesta:
@@ -33,6 +38,23 @@ class ClaveDeGeminiTest(unittest.TestCase):
         peticion = abrir.call_args.args[0]
         self.assertNotIn('clave-de-prueba', peticion.full_url)
         self.assertEqual(peticion.get_header('X-goog-api-key'), 'clave-de-prueba')
+
+
+
+class ErroresSinFiltrarTest(unittest.TestCase):
+    def test_sin_clave_responde_503_claro(self):
+        with mock.patch.object(main, 'call_gemini', side_effect=gemini_client.IANoConfigurada('falta GEMINI_API_KEY en .local')):
+            r = cliente.post('/api/v1/ia/tutor/chat', json={'message': 'hola'})
+        self.assertEqual(r.status_code, 503)
+        self.assertNotIn('.local', r.text)
+
+    def test_un_fallo_de_gemini_no_llega_al_cliente(self):
+        with mock.patch.object(main, 'call_gemini', side_effect=gemini_client.IAError('Error de Gemini (400): API key secreta-123 inválida')), \
+                self.assertLogs('rupi.ia', level='ERROR'):
+            r = cliente.post('/api/v1/ia/roadmap/generate-from-text', json={'text': 'fracciones'})
+        self.assertEqual(r.status_code, 502)
+        self.assertNotIn('secreta', r.text)
+        self.assertNotIn('Gemini (400)', r.text)
 
 
 if __name__ == '__main__':

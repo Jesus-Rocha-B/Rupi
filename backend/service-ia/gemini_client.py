@@ -5,6 +5,15 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
+
+class IANoConfigurada(RuntimeError):
+    """No hay GEMINI_API_KEY: el servicio responde 503 sin intentar llamar a Gemini."""
+
+
+class IAError(RuntimeError):
+    """Gemini falló o respondió algo inútil. El detalle es para el log del servidor, nunca para el cliente."""
+
+
 def get_api_key() -> str:
     """Obtiene la API key de Gemini desde variables de entorno o desde .local/env.ps1."""
     key = os.getenv("GEMINI_API_KEY") or os.getenv("RUPI_AI_KEY")
@@ -31,7 +40,7 @@ def call_gemini(system_instruction: str, user_content: str, json_mode: bool = Fa
     """Llama a la API de Google Gemini en su capa gratuita."""
     api_key = get_api_key()
     if not api_key:
-        raise ValueError("No se ha configurado GEMINI_API_KEY. Agrégala en .local/env.ps1")
+        raise IANoConfigurada("No se ha configurado GEMINI_API_KEY. Agrégala en .local/env.ps1")
         
     # La clave va en la cabecera x-goog-api-key: en la URL quedaba en logs, proxies y mensajes de error.
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
@@ -64,11 +73,13 @@ def call_gemini(system_instruction: str, user_content: str, json_mode: bool = Fa
             data = json.loads(resp.read().decode("utf-8"))
             candidates = data.get("candidates", [])
             if not candidates:
-                raise ValueError("Gemini no devolvió candidatos en la respuesta.")
+                raise IAError("Gemini no devolvió candidatos en la respuesta.")
             return candidates[0]["content"]["parts"][0]["text"]
-            
+
+    except IAError:
+        raise
     except urllib.error.HTTPError as e:
-        error_msg = e.read().decode("utf-8", errors="ignore")
-        raise RuntimeError(f"Error de Gemini ({e.code}): {error_msg}")
+        error_msg = e.read().decode("utf-8", errors="ignore")[:2000]
+        raise IAError(f"Error de Gemini ({e.code}): {error_msg}") from e
     except Exception as e:
-        raise RuntimeError(f"Error al conectar con Gemini: {str(e)}")
+        raise IAError(f"Error al conectar con Gemini: {e}") from e

@@ -3,11 +3,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import json
-import traceback
+import logging
 
 from extractor import extract_text_from_file
-from gemini_client import call_gemini, get_api_key
+from gemini_client import IAError, IANoConfigurada, call_gemini, get_api_key
 from prompts import SYSTEM_ROADMAP_GENERATOR, SYSTEM_RUPI_TUTOR, level_for_grade
+
+log = logging.getLogger("rupi.ia")
+
+
+def _fallo(error: Exception, accion: str) -> HTTPException:
+    """El detalle queda en el log del servidor; el cliente recibe un mensaje claro, sin trazas ni texto de Gemini."""
+    if isinstance(error, IANoConfigurada):
+        return HTTPException(status_code=503, detail="La IA todavía no está configurada en este servidor.")
+    log.exception("Fallo al %s", accion)
+    if isinstance(error, IAError):
+        return HTTPException(status_code=502, detail="El servicio de IA no respondió bien. Intenta de nuevo en un momento.")
+    return HTTPException(status_code=500, detail=f"No pudimos {accion}. Intenta de nuevo en un momento.")
+
 
 app = FastAPI(
     title="RUPI - Servicio de IA Educativa",
@@ -82,7 +95,13 @@ async def generate_roadmap_from_file(
             content_bytes = await f.read()
             if not content_bytes:
                 continue
-            text = extract_text_from_file(content_bytes, f.filename)
+            try:
+                text = extract_text_from_file(content_bytes, f.filename)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+            except Exception:
+                log.warning("No se pudo leer %s", f.filename, exc_info=True)
+                raise HTTPException(status_code=400, detail=f"No pudimos leer {f.filename}. Revisa que no esté dañado.")
             if text.strip():
                 filenames.append(f.filename)
                 extracted_sections.append(f"=== DOCUMENTO: {f.filename} ===\n{text.strip()}")
@@ -124,8 +143,7 @@ async def generate_roadmap_from_file(
     except HTTPException:
         raise
     except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error al generar roadmap: {str(e)}")
+        raise _fallo(e, "generar el roadmap")
 
 @app.post("/api/v1/ia/roadmap/generate-from-text")
 def generate_roadmap_from_text(payload: TextGenerateRequest):
@@ -156,8 +174,7 @@ def generate_roadmap_from_text(payload: TextGenerateRequest):
     except HTTPException:
         raise
     except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error al generar roadmap: {str(e)}")
+        raise _fallo(e, "generar el roadmap")
 
 @app.post("/api/v1/ia/tutor/chat")
 def tutor_chat(payload: ChatRequest):
@@ -206,8 +223,7 @@ PARADA DONDE ESTÁ EL ESTUDIANTE AHORA:
     except HTTPException:
         raise
     except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error en el tutor Rupi: {str(e)}")
+        raise _fallo(e, "responder en el tutor Rupi")
 
 if __name__ == "__main__":
     import uvicorn

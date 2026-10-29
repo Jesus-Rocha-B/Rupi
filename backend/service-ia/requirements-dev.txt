@@ -1,0 +1,3 @@
+-r requirements.txt
+# Solo para test_servicio_ia.py (TestClient de FastAPI).
+httpx>=0.27
