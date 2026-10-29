@@ -26,6 +26,8 @@ class MainActivity : Activity() {
  private var voice: RupiVoice? = null
  private val challengeAnswers = mutableMapOf<String,JSONObject>()
  private var challengeDay = ""
+ /** Pantalla a la que vuelve «Atrás»; null en el ingreso y en «Mis temas», donde se sale de la app. */
+ private var onBack: (() -> Unit)? = null
  private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
 
  private val summaryConnectionReceiver=object:android.content.BroadcastReceiver(){
@@ -41,6 +43,7 @@ class MainActivity : Activity() {
   window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
   voice=RupiVoice(this)
   registerReceiver(summaryConnectionReceiver,android.content.IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION))
+  if(android.os.Build.VERSION.SDK_INT>=33) onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT) { goBack() }
   if(api==null)api=StudyAlerts.restore(this)
   if (api == null) loginScreen() else {
    val topic = state?.getString("topic")
@@ -49,8 +52,16 @@ class MainActivity : Activity() {
  }
  override fun onSaveInstanceState(out: Bundle) { currentTopic?.let { out.putString("topic", it.toString()) }; out.putBoolean("summary",summaryMode);out.putBoolean("cards",cardMode); super.onSaveInstanceState(out) }
  override fun onDestroy() { voice?.shutdown();unregisterReceiver(summaryConnectionReceiver);alive = false; worker.shutdownNow(); super.onDestroy() }
- private fun page(title: String) {
+ @Deprecated("Android 13+ usa OnBackInvokedDispatcher") override fun onBackPressed() { goBack() }
+ /** Sin esto, «Atrás» cerraba la app desde cualquier pantalla porque todas viven en una sola Activity. */
+ private fun goBack() {
+  val back=onBack
+  if(back==null) { finish(); return }
+  if(!busy) back()
+ }
+ private fun page(title: String, back: (() -> Unit)? = null) {
   screen++
+  onBack=back
   voice?.stop()
   val scroll = ScrollView(this)
   scroll.setBackgroundColor(Color.rgb(250, 248, 245))
@@ -136,7 +147,7 @@ class MainActivity : Activity() {
 
  private fun dailyGoal() {
   summaryMode=false;cardMode=false;currentTopic=null
-  page("Mi meta de hoy")
+  page("Mi meta de hoy") { topics() }
   button("Volver a mis temas"){topics()}
   button("Actualizar mi avance"){dailyGoal()}
   execute({ Pair(JSONObject(api!!.request("/api/v1/student/daily-goal")),JSONObject(api!!.request("/api/v1/student/daily-goal/comparison"))) },{ (overview,comparison) ->
@@ -177,7 +188,7 @@ class MainActivity : Activity() {
  /** HU-40: daily logical reasoning or reading challenge with Peruvian context. Answers stay in memory until it is finished. */
  private fun dailyChallenge(result: JSONObject? = null) {
   summaryMode=false;cardMode=false;currentTopic=null
-  page("Reto del día")
+  page("Reto del día") { topics() }
   button("Volver a mis temas"){topics()}
   execute({ JSONObject(api!!.request("/api/v1/student/daily-challenge")) },{ challenge ->
    // The bank can repeat a challenge on another day: answers only count for the day they were given.
@@ -254,7 +265,7 @@ class MainActivity : Activity() {
 
  private fun notifications() {
   summaryMode=false;cardMode=false;currentTopic=null
-  page("Mi ritmo de estudio")
+  page("Mi ritmo de estudio") { topics() }
   button("Volver a mis temas"){topics()}
   execute({
    Pair(JSONObject(api!!.request("/api/v1/student/notifications/preferences")),JSONObject(api!!.request("/api/v1/student/notifications")))
@@ -320,7 +331,7 @@ class MainActivity : Activity() {
  private fun loadTopic(topic: JSONObject) {
   summaryMode=false;cardMode=false
   currentTopic=topic
-  page(topic.getString("title"))
+  page(topic.getString("title")) { topics() }
   button("Volver a mis temas") { topics() }
   button("Consultar mi práctica") { loadTopic(topic) }
   button("Ver resumen visual") {loadSummary(topic)}
@@ -408,7 +419,7 @@ class MainActivity : Activity() {
  private fun loadCards(topic: JSONObject) {
   currentTopic=topic
   cardMode=true
-  page("Repasar con tarjetas")
+  page("Repasar con tarjetas") { cardMode=false;loadTopic(topic) }
   button("Volver al tema") { cardMode=false;loadTopic(topic) }
   button("Recuperar mi repaso") { loadCards(topic) }
   execute({ JSONObject(api!!.request(cardsPath(topic))) },{ renderCards(topic,it) })
@@ -470,7 +481,7 @@ class MainActivity : Activity() {
  }
  private fun savedSummaries() {
   summaryMode=false;currentTopic=null
-  page("Resúmenes descargados")
+  page("Resúmenes descargados") { if(api==null)loginScreen() else topics() }
   text("Copias guardadas en este dispositivo. Pueden estar desactualizadas; vuelve al tema con conexión para comprobar su vigencia.")
   button("Volver") {if(api==null)loginScreen() else topics()}
   val files=java.io.File(filesDir,"visual-summaries").listFiles().orEmpty()
@@ -479,7 +490,7 @@ class MainActivity : Activity() {
    try {
     val saved=JSONObject(file.readText(Charsets.UTF_8));val topic=saved.getJSONObject("topic")
     button(topic.getString("title")) {
-     currentTopic=topic;summaryMode=true;page("Copia descargada")
+     currentTopic=topic;summaryMode=true;page("Copia descargada") { summaryMode=false;savedSummaries() }
      button("Volver a mis descargas") {savedSummaries()}
      if(api!=null)button("Comprobar vigencia") {loadSummary(topic)}
      renderSummary(topic,saved.getJSONObject("resource"),true)
@@ -489,7 +500,7 @@ class MainActivity : Activity() {
  }
  private fun loadSummary(topic: JSONObject) {
   summaryMode=true;cardMode=false;currentTopic=topic
-  page("Ver resumen visual")
+  page("Ver resumen visual") { summaryMode=false;loadTopic(topic) }
   button("Volver al tema") {summaryMode=false;loadTopic(topic)}
   button("Comprobar versión y revisión") {loadSummary(topic)}
   execute({
