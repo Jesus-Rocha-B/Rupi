@@ -64,6 +64,11 @@ class RupiApi(server: String) {
   if (user.optString("role") != "ESTUDIANTE") { cookies.cookieStore.removeAll(); error("Este cliente de práctica está destinado a estudiantes.") }
  }
  fun requestId(node: String): String = pending.getOrPut(node) { UUID.randomUUID().toString() }
+ /** Enlace para abrir fuera de la app (video o material del docente): los relativos van al mismo servidor. Solo http(s). */
+ fun resource(url: String): String? {
+  val target = try { base.resolve(url.trim()) } catch (_: Exception) { return null }
+  return if (target.scheme == "https" || target.scheme == "http") target.toString() else null
+ }
  fun exportSession():JSONObject {
   val cookie=cookies.cookieStore.cookies.firstOrNull { !it.hasExpired() && it.name=="rupi_session" }
    ?: error("Vuelve a iniciar sesión.")

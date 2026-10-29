@@ -25,6 +25,12 @@ class MainActivity : Activity() {
  private var currentTopic: JSONObject? = null
  private var voice: RupiVoice? = null
  private val challengeAnswers = mutableMapOf<String,JSONObject>()
+ /** Ruta y parada abiertas: se guardan para volver al mismo lugar si Android recrea la pantalla. */
+ private var currentRoute: JSONObject? = null
+ private var currentNode: JSONObject? = null
+ /** Respuestas de la lección abierta (HU-02), como en la web: se muestran hasta salir de la parada. */
+ private val lessonAnswers = mutableMapOf<String,JSONObject>()
+ private var lessonNodeId = ""
  private var challengeDay = ""
  /** Pantalla a la que vuelve «Atrás»; null en el ingreso y en «Mis temas», donde se sale de la app. */
  private var onBack: (() -> Unit)? = null
@@ -53,10 +59,14 @@ class MainActivity : Activity() {
   if(api==null)api=StudyAlerts.restore(this)
   if (api == null) loginScreen() else {
    val topic = state?.getString("topic")
-   if (topic != null) { if(state?.getBoolean("summary")==true) loadSummary(JSONObject(topic)) else if(state?.getBoolean("cards")==true) loadCards(JSONObject(topic)) else loadTopic(JSONObject(topic)) } else if(intent.getBooleanExtra("notifications",false))notifications() else topics()
+   val route = state?.getString("route")?.let { JSONObject(it) }
+   val node = state?.getString("node")?.let { JSONObject(it) }
+   if (topic == null && route != null) { if(node!=null) lessonScreen(route,node) else routeScreen(route) }
+   else if (topic != null) { if(state?.getBoolean("summary")==true) loadSummary(JSONObject(topic)) else if(state?.getBoolean("cards")==true) loadCards(JSONObject(topic)) else loadTopic(JSONObject(topic)) } else if(intent.getBooleanExtra("notifications",false))notifications() else topics()
   }
  }
- override fun onSaveInstanceState(out: Bundle) { currentTopic?.let { out.putString("topic", it.toString()) }; out.putBoolean("summary",summaryMode);out.putBoolean("cards",cardMode); super.onSaveInstanceState(out) }
+ override fun onSaveInstanceState(out: Bundle) { currentTopic?.let { out.putString("topic", it.toString()) }
+  currentRoute?.let { out.putString("route", it.toString()) }; currentNode?.let { out.putString("node", it.toString()) }; out.putBoolean("summary",summaryMode);out.putBoolean("cards",cardMode); super.onSaveInstanceState(out) }
  override fun onDestroy() { voice?.shutdown();unregisterReceiver(summaryConnectionReceiver);alive = false; worker.shutdownNow(); super.onDestroy() }
  @Deprecated("Android 13+ usa OnBackInvokedDispatcher") override fun onBackPressed() { goBack() }
  /** Sin esto, «Atrás» cerraba la app desde cualquier pantalla porque todas viven en una sola Activity. */
@@ -169,10 +179,12 @@ class MainActivity : Activity() {
   }, LinearLayout.LayoutParams(-2,-2).apply { topMargin=dp(6); bottomMargin=dp(4) })
  }
  /** Fila táctil de una lista: nombre en tinta de bosque, detalle debajo y flecha, con la misma base que los botones. */
- private fun tile(title: String, detail: String?, action: () -> Unit) {
+ private fun tile(title: String, detail: String?, mark: String = "›", locked: Boolean = false, action: () -> Unit) {
   val row = LinearLayout(this).apply {
    orientation=LinearLayout.HORIZONTAL; gravity=android.view.Gravity.CENTER_VERTICAL; isClickable=true; isFocusable=true
-   background=RupiUi.tactile(this@MainActivity,RupiUi.Kind.QUIET); minimumHeight=dp(64); setPadding(dp(16),dp(12),dp(14),dp(16))
+   // Bloqueada se ve plana y color papel, pero sigue respondiendo para explicar por qué no se abre.
+   background=if(locked) RupiUi.rounded(Color.rgb(236,232,224), dp(14).toFloat(), dp(2), RupiUi.LINE) else RupiUi.tactile(this@MainActivity,RupiUi.Kind.QUIET)
+   minimumHeight=dp(64); setPadding(dp(16),dp(12),dp(14),dp(16))
    contentDescription=if(detail==null) title else "$title. $detail"
    setOnClickListener { if(!busy) action() }
   }
@@ -180,7 +192,7 @@ class MainActivity : Activity() {
   if(detail!=null) texts.addView(TextView(this).apply { text=detail; textSize=13f; typeface=RupiUi.BOLD; setTextColor(RupiUi.MUTED) })
   texts.addView(TextView(this).apply { text=title; textSize=17f; typeface=RupiUi.BOLD; setTextColor(RupiUi.FOREST) })
   row.addView(texts, LinearLayout.LayoutParams(0,-2,1f))
-  row.addView(TextView(this).apply { text="›"; textSize=28f; setTextColor(RupiUi.LEAF); setPadding(dp(8),0,0,0); importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+  row.addView(TextView(this).apply { text=mark; textSize=if(mark=="›") 28f else 22f; setTextColor(if(locked) RupiUi.MUTED else RupiUi.LEAF); setPadding(dp(8),0,0,0); importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO })
   layout.addView(row, LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(8); bottomMargin=dp(2) })
  }
  /** Recuadro de retroalimentación dentro de una pregunta: verde si acertó, ámbar si toca seguir aprendiendo. */
@@ -277,7 +289,7 @@ class MainActivity : Activity() {
   button("Resúmenes descargados", kind=RupiUi.Kind.QUIET) {savedSummaries()}
  }
  private fun topics() {
-  currentTopic=null
+  currentTopic=null;currentRoute=null;currentNode=null
   page("Mis temas")
   card {
    text("Hoy",22)
@@ -285,25 +297,210 @@ class MainActivity : Activity() {
    button("Reto del día") {dailyChallenge()}
    button("Mi meta de hoy", kind=RupiUi.Kind.LEAF) {dailyGoal()}
   }
-  section("Tus temas","Elige una parada para practicar, repasar con tarjetas o ver su resumen.")
+  section("Mis rutas","Tu camino de aprendizaje, como en la web. Entra a una ruta para seguir con tus paradas.")
   // La lista llega después: se reserva su lugar para que «Más» quede siempre al final.
   val list = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL }
   layout.addView(list, LinearLayout.LayoutParams(-1,-2))
   section("Más")
   button("Mi ritmo de estudio y avisos", kind=RupiUi.Kind.LEAF){notifications()}
   button("Resúmenes descargados", kind=RupiUi.Kind.QUIET) {savedSummaries()}
-  button("Actualizar temas", kind=RupiUi.Kind.QUIET) { topics() }
+  button("Actualizar", kind=RupiUi.Kind.QUIET) { topics() }
   button("Salir", kind=RupiUi.Kind.DANGER) { StudyAlerts.disable(this);execute({ api?.request("/api/v1/auth/logout","POST") },{ api?.clear();api=null;loginScreen() }) }
-  execute({ JSONArray(api!!.request("/api/v1/student/ai-quizzes/topics")) },{ items ->
+  execute({ JSONObject(api!!.request("/api/v1/student/learning-routes")).getJSONArray("items") },{ items ->
    into(list) {
-    if(items.length()==0) card { muted("Todavía no tienes paradas disponibles. Únete a una ruta en Rupi y vuelve a consultar.") }
-    for(i in 0 until items.length()) { val item=items.getJSONObject(i); tile(item.getString("title"), item.getString("routeTitle")) { loadTopic(item) } }
+    if(items.length()==0) card { muted("Todavía no estás en ninguna ruta. Pídele a tu profe el código de clase para unirte.") }
+    for(i in 0 until items.length()) {
+     val route=items.getJSONObject(i)
+     val done=route.optInt("completedNodes"); val total=route.optInt("totalNodes")
+     val grade=route.optJSONObject("grade")?.optString("name").orEmpty()
+     val area=route.optJSONObject("area")?.optString("name").orEmpty()
+     tile(route.getString("title"), listOf(area,grade,"$done de $total paradas").filter { it.isNotBlank() }.joinToString(" · "),
+      if(total>0 && done>=total) "✓" else "›") { routeScreen(route) }
+    }
    }
   })
  }
 
+ /** Estado de una parada con las palabras de la web. */
+ private fun nodeState(node: JSONObject) = when(node.optString("state")) {
+  "COMPLETADO" -> "Completada"
+  "EN_CURSO" -> "En curso"
+  "DISPONIBLE" -> "Disponible"
+  else -> "Bloqueada"
+ }
+
+ /** HU-01 y HU-04: las paradas de una ruta agrupadas por unidad MINEDU, con su estado como en «Mi Camino» de la web. */
+ private fun routeScreen(route: JSONObject) {
+  summaryMode=false;cardMode=false;currentTopic=null;currentRoute=route;currentNode=null
+  page(route.getString("title")) { topics() }
+  button("Volver a mis temas", kind=RupiUi.Kind.QUIET){topics()}
+  execute({ JSONObject(api!!.request("/api/v1/student/learning-routes/"+route.getString("versionRouteId"))) },{ detail ->
+   val nodes=detail.getJSONArray("nodes")
+   val done=detail.getJSONObject("progress").optInt("completedNodes"); val total=detail.getJSONObject("progress").optInt("totalNodes")
+   card {
+    val grade=detail.optJSONObject("grade")?.optString("name").orEmpty()
+    val area=detail.optJSONObject("area")?.optString("name").orEmpty()
+    chip(listOf(area,grade).filter { it.isNotBlank() }.joinToString(" · "),Color.rgb(238,246,251),Color.rgb(147,196,223),RupiUi.SKY_DARK)
+    text(detail.getString("title"),22)
+    val bar=ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal).apply{
+     max=total.coerceAtLeast(1);progress=done
+     progressTintList=android.content.res.ColorStateList.valueOf(RupiUi.LEAF)
+     progressBackgroundTintList=android.content.res.ColorStateList.valueOf(RupiUi.PAPER_DEEP)
+     importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+    layout.addView(bar,LinearLayout.LayoutParams(-1,dp(16)).apply { topMargin=dp(8) })
+    muted(if(total>0 && done>=total) "¡Terminaste esta ruta! Puedes repasar cualquier parada." else "$done de $total paradas completadas.")
+   }
+   val byId=(0 until nodes.length()).associate { nodes.getJSONObject(it).getString("id") to nodes.getJSONObject(it) }
+   val shown=mutableSetOf<String>()
+   val units=detail.optJSONObject("curriculum")?.optJSONArray("units")
+   if(units!=null) for(u in 0 until units.length()) {
+    val unit=units.getJSONObject(u)
+    val ids=unit.optJSONArray("nodeIds")?.let { a -> (0 until a.length()).map { a.getString(it) } }
+     ?: unit.optJSONArray("nodes")?.let { a -> (0 until a.length()).map { a.getJSONObject(it).getString("id") } }.orEmpty()
+    val inUnit=ids.mapNotNull { byId[it] }.filter { shown.add(it.getString("id")) }
+    if(inUnit.isEmpty()) continue
+    section(unit.optString("title").ifBlank { "Unidad ${u+1}" })
+    inUnit.forEach { nodeTile(route,it) }
+   }
+   // Paradas fuera de las unidades (o rutas sin unidades): en su orden.
+   val rest=(0 until nodes.length()).map { nodes.getJSONObject(it) }.filter { it.getString("id") !in shown }
+   if(rest.isNotEmpty()) { if(shown.isNotEmpty()) section("Otras paradas"); rest.forEach { nodeTile(route,it) } }
+  })
+ }
+
+ private fun nodeTile(route: JSONObject, node: JSONObject) {
+  val state=node.optString("state")
+  val minutes=node.optInt("estimatedMinutes")
+  val detail="Parada ${node.optInt("sequence")} · ${nodeState(node)}"+(if(minutes>0) " · $minutes min" else "")
+  when(state) {
+   "COMPLETADO" -> tile(node.getString("title"),detail,"✓") { lessonScreen(route,node) }
+   "BLOQUEADO" -> tile(node.getString("title"),detail,"🔒",locked=true) {
+    showNotice("Esta parada se abre cuando completes la anterior. ¡Tú puedes!")
+   }
+   else -> tile(node.getString("title"),detail,"›") { lessonScreen(route,node) }
+  }
+ }
+
+ /**
+  * HU-02 y HU-03: abre la lección de la parada como la web. Iniciarla la marca «en curso» y guarda dónde quedó;
+  * se lee el contenido, se responden las preguntas y al terminar suma XP y desbloquea la siguiente.
+  */
+ private fun lessonScreen(route: JSONObject, node: JSONObject, result: JSONObject? = null) {
+  summaryMode=false;cardMode=false;currentTopic=null;currentRoute=route;currentNode=node
+  if(node.getString("id")!=lessonNodeId){lessonAnswers.clear();lessonNodeId=node.getString("id")}
+  val routeId=route.getString("versionRouteId")
+  page(node.getString("title")) { routeScreen(route) }
+  button("Volver a la ruta", kind=RupiUi.Kind.QUIET){routeScreen(route)}
+  execute({ JSONObject(api!!.request("/api/v1/student/learning-routes/$routeId/nodes/"+node.getString("id")+"/start","POST")) },{ lesson ->
+   val activityId=lesson.optString("activityId")
+   val questions=lesson.optJSONArray("questions") ?: JSONArray()
+   val blocks=lesson.optJSONArray("blocks") ?: JSONArray()
+   val instructions=lesson.optString("instructions").takeIf { it.isNotBlank() && it!="null" }
+   card {
+    chip(when(node.optString("activityType")){"RETO"->"Reto";"CUESTIONARIO"->"Cuestionario";else->"Lección"}+" · "+route.getString("title"),
+     Color.rgb(238,247,237),Color.rgb(148,208,161),Color.rgb(27,83,41))
+    text(lesson.optString("title").ifBlank { node.getString("title") },22)
+    if(instructions!=null) muted(instructions)
+    listen("la lección") {
+     (listOf(lesson.optString("title"))+listOfNotNull(instructions)+(0 until blocks.length()).mapNotNull { blocks.getJSONObject(it).optString("text").takeIf { t -> t.isNotBlank() && t!="null" } }).joinToString(". ")
+    }
+   }
+   for(b in 0 until blocks.length()) {
+    val block=blocks.getJSONObject(b)
+    var body=block.optString("text").takeIf { it.isNotBlank() && it!="null" }
+    var raw=block.optString("url").takeIf { it.isNotBlank() && it!="null" }
+    // El panel docente guarda los archivos subidos como «Material adjunto por tu profesor: Nombre (/api/v1/materials/…)»
+    // sin url propia: se toma el enlace del texto y se muestra solo el nombre.
+    if(block.optString("type")=="ADJUNTO" && body!=null) {
+     val embedded=Regex("\\(((?:https?://|/api/)[^()\\s]+)\\)\\s*$").find(body)
+     if(embedded!=null) { if(raw==null) raw=embedded.groupValues[1]; body=body.removeRange(embedded.range).trim() }
+     body=body.removePrefix("Material adjunto por tu profesor:").trim().ifBlank { null }
+    }
+    val link=raw?.let { api!!.resource(it) }
+    when {
+     block.optString("type")=="VIDEO" && link!=null -> card {
+      text("Video de la lección",20)
+      if(body!=null) muted(body)
+      button("▶ Ver el video", kind=RupiUi.Kind.SKY) { open(link) }
+     }
+     link!=null || block.optString("type")=="ADJUNTO" -> card {
+      chip("Material del profesor",Color.rgb(255,248,230),RupiUi.SUN,Color.rgb(107,71,5))
+      text(body ?: "Material de clase",18)
+      block.optString("accessibleText").takeIf { it.isNotBlank() && it!="null" }?.let { muted(it) }
+      if(link!=null) button("Abrir material", kind=RupiUi.Kind.QUIET) { open(link) }
+     }
+     block.optString("type")=="DESTACADO" && body!=null -> feedback(body,RupiUi.Tone.INFO)
+     body!=null -> card { body.split("\n\n").forEach { text(it,17) } }
+    }
+   }
+   if(questions.length()>0) section("Preguntas","Responde para comprobar lo que aprendiste. No cambia tus notas si te equivocas.")
+   for(i in 0 until questions.length()) card {
+    val q=questions.getJSONObject(i)
+    val options=q.getJSONArray("options")
+    text("${i+1}. "+q.getString("statement"),20)
+    listen("la pregunta ${i+1}") { RupiVoice.question(q.getString("statement"),(0 until options.length()).map{options.getJSONObject(it).getString("text")}) }
+    val answer=lessonAnswers[q.getString("id")]
+    val group=RadioGroup(this)
+    val ids=mutableMapOf<Int,String>()
+    for(j in 0 until options.length()) {
+     val option=options.getJSONObject(j)
+     val radio=RadioButton(this).apply { id=j+1;text=option.getString("text");minWidth=dp(48);setSingleLine(false);setHorizontallyScrolling(false);setPadding(dp(12),dp(12),dp(12),dp(12));isEnabled=answer==null;setTextColor(RupiUi.INK) }
+     styleOption(radio)
+     ids[j+1]=option.getString("id");group.addView(radio)
+     if(answer!=null&&option.getString("id")==answer.optString("correctOptionId")) radio.text="✓ "+option.getString("text")
+    }
+    layout.addView(group)
+    if(answer!=null) {
+     val explanation=answer.optString("explanation").ifBlank { q.optString("explanation") }
+     feedback((if(answer.getBoolean("isCorrect")) "¡Muy bien! " else "Sigamos aprendiendo. ")+explanation,
+      if(answer.getBoolean("isCorrect")) RupiUi.Tone.OK else RupiUi.Tone.RETRY)
+     listen("la explicación ${i+1}") { explanation }
+    } else {
+     val submit=button("Comprobar mi respuesta",false) {
+      val selected=ids[group.checkedRadioButtonId] ?: return@button
+      execute({ JSONObject(api!!.request("/api/v1/student/activities/$activityId/questions/answer","POST",JSONObject().put("questionId",q.getString("id")).put("selectedOptionId",selected))) },
+       { lessonAnswers[q.getString("id")]=it;keepPlace();lessonScreen(route,node) })
+     }
+     group.setOnCheckedChangeListener { _,checked -> submit.isEnabled=ids.containsKey(checked) }
+    }
+   }
+   if(result!=null) {
+    val xp=result.optInt("experienceEarned")
+    val message=result.optString("rupiMessage").ifBlank { "¡Parada completada!" }
+    feedback(message+(if(xp>0 && !message.contains("XP")) " +$xp XP" else ""),RupiUi.Tone.OK)
+    result.optJSONObject("badgeEarned")?.let { badge -> chip("🏅 Insignia: "+badge.optString("name"),Color.rgb(255,248,230),RupiUi.SUN,Color.rgb(107,71,5)) }
+    if(result.optBoolean("isRouteCompleted")) feedback("¡Terminaste toda la ruta! "+(result.optInt("routeBonusExperience").takeIf { it>0 }?.let { "+$it XP de bonificación." } ?: ""),RupiUi.Tone.OK)
+    val next=result.optJSONObject("nextUnlockedNode")
+    if(next!=null) button("Ir a la siguiente parada: "+next.optString("title")) {
+     lessonScreen(route,JSONObject().put("id",next.getString("id")).put("title",next.optString("title")).put("sequence",next.optInt("sequence")).put("activityType","LECCION").put("state","DISPONIBLE"))
+    }
+   } else {
+    val answered=(0 until questions.length()).all { lessonAnswers.containsKey(questions.getJSONObject(it).getString("id")) }
+    val completed=lesson.optString("state")=="COMPLETADO" || node.optString("state")=="COMPLETADO"
+    if(completed && !answered) feedback("Ya completaste esta parada. Puedes repasarla cuando quieras.",RupiUi.Tone.OK)
+    else button(if(answered) "Terminar parada" else "Responde las ${questions.length()} preguntas para terminar",answered) {
+     execute({ JSONObject(api!!.request("/api/v1/student/learning-routes/$routeId/nodes/"+node.getString("id")+"/complete","POST")) },
+      { keepPlace();lessonScreen(route,node.put("state","COMPLETADO"),it) })
+    }
+   }
+   section("Más para repasar","Recursos extra de esta parada: aparecen cuando tu profe los prepara o la IA está activa.")
+   val topic=JSONObject().put("routeId",routeId).put("nodeId",node.getString("id")).put("title",node.getString("title"))
+    .put("routeTitle",route.getString("title")).put("route",route)
+   button("Practicar con Rupi (IA)", kind=RupiUi.Kind.LEAF) { loadTopic(topic) }
+   button("Repasar con tarjetas", kind=RupiUi.Kind.QUIET) { loadCards(topic) }
+   button("Ver resumen visual", kind=RupiUi.Kind.QUIET) { loadSummary(topic) }
+  })
+ }
+
+ /** Abre un video o material fuera de la app (YouTube, visor de PDF o navegador). */
+ private fun open(link: String) {
+  try { startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(link))) }
+  catch (_: android.content.ActivityNotFoundException) { showNotice("No hay una app para abrir este enlace en el teléfono.",RupiUi.Tone.ERROR) }
+ }
+
  private fun dailyGoal() {
-  summaryMode=false;cardMode=false;currentTopic=null
+  summaryMode=false;cardMode=false;currentTopic=null;currentRoute=null;currentNode=null
   page("Mi meta de hoy") { topics() }
   button("Volver a mis temas", kind=RupiUi.Kind.QUIET){topics()}
   button("Actualizar mi avance", kind=RupiUi.Kind.QUIET){dailyGoal()}
@@ -352,7 +549,7 @@ class MainActivity : Activity() {
 
  /** HU-40: daily logical reasoning or reading challenge with Peruvian context. Answers stay in memory until it is finished. */
  private fun dailyChallenge(result: JSONObject? = null) {
-  summaryMode=false;cardMode=false;currentTopic=null
+  summaryMode=false;cardMode=false;currentTopic=null;currentRoute=null;currentNode=null
   page("Reto del día") { topics() }
   button("Volver a mis temas", kind=RupiUi.Kind.QUIET){topics()}
   execute({ JSONObject(api!!.request("/api/v1/student/daily-challenge")) },{ challenge ->
@@ -443,7 +640,7 @@ class MainActivity : Activity() {
  }
 
  private fun notifications() {
-  summaryMode=false;cardMode=false;currentTopic=null
+  summaryMode=false;cardMode=false;currentTopic=null;currentRoute=null;currentNode=null
   page("Mi ritmo de estudio") { topics() }
   button("Volver a mis temas", kind=RupiUi.Kind.QUIET){topics()}
   execute({
@@ -517,11 +714,16 @@ class MainActivity : Activity() {
  }
 
  private fun path(topic: JSONObject) = "/api/v1/student/learning-routes/"+topic.getString("routeId")+"/nodes/"+topic.getString("nodeId")+"/ai-quiz"
+ /** La práctica, las tarjetas y el resumen se abren desde la lección: «Atrás» vuelve a esa lección. */
+ private fun backFromTopic(topic: JSONObject) {
+  val route=topic.optJSONObject("route")
+  if(route!=null) lessonScreen(route,JSONObject().put("id",topic.getString("nodeId")).put("title",topic.getString("title"))) else topics()
+ }
  private fun loadTopic(topic: JSONObject) {
   summaryMode=false;cardMode=false
   currentTopic=topic
-  page(topic.getString("title")) { topics() }
-  button("Volver a mis temas", kind=RupiUi.Kind.QUIET) { topics() }
+  page(topic.getString("title")) { backFromTopic(topic) }
+  button("Volver a la lección", kind=RupiUi.Kind.QUIET) { backFromTopic(topic) }
   button("Consultar mi práctica", kind=RupiUi.Kind.QUIET) { loadTopic(topic) }
   button("Ver resumen visual", kind=RupiUi.Kind.LEAF) {loadSummary(topic)}
   button("Repasar con tarjetas", kind=RupiUi.Kind.LEAF) { loadCards(topic) }
