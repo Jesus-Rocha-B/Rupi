@@ -34,7 +34,7 @@ export function AdminApp() {
   const [section, setSection] = useState<SectionId>('cuentas')
 
   useEffect(() => {
-    document.title = 'Rupi · Administración'
+    document.title = 'Rupi · Consola de Administración'
     const controller = new AbortController()
     fetchAdminSession(controller.signal)
       .then(setAdmin)
@@ -65,22 +65,27 @@ export function AdminApp() {
 
   if (checking) {
     return (
-      <main className="admin-loading-screen" aria-busy="true">
-        <p>Entrando a la administración de Rupi…</p>
+      <main className="admin-shell admin-shell--center" aria-busy="true">
+        <div className="admin-card admin-empty">
+          <span className="admin-brand-mark admin-brand-mark--large" aria-hidden="true">R</span>
+          <h1>Consola de Administración</h1>
+          <p className="admin-muted">Entrando a la administración de Rupi…</p>
+        </div>
       </main>
     )
   }
 
   if (serviceDown) {
     return (
-      <main className="admin-login-wrap">
+      <main className="admin-shell admin-shell--center">
         <section className="admin-card" role="alert">
+          <span className="admin-brand-mark admin-brand-mark--large" aria-hidden="true">!</span>
           <h1>No pudimos conectar con la administración</h1>
           <p className="admin-muted">
             Revisa que la consola de Django esté encendida (puerto 8082) y que MySQL responda.
           </p>
           <button type="button" className="admin-btn admin-btn--sky" onClick={() => window.location.reload()}>
-            Reintentar
+            Reintentar conexión
           </button>
         </section>
       </main>
@@ -95,13 +100,17 @@ export function AdminApp() {
   const current = availableSections.find(s => s.id === section) || availableSections[0]
 
   return (
-    <div className="admin-layout">
+    <div className="admin-shell">
+      <a href="#admin-main" className="admin-skip">Saltar al contenido principal</a>
       <header className="admin-topbar">
         <div className="admin-brand">
-          <span className="admin-brand-dot" aria-hidden="true" />
-          <span>RUPI · Consola</span>
+          <span className="admin-brand-mark" aria-hidden="true">R</span>
+          <div>
+            <strong>RUPI</strong>
+            <span>Consola de Administración</span>
+          </div>
         </div>
-        <nav className="admin-tabs" aria-label="Secciones de la consola">
+        <nav className="admin-nav" aria-label="Secciones de la consola">
           {availableSections.map(item => {
             const Icon = item.icon
             const active = current?.id === item.id
@@ -109,20 +118,20 @@ export function AdminApp() {
               <button
                 key={item.id}
                 type="button"
-                className={`admin-tab ${active ? 'is-active' : ''}`}
+                className={`admin-nav-btn ${active ? 'is-current' : ''}`}
                 aria-current={active ? 'page' : undefined}
                 onClick={() => setSection(item.id)}
               >
                 <Icon size={18} aria-hidden="true" />
-                {item.label}
+                <span>{item.label}</span>
               </button>
             )
           })}
         </nav>
         <div className="admin-user">
-          <span>{admin.nombre}</span>
-          <button type="button" className="admin-btn admin-btn--quiet" onClick={handleLogout}>
-            <LogOut size={18} aria-hidden="true" />
+          <span className="admin-user-name">{admin.nombre}</span>
+          <button type="button" className="admin-btn admin-btn--logout" onClick={handleLogout}>
+            <LogOut size={16} aria-hidden="true" />
             Cerrar sesión
           </button>
         </div>
@@ -131,7 +140,7 @@ export function AdminApp() {
         {!current && (
           <section className="admin-card admin-empty">
             <h1>Tu rol todavía no tiene secciones asignadas</h1>
-            <p>Pide a otra persona de administración que revise los permisos de tu rol.</p>
+            <p className="admin-muted">Pide a otra persona de administración que revise los permisos de tu rol.</p>
           </section>
         )}
         {current?.id === 'cuentas' && <AccountsView admin={admin} onSessionLost={handleSessionLost} />}

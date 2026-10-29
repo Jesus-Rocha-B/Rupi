@@ -45,8 +45,8 @@ DATABASES = {
         'NAME': os.environ.get('RUPI_ADMIN_DB_NAME', 'rupi'),
         'HOST': os.environ.get('RUPI_ADMIN_DB_HOST', '127.0.0.1'),
         'PORT': os.environ.get('RUPI_ADMIN_DB_PORT', '3306'),
-        'USER': os.environ.get('RUPI_ADMIN_DB_USERNAME', 'rupi_admin'),
-        'PASSWORD': os.environ.get('RUPI_ADMIN_DB_PASSWORD', ''),
+        'USER': os.environ.get('RUPI_ADMIN_DB_USERNAME', 'rupi'),
+        'PASSWORD': os.environ.get('RUPI_ADMIN_DB_PASSWORD', 'rochabobadilla'),
         'CONN_MAX_AGE': 60,
         'OPTIONS': {'charset': 'utf8mb4'},
     }

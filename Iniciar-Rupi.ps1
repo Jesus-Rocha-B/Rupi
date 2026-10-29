@@ -52,11 +52,16 @@ if (!(Test-Port 8081)) {
     $api.Id | Set-Content "$PSScriptRoot\.local\api.pid"
 }
 Wait-Port 8081
-# API administrativa Django (HU-41 a HU-45). Requiere el entorno de backend\admin-django\.venv.
+# API administrativa Django (HU-41 a HU-46). Requiere el entorno de backend\admin-django\.venv o python del sistema.
 $adminPython = "$PSScriptRoot\backend\admin-django\.venv\Scripts\python.exe"
+if (!(Test-Path $adminPython)) {
+    $adminPython = (Get-Command python.exe -ErrorAction SilentlyContinue).Source
+}
 if (!(Test-Port 8082)) {
-    if (Test-Path $adminPython) {
+    if ($adminPython -and (Test-Path $adminPython)) {
         if (!$env:RUPI_ADMIN_DB_PORT) { $env:RUPI_ADMIN_DB_PORT = "$mysqlPort" }
+        if (!$env:RUPI_ADMIN_DB_USERNAME) { $env:RUPI_ADMIN_DB_USERNAME = $env:RUPI_DB_USERNAME }
+        if (!$env:RUPI_ADMIN_DB_PASSWORD) { $env:RUPI_ADMIN_DB_PASSWORD = $env:RUPI_DB_PASSWORD }
         $admin = Start-Process $adminPython -ArgumentList 'manage.py runserver 127.0.0.1:8082 --noreload' -WorkingDirectory "$PSScriptRoot\backend\admin-django" -WindowStyle Hidden -PassThru -RedirectStandardOutput "$PSScriptRoot\.local\admin.log" -RedirectStandardError "$PSScriptRoot\.local\admin-error.log"
         $admin.Id | Set-Content "$PSScriptRoot\.local\admin.pid"
         Wait-Port 8082
