@@ -28,6 +28,10 @@ class MainActivity : Activity() {
  private var challengeDay = ""
  /** Pantalla a la que vuelve «Atrás»; null en el ingreso y en «Mis temas», donde se sale de la app. */
  private var onBack: (() -> Unit)? = null
+ private lateinit var root: ScrollView
+ /** Al volver a dibujar la misma pantalla (p. ej., tras responder) se regresa a la misma altura. */
+ private var pendingScroll = 0
+ private var restoreScroll = 0
  private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
 
  private val summaryConnectionReceiver=object:android.content.BroadcastReceiver(){
@@ -62,8 +66,10 @@ class MainActivity : Activity() {
  private fun page(title: String, back: (() -> Unit)? = null) {
   screen++
   onBack=back
+  restoreScroll=pendingScroll;pendingScroll=0
   voice?.stop()
   val scroll = ScrollView(this)
+  root=scroll
   scroll.setBackgroundColor(Color.rgb(250, 248, 245))
   scroll.setPadding(dp(16), dp(32), dp(16), dp(24))
   scroll.isFillViewport = true
@@ -81,7 +87,7 @@ class MainActivity : Activity() {
  /** HU-39: button that reads instructions or explanations aloud. */
  private fun listen(subject: String, value: () -> String) {
   button("🔊 Escuchar $subject") {
-   if(voice?.speak(value())!=true) notice.text="Para escuchar, instala o activa una voz en español en los ajustes de Android (Texto a voz)."
+   if(voice?.speak(value())!=true) showNotice("Para escuchar, instala o activa una voz en español en los ajustes de Android (Texto a voz).")
   }.contentDescription="Escuchar $subject"
  }
  private fun input(label: String, password: Boolean = false): EditText {
@@ -102,6 +108,17 @@ class MainActivity : Activity() {
   layout.addView(button, LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(12); bottomMargin=dp(8) })
   return button
  }
+ /** Guarda la altura actual para la próxima pantalla: responder no debe mandar al niño arriba. */
+ private fun keepPlace() { pendingScroll=root.scrollY }
+ private fun restorePlace() {
+  val y=restoreScroll
+  if(y>0) { restoreScroll=0; root.post { root.scrollTo(0,y) } }
+ }
+ /** Los mensajes están arriba: si el niño bajó, se sube para que lea lo que pasó. */
+ private fun showNotice(message: String) {
+  notice.text=message
+  root.post { root.smoothScrollTo(0,0) }
+ }
  private fun <T> execute(job: () -> T, done: (T) -> Unit) {
   if(busy) return
   busy=true
@@ -110,9 +127,9 @@ class MainActivity : Activity() {
   worker.execute {
    try {
     val result=job()
-    runOnUiThread { if(alive) { busy=false; if(ticket==screen) { notice.text=""; done(result) } } }
+    runOnUiThread { if(alive) { busy=false; if(ticket==screen) { notice.text=""; done(result); if(ticket==screen) restorePlace() } } }
    } catch(e: Exception) {
-    runOnUiThread { if(alive) { busy=false; if(e is RupiSessionExpired){StudyAlerts.disable(this);api=null;loginScreen();notice.text=e.message ?: "Vuelve a iniciar sesión.";return@runOnUiThread}; if(ticket==screen) notice.text=e.message ?: "No pudimos continuar. Revisa tu conexión." } }
+    runOnUiThread { if(alive) { busy=false; if(e is RupiSessionExpired){StudyAlerts.disable(this);api=null;loginScreen();notice.text=e.message ?: "Vuelve a iniciar sesión.";return@runOnUiThread}; if(ticket==screen) showNotice(e.message ?: "No pudimos continuar. Revisa tu conexión.") } }
    }
   }
  }
@@ -233,7 +250,7 @@ class MainActivity : Activity() {
      val submit=button("Comprobar mi respuesta",false) {
       val selected=ids[group.checkedRadioButtonId] ?: return@button
       execute({ JSONObject(api!!.request("/api/v1/student/activities/$activity/questions/answer","POST",JSONObject().put("questionId",q.getString("id")).put("selectedOptionId",selected))) },
-       { challengeAnswers[q.getString("id")]=it;dailyChallenge() })
+       { challengeAnswers[q.getString("id")]=it;keepPlace();dailyChallenge() })
      }
      group.setOnCheckedChangeListener { _,checked -> submit.isEnabled=ids.containsKey(checked) }
     }
@@ -298,7 +315,7 @@ class MainActivity : Activity() {
       if(android.os.Build.VERSION.SDK_INT>=33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED)
        requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),25)
       else activateAlerts()
-     }else{StudyAlerts.disable(this);notice.text="Preferencias guardadas. Avisos del dispositivo desactivados."}
+     }else{StudyAlerts.disable(this);showNotice("Preferencias guardadas. Avisos del dispositivo desactivados.")}
     })
    }
    button("Recargar preferencias guardadas"){notifications()}
@@ -310,20 +327,20 @@ class MainActivity : Activity() {
    for(i in 0 until items.length()){
     val item=items.getJSONObject(i);text(item.getString("title"),20);text(item.getString("body"))
     if(item.getBoolean("read"))text("Leído") else button("Marcar como leído"){
-     execute({api!!.request("/api/v1/student/notifications/"+item.getString("id")+"/read","PUT")},{notifications()})
+     execute({api!!.request("/api/v1/student/notifications/"+item.getString("id")+"/read","PUT")},{keepPlace();notifications()})
     }
    }
   })
  }
  private fun activateAlerts(){
-  if(!StudyAlerts.allowed(this)){notice.text="Preferencias guardadas. Permite las notificaciones en los ajustes de Android para recibir avisos.";return}
-  execute({StudyAlerts.enable(this,api!!)},{notice.text="Preferencias guardadas. Avisos activados en este dispositivo."})
+  if(!StudyAlerts.allowed(this)){showNotice("Preferencias guardadas. Permite las notificaciones en los ajustes de Android para recibir avisos.");return}
+  execute({StudyAlerts.enable(this,api!!)},{showNotice("Preferencias guardadas. Avisos activados en este dispositivo.")})
  }
  override fun onRequestPermissionsResult(code:Int,permissions:Array<out String>,results:IntArray){
   super.onRequestPermissionsResult(code,permissions,results)
   if(code==25 && api!=null){
    if(results.isNotEmpty()&&results[0]==android.content.pm.PackageManager.PERMISSION_GRANTED)activateAlerts()
-   else notice.text="Puedes consultar tus avisos aquí aunque no concedas el permiso de Android."
+   else showNotice("Puedes consultar tus avisos aquí aunque no concedas el permiso de Android.")
   }
  }
 
@@ -386,7 +403,7 @@ class MainActivity : Activity() {
     val submit=button("Comprobar mi respuesta",false) {
      val selected=ids[group.checkedRadioButtonId] ?: return@button
      execute({ api!!.request("/api/v1/student/ai-quizzes/"+view.getString("practiceId")+"/answers","POST",
-      JSONObject().put("questionId",q.getString("id")).put("optionId",selected)) },{ loadTopic(topic) })
+      JSONObject().put("questionId",q.getString("id")).put("optionId",selected)) },{ keepPlace();loadTopic(topic) })
     }
     group.setOnCheckedChangeListener { _,checked -> submit.isEnabled=ids.containsKey(checked) }
    }
@@ -412,7 +429,7 @@ class MainActivity : Activity() {
   body.append("\n\n").append(if(hint.optString("source")=="IA") "Pista asistida por IA · revisada automáticamente." else "Basada en la explicación revisada de la pregunta.")
   AlertDialog.Builder(this).setTitle("Rupi te explica · $level"+(if(hint.optBoolean("reinforced")) " · paso a paso" else ""))
    .setMessage(body.toString()).setPositiveButton("Entendido",null)
-   .setNeutralButton("Escuchar") { _,_ -> if(voice?.speak(body.toString())!=true) notice.text="Para escuchar, instala o activa una voz en español en los ajustes de Android (Texto a voz)." }.show()
+   .setNeutralButton("Escuchar") { _,_ -> if(voice?.speak(body.toString())!=true) showNotice("Para escuchar, instala o activa una voz en español en los ajustes de Android (Texto a voz).") }.show()
  }
 
  private fun cardsPath(topic: JSONObject) = path(topic).removeSuffix("ai-quiz")+"flashcards"
@@ -567,7 +584,7 @@ class MainActivity : Activity() {
      val file=summaryFile(topic);val temporary=java.io.File(file.parentFile,file.name+".tmp")
      temporary.writeText(JSONObject().put("topic",topic).put("resource",saved.getJSONObject("resource")).toString(),Charsets.UTF_8)
      java.nio.file.Files.move(temporary.toPath(),file.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-    },{notice.text="Resumen guardado. Puedes abrirlo desde Resúmenes descargados incluso sin iniciar sesión."})
+    },{showNotice("Resumen guardado. Puedes abrirlo desde Resúmenes descargados incluso sin iniciar sesión.")})
    }
    button("Reportar contenido incorrecto"){
     val reason=EditText(this).apply{hint="¿Qué debemos revisar?";minHeight=dp(48);filters=arrayOf(android.text.InputFilter.LengthFilter(500))}
