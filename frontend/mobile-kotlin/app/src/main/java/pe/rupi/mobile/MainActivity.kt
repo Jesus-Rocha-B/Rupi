@@ -101,7 +101,14 @@ class MainActivity : Activity() {
  private fun button(label: String, enabled: Boolean = true, action: () -> Unit): Button {
   val button = Button(this).apply {
    text=label; setAllCaps(false); minHeight=dp(48); isEnabled=enabled
-   setTextColor(Color.WHITE); setBackgroundColor(Color.rgb(49,114,75))
+   // Deshabilitado debe verse distinto: antes «Comprobar mi respuesta» sin elegir parecía listo para tocar.
+   fun shape(color: Int) = android.graphics.drawable.GradientDrawable().apply { setColor(color); cornerRadius=dp(14).toFloat() }
+   background=android.graphics.drawable.StateListDrawable().apply {
+    addState(intArrayOf(-android.R.attr.state_enabled),shape(Color.rgb(226,221,210)))
+    addState(intArrayOf(android.R.attr.state_pressed),shape(Color.rgb(31,79,51)))
+    addState(intArrayOf(),shape(Color.rgb(49,114,75)))
+   }
+   setTextColor(android.content.res.ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled),intArrayOf()),intArrayOf(Color.rgb(92,84,72),Color.WHITE)))
    setOnClickListener { if(!busy) action() }
   }
   button.isSingleLine=false;button.maxLines=Int.MAX_VALUE;button.setHorizontallyScrolling(false);button.minWidth=dp(48);button.setPadding(dp(16),dp(12),dp(16),dp(12))
