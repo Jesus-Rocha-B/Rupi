@@ -34,3 +34,6 @@ Desde «Mis temas»:
 - **Reto del día:** razonamiento lógico o comprensión lectora con contexto peruano; se termina al responder todas las preguntas (+30 XP) (HU-40).
 
 Verificado el 28/10/2026 con `assembleDebug` y en emulador Pixel_8 (API 35) contra la API local. Detalles en `../../docs/implementacion/HU-35-indicador-meta-movil.md` a `HU-40-retos-diarios-peru.md`.
+
+## HU-43: sesión única con la web
+Cada petición envía `X-Rupi-Cliente: MOVIL`, así la sesión queda registrada como del celular. Rupi permite una sola sesión por cuenta: si la misma cuenta entra en la web, aquí se cierra y el ingreso explica «Tu cuenta se abrió en la web…» (cabeceras `X-Rupi-Sesion-Cerrada` y `X-Rupi-Sesion-Nueva`). Si pasa con la app en segundo plano, los avisos se pausan y llega la notificación «Tus avisos de Rupi están en pausa». Detalle en ../../docs/implementacion/HU-43-sesion-unica.md.

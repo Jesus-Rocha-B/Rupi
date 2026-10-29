@@ -6,7 +6,9 @@ Equivale a `LEEME-LOCAL.md`, que describe Windows. Probado en Fedora 44 (x86_64)
 ./iniciar-rupi.sh
 ```
 
-Web: http://localhost:5173. API local: 8081. MySQL portable: 3307.
+Web: http://localhost:5173. API local: 8081. Consola de administración: http://localhost:5173/admin (API Django en 8082). MySQL portable: 3307.
+
+La consola necesita su entorno de Python una sola vez (`backend/admin-django/README.md`): crear `.venv`, el usuario MySQL `rupi_admin`, las variables `RUPI_ADMIN_DB_*` en `.local/env.sh`, aplicar V31 a V35 y crear la primera cuenta con `manage.py crear_administrador`. Sin ese entorno, `iniciar-rupi.sh` avisa y levanta lo demás.
 
 Para detener la web, la API y la base local: `./detener-rupi.sh`.
 
@@ -39,5 +41,12 @@ python3 -I scripts/verify_learning_flow.py --root-config .local/root.cnf --mysql
 ```
 
 Los scripts `scripts/Verificar-HU01.ps1` y `scripts/Verificar-Auth.ps1` requieren PowerShell 7 (`pwsh`). `Iniciar-Rupi.ps1` y `Iniciar-Rupi.cmd` son solo para Windows.
+
+Consola de administración (HU-41 a HU-45):
+
+```bash
+backend/admin-django/.venv/bin/python backend/admin-django/manage.py test
+RUPI_ADMIN_CLAVE_LOCAL=... python3 -I scripts/verify_admin_cuentas.py --root-config .local/root.cnf --mysql .local/mysql-8.4.11-linux-glibc2.28-x86_64/bin/mysql
+```
 
 La finalización de actividades, calificación, puntos y desbloqueo de niveles futuros no forman parte de HU-02/HU-03. Django y Android se implementan en sus propias historias.

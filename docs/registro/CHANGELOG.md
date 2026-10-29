@@ -2,6 +2,16 @@
 
 Más reciente primero. Formato: fecha · commit · qué cambió y por qué. Las entradas anteriores a 2026-10-07 se reconstruyeron desde `git log` y los documentos del repo.
 
+## 2026-10-29 · HU-41 a HU-45: consola de administración
+
+- `9f8a132` HU-41: se inicializa Django como API de administración (`/api/admin/v1`, puerto 8082) sin tablas propias ni apps de Django que creen tablas. Altas con clave temporal, edición, baja y reactivación con auditoría. Consola React en `/admin`. V31 y `grants-django-admin.sql`.
+- `153b53b` HU-42: roles con permisos fijos por migración (V32), mesa de ayuda (`SOPORTE`), correos enmascarados sin `cuentas.datos_personales`, reglas al asignar roles y 403 de Spring para cuentas solo de consola.
+- `838b0d7` HU-43: sesión única entre web, celular y consola. Spring distingue `MOVIL` y explica el 401 (`X-Rupi-Sesion-Cerrada`); la web comprueba cada minuto, Android pausa avisos y la consola ve y cierra sesiones (V33).
+- `62cca73` HU-44: clave temporal o escrita, bloqueo y desbloqueo a pedido; 423 en Spring para cuentas bloqueadas con la clave correcta (V34).
+- `edeb965` HU-45: tiempos de respuesta en memoria en Spring (`/api/v1/monitor/health` con token) y pestaña «Salud» con MySQL, API, IA y consola (V35).
+- Verificación de punta a punta: `scripts/verify_admin_cuentas.py` (79 comprobaciones contra Django, Spring y MySQL).
+- Detalle: [HU-41](../implementacion/HU-41-gestion-cuentas.md) a [HU-45](../implementacion/HU-45-salud-plataforma.md).
+
 ## 2026-10-28 · HU-35 a HU-40: meta móvil, hoy vs. ayer, pistas por nivel, voz y retos diarios
 
 - `cb4f88f` HU-35: anillo y barra de la meta diaria en Android, con selector de meta.

@@ -10,13 +10,14 @@ Plataforma web (y luego móvil) de aprendizaje para estudiantes de primaria de c
 frontend/web-react ──> backend/api-spring-boot ──> MySQL `rupi` (8.4, InnoDB, utf8mb4)
 (React, Vite)          (Spring Boot, Java 21)       ▲
                                                     │
-                       backend/admin-django ────────┘ (solo esqueleto: curriculo/models.py y admin.py)
+frontend/web-react/admin ──> backend/admin-django ──┘ (API JSON de administración, puerto 8082; HU-41 a HU-45)
 frontend/mobile-kotlin: solo README, sin código.
 ```
 
 - React nunca accede a MySQL ni envía `estudianteId`; Spring determina la identidad desde la cookie de sesión.
 - **Escritor único por dominio** (regla de `AGENTS.md`): Spring escribe `escuela_*`, `aprendizaje_*`, `evaluacion_*`, `gamificacion_*`. Django escribe `identidad_*` y `curriculo_*`.
-- Excepción de desarrollo documentada: Spring escribe `identidad_sesion_usuario` e `identidad_intento_acceso` por el login. Está pendiente reconciliarlo con Django.
+- Excepción de desarrollo documentada: Spring escribe `identidad_sesion_usuario` e `identidad_intento_acceso` por el login de la web y el celular. Django escribe las mismas tablas para la consola (`cliente = 'WEB_ADMIN'`) y todo lo demás de `identidad_*`.
+- Consola de administración (`/admin`): Django no crea tablas (modelos `managed = False`, sin `auth`/`sessions`/`admin`). Permisos por rol fijados en migraciones V31 a V35.
 - Invariantes: el porcentaje de avance nunca se guarda, se calcula al consultar. IDs `CHAR(36)` (UUID). Fechas `DATETIME(6)` en UTC.
 
 ## Reglas de trabajo (de `AGENTS.md`)
