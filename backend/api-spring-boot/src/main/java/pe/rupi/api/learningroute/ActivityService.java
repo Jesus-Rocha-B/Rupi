@@ -62,22 +62,23 @@ public class ActivityService {
      * y desbloquear la siguiente era un UPDATE sin efecto. Una parada nace DISPONIBLE si es la primera o si la
      * anterior ya está completada. INSERT IGNORE: nunca toca filas existentes.
      */
+    // TiDB no admite subconsultas en ON. LAG conserva el predecesor real incluso con huecos en la secuencia.
     private void ensureProgressRows(MapSqlParameterSource params) {
         jdbc.update("""
                 INSERT IGNORE INTO aprendizaje_progreso_nodo
                     (inscripcion_id, version_ruta_id, nodo_ruta_id, estado, desbloqueado_en)
                 SELECT i.id, i.version_ruta_id, n.id,
-                       CASE WHEN prev.id IS NULL OR pp.estado = 'COMPLETADO' THEN 'DISPONIBLE' ELSE 'BLOQUEADO' END,
-                       CASE WHEN prev.id IS NULL OR pp.estado = 'COMPLETADO' THEN UTC_TIMESTAMP(6) ELSE NULL END
+                       CASE WHEN n.previous_node_id IS NULL OR pp.estado = 'COMPLETADO' THEN 'DISPONIBLE' ELSE 'BLOQUEADO' END,
+                       CASE WHEN n.previous_node_id IS NULL OR pp.estado = 'COMPLETADO' THEN UTC_TIMESTAMP(6) ELSE NULL END
                 FROM aprendizaje_inscripcion_ruta i
-                JOIN aprendizaje_nodo_ruta n ON n.version_ruta_id = i.version_ruta_id
-                LEFT JOIN aprendizaje_nodo_ruta prev
-                       ON prev.version_ruta_id = i.version_ruta_id
-                      AND prev.numero_secuencia = (
-                          SELECT MAX(x.numero_secuencia) FROM aprendizaje_nodo_ruta x
-                          WHERE x.version_ruta_id = i.version_ruta_id AND x.numero_secuencia < n.numero_secuencia)
+                JOIN (
+                    SELECT id, version_ruta_id,
+                           LAG(id) OVER (PARTITION BY version_ruta_id ORDER BY numero_secuencia) AS previous_node_id
+                    FROM aprendizaje_nodo_ruta
+                    WHERE version_ruta_id = :route
+                ) n ON n.version_ruta_id = i.version_ruta_id
                 LEFT JOIN aprendizaje_progreso_nodo pp
-                       ON pp.inscripcion_id = i.id AND pp.nodo_ruta_id = prev.id
+                       ON pp.inscripcion_id = i.id AND pp.nodo_ruta_id = n.previous_node_id
                 WHERE i.estudiante_id = :student
                   AND i.version_ruta_id = :route
                   AND i.estado IN ('ACTIVO', 'COMPLETADO')
