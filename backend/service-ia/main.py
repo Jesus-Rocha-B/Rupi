@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import json
 import logging
+import os
 
 from extractor import extract_text_from_file
 from gemini_client import IAError, IANoConfigurada, call_gemini, get_api_key
@@ -28,13 +29,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Habilitar CORS para interactuar tanto con Vite (5173) como con Spring Boot (8081)
+# La web llega por el proxy de Vite (mismo origen) y Spring llama de servidor a servidor, así que CORS solo
+# admite los orígenes de la web. «*» con credenciales permitía que cualquier página usara la IA con la sesión ajena.
+ORIGENES = [o.strip() for o in os.getenv("RUPI_IA_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+            if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ORIGENES,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 class TextGenerateRequest(BaseModel):

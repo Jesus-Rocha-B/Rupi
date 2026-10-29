@@ -57,5 +57,16 @@ class ErroresSinFiltrarTest(unittest.TestCase):
         self.assertNotIn('Gemini (400)', r.text)
 
 
+
+class CorsTest(unittest.TestCase):
+    def test_solo_la_web_de_rupi_puede_llamar_desde_el_navegador(self):
+        preflight = {'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type'}
+        ajena = cliente.options('/api/v1/ia/tutor/chat', headers={'Origin': 'https://ajena.example', **preflight})
+        self.assertNotIn('access-control-allow-origin', ajena.headers)
+        propia = cliente.options('/api/v1/ia/tutor/chat', headers={'Origin': 'http://127.0.0.1:5173', **preflight})
+        self.assertEqual(propia.headers.get('access-control-allow-origin'), 'http://127.0.0.1:5173')
+        self.assertNotIn('access-control-allow-credentials', propia.headers)
+
+
 if __name__ == '__main__':
     unittest.main()
