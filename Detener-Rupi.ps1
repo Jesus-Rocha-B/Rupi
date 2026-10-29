@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-foreach ($service in @('web', 'api')) {
+foreach ($service in @('web', 'admin', 'api')) {
     $pidFile = "$PSScriptRoot\.local\$service.pid"
     if (Test-Path $pidFile) {
         $savedId = [int](Get-Content $pidFile)

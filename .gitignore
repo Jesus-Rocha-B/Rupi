@@ -46,3 +46,4 @@ database/dump_*.sql
 *.njsproj
 *.sln
 *.sw?
+.venv/

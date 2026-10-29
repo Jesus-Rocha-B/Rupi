@@ -17,6 +17,10 @@ export default defineConfig({
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
+      '/api/admin': {
+        target: 'http://127.0.0.1:8082',
+        changeOrigin: false,
+      },
       '/api': {
         target: 'http://127.0.0.1:8081',
         changeOrigin: false,

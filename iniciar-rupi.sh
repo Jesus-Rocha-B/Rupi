@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Arranca Rupi en Linux: MySQL 8.4 portable (3307), API Spring Boot (8081) y web Vite (5173).
+# Arranca Rupi en Linux: MySQL 8.4 portable (3307), API Spring Boot (8081), API Django (8082) y web Vite (5173).
 # Equivalente a Iniciar-Rupi.ps1. Uso: ./iniciar-rupi.sh [--recompilar]
 set -euo pipefail
 cd "$(dirname "$(readlink -f "$0")")"
@@ -33,6 +33,18 @@ if ! puerto_abierto 8081; then
   echo $! >"$L/api.pid"
 fi
 esperar 8081
+
+# API administrativa Django (HU-41 a HU-45). Requiere backend/admin-django/.venv (ver su README).
+ADMIN_PY="$ROOT/backend/admin-django/.venv/bin/python"
+if ! puerto_abierto 8082; then
+  if [ -x "$ADMIN_PY" ]; then
+    (cd "$ROOT/backend/admin-django" && RUPI_ADMIN_DB_PORT="${RUPI_ADMIN_DB_PORT:-3307}" nohup "$ADMIN_PY" manage.py runserver 127.0.0.1:8082 --noreload \
+      >"$L/admin.log" 2>"$L/admin-error.log" & echo $! >"$L/admin.pid")
+    esperar 8082
+  else
+    echo "Sin entorno de Django: la consola /admin no estará disponible (ver backend/admin-django/README.md)." >&2
+  fi
+fi
 
 if ! puerto_abierto 5173; then
   (cd "$ROOT/frontend/web-react" && nohup node "$ROOT/node_modules/vite/bin/vite.js" --host 127.0.0.1 --port 5173 --strictPort \

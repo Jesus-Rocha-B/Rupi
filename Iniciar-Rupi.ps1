@@ -44,6 +44,18 @@ if (!(Test-Port 8081)) {
     $api.Id | Set-Content "$PSScriptRoot\.local\api.pid"
 }
 Wait-Port 8081
+# API administrativa Django (HU-41 a HU-45). Requiere el entorno de backend\admin-django\.venv.
+$adminPython = "$PSScriptRoot\backend\admin-django\.venv\Scripts\python.exe"
+if (!(Test-Port 8082)) {
+    if (Test-Path $adminPython) {
+        if (!$env:RUPI_ADMIN_DB_PORT) { $env:RUPI_ADMIN_DB_PORT = "$mysqlPort" }
+        $admin = Start-Process $adminPython -ArgumentList 'manage.py runserver 127.0.0.1:8082 --noreload' -WorkingDirectory "$PSScriptRoot\backend\admin-django" -WindowStyle Hidden -PassThru -RedirectStandardOutput "$PSScriptRoot\.local\admin.log" -RedirectStandardError "$PSScriptRoot\.local\admin-error.log"
+        $admin.Id | Set-Content "$PSScriptRoot\.local\admin.pid"
+        Wait-Port 8082
+    } else {
+        Write-Warning 'Sin entorno de Django: la consola /admin no estara disponible. Ver backend\admin-django\README.md.'
+    }
+}
 if (!(Test-Port 5173)) {
     $web = Start-Process (Get-Command node.exe).Source -ArgumentList "`"$PSScriptRoot\node_modules\vite\bin\vite.js`" --host 127.0.0.1 --port 5173 --strictPort" -WorkingDirectory "$PSScriptRoot\frontend\web-react" -WindowStyle Hidden -PassThru -RedirectStandardOutput "$PSScriptRoot\.local\web.log" -RedirectStandardError "$PSScriptRoot\.local\web-error.log"
     $web.Id | Set-Content "$PSScriptRoot\.local\web.pid"
