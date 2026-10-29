@@ -25,7 +25,6 @@ import { fetchEquippedAccessories } from '../../services/accessoriesApi'
 import { RoadmapCard } from '../../components/RoadmapCard'
 import { speakText } from '../../utils/speech'
 import './StudentProfileView.css'
-import { StudyNotifications } from './StudyNotifications'
 
 interface StudentProfileViewProps {
   student: Student
@@ -175,7 +174,6 @@ export function StudentProfileView({
 
   return (
     <div className="profile-view-container" id="mi-perfil">
-      <StudyNotifications key={student.id} />
       {/* Tarjeta Principal del Perfil */}
       <section className="profile-hero-card" aria-labelledby="profile-student-title">
         <div className="profile-hero-avatar-col">
