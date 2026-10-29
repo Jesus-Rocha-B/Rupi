@@ -301,6 +301,22 @@ class MainActivity : Activity() {
   // La lista llega después: se reserva su lugar para que «Más» quede siempre al final.
   val list = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL }
   layout.addView(list, LinearLayout.LayoutParams(-1,-2))
+  // HU-11: el código de clase del profe inscribe en su ruta, igual que «Código de clase» en la web.
+  card {
+   text("¿Tu profe te dio un código?",20)
+   val code=input("Código de clase")
+   code.inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+   code.filters=arrayOf(android.text.InputFilter.LengthFilter(40), android.text.InputFilter.AllCaps())
+   button("Unirme a la ruta", kind=RupiUi.Kind.LEAF) {
+    val value=code.text.toString().trim().uppercase()
+    if(value.isEmpty()) { showNotice("Escribe el código que te dio tu profe.",RupiUi.Tone.ERROR); return@button }
+    execute({ JSONObject(api!!.request("/api/v1/student/learning-routes/join-by-code","POST",JSONObject().put("code",value))) },{ joined ->
+     val route=JSONObject().put("versionRouteId",joined.getString("versionRouteId")).put("title",joined.optString("routeTitle"))
+      .put("grade",joined.optJSONObject("grade")).put("area",joined.optJSONObject("area"))
+     routeScreen(route, joined.optString("message").ifBlank { "¡Listo! Ya estás en «${joined.optString("routeTitle")}»." })
+    })
+   }
+  }
   section("Más")
   button("Mi ritmo de estudio y avisos", kind=RupiUi.Kind.LEAF){notifications()}
   button("Resúmenes descargados", kind=RupiUi.Kind.QUIET) {savedSummaries()}
@@ -330,11 +346,12 @@ class MainActivity : Activity() {
  }
 
  /** HU-01 y HU-04: las paradas de una ruta agrupadas por unidad MINEDU, con su estado como en «Mi Camino» de la web. */
- private fun routeScreen(route: JSONObject) {
+ private fun routeScreen(route: JSONObject, welcome: String? = null) {
   summaryMode=false;cardMode=false;currentTopic=null;currentRoute=route;currentNode=null
   page(route.getString("title")) { topics() }
   button("Volver a mis temas", kind=RupiUi.Kind.QUIET){topics()}
   execute({ JSONObject(api!!.request("/api/v1/student/learning-routes/"+route.getString("versionRouteId"))) },{ detail ->
+   if(welcome!=null) setNotice(welcome,RupiUi.Tone.OK)
    val nodes=detail.getJSONArray("nodes")
    val done=detail.getJSONObject("progress").optInt("completedNodes"); val total=detail.getJSONObject("progress").optInt("totalNodes")
    card {
