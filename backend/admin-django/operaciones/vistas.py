@@ -1,4 +1,4 @@
-from identidad.respuestas import ErrorDePeticion, api, json_ok
+from identidad.respuestas import ErrorDePeticion, api, json_ok, leer_json
 from identidad.sesion import requiere_permiso
 
 from . import salud, sincronizacion
@@ -14,7 +14,7 @@ def salud_de_la_plataforma(request):
 @requiere_permiso('sincronizacion.auditar')
 def auditoria_sincronizacion(request):
     if request.method == 'POST':
-        datos = request.datos
+        datos = leer_json(request)
         usuario_id = datos.get('usuarioId')
         if not usuario_id:
             raise ErrorDePeticion('Falta usuarioId para registrar el evento de sincronización.')

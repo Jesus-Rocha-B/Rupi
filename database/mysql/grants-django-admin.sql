@@ -38,6 +38,9 @@ BEGIN
 
     SET @g = CONCAT('GRANT INSERT ON rupi.operaciones_evento_auditoria TO `', usuario, '`@`', equipo, '`');
     PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    -- HU-46: la consola registra eventos de sincronización web/celular.
+    SET @g = CONCAT('GRANT INSERT ON rupi.operaciones_evento_sincronizacion TO `', usuario, '`@`', equipo, '`');
+    PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
   END IF;
 END//
 DELIMITER ;

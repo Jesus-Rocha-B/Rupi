@@ -90,7 +90,7 @@ def auditar_sincronizacion():
                 s.id,
                 s.usuario_id,
                 COALESCE(u.nombre_usuario, 'desconocido') as usuario,
-                COALESCE(u.nombre, 'Estudiante') as nombre,
+                COALESCE(p.nombre_preferido, p.nombre, 'Estudiante') as nombre,
                 s.cliente_tipo,
                 s.tipo_evento,
                 s.puntaje_xp,
@@ -101,6 +101,7 @@ def auditar_sincronizacion():
                 s.recibido_en
             FROM operaciones_evento_sincronizacion s
             LEFT JOIN identidad_cuenta_usuario u ON u.id = s.usuario_id
+            LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
             ORDER BY s.recibido_en DESC
             LIMIT 50
             """
@@ -126,9 +127,10 @@ def auditar_sincronizacion():
         # Buscar usuarios con actividad sincronizada o cuentas de estudiantes
         cursor.execute(
             """
-            SELECT DISTINCT s.usuario_id
+            SELECT s.usuario_id
             FROM operaciones_evento_sincronizacion s
-            ORDER BY s.recibido_en DESC
+            GROUP BY s.usuario_id
+            ORDER BY MAX(s.recibido_en) DESC
             LIMIT 20
             """
         )
@@ -149,8 +151,10 @@ def auditar_sincronizacion():
         for uid in usuarios_auditar:
             cursor.execute(
                 """
-                SELECT u.id, u.nombre_usuario, u.nombre, u.apellido
-                FROM identidad_cuenta_usuario u WHERE u.id = %s
+                SELECT u.id, u.nombre_usuario, p.nombre, p.apellido
+                FROM identidad_cuenta_usuario u
+                LEFT JOIN identidad_perfil_usuario p ON p.usuario_id = u.id
+                WHERE u.id = %s
                 """,
                 [uid],
             )
@@ -167,7 +171,8 @@ def auditar_sincronizacion():
 
             # Lecciones completadas en BD
             cursor.execute(
-                "SELECT COUNT(*) FROM aprendizaje_progreso_nodo WHERE usuario_id = %s AND estado = 'COMPLETADO'",
+                "SELECT COUNT(*) FROM aprendizaje_progreso_nodo p JOIN aprendizaje_inscripcion_ruta i ON i.id = p.inscripcion_id "
+                "WHERE i.estudiante_id = %s AND p.estado = 'COMPLETADO'",
                 [uid],
             )
             lecciones_bd = int(cursor.fetchone()[0] or 0)

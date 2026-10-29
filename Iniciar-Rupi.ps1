@@ -60,8 +60,8 @@ if (!(Test-Path $adminPython)) {
 if (!(Test-Port 8082)) {
     if ($adminPython -and (Test-Path $adminPython)) {
         if (!$env:RUPI_ADMIN_DB_PORT) { $env:RUPI_ADMIN_DB_PORT = "$mysqlPort" }
-        if (!$env:RUPI_ADMIN_DB_USERNAME) { $env:RUPI_ADMIN_DB_USERNAME = $env:RUPI_DB_USERNAME }
-        if (!$env:RUPI_ADMIN_DB_PASSWORD) { $env:RUPI_ADMIN_DB_PASSWORD = $env:RUPI_DB_PASSWORD }
+        # Django usa su propio usuario MySQL (grants-django-admin.sql), nunca el de Spring: cada servicio escribe solo lo suyo.
+        if (!$env:RUPI_ADMIN_DB_PASSWORD) { Write-Warning 'Falta RUPI_ADMIN_DB_PASSWORD en .local\env.ps1: la consola /admin no podra conectarse a MySQL.' }
         $admin = Start-Process $adminPython -ArgumentList 'manage.py runserver 127.0.0.1:8082 --noreload' -WorkingDirectory "$PSScriptRoot\backend\admin-django" -WindowStyle Hidden -PassThru -RedirectStandardOutput "$PSScriptRoot\.local\admin.log" -RedirectStandardError "$PSScriptRoot\.local\admin-error.log"
         $admin.Id | Set-Content "$PSScriptRoot\.local\admin.pid"
         Wait-Port 8082

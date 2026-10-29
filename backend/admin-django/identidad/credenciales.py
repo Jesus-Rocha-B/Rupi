@@ -17,6 +17,12 @@ from .sesion import ROL_ADMINISTRADOR, revocar_sesiones
 ROLES_DE_CONSOLA = {'ADMINISTRADOR', 'SOPORTE'}
 
 
+def _nombre(cuenta):
+    """El nombre vive en identidad_perfil_usuario, no en la cuenta; algunas cuentas antiguas no tienen perfil."""
+    perfil = getattr(cuenta, 'perfil', None)
+    return perfil.nombre if perfil else None
+
+
 def _proteger(cuenta, actor):
     if cuenta.id == actor.id:
         raise ErrorDePeticion('No puedes cambiar el acceso de tu propia cuenta desde aquí. Pídeselo a otra persona '
@@ -49,7 +55,7 @@ def restablecer_clave(cuenta_id, datos, actor, ver_datos=True):
     revocar_sesiones(cuenta.id, ahora)
     auditoria.registrar(actor.id, 'CLAVE_RESTABLECIDA', cuenta.id)
     correo_enviado = notificaciones.notificar_recuperacion_clave(
-        cuenta.correo, cuenta.nombre_usuario, cuenta.nombre, clave if generada else None
+        cuenta.correo, cuenta.nombre_usuario, _nombre(cuenta), clave if generada else None
     )
     resultado = detalle(cuenta.id, ver_datos)
     resultado['correoNotificado'] = correo_enviado
@@ -86,7 +92,7 @@ def desbloquear(cuenta_id, actor, ver_datos=True):
         CuentaUsuario.objects.filter(id=cuenta.id).update(estado='ACTIVO', bloqueado_hasta=None, actualizado_en=ahora)
         auditoria.registrar(actor.id, 'CUENTA_DESBLOQUEADA', cuenta.id)
         correo_enviado = notificaciones.notificar_cuenta_desbloqueada(
-            cuenta.correo, cuenta.nombre_usuario, cuenta.nombre
+            cuenta.correo, cuenta.nombre_usuario, _nombre(cuenta)
         )
     resultado = detalle(cuenta.id, ver_datos)
     resultado['correoNotificado'] = correo_enviado
