@@ -106,19 +106,24 @@ public class StudentSessionService {
     public record AuthenticationResult(
             boolean authenticated,
             boolean rateLimited,
+            boolean consoleOnly,
             Student student,
             String token
     ) {
         public static AuthenticationResult success(Student student, String token) {
-            return new AuthenticationResult(true, false, student, token);
+            return new AuthenticationResult(true, false, false, student, token);
         }
 
         public static AuthenticationResult throttled() {
-            return new AuthenticationResult(false, true, null, null);
+            return new AuthenticationResult(false, true, false, null, null);
         }
 
         public static AuthenticationResult badCredentials() {
-            return new AuthenticationResult(false, false, null, null);
+            return new AuthenticationResult(false, false, false, null, null);
+        }
+
+        public static AuthenticationResult consoleAccount() {
+            return new AuthenticationResult(false, false, true, null, null);
         }
     }
 
@@ -282,6 +287,16 @@ public class StudentSessionService {
             return AuthenticationResult.badCredentials(); // Mismo código para no enumerar
         }
 
+        // 3b. Roles estrictos (HU-42): una cuenta solo de administración o mesa de ayuda no abre la web ni el
+        // celular, que son para estudiantes y docentes. Las cuentas sin ningún rol siguen entrando como estudiante.
+        if (isConsoleOnly(account.id())) {
+            jdbc.update("""
+                    INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
+                    VALUES (?, ?, 'BLOQUEADO', ?, UTC_TIMESTAMP(6))
+                    """, account.id(), idHash, originHash);
+            return AuthenticationResult.consoleAccount();
+        }
+
         // 4. Registro de acceso exitoso
         jdbc.update("""
                     INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
@@ -308,6 +323,17 @@ public class StudentSessionService {
                 """, sessionId, account.id(), tokenHash);
 
         return AuthenticationResult.success(new Student(account.id(), account.displayName(), account.schoolName(), account.role(), account.gradeNumber(), account.gradeName()), token);
+    }
+
+    boolean isConsoleOnly(String userId) {
+        var counts = jdbc.queryForMap("""
+                SELECT COUNT(*) AS total,
+                       COALESCE(SUM(r.codigo IN ('ESTUDIANTE', 'DOCENTE')), 0) AS app_roles
+                FROM identidad_usuario_rol ur
+                JOIN identidad_rol r ON r.id = ur.rol_id
+                WHERE ur.usuario_id = ?
+                """, userId);
+        return ((Number) counts.get("total")).longValue() > 0 && ((Number) counts.get("app_roles")).longValue() == 0;
     }
 
     public void revokeSession(HttpServletRequest request) {

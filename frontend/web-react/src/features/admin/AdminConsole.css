@@ -409,6 +409,74 @@
 .admin-ticket .admin-btn { justify-self: start; }
 .admin-ticket-note { margin: 0; color: #6b4705; font-weight: 700; line-height: 1.4; }
 
+/* Roles y permisos */
+.admin-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.admin-role-cards {
+  list-style: none;
+  margin: 20px 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.admin-role-card {
+  padding: 16px;
+  border: 2px solid var(--adm-line);
+  border-top: 8px solid var(--adm-line);
+  border-radius: 14px;
+  background: var(--adm-paper);
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+.admin-role-card h2 { font-size: 1.1rem; }
+.admin-role-card--estudiante { border-top-color: var(--adm-sun-dark); }
+.admin-role-card--docente { border-top-color: var(--adm-sky); }
+.admin-role-card--soporte { border-top-color: var(--adm-leaf); }
+.admin-role-card--administrador { border-top-color: var(--adm-orange-dark); }
+.admin-role-meta { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 6px 12px; font-weight: 800; font-size: 0.9rem; color: var(--adm-forest); }
+
+.admin-table-wrap { overflow-x: auto; border: 2px solid var(--adm-line); border-radius: 14px; }
+.admin-matrix { width: 100%; border-collapse: collapse; min-width: 560px; }
+.admin-matrix th,
+.admin-matrix td { padding: 12px; border-bottom: 2px solid var(--adm-paper-deep); text-align: center; }
+.admin-matrix thead th { background: var(--adm-forest); color: #fff; font-weight: 800; }
+.admin-matrix tbody th { text-align: left; font-weight: 800; color: var(--adm-forest); }
+.admin-matrix tbody th code { display: block; margin-top: 2px; font-size: 0.8rem; color: var(--adm-muted); font-weight: 600; }
+.admin-matrix td { color: #8a8174; }
+.admin-matrix td.is-granted { color: var(--adm-leaf-dark); background: #f3f8ef; }
+.admin-matrix tbody tr:last-child th,
+.admin-matrix tbody tr:last-child td { border-bottom: 0; }
+
+.admin-role-checks { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.admin-role-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 2px solid var(--adm-line);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.admin-role-check input { width: 22px; height: 22px; margin-top: 2px; flex: none; accent-color: var(--adm-sky); }
+.admin-role-check span { display: grid; gap: 2px; }
+.admin-role-check small { color: var(--adm-muted); font-weight: 600; }
+.admin-role-check.is-checked { border-color: var(--adm-sky); background: #f4f9fc; }
+.admin-role-check:has(input:focus-visible) { outline: 3px solid var(--adm-sky); outline-offset: 3px; }
+.admin-masked-note { display: block; color: var(--adm-muted); font-weight: 700; font-size: 0.85rem; }
+
 @media (max-width: 900px) {
   .admin-accounts { grid-template-columns: minmax(0, 1fr); }
   .admin-panel-slot { position: static; }

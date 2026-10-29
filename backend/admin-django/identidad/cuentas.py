@@ -82,7 +82,22 @@ def _iso(fecha):
     return fecha.isoformat() if fecha else None
 
 
-def resumen(cuenta, roles, sesion, ahora):
+PERMISO_DATOS = 'cuentas.datos_personales'
+
+
+def enmascarar_correo(correo):
+    """«lucia.huaman@rupi.pe» → «l•••@rupi.pe»: mesa de ayuda reconoce la cuenta sin leer el dato completo."""
+    if not correo or '@' not in correo:
+        return correo
+    local, dominio = correo.split('@', 1)
+    return f'{local[:1]}•••@{dominio}'
+
+
+def ve_datos(actor):
+    return actor.puede(PERMISO_DATOS)
+
+
+def resumen(cuenta, roles, sesion, ahora, ver_datos=True):
     perfil = getattr(cuenta, 'perfil', None)
     bloqueada = cuenta.estado == 'BLOQUEADO' or (cuenta.bloqueado_hasta is not None and cuenta.bloqueado_hasta > ahora)
     return {
@@ -91,7 +106,8 @@ def resumen(cuenta, roles, sesion, ahora):
         'nombre': perfil.nombre if perfil else None,
         'apellido': perfil.apellido if perfil else None,
         'nombrePreferido': perfil.nombre_preferido if perfil else None,
-        'correo': cuenta.correo,
+        'correo': cuenta.correo if ver_datos else enmascarar_correo(cuenta.correo),
+        'datosCompletos': ver_datos,
         'estado': cuenta.estado,
         'bloqueada': bloqueada,
         'bloqueadoHasta': _iso(cuenta.bloqueado_hasta),
@@ -106,14 +122,17 @@ def resumen(cuenta, roles, sesion, ahora):
     }
 
 
-def listar(q=None, rol=None, estado=None, pagina=1):
+def listar(q=None, rol=None, estado=None, pagina=1, ver_datos=True):
     ahora = timezone.now()
     consulta = CuentaUsuario.objects.select_related('perfil')
     if q:
         q = q.strip()[:80]
-        consulta = consulta.filter(Q(nombre_usuario__icontains=q) | Q(correo__icontains=q)
-                                   | Q(perfil__nombre__icontains=q) | Q(perfil__apellido__icontains=q)
-                                   | Q(perfil__nombre_preferido__icontains=q))
+        filtro = (Q(nombre_usuario__icontains=q) | Q(perfil__nombre__icontains=q) | Q(perfil__apellido__icontains=q)
+                  | Q(perfil__nombre_preferido__icontains=q))
+        # Sin permiso de datos personales no se busca por correo: probar letras revelaría el dato oculto.
+        if ver_datos:
+            filtro |= Q(correo__icontains=q)
+        consulta = consulta.filter(filtro)
     if rol:
         consulta = consulta.filter(roles_asignados__rol__codigo=rol)
     if estado == 'BLOQUEADO':
@@ -128,7 +147,7 @@ def listar(q=None, rol=None, estado=None, pagina=1):
     roles = _roles_por_cuenta(ids)
     sesiones = _sesiones_activas(ids, ahora)
     return {
-        'items': [resumen(c, roles.get(c.id, []), sesiones.get(c.id), ahora) for c in cuentas],
+        'items': [resumen(c, roles.get(c.id, []), sesiones.get(c.id), ahora, ver_datos) for c in cuentas],
         'total': total,
         'pagina': pagina,
         'porPagina': POR_PAGINA,
@@ -142,11 +161,11 @@ def obtener(cuenta_id):
     return cuenta
 
 
-def detalle(cuenta_id):
+def detalle(cuenta_id, ver_datos=True):
     ahora = timezone.now()
     cuenta = obtener(cuenta_id)
     datos = resumen(cuenta, _roles_por_cuenta([cuenta.id]).get(cuenta.id, []),
-                    _sesiones_activas([cuenta.id], ahora).get(cuenta.id), ahora)
+                    _sesiones_activas([cuenta.id], ahora).get(cuenta.id), ahora, ver_datos)
     datos['ultimoIngreso'] = _iso(IntentoAcceso.objects.filter(usuario_id=cuenta.id, resultado='CORRECTO')
                                   .aggregate(m=Max('ocurrido_en'))['m'])
     datos['historial'] = [{'accion': e.accion, 'resultado': e.resultado, 'fecha': _iso(e.ocurrido_en),
@@ -183,7 +202,7 @@ def crear(datos, actor):
     PerfilUsuario.objects.create(usuario=cuenta, nombre=nombre, apellido=apellido, nombre_preferido=preferido)
     UsuarioRol.objects.create(usuario=cuenta, rol=rol, asignado_por_id=actor.id, asignado_en=ahora)
     auditoria.registrar(actor.id, 'CUENTA_CREADA', cuenta.id)
-    resultado = detalle(cuenta.id)
+    resultado = detalle(cuenta.id, ve_datos(actor))
     resultado['claveTemporal'] = clave_temporal
     return resultado
 
@@ -212,7 +231,7 @@ def modificar(cuenta_id, datos, actor):
         if campo in datos:
             perfil_cambios[columna] = _texto(datos, campo, 100, obligatorio=obligatorio, etiqueta=etiqueta)
     if not cambios and not perfil_cambios:
-        return detalle(cuenta.id)
+        return detalle(cuenta.id, ve_datos(actor))
     try:
         CuentaUsuario.objects.filter(id=cuenta.id).update(actualizado_en=ahora, **cambios)
     except IntegrityError:
@@ -220,10 +239,10 @@ def modificar(cuenta_id, datos, actor):
     if perfil_cambios:
         PerfilUsuario.objects.update_or_create(usuario_id=cuenta.id, defaults=perfil_cambios)
     auditoria.registrar(actor.id, 'CUENTA_MODIFICADA', cuenta.id)
-    return detalle(cuenta.id)
+    return detalle(cuenta.id, ve_datos(actor))
 
 
-def _otro_administrador_activo(cuenta_id, ahora):
+def otro_administrador_activo(cuenta_id, ahora):
     otros = (CuentaUsuario.objects.filter(roles_asignados__rol__codigo=ROL_ADMINISTRADOR)
              .exclude(id=cuenta_id).distinct())
     return any(cuenta_disponible(c, ahora) for c in otros)
@@ -236,23 +255,23 @@ def dar_de_baja(cuenta_id, actor):
     if cuenta.id == actor.id:
         raise ErrorDePeticion('No puedes dar de baja tu propia cuenta.', 409)
     if cuenta.estado == 'DESHABILITADO':
-        return detalle(cuenta.id)
+        return detalle(cuenta.id, ve_datos(actor))
     es_admin = UsuarioRol.objects.filter(usuario_id=cuenta.id, rol__codigo=ROL_ADMINISTRADOR).exists()
-    if es_admin and not _otro_administrador_activo(cuenta.id, ahora):
+    if es_admin and not otro_administrador_activo(cuenta.id, ahora):
         raise ErrorDePeticion('Es la única cuenta de administración activa: Rupi se quedaría sin administración.', 409)
     CuentaUsuario.objects.filter(id=cuenta.id).update(estado='DESHABILITADO', desactivado_en=ahora,
                                                       actualizado_en=ahora)
     revocar_sesiones(cuenta.id, ahora)
     auditoria.registrar(actor.id, 'CUENTA_DADA_DE_BAJA', cuenta.id)
-    return detalle(cuenta.id)
+    return detalle(cuenta.id, ve_datos(actor))
 
 
 @transaction.atomic
 def reactivar(cuenta_id, actor):
     cuenta = obtener(cuenta_id)
     if cuenta.estado != 'DESHABILITADO':
-        return detalle(cuenta.id)
+        return detalle(cuenta.id, ve_datos(actor))
     ahora = timezone.now()
     CuentaUsuario.objects.filter(id=cuenta.id).update(estado='ACTIVO', desactivado_en=None, actualizado_en=ahora)
     auditoria.registrar(actor.id, 'CUENTA_REACTIVADA', cuenta.id)
-    return detalle(cuenta.id)
+    return detalle(cuenta.id, ve_datos(actor))

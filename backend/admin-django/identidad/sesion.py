@@ -21,6 +21,8 @@ COOKIE = 'rupi_admin'
 RUTA_COOKIE = '/api/admin'
 DURACION = timedelta(hours=8)
 ROL_ADMINISTRADOR = 'ADMINISTRADOR'
+# Entran a la consola los roles que tienen este permiso (ADMINISTRADOR y SOPORTE desde V32), no un rol fijo.
+PERMISO_CONSOLA = 'consola.ingresar'
 # Igual que StudentSessionService: 5 fallos por cuenta y equipo, o 20 por equipo, en 5 minutos.
 VENTANA_INTENTOS = timedelta(minutes=5)
 _ACTIVIDAD_CADA = timedelta(minutes=5)
@@ -45,10 +47,6 @@ def sha256(texto):
 def permisos_de(usuario_id):
     roles = UsuarioRol.objects.filter(usuario_id=usuario_id).values('rol_id')
     return frozenset(RolPermiso.objects.filter(rol_id__in=roles).values_list('permiso__codigo', flat=True))
-
-
-def es_administrador(usuario_id):
-    return UsuarioRol.objects.filter(usuario_id=usuario_id, rol__codigo=ROL_ADMINISTRADOR).exists()
 
 
 def cuenta_disponible(cuenta, ahora):
@@ -93,7 +91,8 @@ def iniciar(nombre_usuario, clave, ip):
         _intento(cuenta.id, id_hash, 'INCORRECTO', origen_hash, ahora)
         return None
     # Mismo resultado que una clave equivocada: la consola no confirma qué cuentas existen ni su rol.
-    if not cuenta_disponible(cuenta, ahora) or not es_administrador(cuenta.id):
+    permisos = permisos_de(cuenta.id)
+    if not cuenta_disponible(cuenta, ahora) or PERMISO_CONSOLA not in permisos:
         _intento(cuenta.id, id_hash, 'BLOQUEADO', origen_hash, ahora)
         return None
     _intento(cuenta.id, id_hash, 'CORRECTO', origen_hash, ahora)
@@ -103,13 +102,14 @@ def iniciar(nombre_usuario, clave, ip):
         revocar_sesiones(cuenta.id, ahora)
         sesion = SesionUsuario.objects.create(usuario_id=cuenta.id, token_hash=sha256(token), cliente='WEB_ADMIN',
                                               creada_en=ahora, actividad_en=ahora, expira_en=ahora + DURACION)
-    return token, Administrador(cuenta.id, cuenta.nombre_usuario, nombre_visible(cuenta), permisos_de(cuenta.id),
-                                sesion.id)
+    return token, Administrador(cuenta.id, cuenta.nombre_usuario, nombre_visible(cuenta), permisos, sesion.id)
 
 
-def revocar_sesiones(usuario_id, ahora=None):
-    return SesionUsuario.objects.filter(usuario_id=usuario_id, revocada_en__isnull=True).update(
-        revocada_en=ahora or timezone.now())
+def revocar_sesiones(usuario_id, ahora=None, excepto=None):
+    sesiones = SesionUsuario.objects.filter(usuario_id=usuario_id, revocada_en__isnull=True)
+    if excepto:
+        sesiones = sesiones.exclude(id=excepto)
+    return sesiones.update(revocada_en=ahora or timezone.now())
 
 
 def cerrar(administrador):
@@ -124,12 +124,16 @@ def resolver(token):
     sesion = (SesionUsuario.objects.select_related('usuario', 'usuario__perfil')
               .filter(token_hash=sha256(token), revocada_en__isnull=True, expira_en__gt=ahora,
                       cliente='WEB_ADMIN').first())
-    if sesion is None or not cuenta_disponible(sesion.usuario, ahora) or not es_administrador(sesion.usuario_id):
+    if sesion is None or not cuenta_disponible(sesion.usuario, ahora):
+        return None
+    # Los permisos se leen en cada petición: retirar un rol corta el acceso sin esperar a que expire la sesión.
+    permisos = permisos_de(sesion.usuario_id)
+    if PERMISO_CONSOLA not in permisos:
         return None
     if sesion.actividad_en <= ahora - _ACTIVIDAD_CADA:
         SesionUsuario.objects.filter(id=sesion.id).update(actividad_en=ahora)
     cuenta = sesion.usuario
-    return Administrador(cuenta.id, cuenta.nombre_usuario, nombre_visible(cuenta), permisos_de(cuenta.id), sesion.id)
+    return Administrador(cuenta.id, cuenta.nombre_usuario, nombre_visible(cuenta), permisos, sesion.id)
 
 
 def poner_cookie(respuesta, request, token):

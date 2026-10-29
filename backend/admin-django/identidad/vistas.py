@@ -1,4 +1,4 @@
-from . import cuentas, sesion
+from . import cuentas, roles, sesion
 from .respuestas import ErrorDePeticion, api, json_error, json_ok, leer_json
 from .sesion import requiere_permiso
 
@@ -45,7 +45,8 @@ def lista_cuentas(request):
             return json_error('Tu rol no tiene permiso para crear cuentas.', 403)
         return json_ok(cuentas.crear(leer_json(request), request.administrador), 201)
     g = request.GET
-    return json_ok(cuentas.listar(g.get('q'), g.get('rol'), g.get('estado'), _pagina(g.get('pagina'))))
+    return json_ok(cuentas.listar(g.get('q'), g.get('rol'), g.get('estado'), _pagina(g.get('pagina')),
+                                  cuentas.ve_datos(request.administrador)))
 
 
 @api({'GET', 'PATCH'})
@@ -55,7 +56,7 @@ def cuenta(request, cuenta_id):
         if not request.administrador.puede('cuentas.gestionar'):
             return json_error('Tu rol no tiene permiso para modificar cuentas.', 403)
         return json_ok(cuentas.modificar(cuenta_id, leer_json(request), request.administrador))
-    return json_ok(cuentas.detalle(cuenta_id))
+    return json_ok(cuentas.detalle(cuenta_id, cuentas.ve_datos(request.administrador)))
 
 
 @api({'POST'})
@@ -68,3 +69,17 @@ def baja(request, cuenta_id):
 @requiere_permiso('cuentas.gestionar')
 def reactivacion(request, cuenta_id):
     return json_ok(cuentas.reactivar(cuenta_id, request.administrador))
+
+
+@api({'GET'})
+@requiere_permiso('cuentas.ver')
+def catalogo_roles(request):
+    return json_ok(roles.catalogo())
+
+
+@api({'PUT'})
+@requiere_permiso('roles.asignar')
+def roles_de_cuenta(request, cuenta_id):
+    datos = leer_json(request)
+    return json_ok(roles.asignar(cuenta_id, datos.get('roles'), request.administrador,
+                                 cuentas.ve_datos(request.administrador)))

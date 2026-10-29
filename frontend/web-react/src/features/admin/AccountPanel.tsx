@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Pencil, UserCheck, UserX, X } from 'lucide-react'
 import {
-  AUDIT_LABELS,
   AdminApiError,
   ROLE_LABELS,
+  assignRoles,
+  auditLabel,
   deactivateAccount,
   displayName,
   fetchAccount,
@@ -15,6 +16,7 @@ import {
   type Administrator,
 } from '../../services/adminApi'
 import { SESSION_LOST, stateLabel, stateTone } from './accountStatus'
+import { RoleAssignment } from './RoleAssignment'
 import { TemporaryPasswordTicket } from './TemporaryPasswordTicket'
 
 interface Props {
@@ -34,6 +36,7 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
   const [confirmingDeactivation, setConfirmingDeactivation] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const canManage = admin.permisos.includes('cuentas.gestionar')
+  const canAssignRoles = admin.permisos.includes('roles.asignar')
 
   useEffect(() => {
     if (created) return
@@ -125,8 +128,16 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
           <dl className="admin-facts">
             <div><dt>Nombre</dt><dd>{[account.nombre, account.apellido].filter(Boolean).join(' ') || '—'}</dd></div>
             <div><dt>Le dicen</dt><dd>{account.nombrePreferido || '—'}</dd></div>
-            <div><dt>Correo</dt><dd>{account.correo || '—'}</dd></div>
-            <div><dt>Rol</dt><dd>{account.roles.map(code => ROLE_LABELS[code] ?? code).join(', ') || 'Sin rol'}</dd></div>
+            <div>
+              <dt>Correo</dt>
+              <dd>
+                {account.correo || '—'}
+                {!account.datosCompletos && account.correo && <small className="admin-masked-note">Oculto para tu rol</small>}
+              </dd>
+            </div>
+            {!canAssignRoles && (
+              <div><dt>Rol</dt><dd>{account.roles.map(code => ROLE_LABELS[code] ?? code).join(', ') || 'Sin rol'}</dd></div>
+            )}
             <div>
               <dt>Estado</dt>
               <dd><span className={`admin-chip admin-chip--${stateTone(account)}`}>{stateLabel(account)}</span></dd>
@@ -136,6 +147,19 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
           </dl>
         )}
       </div>
+
+      {canAssignRoles && (
+        <div className="admin-panel-block">
+          <h3>Roles</h3>
+          <RoleAssignment
+            key={account.roles.join()}
+            account={account}
+            admin={admin}
+            busy={busy}
+            onSave={roles => run(() => assignRoles(account.id, roles), 'Roles actualizados.')}
+          />
+        </div>
+      )}
 
       {canManage && (
         <div className="admin-panel-block">
@@ -203,7 +227,7 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
           <ol className="admin-history">
             {account.historial.map((entry, index) => (
               <li key={`${entry.fecha}-${index}`}>
-                <span>{AUDIT_LABELS[entry.accion] ?? entry.accion}</span>
+                <span>{auditLabel(entry.accion)}</span>
                 <time dateTime={entry.fecha ?? undefined}>{formatDateTime(entry.fecha)}</time>
               </li>
             ))}
@@ -230,7 +254,8 @@ function AccountEditForm({ account, busy, onCancel, onSave }: {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    onSave(form)
+    // Un correo enmascarado no se reenvía: se guardaría «l•••@…» en lugar del dato real.
+    onSave(account.datosCompletos ? form : { ...form, correo: undefined })
   }
 
   return (
@@ -270,8 +295,10 @@ function AccountEditForm({ account, busy, onCancel, onSave }: {
           value={form.correo}
           maxLength={254}
           autoCapitalize="none"
+          disabled={!account.datosCompletos}
           onChange={event => setForm({ ...form, correo: event.target.value })}
         />
+        {!account.datosCompletos && <small>Tu rol no puede ver ni cambiar el correo completo.</small>}
       </label>
       <div className="admin-actions">
         <button type="button" className="admin-btn admin-btn--quiet" onClick={onCancel} disabled={busy}>Cancelar</button>

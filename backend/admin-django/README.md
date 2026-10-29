@@ -24,7 +24,7 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 
 1. Crear el usuario MySQL `rupi_admin` y darle permisos (como root):
    `mysql -e "SET @admin_usuario='rupi_admin'; SOURCE database/mysql/grants-django-admin.sql"`
-2. Aplicar `database/mysql/migrations/V31__consola_administracion_cuentas_hu41.sql` (y las siguientes).
+2. Aplicar `database/mysql/migrations/V31__consola_administracion_cuentas_hu41.sql`, `V32__roles_permisos_estrictos_hu42.sql` y las siguientes.
 3. Variables en `.local/env.sh` (o `.local/env.ps1`): `RUPI_ADMIN_DB_PORT`, `RUPI_ADMIN_DB_USERNAME`, `RUPI_ADMIN_DB_PASSWORD`.
 4. Crear la primera cuenta de administración (pide la contraseña sin mostrarla):
    `.venv/bin/python manage.py crear_administrador --usuario admin.rupi --nombre Rosa --apellido Quispe`
@@ -52,6 +52,16 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 | `POST cuentas` | `cuentas.gestionar` | HU-41 · devuelve `claveTemporal` una sola vez |
 | `GET/PATCH cuentas/{id}` | `cuentas.ver` / `cuentas.gestionar` | HU-41 |
 | `POST cuentas/{id}/baja` · `POST cuentas/{id}/reactivar` | `cuentas.gestionar` | HU-41 |
+| `GET roles` | `cuentas.ver` | HU-42 · roles, permisos y cuántas cuentas tiene cada uno |
+| `PUT cuentas/{id}/roles` `{"roles": [...]}` | `roles.asignar` | HU-42 |
+
+### Roles y permisos (HU-42)
+
+- Entra a la consola quien tenga `consola.ingresar` (ADMINISTRADOR y SOPORTE), no un rol fijo. Los permisos se leen en cada petición: retirar un rol corta el acceso de inmediato.
+- Los permisos de cada rol se fijan en las migraciones (V31, V32…); la consola solo asigna roles.
+- Sin `cuentas.datos_personales` el correo llega enmascarado (`l•••@rupi.pe`) y no se puede buscar por correo.
+- Reglas: toda cuenta tiene al menos un rol; ESTUDIANTE no se combina con otros; nadie se quita su propio rol de administración; siempre queda una administración activa. Cambiar roles cierra la sesión abierta de esa cuenta.
+- Spring rechaza con 403 en la web y el celular las cuentas que solo tienen roles de consola.
 
 Los errores responden `{"detail": "..."}` en español.
 

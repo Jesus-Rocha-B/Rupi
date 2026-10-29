@@ -6,8 +6,9 @@ import bcrypt
 from django.test import RequestFactory, SimpleTestCase, override_settings
 
 from . import claves
-from .cuentas import normalizar_correo, normalizar_usuario
+from .cuentas import enmascarar_correo, normalizar_correo, normalizar_usuario
 from .respuestas import ErrorDePeticion, origen_permitido
+from .roles import problema_combinacion
 
 
 class ClavesTest(SimpleTestCase):
@@ -73,3 +74,20 @@ class OrigenTest(SimpleTestCase):
         self.assertFalse(origen_permitido(self.fabrica.post('/')))
         self.assertFalse(origen_permitido(self.fabrica.post('/', HTTP_ORIGIN='https://otro.example')))
         self.assertFalse(origen_permitido(self.fabrica.post('/', HTTP_ORIGIN='null')))
+
+
+class RolesEstrictosTest(SimpleTestCase):
+    def test_estudiante_no_se_combina(self):
+        self.assertIsNotNone(problema_combinacion({'ESTUDIANTE', 'DOCENTE'}))
+        self.assertIsNotNone(problema_combinacion({'ESTUDIANTE', 'ADMINISTRADOR'}))
+        self.assertIsNone(problema_combinacion({'ESTUDIANTE'}))
+
+    def test_toda_cuenta_tiene_un_rol(self):
+        self.assertIsNotNone(problema_combinacion(set()))
+
+    def test_docente_puede_administrar(self):
+        self.assertIsNone(problema_combinacion({'DOCENTE', 'ADMINISTRADOR'}))
+
+    def test_correo_enmascarado_conserva_el_dominio(self):
+        self.assertEqual(enmascarar_correo('lucia.huaman@rupi.pe'), 'l•••@rupi.pe')
+        self.assertIsNone(enmascarar_correo(None))

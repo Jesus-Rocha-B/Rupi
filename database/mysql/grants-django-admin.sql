@@ -32,6 +32,10 @@ BEGIN
     END LOOP;
     CLOSE cur;
 
+    -- Retirar un rol borra su fila de asignación (HU-42); ninguna otra tabla admite DELETE.
+    SET @g = CONCAT('GRANT DELETE ON rupi.identidad_usuario_rol TO `', usuario, '`@`', equipo, '`');
+    PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+
     SET @g = CONCAT('GRANT INSERT ON rupi.operaciones_evento_auditoria TO `', usuario, '`@`', equipo, '`');
     PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
   END IF;

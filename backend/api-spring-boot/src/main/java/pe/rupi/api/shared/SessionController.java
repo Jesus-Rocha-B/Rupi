@@ -73,6 +73,11 @@ public class SessionController {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS);
         }
 
+        if (result.consoleOnly()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Esta cuenta es de administración: ingresa desde la consola /admin.");
+        }
+
         if (!result.authenticated() || result.token() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }

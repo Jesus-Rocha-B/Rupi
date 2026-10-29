@@ -27,6 +27,8 @@ export interface AccountSummary {
   apellido: string | null
   nombrePreferido: string | null
   correo: string | null
+  /** false si el rol no tiene `cuentas.datos_personales`: el correo llega enmascarado. */
+  datosCompletos: boolean
   estado: AccountState
   bloqueada: boolean
   bloqueadoHasta: string | null
@@ -122,10 +124,37 @@ export const updateAccount = (id: string, changes: AccountChanges) =>
 export const deactivateAccount = (id: string) => post<AccountDetail>(`cuentas/${encodeURIComponent(id)}/baja`)
 export const reactivateAccount = (id: string) => post<AccountDetail>(`cuentas/${encodeURIComponent(id)}/reactivar`)
 
+export interface RoleInfo {
+  codigo: string
+  nombre: string
+  descripcion: string | null
+  permisos: string[]
+  consola: boolean
+  cuentas: number
+}
+
+export interface RoleCatalog {
+  roles: RoleInfo[]
+  permisos: { codigo: string; descripcion: string | null }[]
+}
+
+export const fetchRoleCatalog = (signal?: AbortSignal) => request<RoleCatalog>('roles', { signal })
+export const assignRoles = (id: string, roles: string[]) =>
+  request<AccountDetail>(`cuentas/${encodeURIComponent(id)}/roles`, { method: 'PUT', body: JSON.stringify({ roles }) })
+
 export const ROLE_LABELS: Record<string, string> = {
   ESTUDIANTE: 'Estudiante',
   DOCENTE: 'Docente',
+  SOPORTE: 'Mesa de ayuda',
   ADMINISTRADOR: 'Administración',
+}
+
+export const PERMISSION_LABELS: Record<string, string> = {
+  'consola.ingresar': 'Entrar a la consola',
+  'cuentas.ver': 'Ver cuentas',
+  'cuentas.gestionar': 'Crear, editar y dar de baja cuentas',
+  'cuentas.datos_personales': 'Ver correos y datos personales completos',
+  'roles.asignar': 'Asignar y retirar roles',
 }
 
 export const STATE_LABELS: Record<AccountState, string> = {
@@ -140,6 +169,13 @@ export const AUDIT_LABELS: Record<string, string> = {
   CUENTA_MODIFICADA: 'Datos modificados',
   CUENTA_DADA_DE_BAJA: 'Dada de baja',
   CUENTA_REACTIVADA: 'Reactivada',
+}
+
+export function auditLabel(action: string) {
+  const [base, role] = action.split(':')
+  if (role && base === 'ROL_ASIGNADO') return `Rol asignado: ${ROLE_LABELS[role] ?? role}`
+  if (role && base === 'ROL_RETIRADO') return `Rol retirado: ${ROLE_LABELS[role] ?? role}`
+  return AUDIT_LABELS[action] ?? action
 }
 
 export function displayName(account: Pick<AccountSummary, 'nombre' | 'apellido' | 'nombrePreferido' | 'usuario'>) {

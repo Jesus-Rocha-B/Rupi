@@ -34,7 +34,7 @@ class Command(BaseCommand):
             raise CommandError(error.mensaje)
         rol = Rol.objects.filter(codigo=ROL_ADMINISTRADOR).first()
         if rol is None:
-            raise CommandError('Falta el rol ADMINISTRADOR: aplica database/mysql/migrations/V31.')
+            raise CommandError('Falta el rol ADMINISTRADOR: aplica database/mysql/migrations/V31 y V32.')
 
         cuenta = CuentaUsuario.objects.filter(nombre_usuario=usuario).first()
         ahora = timezone.now()
@@ -53,7 +53,7 @@ class Command(BaseCommand):
             if UsuarioRol.objects.filter(usuario_id=cuenta.id, rol__codigo='ESTUDIANTE').exists():
                 raise CommandError('Una cuenta de estudiante no puede administrar la plataforma.')
             UsuarioRol.objects.create(usuario=cuenta, rol=rol, asignado_por=None, asignado_en=ahora)
-            auditoria.registrar(None, 'ROL_ASIGNADO', cuenta.id)
+            auditoria.registrar(None, f'ROL_ASIGNADO:{ROL_ADMINISTRADOR}', cuenta.id)
         self.stdout.write(self.style.SUCCESS(f'{usuario} ahora puede ingresar a la consola de administración.'))
 
     def _leer_clave(self, desde_stdin, usuario):
