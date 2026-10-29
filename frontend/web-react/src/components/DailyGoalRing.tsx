@@ -186,7 +186,7 @@ export const DailyGoalRing: React.FC<Props> = ({
         <div className="goal-target-selector" role="group" aria-label="Selecciona tu meta diaria">
           <span className="selector-prompt">¿Cuántas paradas deseas completar por día?</span>
           <div className="selector-buttons">
-            {(data?.availableTargetOptions ?? [1, 2, 3, 5]).map((option) => (
+            {(data?.availableTargetOptions ?? [1, 2, 3, 4, 5]).map((option) => (
               <button
                 key={option}
                 type="button"

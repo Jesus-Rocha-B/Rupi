@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.http.HttpStatus;import org.springframework.web.server.ResponseStatusException;
 import pe.rupi.api.reminder.ReminderRepository;
+import pe.rupi.api.gamification.DailyGoalTarget;
 import pe.rupi.api.gamification.StudyStreakService;
 @Service
 public class StudyNotificationService {
@@ -33,7 +34,8 @@ public class StudyNotificationService {
   var params=p(user);var goal=db.queryForList("SELECT objetivo_actividades,revision FROM gamificacion_preferencia_estudio WHERE usuario_id=:user",params);
   var quiet=db.queryForList("SELECT TIME_FORMAT(no_molestar_desde,'%H:%i') desde,TIME_FORMAT(no_molestar_hasta,'%H:%i') hasta FROM notificacion_preferencia WHERE usuario_id=:user",params);
   var time=db.queryForList("SELECT TIME_FORMAT(hora_local,'%H:%i') FROM notificacion_programacion WHERE usuario_id=:user AND categoria='RECORDATORIO' AND dia_semana=1",params,String.class);
-  return new Preferences(goal.isEmpty()?1:((Number)goal.getFirst().get("objetivo_actividades")).intValue(),time.isEmpty()?"17:00":time.getFirst(),
+  // Sin fila propia se muestra la misma meta que el anillo de «Mi meta de hoy» (una sola meta diaria).
+  return new Preferences(goal.isEmpty()?DailyGoalTarget.resolve(db,user):((Number)goal.getFirst().get("objetivo_actividades")).intValue(),time.isEmpty()?"17:00":time.getFirst(),
    category(user,"RECORDATORIO","INTERNA"),category(user,"TAREA","INTERNA"),
    category(user,"RECORDATORIO","PUSH")||category(user,"TAREA","PUSH"),
    quiet.isEmpty()||quiet.getFirst().get("desde")==null?"21:00":quiet.getFirst().get("desde").toString(),

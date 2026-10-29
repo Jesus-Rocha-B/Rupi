@@ -34,8 +34,8 @@ class DailyGoalProgressServiceTest {
     @Test
     void getDailyGoalOverviewComputesProgressAndMotivationalMessage() {
         // Target = 3
-        when(jdbc.queryForObject(contains("meta_diaria_actividades"), any(MapSqlParameterSource.class), eq(Integer.class)))
-                .thenReturn(3);
+        when(jdbc.queryForList(contains("gamificacion_preferencia_estudio"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(List.of(3));
         // Completed today = 2
         when(jdbc.queryForObject(contains("completado_en >= :todayStart"), any(MapSqlParameterSource.class), eq(Integer.class)))
                 .thenReturn(2);
@@ -60,8 +60,8 @@ class DailyGoalProgressServiceTest {
 
     @Test
     void getDailyGoalOverviewWhenGoalIsMet() {
-        when(jdbc.queryForObject(contains("meta_diaria_actividades"), any(MapSqlParameterSource.class), eq(Integer.class)))
-                .thenReturn(3);
+        when(jdbc.queryForList(contains("gamificacion_preferencia_estudio"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(List.of(3));
         // Completed today = 4 (superó la meta)
         when(jdbc.queryForObject(contains("completado_en >= :todayStart"), any(MapSqlParameterSource.class), eq(Integer.class)))
                 .thenReturn(4);
@@ -81,17 +81,47 @@ class DailyGoalProgressServiceTest {
 
     @Test
     void updateTargetGoalRejectsInvalidTarget() {
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
-                service.updateTargetGoal("user-1", 4) // Solo 1, 2, 3 o 5
-        );
-        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        assertTrue(ex.getReason().contains("opciones permitidas"));
+        for (int target : new int[] {0, 6}) {
+            ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+                    service.updateTargetGoal("user-1", target) // De 1 a 5, igual que «Mi ritmo de estudio»
+            );
+            assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+            assertTrue(ex.getReason().contains("opciones permitidas"));
+        }
+    }
+
+    @Test
+    void updateTargetGoalSavesTheSingleGoalAndNeverTheIdentityTable() {
+        when(jdbc.queryForList(contains("gamificacion_preferencia_estudio"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(List.of(4));
+        when(jdbc.queryForObject(contains("completado_en >= :todayStart"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(0);
+
+        DailyGoalOverviewResponse response = service.updateTargetGoal("user-1", 4);
+
+        assertEquals(4, response.today().targetLessons());
+        Mockito.verify(jdbc).update(contains("INSERT INTO gamificacion_preferencia_estudio"), any(MapSqlParameterSource.class));
+        Mockito.verify(jdbc).update(contains("INSERT INTO gamificacion_meta_diaria"), any(MapSqlParameterSource.class));
+        Mockito.verify(jdbc, Mockito.never()).update(contains("identidad_perfil_usuario"), any(MapSqlParameterSource.class));
+    }
+
+    @Test
+    void withoutSavedGoalTheOldProfileGoalIsStillRead() {
+        when(jdbc.queryForList(contains("gamificacion_preferencia_estudio"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(List.of());
+        when(jdbc.queryForList(contains("meta_diaria_actividades"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(List.of(2));
+        assertEquals(2, DailyGoalTarget.resolve(jdbc, "user-1"));
+
+        when(jdbc.queryForList(contains("meta_diaria_actividades"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(List.of());
+        assertEquals(DailyGoalTarget.DEFAULT, DailyGoalTarget.resolve(jdbc, "user-1"));
     }
 
     @Test
     void updateTargetGoalAcceptsValidTarget() {
-        when(jdbc.queryForObject(contains("meta_diaria_actividades"), any(MapSqlParameterSource.class), eq(Integer.class)))
-                .thenReturn(5);
+        when(jdbc.queryForList(contains("gamificacion_preferencia_estudio"), any(MapSqlParameterSource.class), eq(Integer.class)))
+                .thenReturn(List.of(5));
         when(jdbc.queryForObject(contains("completado_en >= :todayStart"), any(MapSqlParameterSource.class), eq(Integer.class)))
                 .thenReturn(1);
         when(streakService.current(anyString()))

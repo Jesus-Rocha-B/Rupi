@@ -36,8 +36,8 @@ public class DailyGoalProgressService {
     private static final Logger log = LoggerFactory.getLogger(DailyGoalProgressService.class);
     private static final ZoneId LIMA_ZONE = ZoneId.of("America/Lima");
     private static final Locale PERU_LOCALE = Locale.of("es", "PE");
-    public static final List<Integer> AVAILABLE_TARGET_OPTIONS = List.of(1, 2, 3, 5);
-    public static final int DEFAULT_TARGET_GOAL = 3;
+    public static final List<Integer> AVAILABLE_TARGET_OPTIONS = DailyGoalTarget.OPTIONS;
+    public static final int DEFAULT_TARGET_GOAL = DailyGoalTarget.DEFAULT;
 
     private final NamedParameterJdbcTemplate jdbc;
     private final StudyStreakService streakService;
@@ -104,19 +104,11 @@ public class DailyGoalProgressService {
     public DailyGoalOverviewResponse updateTargetGoal(String studentId, int newTarget) {
         if (!AVAILABLE_TARGET_OPTIONS.contains(newTarget)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "La meta diaria debe ser una de las opciones permitidas: 1, 2, 3 o 5 lecciones.");
+                    "La meta diaria debe ser una de las opciones permitidas: de 1 a 5 lecciones.");
         }
 
-        // 1. Guardar preferencia en identidad_perfil_usuario
-        String updateProfileSql = """
-                UPDATE identidad_perfil_usuario
-                SET meta_diaria_actividades = :target
-                WHERE usuario_id = :studentId
-                """;
-        var params = new MapSqlParameterSource()
-                .addValue("target", newTarget)
-                .addValue("studentId", studentId);
-        jdbc.update(updateProfileSql, params);
+        // 1. Guardar la meta única que también usan «Mi ritmo de estudio» y sus avisos
+        DailyGoalTarget.save(jdbc, studentId, newTarget, LocalDate.now(LIMA_ZONE));
 
         // 2. Re-calcular y devolver la vista actualizada
         return getDailyGoalOverview(studentId);
@@ -164,18 +156,7 @@ public class DailyGoalProgressService {
     }
 
     private int resolveStudentTargetGoal(String studentId) {
-        String sql = """
-                SELECT meta_diaria_actividades
-                FROM identidad_perfil_usuario
-                WHERE usuario_id = :studentId
-                """;
-        var params = new MapSqlParameterSource("studentId", studentId);
-        try {
-            Integer target = jdbc.queryForObject(sql, params, Integer.class);
-            return (target != null && target >= 1) ? target : DEFAULT_TARGET_GOAL;
-        } catch (Exception ex) {
-            return DEFAULT_TARGET_GOAL;
-        }
+        return DailyGoalTarget.resolve(jdbc, studentId);
     }
 
     private int countLessonsCompletedToday(String studentId, LocalDate todayLocal) {
