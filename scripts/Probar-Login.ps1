@@ -21,3 +21,14 @@ $resTeacher = Invoke-RestMethod -Uri "http://127.0.0.1:8081/api/v1/auth/login" `
 
 Write-Host "[OK] Docente autenticado:" -ForegroundColor Green
 $resTeacher | ConvertTo-Json -Depth 5
+
+Write-Host "`nProbando login de administrador (admin.rupi)..." -ForegroundColor Yellow
+$bodyAdmin = '{"username":"admin.rupi","password":"123456"}'
+$resAdmin = Invoke-RestMethod -Uri "http://127.0.0.1:8081/api/v1/auth/login" `
+    -Method Post `
+    -ContentType "application/json" `
+    -Body $bodyAdmin `
+    -Headers @{ Origin = "http://localhost:5173" }
+
+Write-Host "[OK] Administrador autenticado:" -ForegroundColor Green
+$resAdmin | ConvertTo-Json -Depth 5

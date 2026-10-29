@@ -69,9 +69,25 @@ if (!(Test-Port 8082)) {
         Write-Warning 'Sin entorno de Django: la consola /admin no estara disponible. Ver backend\admin-django\README.md.'
     }
 }
+# Microservicio de IA Educativa Rupi (FastAPI en puerto 8000)
+$iaPython = "$PSScriptRoot\backend\service-ia\.venv\Scripts\python.exe"
+if (!(Test-Path $iaPython)) {
+    $iaPython = (Get-Command python.exe -ErrorAction SilentlyContinue).Source
+}
+if (!(Test-Port 8000)) {
+    if ($iaPython -and (Test-Path $iaPython)) {
+        $ia = Start-Process $iaPython -ArgumentList '-m uvicorn main:app --host 127.0.0.1 --port 8000' -WorkingDirectory "$PSScriptRoot\backend\service-ia" -WindowStyle Hidden -PassThru -RedirectStandardOutput "$PSScriptRoot\.local\ia.log" -RedirectStandardError "$PSScriptRoot\.local\ia-error.log"
+        $ia.Id | Set-Content "$PSScriptRoot\.local\ia.pid"
+        Wait-Port 8000
+    } else {
+        Write-Warning 'Sin entorno de Python para el microservicio de IA. Ver backend\service-ia\README.md.'
+    }
+}
 if (!(Test-Port 5173)) {
     $web = Start-Process (Get-Command node.exe).Source -ArgumentList "`"$PSScriptRoot\node_modules\vite\bin\vite.js`" --host 127.0.0.1 --port 5173 --strictPort" -WorkingDirectory "$PSScriptRoot\frontend\web-react" -WindowStyle Hidden -PassThru -RedirectStandardOutput "$PSScriptRoot\.local\web.log" -RedirectStandardError "$PSScriptRoot\.local\web-error.log"
     $web.Id | Set-Content "$PSScriptRoot\.local\web.pid"
 }
 Wait-Port 5173
 Write-Host 'Rupi disponible en http://localhost:5173'
+Write-Host 'Consola de Administracion: http://localhost:5173/admin'
+Write-Host 'Microservicio de IA activo en http://127.0.0.1:8000'
