@@ -47,6 +47,9 @@ export interface AuditEntry {
 
 export interface AccountDetail extends AccountSummary {
   ultimoIngreso: string | null
+  claveCambiadaEn: string | null
+  /** Fallos de ingreso en los últimos 15 minutos (Spring frena 5 minutos tras 5 seguidos). */
+  intentosFallidos: number
   historial: AuditEntry[]
   claveTemporal?: string
 }
@@ -162,6 +165,12 @@ export const fetchActiveSessions = (client: SessionClient | '', signal?: AbortSi
   request<ActiveSessions>(`sesiones${client ? `?cliente=${client}` : ''}`, { signal })
 export const closeAccountSession = (id: string) => post<AccountDetail>(`cuentas/${encodeURIComponent(id)}/cerrar-sesion`)
 
+/** Sin `clave`, la API genera una temporal y la devuelve en `claveTemporal`. */
+export const resetPassword = (id: string, clave?: string) =>
+  post<AccountDetail>(`cuentas/${encodeURIComponent(id)}/clave`, clave ? { clave } : {})
+export const lockAccount = (id: string) => post<AccountDetail>(`cuentas/${encodeURIComponent(id)}/bloquear`)
+export const unlockAccount = (id: string) => post<AccountDetail>(`cuentas/${encodeURIComponent(id)}/desbloquear`)
+
 export const CLIENT_LABELS: Record<SessionClient, string> = {
   WEB_USUARIO: 'Web',
   MOVIL: 'Celular',
@@ -182,6 +191,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'cuentas.datos_personales': 'Ver correos y datos personales completos',
   'roles.asignar': 'Asignar y retirar roles',
   'sesiones.gestionar': 'Ver y cerrar sesiones abiertas',
+  'credenciales.restablecer': 'Restablecer contraseñas y desbloquear cuentas',
 }
 
 export const STATE_LABELS: Record<AccountState, string> = {
@@ -197,6 +207,9 @@ export const AUDIT_LABELS: Record<string, string> = {
   CUENTA_DADA_DE_BAJA: 'Dada de baja',
   CUENTA_REACTIVADA: 'Reactivada',
   SESION_CERRADA: 'Sesión cerrada desde la consola',
+  CLAVE_RESTABLECIDA: 'Contraseña restablecida',
+  CUENTA_BLOQUEADA: 'Cuenta bloqueada',
+  CUENTA_DESBLOQUEADA: 'Cuenta desbloqueada',
 }
 
 export function auditLabel(action: string) {

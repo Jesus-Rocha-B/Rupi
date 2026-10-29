@@ -24,7 +24,7 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 
 1. Crear el usuario MySQL `rupi_admin` y darle permisos (como root):
    `mysql -e "SET @admin_usuario='rupi_admin'; SOURCE database/mysql/grants-django-admin.sql"`
-2. Aplicar `database/mysql/migrations/V31__consola_administracion_cuentas_hu41.sql`, `V32__roles_permisos_estrictos_hu42.sql` y las siguientes.
+2. Aplicar `database/mysql/migrations/V31__consola_administracion_cuentas_hu41.sql`, `V32__roles_permisos_estrictos_hu42.sql`, `V33` y `V34`.
 3. Variables en `.local/env.sh` (o `.local/env.ps1`): `RUPI_ADMIN_DB_PORT`, `RUPI_ADMIN_DB_USERNAME`, `RUPI_ADMIN_DB_PASSWORD`.
 4. Crear la primera cuenta de administración (pide la contraseña sin mostrarla):
    `.venv/bin/python manage.py crear_administrador --usuario admin.rupi --nombre Rosa --apellido Quispe`
@@ -54,6 +54,9 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 | `POST cuentas/{id}/baja` · `POST cuentas/{id}/reactivar` | `cuentas.gestionar` | HU-41 |
 | `GET roles` | `cuentas.ver` | HU-42 · roles, permisos y cuántas cuentas tiene cada uno |
 | `PUT cuentas/{id}/roles` `{"roles": [...]}` | `roles.asignar` | HU-42 |
+| `GET sesiones?cliente=` · `POST cuentas/{id}/cerrar-sesion` | `sesiones.gestionar` | HU-43 |
+| `POST cuentas/{id}/clave` `{"clave"?: "..."}` | `credenciales.restablecer` | HU-44 · sin `clave` genera una temporal |
+| `POST cuentas/{id}/bloquear` · `POST cuentas/{id}/desbloquear` | `credenciales.restablecer` | HU-44 |
 
 ### Roles y permisos (HU-42)
 
@@ -62,6 +65,16 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 - Sin `cuentas.datos_personales` el correo llega enmascarado (`l•••@rupi.pe`) y no se puede buscar por correo.
 - Reglas: toda cuenta tiene al menos un rol; ESTUDIANTE no se combina con otros; nadie se quita su propio rol de administración; siempre queda una administración activa. Cambiar roles cierra la sesión abierta de esa cuenta.
 - Spring rechaza con 403 en la web y el celular las cuentas que solo tienen roles de consola.
+
+### Sesión única (HU-43)
+
+Una cuenta tiene como mucho una sesión activa entre la web, el celular y la consola (índice `UNIQUE` de `usuario_activo_id`). Spring guarda si la sesión es `WEB_USUARIO` o `MOVIL` y explica en el 401 por qué se cerró (`X-Rupi-Sesion-Cerrada`). La consola muestra dónde está abierta cada cuenta y puede cerrarla; si la propia administración entra en otro equipo, la consola anterior lo explica.
+
+### Contraseñas y desbloqueo (HU-44)
+
+- Restablecer genera una clave temporal (se muestra una vez) o guarda la que se escriba (no se devuelve). Cierra la sesión abierta.
+- Bloquear deja la cuenta en `BLOQUEADO` y cierra su sesión; desbloquear la devuelve a `ACTIVO`. Con la clave correcta, Spring responde 423 para que la persona pida el desbloqueo; con una clave errada responde el 401 de siempre.
+- Nadie cambia el acceso de su propia cuenta desde aquí, ni de una cuenta dada de baja. La mesa de ayuda no toca cuentas de consola.
 
 Los errores responden `{"detail": "..."}` en español.
 

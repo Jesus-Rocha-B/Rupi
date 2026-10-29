@@ -128,6 +128,9 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
           setFeedback('Muchos intentos seguidos. Espera unos minutitos con tu profe para volver a probar.')
         } else if (err.status === 401 || err.status === 400) {
           setFeedback('Revisa tu usuario o contraseña con ayuda de tu profe.')
+        } else if (err.status === 423) {
+          // HU-44: la clave es correcta, pero la cuenta se bloqueó a pedido; la docente gestiona el desbloqueo.
+          setFeedback('Tu cuenta está bloqueada. Pide a tu profe que solicite el desbloqueo.')
         } else if (err.status === 403) {
           // HU-42: las cuentas de administración o mesa de ayuda se usan en la consola, no en el aula.
           setFeedback('Esta cuenta es de administración. Ingresa desde la consola en /admin.')

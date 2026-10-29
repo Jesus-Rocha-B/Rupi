@@ -75,6 +75,11 @@ public class SessionController {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS);
         }
 
+        if (result.locked()) {
+            throw new ResponseStatusException(HttpStatus.LOCKED,
+                    "Tu cuenta está bloqueada. Pide a tu profe que solicite el desbloqueo.");
+        }
+
         if (result.consoleOnly()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Esta cuenta es de administración: ingresa desde la consola /admin.");

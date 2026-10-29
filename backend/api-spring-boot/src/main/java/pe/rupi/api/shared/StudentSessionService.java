@@ -116,23 +116,28 @@ public class StudentSessionService {
             boolean authenticated,
             boolean rateLimited,
             boolean consoleOnly,
+            boolean locked,
             Student student,
             String token
     ) {
         public static AuthenticationResult success(Student student, String token) {
-            return new AuthenticationResult(true, false, false, student, token);
+            return new AuthenticationResult(true, false, false, false, student, token);
         }
 
         public static AuthenticationResult throttled() {
-            return new AuthenticationResult(false, true, false, null, null);
+            return new AuthenticationResult(false, true, false, false, null, null);
         }
 
         public static AuthenticationResult badCredentials() {
-            return new AuthenticationResult(false, false, false, null, null);
+            return new AuthenticationResult(false, false, false, false, null, null);
         }
 
         public static AuthenticationResult consoleAccount() {
-            return new AuthenticationResult(false, false, true, null, null);
+            return new AuthenticationResult(false, false, true, false, null, null);
+        }
+
+        public static AuthenticationResult lockedAccount() {
+            return new AuthenticationResult(false, false, false, true, null, null);
         }
     }
 
@@ -362,7 +367,11 @@ public class StudentSessionService {
                     INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
                     VALUES (?, ?, 'BLOQUEADO', ?, UTC_TIMESTAMP(6))
                     """, account.id(), idHash, originHash);
-            return AuthenticationResult.badCredentials(); // Mismo código para no enumerar
+            // HU-44: con la clave correcta se dice que está bloqueada, para que pida el desbloqueo a su docente.
+            // Una cuenta dada de baja recibe el mismo 401 que una clave equivocada.
+            boolean locked = account.deactivatedAt() == null && ("BLOQUEADO".equalsIgnoreCase(account.state())
+                    || (account.lockedUntil() != null && account.lockedUntil().toInstant().isAfter(now)));
+            return locked ? AuthenticationResult.lockedAccount() : AuthenticationResult.badCredentials();
         }
 
         // 3b. Roles estrictos (HU-42): una cuenta solo de administración o mesa de ayuda no abre la web ni el

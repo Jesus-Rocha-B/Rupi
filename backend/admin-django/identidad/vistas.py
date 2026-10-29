@@ -1,4 +1,4 @@
-from . import cuentas, roles, sesion, sesiones
+from . import credenciales, cuentas, roles, sesion, sesiones
 from .respuestas import ErrorDePeticion, api, json_error, json_ok, leer_json
 from .sesion import requiere_permiso
 
@@ -95,3 +95,22 @@ def sesiones_activas(request):
 @requiere_permiso('sesiones.gestionar')
 def cerrar_sesion_de_cuenta(request, cuenta_id):
     return json_ok(sesiones.cerrar(cuenta_id, request.administrador, cuentas.ve_datos(request.administrador)))
+
+
+@api({'POST'})
+@requiere_permiso('credenciales.restablecer')
+def clave_de_cuenta(request, cuenta_id):
+    return json_ok(credenciales.restablecer_clave(cuenta_id, leer_json(request), request.administrador,
+                                                  cuentas.ve_datos(request.administrador)))
+
+
+@api({'POST'})
+@requiere_permiso('credenciales.restablecer')
+def bloqueo(request, cuenta_id):
+    return json_ok(credenciales.bloquear(cuenta_id, request.administrador, cuentas.ve_datos(request.administrador)))
+
+
+@api({'POST'})
+@requiere_permiso('credenciales.restablecer')
+def desbloqueo(request, cuenta_id):
+    return json_ok(credenciales.desbloquear(cuenta_id, request.administrador, cuentas.ve_datos(request.administrador)))

@@ -197,6 +197,48 @@ try:
     estado, cuerpo, _ = admin(a, 'cuentas')
     comprobar(estado == 401 and 'otra consola' in cuerpo['detail'], 'la primera consola explica por qué se cerró')
     a = otra_consola
+
+    print('HU-44 · contraseñas y desbloqueo a pedido')
+    usuario = f'prueba.{sufijo}'
+    estado, bloqueada, _ = admin(a, f'cuentas/{nueva["id"]}/bloquear', 'POST')
+    comprobar(estado == 200 and bloqueada['estado'] == 'BLOQUEADO' and bloqueada['bloqueada'], 'bloquea la cuenta a pedido')
+    estado, cuerpo, _ = api(cliente(), 'auth/login', 'POST', {'username': usuario, 'password': clave})
+    comprobar(estado == 423 and 'desbloqueo' in (cuerpo or {}).get('detail', ''), 'con la clave correcta Spring avisa 423 «bloqueada»')
+    comprobar(api(cliente(), 'auth/login', 'POST', {'username': usuario, 'password': 'otra-clave-9'})[0] == 401,
+              'con una clave equivocada no revela que está bloqueada')
+    estado, libre, _ = admin(a, f'cuentas/{nueva["id"]}/desbloquear', 'POST')
+    comprobar(estado == 200 and libre['estado'] == 'ACTIVO' and libre['intentosFallidos'] >= 2,
+              'la desbloquea y muestra los intentos fallidos recientes')
+    alumno = cliente()
+    comprobar(api(alumno, 'auth/login', 'POST', {'username': usuario, 'password': clave})[0] == 200, 'vuelve a ingresar')
+
+    estado, nueva_clave, _ = admin(a, f'cuentas/{nueva["id"]}/clave', 'POST', {})
+    temporal = (nueva_clave or {}).get('claveTemporal')
+    comprobar(estado == 200 and temporal and nueva_clave['sesionActiva'] is None, 'genera una clave temporal y cierra su sesión')
+    comprobar(api(alumno, 'student/session')[0] == 401, 'la sesión abierta con la clave anterior deja de valer')
+    comprobar(api(cliente(), 'auth/login', 'POST', {'username': usuario, 'password': clave})[0] == 401, 'la clave anterior ya no sirve')
+    comprobar(api(cliente(), 'auth/login', 'POST', {'username': usuario, 'password': temporal})[0] == 200, 'la clave temporal sí')
+    comprobar(admin(a, f'cuentas/{nueva["id"]}/clave', 'POST', {'clave': 'abc'})[0] == 400, 'rechaza una clave corta')
+    comprobar(admin(a, f'cuentas/{nueva["id"]}/clave', 'POST', {'clave': f'{usuario}-2026'})[0] == 400,
+              'rechaza una clave con el nombre de usuario')
+    estado, escrita, _ = admin(a, f'cuentas/{nueva["id"]}/clave', 'POST', {'clave': 'quinua-andina-77'})
+    comprobar(estado == 200 and 'claveTemporal' not in escrita, 'acepta una clave escrita y no la devuelve')
+    comprobar(api(cliente(), 'auth/login', 'POST', {'username': usuario, 'password': 'quinua-andina-77'})[0] == 200,
+              'la clave escrita funciona en la web')
+    comprobar(admin(a, f'cuentas/{yo["id"]}/clave', 'POST', {})[0] == 409, 'nadie cambia su propio acceso desde la consola')
+
+    admin(a, f'cuentas/{mesa["id"]}/roles', 'PUT', {'roles': ['SOPORTE']})
+    s = cliente()
+    comprobar(admin(s, 'sesion', 'POST', {'usuario': f'mesa.{sufijo}', 'clave': mesa['claveTemporal']})[0] == 200,
+              'mesa de ayuda vuelve a la consola')
+    estado, por_mesa, _ = admin(s, f'cuentas/{nueva["id"]}/clave', 'POST', {})
+    comprobar(estado == 200 and por_mesa.get('claveTemporal'), 'mesa de ayuda restablece la clave de una estudiante')
+    comprobar(admin(s, f'cuentas/{yo["id"]}/clave', 'POST', {})[0] == 403, 'mesa de ayuda no toca cuentas de la consola')
+    comprobar(admin(s, f'cuentas/{yo["id"]}/bloquear', 'POST')[0] == 403, 'mesa de ayuda no bloquea a la administración')
+    admin(a, f'cuentas/{nueva["id"]}/baja', 'POST')
+    comprobar(admin(a, f'cuentas/{nueva["id"]}/clave', 'POST', {})[0] == 409, 'una cuenta dada de baja no recibe clave')
+    acciones = [h['accion'] for h in admin(a, f'cuentas/{nueva["id"]}')[1]['historial']]
+    comprobar({'CLAVE_RESTABLECIDA', 'CUENTA_BLOQUEADA', 'CUENTA_DESBLOQUEADA'} <= set(acciones), 'todo queda auditado')
     print('Todo correcto.')
 finally:
     for cuenta_id in creadas:

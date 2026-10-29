@@ -480,6 +480,12 @@
 .admin-role-check:has(input:focus-visible) { outline: 3px solid var(--adm-sky); outline-offset: 3px; }
 .admin-masked-note { display: block; color: var(--adm-muted); font-weight: 700; font-size: 0.85rem; }
 
+.admin-actions--start { justify-content: flex-start; }
+.admin-panel-block > .admin-btn,
+.admin-form > .admin-btn { justify-self: start; }
+.admin-subform { padding: 14px; border: 2px solid var(--adm-line); border-radius: 14px; background: var(--adm-paper); }
+.admin-confirm--calm { border-color: var(--adm-sun-dark); background: #fffaf0; }
+
 /* Sesiones (HU-43) */
 .admin-policy {
   display: flex;

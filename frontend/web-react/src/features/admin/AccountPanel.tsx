@@ -18,6 +18,7 @@ import {
   type Administrator,
 } from '../../services/adminApi'
 import { SESSION_LOST, stateLabel, stateTone } from './accountStatus'
+import { AccessBlock } from './AccessBlock'
 import { RoleAssignment } from './RoleAssignment'
 import { TemporaryPasswordTicket } from './TemporaryPasswordTicket'
 
@@ -40,6 +41,7 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
   const canManage = admin.permisos.includes('cuentas.gestionar')
   const canAssignRoles = admin.permisos.includes('roles.asignar')
   const canManageSessions = admin.permisos.includes('sesiones.gestionar')
+  const canResetAccess = admin.permisos.includes('credenciales.restablecer')
 
   useEffect(() => {
     if (created) return
@@ -89,6 +91,8 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
 
   const isSelf = account.id === admin.id
   const disabled = account.estado === 'DESHABILITADO'
+  // Igual que identidad/credenciales.py: la mesa de ayuda no cambia el acceso de cuentas de la consola.
+  const isConsoleAccount = account.roles.some(code => code === 'ADMINISTRADOR' || code === 'SOPORTE')
 
   return (
     <section className="admin-card admin-panel" aria-labelledby="admin-account-title">
@@ -103,7 +107,11 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
       </div>
 
       {account.claveTemporal && (
-        <TemporaryPasswordTicket username={account.usuario} password={account.claveTemporal} title="Cuenta creada" />
+        <TemporaryPasswordTicket
+          username={account.usuario}
+          password={account.claveTemporal}
+          title={created?.claveTemporal === account.claveTemporal ? 'Cuenta creada' : 'Clave temporal nueva'}
+        />
       )}
       {message && <p className="admin-feedback admin-feedback--ok" role="status">{message}</p>}
       {error && <p className="admin-feedback admin-feedback--error" role="alert">{error}</p>}
@@ -157,7 +165,7 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
           <>
             <p className="admin-muted">
               Abierta en <strong>{CLIENT_LABELS[account.sesionActiva.cliente]}</strong> desde{' '}
-              {formatDateTime(account.sesionActiva.desde)}. Última actividad: {formatDateTime(account.sesionActiva.actividad)}.
+              {formatDateTime(account.sesionActiva.desde)} · última actividad: {formatDateTime(account.sesionActiva.actividad)}
             </p>
             {canManageSessions && !isSelf && (
               <button
@@ -175,6 +183,13 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
           <p className="admin-muted">Sin sesión abierta. Rupi permite una sola sesión por cuenta entre la web y el celular.</p>
         )}
       </div>
+
+      {canResetAccess && !isSelf && !disabled && (!isConsoleAccount || canAssignRoles) && (
+        <div className="admin-panel-block">
+          <h3>Acceso</h3>
+          <AccessBlock account={account} busy={busy} run={run} />
+        </div>
+      )}
 
       {canAssignRoles && (
         <div className="admin-panel-block">
@@ -194,7 +209,7 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
           <h3>Alta y baja</h3>
           {disabled ? (
             <>
-              <p className="admin-muted">Dada de baja el {formatDateTime(account.desactivadoEn)}. No puede ingresar a Rupi.</p>
+              <p className="admin-muted">Dada de baja el {formatDateTime(account.desactivadoEn)}: no puede ingresar a Rupi.</p>
               <button
                 type="button"
                 className="admin-btn admin-btn--leaf"

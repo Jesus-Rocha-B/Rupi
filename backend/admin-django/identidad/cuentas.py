@@ -4,6 +4,7 @@ Ninguna cuenta se borra: las filas tienen progreso, notas y auditoría que depen
 deja la cuenta en DESHABILITADO con su fecha y cierra su sesión; reactivarla la devuelve a ACTIVO.
 """
 import re
+from datetime import timedelta
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -168,6 +169,11 @@ def detalle(cuenta_id, ver_datos=True):
                     _sesiones_activas([cuenta.id], ahora).get(cuenta.id), ahora, ver_datos)
     datos['ultimoIngreso'] = _iso(IntentoAcceso.objects.filter(usuario_id=cuenta.id, resultado='CORRECTO')
                                   .aggregate(m=Max('ocurrido_en'))['m'])
+    datos['claveCambiadaEn'] = _iso(cuenta.clave_cambiada_en)
+    # Ayuda a la mesa de ayuda a reconocer «se equivocó muchas veces»: Spring frena 5 minutos tras 5 fallos.
+    datos['intentosFallidos'] = IntentoAcceso.objects.filter(
+        usuario_id=cuenta.id, resultado__in=('INCORRECTO', 'BLOQUEADO'),
+        ocurrido_en__gt=ahora - timedelta(minutes=15)).count()
     datos['historial'] = [{'accion': e.accion, 'resultado': e.resultado, 'fecha': _iso(e.ocurrido_en),
                            'actor': e.actor_usuario_id} for e in auditoria.historial(cuenta.id)]
     return datos
