@@ -1,4 +1,4 @@
-"""Reglas de estado de la salud de la plataforma (HU-45), sin base de datos ni red."""
+"""Reglas de estado de la salud y sincronización de la plataforma (HU-45 y HU-46), sin base de datos ni red."""
 from django.test import SimpleTestCase
 
 from .salud import (
@@ -10,6 +10,7 @@ from .salud import (
     estado_por_latencia,
     evaluar_alertas,
 )
+from .sincronizacion import evaluar_alertas_sincronizacion
 
 
 def servicio(clave, estado, detalle=None, peticiones=None, latencia_ms=None):
@@ -65,3 +66,45 @@ class SaludTest(SimpleTestCase):
         self.assertIn('api_cpu_critica', ids)
         self.assertIn('api_memoria_critica', ids)
         self.assertEqual(estado_general(servicios, alertas), 'FALLA')
+
+
+class SincronizacionTest(SimpleTestCase):
+    def test_detecta_errores_de_transmision_como_criticos(self):
+        resumen = {'eventosError': 3, 'totalTrafico': 50, 'tasaExitoPercent': 94.0}
+        alertas = evaluar_alertas_sincronizacion(resumen, [], [])
+        ids = [a['id'] for a in alertas]
+        self.assertIn('sync_errores_transmision', ids)
+        critica = next(a for a in alertas if a['id'] == 'sync_errores_transmision')
+        self.assertEqual(critica['nivel'], 'CRITICA')
+
+    def test_detecta_discrepancias_entre_web_y_movil(self):
+        resumen = {'eventosError': 0, 'totalTrafico': 20, 'tasaExitoPercent': 100.0}
+        comparaciones = [
+            {
+                'usuario': 'mateo.quispe',
+                'estado': 'DISCREPANCIA',
+                'puntajeBd': 120,
+                'reporteWeb': {'puntajeXp': 120, 'lecciones': 5},
+                'reporteMovil': {'puntajeXp': 90, 'lecciones': 4},
+            }
+        ]
+        alertas = evaluar_alertas_sincronizacion(resumen, comparaciones, [])
+        ids = [a['id'] for a in alertas]
+        self.assertIn('sync_discrepancia_puntajes', ids)
+        alerta = next(a for a in alertas if a['id'] == 'sync_discrepancia_puntajes')
+        self.assertEqual(alerta['nivel'], 'ADVERTENCIA')
+        self.assertIn('mateo.quispe', alerta['mensaje'])
+
+    def test_sin_errores_ni_discrepancias_lista_vacia(self):
+        resumen = {'eventosError': 0, 'totalTrafico': 25, 'tasaExitoPercent': 100.0}
+        comparaciones = [
+            {
+                'usuario': 'lucia.huaman',
+                'estado': 'SINCRONIZADO',
+                'puntajeBd': 150,
+                'reporteWeb': {'puntajeXp': 150, 'lecciones': 6},
+                'reporteMovil': {'puntajeXp': 150, 'lecciones': 6},
+            }
+        ]
+        alertas = evaluar_alertas_sincronizacion(resumen, comparaciones, [])
+        self.assertEqual(len(alertas), 0)

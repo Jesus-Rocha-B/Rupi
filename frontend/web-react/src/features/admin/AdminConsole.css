@@ -722,6 +722,19 @@
   color: var(--adm-forest);
 }
 
+.admin-device-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--adm-forest);
+}
+.admin-text-danger {
+  color: #7f2410;
+  font-weight: 800;
+}
+
 @media (max-width: 900px) {
   .admin-session-row { grid-template-columns: auto minmax(0, 1fr); }
   .admin-session-times { grid-column: 1 / -1; }

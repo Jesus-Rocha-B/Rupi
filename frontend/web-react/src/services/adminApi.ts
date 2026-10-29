@@ -231,6 +231,73 @@ export interface PlatformHealth {
 
 export const fetchPlatformHealth = (signal?: AbortSignal) => request<PlatformHealth>('salud', { signal })
 
+export interface SyncTrafficSummary {
+  totalTrafico: number
+  traficoWeb: number
+  traficoMovil: number
+  eventosAplicados: number
+  eventosDuplicados: number
+  eventosError: number
+  discrepanciasDetectadas: number
+  tasaExitoPercent: number
+}
+
+export interface SyncAlert {
+  id: string
+  nivel: 'CRITICA' | 'ADVERTENCIA'
+  titulo: string
+  mensaje: string
+  impacto?: string
+  sugerencia?: string
+}
+
+export interface SyncTrafficEvent {
+  id: string
+  usuarioId: string
+  usuario: string
+  nombre: string
+  clienteTipo: 'WEB' | 'MOVIL'
+  tipoEvento: string
+  puntajeXp: number
+  leccionesCompletadas: number
+  estado: 'RECIBIDO' | 'APLICADO' | 'DUPLICADO' | 'RECHAZADO' | 'ERROR'
+  codigoResultado: string | null
+  discrepanciaDetectada: boolean
+  recibidoEn: string
+}
+
+export interface SyncDeviceComparison {
+  usuarioId: string
+  usuario: string
+  nombreCompleto: string
+  puntajeBd: number
+  leccionesBd: number
+  reporteWeb: {
+    puntajeXp: number
+    lecciones: number
+    fecha: string | null
+  }
+  reporteMovil: {
+    puntajeXp: number
+    lecciones: number
+    fecha: string | null
+  }
+  estado: 'SINCRONIZADO' | 'DISCREPANCIA' | 'ALINEADO'
+  diferenciaXp: number
+  diferenciaLecciones: number
+}
+
+export interface SyncAuditData {
+  revisadoEn: string
+  resumen: SyncTrafficSummary
+  alertas: SyncAlert[]
+  comparaciones: SyncDeviceComparison[]
+  eventosRecientes: SyncTrafficEvent[]
+}
+
+export const fetchSyncAudit = (signal?: AbortSignal) => request<SyncAuditData>('sincronizacion', { signal })
+
+
 export const CLIENT_LABELS: Record<SessionClient, string> = {
   WEB_USUARIO: 'Web',
   MOVIL: 'Celular',
@@ -253,6 +320,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'sesiones.gestionar': 'Ver y cerrar sesiones abiertas',
   'credenciales.restablecer': 'Restablecer contraseñas y desbloquear cuentas',
   'plataforma.monitorear': 'Ver la salud de los servidores',
+  'sincronizacion.auditar': 'Auditar sincronización web y celular',
 }
 
 export const STATE_LABELS: Record<AccountState, string> = {

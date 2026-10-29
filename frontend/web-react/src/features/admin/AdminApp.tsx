@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Activity, LogOut, MonitorSmartphone, ShieldCheck, Users } from 'lucide-react'
+import { Activity, ArrowLeftRight, LogOut, MonitorSmartphone, ShieldCheck, Users } from 'lucide-react'
 import { AdminApiError, adminLogout, fetchAdminSession, type Administrator } from '../../services/adminApi'
 import { AdminLogin } from './AdminLogin'
 import { AccountsView } from './AccountsView'
 import { HealthView } from './HealthView'
 import { RolesView } from './RolesView'
 import { SessionsView } from './SessionsView'
+import { SyncAuditView } from './SyncAuditView'
 import './AdminConsole.css'
 
-type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'salud'
+type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'salud' | 'sincronizacion'
 
 interface Section {
   id: SectionId
@@ -22,6 +23,7 @@ const SECTIONS: Section[] = [
   { id: 'roles', label: 'Roles y permisos', permission: 'cuentas.ver', icon: ShieldCheck },
   { id: 'sesiones', label: 'Sesiones', permission: 'sesiones.gestionar', icon: MonitorSmartphone },
   { id: 'salud', label: 'Salud', permission: 'plataforma.monitorear', icon: Activity },
+  { id: 'sincronizacion', label: 'Sincronización Web/Móvil', permission: 'sincronizacion.auditar', icon: ArrowLeftRight },
 ]
 
 export function AdminApp() {
@@ -59,50 +61,56 @@ export function AdminApp() {
       // Aunque falle la red, en este equipo la consola se cierra igual.
     }
     setAdmin(null)
-    setNotice('Cerraste la sesión de administración.')
   }
 
   if (checking) {
-    return <main className="admin-shell admin-shell--center"><p className="admin-loading">Abriendo la consola…</p></main>
-  }
-
-  if (!admin) {
     return (
-      <AdminLogin
-        notice={notice}
-        serviceDown={serviceDown}
-        onLogin={value => {
-          setAdmin(value)
-          setNotice(null)
-          setServiceDown(false)
-        }}
-      />
+      <main className="admin-loading-screen" aria-busy="true">
+        <p>Entrando a la administración de Rupi…</p>
+      </main>
     )
   }
 
-  const visibleSections = SECTIONS.filter(item => admin.permisos.includes(item.permission))
-  const current = visibleSections.find(item => item.id === section) ?? visibleSections[0]
+  if (serviceDown) {
+    return (
+      <main className="admin-login-wrap">
+        <section className="admin-card" role="alert">
+          <h1>No pudimos conectar con la administración</h1>
+          <p className="admin-muted">
+            Revisa que la consola de Django esté encendida (puerto 8082) y que MySQL responda.
+          </p>
+          <button type="button" className="admin-btn admin-btn--sky" onClick={() => window.location.reload()}>
+            Reintentar
+          </button>
+        </section>
+      </main>
+    )
+  }
+
+  if (!admin) {
+    return <AdminLogin onLogin={setAdmin} notice={notice} serviceDown={serviceDown} />
+  }
+
+  const availableSections = SECTIONS.filter(s => admin.permisos.includes(s.permission))
+  const current = availableSections.find(s => s.id === section) || availableSections[0]
 
   return (
-    <div className="admin-shell">
-      <a className="admin-skip" href="#admin-main">Saltar al contenido</a>
+    <div className="admin-layout">
       <header className="admin-topbar">
         <div className="admin-brand">
-          <span className="admin-brand-mark" aria-hidden="true">R</span>
-          <div>
-            <strong>Rupi</strong>
-            <span>Administración de la plataforma</span>
-          </div>
+          <span className="admin-brand-dot" aria-hidden="true" />
+          <span>RUPI · Consola</span>
         </div>
-        <nav className="admin-nav" aria-label="Secciones de administración">
-          {visibleSections.map(item => {
+        <nav className="admin-tabs" aria-label="Secciones de la consola">
+          {availableSections.map(item => {
             const Icon = item.icon
+            const active = current?.id === item.id
             return (
               <button
                 key={item.id}
                 type="button"
-                className={`admin-nav-btn${current?.id === item.id ? ' is-current' : ''}`}
-                aria-current={current?.id === item.id ? 'page' : undefined}
+                className={`admin-tab ${active ? 'is-active' : ''}`}
+                aria-current={active ? 'page' : undefined}
                 onClick={() => setSection(item.id)}
               >
                 <Icon size={18} aria-hidden="true" />
@@ -115,7 +123,7 @@ export function AdminApp() {
           <span>{admin.nombre}</span>
           <button type="button" className="admin-btn admin-btn--quiet" onClick={handleLogout}>
             <LogOut size={18} aria-hidden="true" />
-            Salir
+            Cerrar sesión
           </button>
         </div>
       </header>
@@ -130,6 +138,7 @@ export function AdminApp() {
         {current?.id === 'roles' && <RolesView onSessionLost={handleSessionLost} />}
         {current?.id === 'sesiones' && <SessionsView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'salud' && <HealthView onSessionLost={handleSessionLost} />}
+        {current?.id === 'sincronizacion' && <SyncAuditView onSessionLost={handleSessionLost} />}
       </main>
     </div>
   )
