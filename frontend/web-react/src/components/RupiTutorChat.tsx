@@ -239,7 +239,8 @@ export function RupiTutorChat({
           stopTitle: stopTitle || 'Parada Activa',
           lessonContent: lessonContent || '',
         },
-        newMessages
+        // El servicio usa los últimos mensajes; mandar toda la conversación guardada solo pesaba más.
+        newMessages.slice(-20)
       )
 
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }])
@@ -394,6 +395,7 @@ export function RupiTutorChat({
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={loading}
+              maxLength={2000}
               aria-label="Escribe tu pregunta para Rupi"
             />
             <button

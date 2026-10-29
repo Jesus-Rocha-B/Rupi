@@ -1,8 +1,8 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, BeforeValidator, Field
+from typing import Annotated, Optional, List, Dict, Any, Literal
 import json
 import logging
 import os
@@ -42,28 +42,87 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
+# Límites de entrada: sin ellos, un texto o archivo enorme ocupaba memoria y gastaba la cuota de Gemini.
+MAX_ARCHIVOS = 5
+MAX_BYTES_ARCHIVO = 10 * 1024 * 1024
+TIPOS_DE_PARADA = {"LECCION", "RETO", "CUESTIONARIO", "TARJETAS_MEMORIA", "INFOGRAFIA"}
+
+
+def recortado(maximo: int):
+    """Texto de contexto que se recorta en vez de rechazarse: una lección larga no debe romper el chat del niño."""
+    return Annotated[Optional[str], BeforeValidator(lambda v: v[:maximo] if isinstance(v, str) else v)]
+
+
+HISTORIAL_USADO = 10
+
+
 class TextGenerateRequest(BaseModel):
-    text: str
-    gradeNumber: Optional[int] = None
-    subjectCode: Optional[str] = None
+    text: str = Field(max_length=60000)
+    gradeNumber: Optional[int] = Field(default=None, ge=0, le=6)
+    subjectCode: Optional[str] = Field(default=None, max_length=20)
 
 class ChatContext(BaseModel):
-    roadmapTitle: Optional[str] = "Ruta de Aprendizaje"
-    roadmapDescription: Optional[str] = ""
-    stopsSummary: Optional[str] = ""
-    currentGrade: Optional[str] = ""
-    currentSubject: Optional[str] = ""
-    stopTitle: Optional[str] = "Parada Actual"
-    lessonContent: Optional[str] = ""
+    roadmapTitle: recortado(300) = "Ruta de Aprendizaje"
+    roadmapDescription: recortado(3000) = ""
+    stopsSummary: recortado(12000) = ""
+    currentGrade: recortado(60) = ""
+    currentSubject: recortado(120) = ""
+    stopTitle: recortado(300) = "Parada Actual"
+    lessonContent: recortado(20000) = ""
 
 class ChatMessage(BaseModel):
-    role: str  # 'user' | 'assistant'
-    content: str
+    role: Literal["user", "assistant"]
+    content: recortado(4000)
 
 class ChatRequest(BaseModel):
-    message: str
+    # Solo el mensaje del niño se rechaza si es absurdo; la web lo limita a 2000 caracteres al escribir.
+    message: str = Field(max_length=2000)
     context: Optional[ChatContext] = None
-    history: Optional[List[ChatMessage]] = []
+    # La web guarda la conversación entera; se aceptan hasta 500 mensajes y se usan los últimos HISTORIAL_USADO.
+    history: Optional[List[ChatMessage]] = Field(default_factory=list, max_length=500)
+
+
+def _texto(valor, maximo):
+    return valor.strip()[:maximo] if isinstance(valor, str) and valor.strip() else None
+
+
+def validar_roadmap(crudo: str) -> Dict[str, Any]:
+    """Revisa el JSON que devuelve Gemini antes de mandarlo al docente.
+
+    Antes se devolvía tal cual: un texto que no era JSON daba 500 y una pregunta cuya respuesta correcta no estaba
+    entre las opciones llegaba rota al editor. Lo indispensable (título y paradas) se exige; lo demás se ordena.
+    """
+    try:
+        datos = json.loads(crudo)
+    except (TypeError, ValueError) as error:
+        raise IAError(f"Gemini no devolvió JSON válido: {crudo[:300]!r}") from error
+    if not isinstance(datos, dict) or not _texto(datos.get("title"), 200):
+        raise IAError("La ruta generada no tiene título.")
+    paradas = datos.get("stops")
+    if not isinstance(paradas, list) or not 1 <= len(paradas) <= 12:
+        raise IAError("La ruta generada no tiene entre 1 y 12 paradas.")
+    limpias = []
+    for numero, parada in enumerate(paradas, start=1):
+        if not isinstance(parada, dict) or not _texto(parada.get("title"), 200):
+            raise IAError(f"La parada {numero} no tiene título.")
+        parada["title"] = _texto(parada["title"], 200)
+        parada["sequenceNumber"] = numero
+        if parada.get("activityType") not in TIPOS_DE_PARADA:
+            parada["activityType"] = "LECCION"
+        opciones = parada.get("options")
+        pregunta_valida = (isinstance(opciones, list) and 2 <= len(opciones) <= 6
+                           and all(isinstance(o, str) and o.strip() for o in opciones)
+                           and _texto(parada.get("challengeQuestion"), 500)
+                           and parada.get("correctAnswer") in opciones)
+        if not pregunta_valida:
+            for campo in ("challengeQuestion", "options", "correctAnswer", "explanation"):
+                parada.pop(campo, None)
+        limpias.append(parada)
+    datos["stops"] = limpias
+    grado = datos.get("gradeNumber")
+    if not isinstance(grado, int) or not 0 <= grado <= 6:
+        datos["gradeNumber"] = None
+    return datos
 
 @app.get("/health")
 @app.get("/api/v1/ia/health")
@@ -93,11 +152,15 @@ async def generate_roadmap_from_file(
             
         if not file_list:
             raise HTTPException(status_code=400, detail="Debes subir al menos un archivo educativo.")
+        if len(file_list) > MAX_ARCHIVOS:
+            raise HTTPException(status_code=413, detail=f"Sube como máximo {MAX_ARCHIVOS} archivos a la vez.")
             
         extracted_sections = []
         filenames = []
         for f in file_list:
-            content_bytes = await f.read()
+            content_bytes = await f.read(MAX_BYTES_ARCHIVO + 1)
+            if len(content_bytes) > MAX_BYTES_ARCHIVO:
+                raise HTTPException(status_code=413, detail=f"{f.filename} pesa más de 10 MB. Sube una versión más liviana.")
             if not content_bytes:
                 continue
             # Leer PDF o Word y llamar a Gemini bloquea: en un endpoint async congelaba todo el servicio, también el
@@ -135,7 +198,7 @@ async def generate_roadmap_from_file(
             json_mode=True
         )
         
-        roadmap_data = json.loads(gemini_response)
+        roadmap_data = validar_roadmap(gemini_response)
         # Asegurar que cada parada indique obligatoriamente sus documentos base
         if "stops" in roadmap_data and isinstance(roadmap_data["stops"], list):
             for s in roadmap_data["stops"]:
@@ -174,7 +237,7 @@ def generate_roadmap_from_text(payload: TextGenerateRequest):
             json_mode=True
         )
         
-        roadmap_data = json.loads(gemini_response)
+        roadmap_data = validar_roadmap(gemini_response)
         return {
             "success": True,
             "roadmap": roadmap_data
@@ -210,9 +273,9 @@ PARADA DONDE ESTÁ EL ESTUDIANTE AHORA:
         history_text = ""
         if payload.history:
             history_lines = []
-            for h in payload.history[-10:]:  # Hasta 10 intercambios recientes para memoria conversacional
+            for h in payload.history[-HISTORIAL_USADO:]:  # Mensajes recientes para memoria conversacional
                 prefix = "Estudiante" if h.role == "user" else "Rupi"
-                history_lines.append(f"{prefix}: {h.content}")
+                history_lines.append(f"{prefix}: {h.content or ''}")
             history_text = "\nHISTORIAL DE CONVERSACIÓN PREVIO:\n" + "\n".join(history_lines) + "\n"
 
         user_content = f"{context_block}\n{history_text}\nPREGUNTA ACTUAL DEL ESTUDIANTE:\n{payload.message}"
