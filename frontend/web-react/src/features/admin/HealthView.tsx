@@ -106,6 +106,62 @@ export function HealthView({ onSessionLost }: Props) {
         )}
       </section>
 
+      {health && (
+        <section className="admin-card" aria-labelledby="admin-alerts-title">
+          <div className="admin-section-head">
+            <div>
+              <h2 id="admin-alerts-title">Alertas automáticas del sistema</h2>
+              <p className="admin-muted">
+                Detección temprana de saturación de CPU/RAM, demoras de red y fallos inminentes para proteger las clases escolares.
+              </p>
+            </div>
+            <span
+              className={`admin-badge admin-badge--${
+                health.alertas && health.alertas.length > 0
+                  ? health.alertas.some(a => a.nivel === 'CRITICA')
+                    ? 'error'
+                    : 'warn'
+                  : 'success'
+              }`}
+            >
+              {!health.alertas || health.alertas.length === 0
+                ? 'Sin alertas'
+                : `${health.alertas.length} alerta(s)`}
+            </span>
+          </div>
+
+          {!health.alertas || health.alertas.length === 0 ? (
+            <div className="admin-alert-empty" role="status">
+              <CheckCircle2 size={24} aria-hidden="true" />
+              <div>
+                <strong>Todos los servicios operan dentro de los umbrales normales</strong>
+                <p>El uso de CPU, memoria RAM y tiempos de respuesta se mantienen estables para las clases escolares.</p>
+              </div>
+            </div>
+          ) : (
+            <ul className="admin-alert-list" role="list">
+              {health.alertas.map(alerta => (
+                <li key={alerta.id} className={`admin-alert-item admin-alert-item--${alerta.nivel.toLowerCase()}`}>
+                  <div className="admin-alert-head">
+                    <span className="admin-alert-title">{alerta.titulo}</span>
+                    <span className={`admin-alert-badge admin-alert-badge--${alerta.nivel.toLowerCase()}`}>
+                      {alerta.nivel} · {alerta.servicio}
+                    </span>
+                  </div>
+                  <p className="admin-alert-desc">{alerta.mensaje}</p>
+                  {(alerta.impacto || alerta.sugerencia) && (
+                    <div className="admin-alert-extra">
+                      {alerta.impacto && <p><strong>Impacto:</strong> {alerta.impacto}</p>}
+                      {alerta.sugerencia && <p><strong>Acción sugerida:</strong> {alerta.sugerencia}</p>}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
       {api?.peticiones && (
         <section className="admin-card" aria-labelledby="admin-timing-title">
           <h2 id="admin-timing-title">Tiempos de respuesta de la API · últimos 15 minutos</h2>
@@ -159,7 +215,8 @@ export function HealthView({ onSessionLost }: Props) {
           {health && (
             <p className="admin-muted admin-thresholds">
               Umbrales: lento si una revisión tarda {health.umbrales.latenciaLentaMs} ms o más, si el p95 llega a{' '}
-              {health.umbrales.p95LentoMs} ms o si más del {Math.round(health.umbrales.erroresAlerta * 100)} % de las peticiones falla.
+              {health.umbrales.p95LentoMs} ms, si la CPU supera el {health.umbrales.cpuAlertaPercent ?? 70} % o si más del{' '}
+              {Math.round(health.umbrales.erroresAlerta * 100)} % de las peticiones falla.
             </p>
           )}
         </section>

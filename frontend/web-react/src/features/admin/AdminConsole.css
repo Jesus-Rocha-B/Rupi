@@ -626,6 +626,102 @@
 .admin-timing-table td.is-warn { background: #fff6dc; color: #6b4705; }
 .admin-thresholds { font-size: 0.9rem; margin-top: 12px; }
 
+/* Alertas automáticas del sistema (HU-45) */
+.admin-alert-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.admin-alert-item {
+  padding: 14px 16px;
+  border: 2px solid var(--adm-line);
+  border-left: 6px solid var(--adm-line);
+  border-radius: 12px;
+  background: #fff;
+  display: grid;
+  gap: 6px;
+}
+.admin-alert-item--critica {
+  border-left-color: var(--adm-danger);
+  background: #fff8f6;
+}
+.admin-alert-item--advertencia {
+  border-left-color: var(--adm-sun-dark);
+  background: #fffdf5;
+}
+.admin-alert-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admin-alert-title {
+  font-weight: 900;
+  color: var(--adm-forest);
+  font-size: 1rem;
+}
+.admin-alert-item--critica .admin-alert-title {
+  color: #7f2410;
+}
+.admin-alert-item--advertencia .admin-alert-title {
+  color: #6b4705;
+}
+.admin-alert-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.admin-alert-badge--critica {
+  background: #fde8e4;
+  color: #7f2410;
+  border: 1px solid #f5b8ac;
+}
+.admin-alert-badge--advertencia {
+  background: #fff0c7;
+  color: #6b4705;
+  border: 1px solid #fed269;
+}
+.admin-alert-desc {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--adm-ink);
+  line-height: 1.45;
+}
+.admin-alert-extra {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--adm-muted);
+  display: grid;
+  gap: 4px;
+}
+.admin-alert-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid #b6d3a8;
+  border-radius: 12px;
+  background: #f4f9f0;
+  color: var(--adm-leaf-dark);
+}
+.admin-alert-empty strong {
+  display: block;
+  font-weight: 900;
+}
+.admin-alert-empty p {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  color: var(--adm-forest);
+}
+
 @media (max-width: 900px) {
   .admin-session-row { grid-template-columns: auto minmax(0, 1fr); }
   .admin-session-times { grid-column: 1 / -1; }

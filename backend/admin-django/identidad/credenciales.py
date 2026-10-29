@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from operaciones import auditoria
 
-from . import claves
+from . import claves, notificaciones
 from .cuentas import detalle, obtener, otro_administrador_activo
 from .models import CuentaUsuario, UsuarioRol
 from .respuestas import ErrorDePeticion
@@ -48,7 +48,13 @@ def restablecer_clave(cuenta_id, datos, actor, ver_datos=True):
                                                       actualizado_en=ahora)
     revocar_sesiones(cuenta.id, ahora)
     auditoria.registrar(actor.id, 'CLAVE_RESTABLECIDA', cuenta.id)
+    correo_enviado = notificaciones.notificar_recuperacion_clave(
+        cuenta.correo, cuenta.nombre_usuario, cuenta.nombre, clave if generada else None
+    )
     resultado = detalle(cuenta.id, ver_datos)
+    resultado['correoNotificado'] = correo_enviado
+    if cuenta.correo:
+        resultado['correoDestino'] = cuenta.correo
     # Una clave escrita por la persona no se devuelve: ya la conoce y así no queda en ninguna respuesta.
     if generada:
         resultado['claveTemporal'] = clave
@@ -75,7 +81,15 @@ def desbloquear(cuenta_id, actor, ver_datos=True):
     _proteger(cuenta, actor)
     ahora = timezone.now()
     bloqueada = cuenta.estado == 'BLOQUEADO' or (cuenta.bloqueado_hasta is not None and cuenta.bloqueado_hasta > ahora)
+    correo_enviado = False
     if bloqueada:
         CuentaUsuario.objects.filter(id=cuenta.id).update(estado='ACTIVO', bloqueado_hasta=None, actualizado_en=ahora)
         auditoria.registrar(actor.id, 'CUENTA_DESBLOQUEADA', cuenta.id)
-    return detalle(cuenta.id, ver_datos)
+        correo_enviado = notificaciones.notificar_cuenta_desbloqueada(
+            cuenta.correo, cuenta.nombre_usuario, cuenta.nombre
+        )
+    resultado = detalle(cuenta.id, ver_datos)
+    resultado['correoNotificado'] = correo_enviado
+    if cuenta.correo:
+        resultado['correoDestino'] = cuenta.correo
+    return resultado

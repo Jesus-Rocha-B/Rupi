@@ -76,3 +76,15 @@ LOGGING = {
     'handlers': {'consola': {'class': 'logging.StreamHandler'}},
     'root': {'handlers': ['consola'], 'level': 'WARNING'},
 }
+
+# Notificaciones automáticas por correo institucional (HU-44 Subtarea 4)
+EMAIL_BACKEND = os.environ.get(
+    'RUPI_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend',
+)
+DEFAULT_FROM_EMAIL = os.environ.get('RUPI_DEFAULT_FROM_EMAIL', 'no-responder@rupi.edu.pe')
+EMAIL_HOST = os.environ.get('RUPI_EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.environ.get('RUPI_EMAIL_PORT', '25'))
+EMAIL_HOST_USER = os.environ.get('RUPI_EMAIL_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('RUPI_EMAIL_PASSWORD', '')
+EMAIL_USE_TLS = os.environ.get('RUPI_EMAIL_TLS', 'false').lower() in ('1', 'true')

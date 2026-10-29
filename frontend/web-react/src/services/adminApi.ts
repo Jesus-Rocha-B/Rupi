@@ -52,6 +52,8 @@ export interface AccountDetail extends AccountSummary {
   intentosFallidos: number
   historial: AuditEntry[]
   claveTemporal?: string
+  correoNotificado?: boolean
+  correoDestino?: string | null
 }
 
 export interface AccountPage {
@@ -201,10 +203,29 @@ export interface ServiceHealth {
   peticiones?: { ventana: RequestWindow; total: number; rutasLentas: RouteTiming[] }
 }
 
+export interface HealthAlert {
+  id: string
+  nivel: 'CRITICA' | 'ADVERTENCIA'
+  servicio: 'base' | 'api' | 'ia' | 'consola'
+  titulo: string
+  mensaje: string
+  impacto?: string
+  sugerencia?: string
+}
+
 export interface PlatformHealth {
   estado: 'OK' | 'ATENCION' | 'FALLA'
   revisadoEn: string
-  umbrales: { latenciaLentaMs: number; p95LentoMs: number; erroresAlerta: number }
+  umbrales: {
+    latenciaLentaMs: number
+    p95LentoMs: number
+    erroresAlerta: number
+    cpuAlertaPercent?: number
+    cpuCriticaPercent?: number
+    memoriaAlertaPercent?: number
+    memoriaCriticaPercent?: number
+  }
+  alertas: HealthAlert[]
   servicios: ServiceHealth[]
 }
 

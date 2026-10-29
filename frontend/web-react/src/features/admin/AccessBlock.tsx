@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { KeyRound, Lock, LockOpen } from 'lucide-react'
+import { KeyRound, LockOpen } from 'lucide-react'
 import { formatDateTime, lockAccount, resetPassword, unlockAccount, type AccountDetail } from '../../services/adminApi'
 
 interface Props {
   account: AccountDetail
   busy: boolean
   /** Ejecuta la acción con el manejo de errores del panel; devuelve si salió bien. */
-  run: (action: () => Promise<AccountDetail>, success: string) => Promise<boolean>
+  run: (action: () => Promise<AccountDetail>, success: string | ((account: AccountDetail) => string)) => Promise<boolean>
 }
 
 type Mode = 'idle' | 'typing' | 'confirmLock'
@@ -29,7 +29,15 @@ export function AccessBlock({ account, busy, run }: Props) {
       return
     }
     setFormError(null)
-    if (await run(() => resetPassword(account.id, password), 'Contraseña cambiada. Entrégala en persona.')) {
+    if (
+      await run(
+        () => resetPassword(account.id, password),
+        acc =>
+          acc.correoNotificado && acc.correoDestino
+            ? `Contraseña cambiada. Se envió correo de notificación a ${acc.correoDestino}.`
+            : 'Contraseña cambiada. Entrégala en persona.'
+      )
+    ) {
       setPassword('')
       setRepeat('')
       setMode('idle')
@@ -76,7 +84,15 @@ export function AccessBlock({ account, busy, run }: Props) {
             type="button"
             className="admin-btn admin-btn--sky"
             disabled={busy}
-            onClick={() => run(() => resetPassword(account.id), 'Se generó una clave temporal y se cerró su sesión.')}
+            onClick={() =>
+              run(
+                () => resetPassword(account.id),
+                acc =>
+                  acc.correoNotificado && acc.correoDestino
+                    ? `Se generó una clave temporal y se envió a ${acc.correoDestino}.`
+                    : 'Se generó una clave temporal y se cerró su sesión.'
+              )
+            }
           >
             <KeyRound size={18} aria-hidden="true" />
             Generar clave temporal
@@ -94,7 +110,15 @@ export function AccessBlock({ account, busy, run }: Props) {
             type="button"
             className="admin-btn admin-btn--leaf"
             disabled={busy}
-            onClick={() => run(() => unlockAccount(account.id), 'Cuenta desbloqueada. Ya puede ingresar.')}
+            onClick={() =>
+              run(
+                () => unlockAccount(account.id),
+                acc =>
+                  acc.correoNotificado && acc.correoDestino
+                    ? `Cuenta desbloqueada. Se notificó por correo a ${acc.correoDestino}.`
+                    : 'Cuenta desbloqueada. Ya puede ingresar.'
+              )
+            }
           >
             <LockOpen size={18} aria-hidden="true" />
             Desbloquear
@@ -119,10 +143,11 @@ export function AccessBlock({ account, busy, run }: Props) {
           </div>
         </div>
       ) : (
-        <button type="button" className="admin-btn admin-btn--danger-quiet" disabled={busy} onClick={() => setMode('confirmLock')}>
-          <Lock size={18} aria-hidden="true" />
-          Bloquear cuenta
-        </button>
+        <div className="admin-actions admin-actions--start">
+          <button type="button" className="admin-btn admin-btn--quiet" disabled={busy} onClick={() => setMode('confirmLock')}>
+            Bloquear cuenta
+          </button>
+        </div>
       )}
     </div>
   )

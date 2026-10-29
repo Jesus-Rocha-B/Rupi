@@ -5,10 +5,11 @@ interface Props {
   username: string
   password: string
   title?: string
+  emailNotified?: string | null
 }
 
 /** La clave temporal se muestra una sola vez: la API solo guarda su hash. */
-export function TemporaryPasswordTicket({ username, password, title = 'Clave temporal' }: Props) {
+export function TemporaryPasswordTicket({ username, password, title = 'Clave temporal', emailNotified }: Props) {
   const [copied, setCopied] = useState(false)
 
   async function copy() {
@@ -38,9 +39,15 @@ export function TemporaryPasswordTicket({ username, password, title = 'Clave tem
         {copied ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
         {copied ? 'Copiada' : 'Copiar contraseña'}
       </button>
-      <p className="admin-ticket-note">
-        Entrégala en persona o a la docente del aula. Cuando cierres este panel no se podrá volver a ver.
-      </p>
+      {emailNotified ? (
+        <p className="admin-ticket-note">
+          ✉️ Se envió un correo automático de recuperación con las credenciales a <strong>{emailNotified}</strong>.
+        </p>
+      ) : (
+        <p className="admin-ticket-note">
+          Entrégala en persona o a la docente del aula. Cuando cierres este panel no se podrá volver a ver.
+        </p>
+      )}
     </div>
   )
 }

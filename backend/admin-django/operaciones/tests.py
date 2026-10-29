@@ -1,11 +1,24 @@
 """Reglas de estado de la salud de la plataforma (HU-45), sin base de datos ni red."""
 from django.test import SimpleTestCase
 
-from .salud import CAIDO, LENTO, OK, SIN_CONFIGURAR, estado_general, estado_por_latencia
+from .salud import (
+    CAIDO,
+    LENTO,
+    OK,
+    SIN_CONFIGURAR,
+    estado_general,
+    estado_por_latencia,
+    evaluar_alertas,
+)
 
 
-def servicio(clave, estado):
-    return {'clave': clave, 'estado': estado}
+def servicio(clave, estado, detalle=None, peticiones=None, latencia_ms=None):
+    s = {'clave': clave, 'estado': estado, 'detalle': detalle or {}}
+    if peticiones is not None:
+        s['peticiones'] = peticiones
+    if latencia_ms is not None:
+        s['latenciaMs'] = latencia_ms
+    return s
 
 
 class SaludTest(SimpleTestCase):
@@ -28,3 +41,27 @@ class SaludTest(SimpleTestCase):
         self.assertEqual(estado_general([servicio('base', LENTO), servicio('api', OK)]), 'ATENCION')
         self.assertEqual(estado_general([servicio('base', OK), servicio('api', SIN_CONFIGURAR)]), 'ATENCION')
         self.assertEqual(estado_general([servicio('base', OK), servicio('api', OK), servicio('ia', OK)]), 'OK')
+
+    def test_evaluar_alertas_detecta_caidas_y_p95(self):
+        servicios = [
+            servicio('base', CAIDO),
+            servicio('api', OK, peticiones={'ventana': {'p95Ms': 1800, 'serverErrors': 0, 'requests': 50}}),
+        ]
+        alertas = evaluar_alertas(servicios)
+        ids = [a['id'] for a in alertas]
+        self.assertIn('base_caida', ids)
+        self.assertIn('api_p95_alto', ids)
+        self.assertTrue(any(a['nivel'] == 'CRITICA' for a in alertas))
+
+    def test_evaluar_alertas_detecta_cpu_y_memoria_critica(self):
+        servicios = [
+            servicio('base', OK),
+            servicio('api', OK, detalle={
+                'sistema': {'cpuPercent': 89.5, 'memoryPercent': 92.0, 'usedMemoryMb': 7000, 'totalMemoryMb': 8000}
+            }),
+        ]
+        alertas = evaluar_alertas(servicios)
+        ids = [a['id'] for a in alertas]
+        self.assertIn('api_cpu_critica', ids)
+        self.assertIn('api_memoria_critica', ids)
+        self.assertEqual(estado_general(servicios, alertas), 'FALLA')

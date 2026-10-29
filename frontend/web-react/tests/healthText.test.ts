@@ -33,3 +33,17 @@ test('la ficha de la API resume base, memoria y tiempo encendida', () => {
   } })
   assert.deepEqual(facts, [['Encendida hace', '2 min'], ['Base vista desde la API', 'responde en 3 ms'], ['Memoria', '80 de 512 MB']])
 })
+
+test('la ficha incluye métricas de CPU y RAM del servidor cuando están disponibles (HU-45)', () => {
+  const facts = serviceFacts({ clave: 'api', detalle: {
+    segundosActiva: 120,
+    sistema: { cpuPercent: 24.5, usedMemoryMb: 4096, totalMemoryMb: 8192, memoryPercent: 50.0 },
+    memoria: { usedMemoryMb: 95, maxMemoryMb: 512 },
+  } })
+  assert.deepEqual(facts, [
+    ['Encendida hace', '2 min'],
+    ['CPU del servidor', '24.5 %'],
+    ['RAM del servidor', '4096 de 8192 MB (50 %)'],
+    ['Memoria', '95 de 512 MB'],
+  ])
+})

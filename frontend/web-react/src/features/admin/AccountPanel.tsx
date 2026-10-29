@@ -56,13 +56,17 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
     return () => controller.abort()
   }, [accountId, created, onSessionLost])
 
-  async function run(action: () => Promise<AccountDetail>, success: string) {
+  async function run(
+    action: () => Promise<AccountDetail>,
+    success: string | ((account: AccountDetail) => string)
+  ) {
     setBusy(true)
     setError(null)
     setMessage(null)
     try {
-      setAccount(await action())
-      setMessage(success)
+      const next = await action()
+      setAccount(next)
+      setMessage(typeof success === 'function' ? success(next) : success)
       onChanged()
       return true
     } catch (failure) {
@@ -111,6 +115,7 @@ export function AccountPanel({ accountId, created, admin, onClose, onChanged, on
           username={account.usuario}
           password={account.claveTemporal}
           title={created?.claveTemporal === account.claveTemporal ? 'Cuenta creada' : 'Clave temporal nueva'}
+          emailNotified={account.correoNotificado && account.correoDestino ? account.correoDestino : null}
         />
       )}
       {message && <p className="admin-feedback admin-feedback--ok" role="status">{message}</p>}

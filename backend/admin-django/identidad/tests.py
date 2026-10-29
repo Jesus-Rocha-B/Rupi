@@ -91,3 +91,36 @@ class RolesEstrictosTest(SimpleTestCase):
     def test_correo_enmascarado_conserva_el_dominio(self):
         self.assertEqual(enmascarar_correo('lucia.huaman@rupi.pe'), 'l•••@rupi.pe')
         self.assertIsNone(enmascarar_correo(None))
+
+from django.core import mail
+from . import notificaciones
+
+
+class NotificacionesTest(SimpleTestCase):
+    def test_notificar_recuperacion_con_clave_temporal(self):
+        enviado = notificaciones.notificar_recuperacion_clave(
+            'mateo@colegio.edu.pe', 'mateo.quispe', 'Mateo Quispe', 'sol-luna-33'
+        )
+        self.assertTrue(enviado)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('mateo@colegio.edu.pe', mail.outbox[0].to)
+        self.assertIn('sol-luna-33', mail.outbox[0].body)
+        self.assertIn('Tu cuenta en RUPI ha sido actualizada', mail.outbox[0].subject)
+
+    def test_notificar_cuenta_desbloqueada(self):
+        mail.outbox.clear()
+        enviado = notificaciones.notificar_cuenta_desbloqueada(
+            'profe.ana@colegio.edu.pe', 'ana.torres', 'Ana Torres'
+        )
+        self.assertTrue(enviado)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('profe.ana@colegio.edu.pe', mail.outbox[0].to)
+        self.assertIn('desbloqueada', mail.outbox[0].body)
+        self.assertIn('Tu cuenta en RUPI ha sido desbloqueada', mail.outbox[0].subject)
+
+    def test_correo_vacio_o_invalido_no_envia(self):
+        mail.outbox.clear()
+        self.assertFalse(notificaciones.notificar_recuperacion_clave(None, 'u', 'N'))
+        self.assertFalse(notificaciones.notificar_recuperacion_clave('', 'u', 'N'))
+        self.assertFalse(notificaciones.notificar_recuperacion_clave('invalido', 'u', 'N'))
+        self.assertEqual(len(mail.outbox), 0)
