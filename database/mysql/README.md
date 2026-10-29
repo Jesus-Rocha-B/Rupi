@@ -38,7 +38,7 @@ React web de estudiantes/docentes y Kotlin consultan la API Spring Boot. La apli
 | IA, notificaciones y sincronización | Spring Boot | Conversaciones moderadas, mensajes, preferencias y eventos del cliente. |
 | Configuración global de IA | Django | Políticas y referencias a secretos de proveedores. |
 
-El servicio sin propiedad de escritura solo lee los datos que su función requiere. Para producción se configurarán permisos mínimos por servicio. No se habilitará `ddl-auto=update`, migración automática de ORM ni dos ejecutores que alteren el mismo esquema.
+El servicio sin propiedad de escritura solo lee los datos que su función requiere. Excepciones acotadas de Spring sobre `identidad_*`, concedidas en `grants-spring-boot.sql`: el login (`identidad_sesion_usuario`, `identidad_intento_acceso`) y la privacidad del leaderboard que elige el propio estudiante (solo `alias_publico`, `mostrar_como` y `mostrar_en_clasificacion` de `identidad_perfil_usuario`, HU-32). Para producción se configurarán permisos mínimos por servicio. No se habilitará `ddl-auto=update`, migración automática de ORM ni dos ejecutores que alteren el mismo esquema.
 
 ### Migraciones
 

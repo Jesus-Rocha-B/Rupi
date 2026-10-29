@@ -1,8 +1,10 @@
 -- Permisos del usuario de la API Spring Boot (desarrollo local). Idempotente.
 -- Respeta el escritor único de AGENTS.md:
---   Spring escribe escuela_*, aprendizaje_*, evaluacion_* y gamificacion_*.
---   Django escribe identidad_* y curriculo_*; Spring solo los lee, salvo la
---   excepción documentada del login (identidad_sesion_usuario e identidad_intento_acceso).
+--   Spring escribe escuela_*, aprendizaje_*, evaluacion_*, gamificacion_* y notificacion_*
+--   (avisos y preferencias, HU-14, HU-25 a HU-28: database/mysql/README.md la asigna a Spring).
+--   Django escribe identidad_* y curriculo_*; Spring solo los lee, salvo dos excepciones documentadas:
+--   el login (identidad_sesion_usuario e identidad_intento_acceso) y la privacidad del leaderboard
+--   que elige el propio estudiante (HU-32: solo alias_publico, mostrar_como y mostrar_en_clasificacion).
 -- Uso (como root de MySQL), cambiando el usuario si hace falta:
 --   mysql -e "SET @api_usuario='rupi'; SOURCE database/mysql/grants-spring-boot.sql"
 -- Se concede a 'localhost' y a '127.0.0.1' solo si esa cuenta ya existe.
@@ -20,7 +22,7 @@ BEGIN
      WHERE table_schema = 'rupi' AND table_type = 'BASE TABLE'
        AND (table_name LIKE 'escuela\_%' OR table_name LIKE 'aprendizaje\_%'
          OR table_name LIKE 'evaluacion\_%' OR table_name LIKE 'gamificacion\_%'
-         OR table_name LIKE 'recurso\_%');
+         OR table_name LIKE 'recurso\_%' OR table_name LIKE 'notificacion\_%');
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET terminado = 1;
 
   IF EXISTS (SELECT 1 FROM mysql.user WHERE user = usuario AND host = equipo) THEN
@@ -39,6 +41,11 @@ BEGIN
     SET @g = CONCAT('GRANT INSERT ON rupi.identidad_intento_acceso TO `', usuario, '`@`', equipo, '`');
     PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
     SET @g = CONCAT('GRANT INSERT, UPDATE ON rupi.identidad_sesion_usuario TO `', usuario, '`@`', equipo, '`');
+    PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    -- Privacidad del leaderboard (HU-32): solo estas columnas, nunca nombre, correo ni clave.
+    SET @g = CONCAT('GRANT INSERT (usuario_id, alias_publico, mostrar_como, mostrar_en_clasificacion, idioma, zona_horaria), ',
+                    'UPDATE (alias_publico, mostrar_como, mostrar_en_clasificacion) ON rupi.identidad_perfil_usuario TO `',
+                    usuario, '`@`', equipo, '`');
     PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
   END IF;
 END //
