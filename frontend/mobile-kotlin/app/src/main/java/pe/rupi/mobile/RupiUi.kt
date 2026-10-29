@@ -51,6 +51,8 @@ object RupiUi {
   INFO(Color.rgb(238,246,251), Color.rgb(169,203,224), SKY_DARK),
   ERROR(Color.rgb(255,241,237), Color.rgb(227,165,149), Color.rgb(127,36,16)),
   OK(Color.rgb(238,245,232), Color.rgb(182,211,168), LEAF_DARK),
+  /** Respuesta para seguir aprendiendo: ámbar cálido, nunca rojo de castigo. */
+  RETRY(Color.rgb(255,246,220), Color.rgb(201,143,29), Color.rgb(107,71,5)),
  }
 
  fun dp(context: Context, n: Int) = (n * context.resources.displayMetrics.density).toInt()
