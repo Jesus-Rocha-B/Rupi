@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
-  CheckCircle2,
   Download,
   FolderDown,
   Layers,
@@ -186,12 +185,6 @@ export function UnitDownloadPanel({ route }: { route: RouteDetail }) {
                     <span className="unit-download-status loading" role="status" aria-live="polite">
                       <LoaderCircle size={15} className="spin" aria-hidden="true" />
                       <span>Preparando tu paquete escolar...</span>
-                    </span>
-                  )}
-                  {state.kind === 'done' && (
-                    <span className="unit-download-status done" role="status" aria-live="polite">
-                      <CheckCircle2 size={16} aria-hidden="true" />
-                      <span>¡Listo! Guardado como {state.fileName}</span>
                     </span>
                   )}
                   {state.kind === 'error' && (

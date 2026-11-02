@@ -158,7 +158,10 @@ public class MaterialStorageService {
 
     /** Ruta en disco de un material subido; no consulta la base. */
     public Path diskPathFor(String materialId, String originalName) {
-        String ext = extractExtension(originalName == null ? "" : originalName).toLowerCase();
+        String ext = extractExtension(originalName == null ? "" : originalName)
+                .replaceAll("[^a-zA-Z0-9._\\-\\sáéíóúÁÉÍÓÚñÑ]", "_")
+                .trim()
+                .toLowerCase();
         return storageDirectory.resolve(materialId + "." + ext).normalize();
     }
 
