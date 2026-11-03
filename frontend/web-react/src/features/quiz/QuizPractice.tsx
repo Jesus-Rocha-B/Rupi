@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { HINT_LEVEL_LABEL, quizRequest, type QuizAvailability, type QuizHint, type QuizQuestion, type QuizView } from '../../services/quizzesApi'
 import '../reinforcement/AssignedTasks.css'
 import './QuizPractice.css'
@@ -47,7 +47,7 @@ function Question({ question, practiceId, busy, answer, report }: { question: Qu
   </details>
  </article>
 }
-export function QuizPractice({ routeId, nodeId }: { routeId: string; nodeId: string }) {
+export function QuizPractice({ routeId, nodeId, fallback }: { routeId: string; nodeId: string; fallback?: ReactNode }) {
  const path = 'student/learning-routes/' + encodeURIComponent(routeId) + '/nodes/' + encodeURIComponent(nodeId) + '/ai-quiz'
  const [availability, setAvailability] = useState<QuizAvailability>()
  const [view, setView] = useState<QuizView | null>(null)
@@ -92,6 +92,7 @@ export function QuizPractice({ routeId, nodeId }: { routeId: string; nodeId: str
    return quizRequest<QuizView>('student/ai-quizzes/' + view.practiceId, 'GET', undefined, lifetime.current?.signal)
   })
  }
+ if (availability && !availability.configured && !availability.reviewedAvailable && !view?.questions.length && fallback) return <>{fallback}</>
  const generating = view?.status === 'GENERANDO'
  return <section className="assigned-tasks quiz-practice" aria-labelledby="quiz-practice-title">
   <h2 id="quiz-practice-title">Practicar con Rupi</h2>

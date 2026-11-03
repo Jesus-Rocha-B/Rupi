@@ -205,6 +205,20 @@ export function RupiCharacter({
       {/* CAPA 2: SOMBREROS Y TOCADOS EN CABEZA                               */}
       {/* =================================================================== */}
 
+      {/* Casco de explorador: copa caqui, costuras, cinta y ala ancha. */}
+      {activeSombrero === 'SOMBRERO_EXPLORADOR' && (
+        <g className="rupi-explorer-hat" strokeLinejoin="round" strokeLinecap="round">
+          <path d="M43 48 C43 26 58 12 79 12 C101 12 116 27 117 48 Z" fill="#c4ba86" stroke="#474f32" strokeWidth="3" />
+          <path d="M60 44 C59 30 65 17 77 13 C70 28 70 37 71 44 M87 14 C99 25 102 36 102 46" fill="none" stroke="#928654" strokeWidth="2" />
+          <ellipse cx="79" cy="12" rx="5" ry="3" fill="#ded4a7" stroke="#474f32" strokeWidth="2" />
+          <path d="M44 40 Q78 30 115 40 L118 50 Q80 40 42 51 Z" fill="#59673d" stroke="#474f32" strokeWidth="2" />
+          <path d="M30 55 Q39 45 77 44 Q111 42 130 53 Q120 63 80 59 Q50 60 30 64 Q25 62 30 55 Z" fill="#d9cea0" stroke="#474f32" strokeWidth="3" />
+          <path d="M35 58 Q78 49 124 55" fill="none" stroke="#a39764" strokeWidth="2" />
+          <rect x="75" y="37" width="12" height="9" rx="2" fill="#e8c875" stroke="#474f32" strokeWidth="1.5" />
+          <path d="M81 39 L81 44" stroke="#474f32" strokeWidth="1.5" />
+        </g>
+      )}
+
       {/* 1. Chullo de Alpaca */}
       {activeSombrero === 'CHULLO_ANDINO' && (
         <g className="rupi-chullo-hat">

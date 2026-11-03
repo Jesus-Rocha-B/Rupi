@@ -1122,6 +1122,22 @@
   min-height: 48px;
 }
 
+.celebration-actions .celebration-diploma-btn {
+  min-height: 48px;
+  padding: 12px 22px;
+  gap: 10px;
+  border: 2px solid #b98628;
+  border-radius: 16px;
+  background: #fff3ce;
+  color: #173e30;
+  box-shadow: 0 4px 0 #b98628;
+  font: 900 16px var(--display-font);
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+}
+.celebration-actions .celebration-diploma-btn svg { color: #8c5b05; width: 22px; height: 22px; flex: none; }
+.celebration-actions .celebration-diploma-btn:hover { background: #ffe5a0; transform: translateY(-2px); box-shadow: 0 6px 0 #b98628; }
+.celebration-actions .celebration-diploma-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b98628; }
+
 .celebration-speech-btn {
   display: inline-flex;
   align-items: center;

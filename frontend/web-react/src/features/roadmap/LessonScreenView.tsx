@@ -1,6 +1,5 @@
 import './StudyTouch.css'
-import { Flashcards } from '../flashcards/Flashcards'
-import { QuizPractice } from '../quiz/QuizPractice'
+import { LessonReview } from './LessonReview'
 import { useState } from 'react'
 import {
   ArrowLeft,
@@ -33,7 +32,6 @@ import { RupiCharacter } from '../../components/RupiCharacter'
 import { speakText } from '../../utils/speech'
 import { ListenButton } from '../../components/ListenButton'
 import './LessonScreenView.css'
-import { NodeReinforcement } from '../reinforcement/NodeReinforcement'
 
 function safeResource(value: string | null) {
   if (!value) return null
@@ -66,7 +64,6 @@ export function LessonScreenView({
   error,
   onBackToRoadmap,
   onComplete,
-  onOpenBadges,
 }: LessonScreenViewProps) {
   const [step, setStep] = useState<LessonStep>('video_preparacion')
   const [busy, setBusy] = useState(false)
@@ -127,9 +124,7 @@ export function LessonScreenView({
     }
   }
 
-  const reinforcementPanel = <div className="study-touch" aria-label="Recursos de repaso"><Flashcards key={`cards:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><QuizPractice key={`quiz:${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} /><NodeReinforcement key={`${route.versionRouteId}:${node.id}`}
-    routeId={route.versionRouteId} nodeId={node.id}
-    revision={Object.entries(feedbackMap).map(([id, feedback]) => `${id}:${feedback.isCorrect}`).join(',')} /></div>
+  const reinforcementPanel = <LessonReview key={`${route.versionRouteId}:${node.id}`} routeId={route.versionRouteId} nodeId={node.id} questions={questions} feedback={feedbackMap} />
 
   // 1. ESTADO DE CARGA
   if (loading) {
@@ -229,20 +224,6 @@ export function LessonScreenView({
               <span>Continuar en mi camino</span>
               <ArrowRight size={20} aria-hidden="true" />
             </button>
-
-            {completionResult.isRouteCompleted && onOpenBadges && (
-              <button
-                type="button"
-                className="celebration-diploma-btn"
-                onClick={() => {
-                  onBackToRoadmap()
-                  onOpenBadges()
-                }}
-              >
-                <Award size={18} aria-hidden="true" />
-                <span>Ver mis insignias y diploma</span>
-              </button>
-            )}
 
             <button
               type="button"

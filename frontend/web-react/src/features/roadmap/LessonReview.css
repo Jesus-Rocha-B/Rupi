@@ -1,0 +1,33 @@
+.lesson-review { max-width: 680px; margin: 20px auto; display: grid; gap: 14px; text-align: left; }
+.lesson-review .review-tile { border: 2px solid #173e30; border-radius: 22px; background: #fff7e5; box-shadow: 0 5px 0 #173e30; overflow: hidden; }
+.lesson-review .review-quiz { background: #e7f4df; }
+.review-launch { display: grid; grid-template-columns: 82px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px 18px; }
+.review-art { display: grid; place-items: center; }
+.review-art .rupi-character { width: 82px; height: 88px; }
+.review-art > svg:not(.rupi-character) { width: 82px; height: 88px; }
+.review-art .happy-book-pages, .review-art .backpack-supplies { transform-origin: 80px 125px; transition: transform .25s ease; }
+.review-art .review-sparkles { transform-origin: 80px 80px; transition: transform .25s ease; }
+.review-tile:hover .happy-book-pages, .review-tile:focus-within .happy-book-pages { transform: rotate(-5deg) translateY(-3px); }
+.review-tile:hover .backpack-supplies, .review-tile:focus-within .backpack-supplies { transform: rotate(3deg); }
+.review-tile:hover .review-sparkles, .review-tile:focus-within .review-sparkles { transform: scale(1.05); }
+@media (prefers-reduced-motion: reduce) { .review-art * { transition: none !important; transform: none !important; } }
+.lesson-review .review-copy h2 { font: 900 21px/1.2 var(--display-font); color: #173e30; margin: 0 0 7px; }
+.lesson-review .review-copy p { font: 700 14px/1.4 var(--body-font); color: #173e30; margin: 0; }
+.lesson-review button { min-height: 48px; border: 2px solid #173e30; border-radius: 13px; background: #fffdf7; color: #173e30; font: 800 14px var(--body-font); cursor: pointer; }
+.lesson-review .review-launch-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; background: #f95738; color: #ffffff; box-shadow: 0 4px 0 #c83c24; border: 2px solid transparent; border-radius: 16px; padding: 10px 18px; font-family: var(--display-font); font-size: 16px; font-weight: 900; transition: transform .08s ease, background .12s ease, box-shadow .12s ease; }
+.lesson-review .review-launch-button:hover { background: #e74a2e; transform: translateY(-2px); box-shadow: 0 6px 0 #c83c24; }
+.lesson-review .review-reinforce .review-launch-button { background: #31724b; color: #ffffff; border-color: #ffd26a; box-shadow: 0 4px 0 #1b4d30, 0 8px 18px rgba(49, 114, 75, .2); }
+.lesson-review .review-reinforce .review-launch-button:hover { background: #3b8759; box-shadow: 0 6px 0 #1b4d30; }
+.lesson-review .review-launch-button:active { transform: translateY(2px); box-shadow: 0 1px 0 #c83c24; }
+.lesson-review .review-reinforce .review-launch-button:active { box-shadow: 0 1px 0 #1b4d30; }
+.lesson-review button:active:not(:disabled) { transform: translateY(2px); }
+.lesson-review button:disabled { opacity: .55; cursor: default; }
+.review-content { padding: 0 18px 18px; }
+.lesson-review .review-content .assigned-tasks, .lesson-review .review-content .node-reinforcement { margin: 10px 0; padding: 12px; box-shadow: none; }
+.lesson-recall { font-size: 14px; }
+.lesson-recall fieldset { border: 0; padding: 0; margin: 14px 0; }
+.lesson-recall legend { font-weight: 900; margin-bottom: 12px; }
+.lesson-recall label { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.lesson-review .recall-face { display: flex; flex-direction: column; justify-content: center; gap: 12px; width: 100%; min-height: 145px; padding: 18px; background: #fffdf7; }
+.recall-navigation { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+@media (max-width: 520px) { .review-launch { grid-template-columns: 58px minmax(0, 1fr); gap: 10px; padding: 12px; } .review-art .rupi-character { width: 58px; height: 65px; } .review-art > svg:not(.rupi-character) { width: 48px; height: 48px; } .lesson-review .review-copy h2 { font-size: 18px; } .review-launch-button { grid-column: 2; justify-self: start; } .review-content { padding: 0 12px 12px; } }

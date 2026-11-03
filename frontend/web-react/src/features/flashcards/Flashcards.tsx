@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { quizRequest } from '../../services/quizzesApi'
 import '../reinforcement/AssignedTasks.css'
 import './Flashcards.css'
 import { ListenButton } from '../../components/ListenButton'
 export interface Card { id: string; question: string; answer: string; source: string; state: string }
 interface Deck { cards: Card[]; current: string | null; revealed: boolean; revision: number }
-export function Flashcards({ routeId, nodeId }: { routeId: string; nodeId: string }) {
+export function Flashcards({ routeId, nodeId, fallback }: { routeId: string; nodeId: string; fallback?: ReactNode }) {
  const path = 'student/learning-routes/' + routeId + '/nodes/' + nodeId + '/flashcards'
  const [deck, setDeck] = useState<Deck>()
  const [error, setError] = useState('')
@@ -42,6 +42,7 @@ export function Flashcards({ routeId, nodeId }: { routeId: string; nodeId: strin
   const next = index + delta
   if (next >= 0 && next < deck.cards.length) void action('NAVIGATE', deck.cards[next].id)
  }
+ if (deck?.cards.length === 0 && fallback) return <>{fallback}</>
  return <section className="assigned-tasks flashcards" aria-label="Repasar con tarjetas" aria-busy={busy}>
   <h2>Repasar con tarjetas</h2><p>Piensa en la respuesta y voltea la tarjeta. Este repaso no cambia tus notas.</p>
   {error && <div role="alert"><p>{error}</p><button disabled={busy} onClick={() => setReload(n => n + 1)}>Recuperar mi repaso</button>
