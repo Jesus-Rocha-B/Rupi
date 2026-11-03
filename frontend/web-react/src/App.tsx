@@ -1,3 +1,4 @@
+import { ReviewLibrary } from './features/roadmap/ReviewLibrary'
 import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
@@ -59,7 +60,7 @@ import { speakText } from './utils/speech'
 import { sessionEndMessage } from './utils/sessionEnd'
 import './App.css'
 
-export type AppView = 'inicio' | 'camino' | 'explorar' | 'perfil' | 'leccion'
+export type AppView = 'inicio' | 'camino' | 'explorar' | 'perfil' | 'leccion' | 'repaso'
 
 
 const guideMessages = [
@@ -823,6 +824,8 @@ function App() {
           />
         )}
 
+        {currentView === 'repaso' && <ReviewLibrary key={student.id} student={student} />}
+
         {/* Pantalla 3: Mi Camino (Mapa interactivo despejado y enfocado en la lección actual) */}
         {currentView === 'camino' && (
           <>
@@ -943,6 +946,7 @@ function App() {
                   <FlaskConical size={18} aria-hidden="true" />
                   <span>Ciencia y Tecnología</span>
                 </button>
+                {student.role === 'ESTUDIANTE' && <button type="button" className="course-switch-tab review-nav" onClick={() => setCurrentView('repaso')}><span aria-hidden="true">🎒</span><span>Repasar y jugar</span></button>}
               </nav>
             )}
 

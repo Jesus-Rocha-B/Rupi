@@ -20,6 +20,11 @@ public class ActivityController {
         this.service = service;
     }
 
+    @org.springframework.web.bind.annotation.GetMapping("/{routeId}/nodes/{nodeId}/review")
+    public ActivityService.Review review(@PathVariable UUID routeId, @PathVariable UUID nodeId, Principal principal) {
+        return service.review(studentIdFrom(principal), routeId, nodeId);
+    }
+
     @PostMapping("/{routeId}/nodes/{nodeId}/start")
     public ActivityService.Activity start(
             @PathVariable UUID routeId,

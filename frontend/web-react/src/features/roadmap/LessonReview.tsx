@@ -3,12 +3,12 @@ import { ArrowRight } from 'lucide-react'
 import { RupiCharacter } from '../../components/RupiCharacter'
 import { Flashcards } from '../flashcards/Flashcards'
 import { QuizPractice } from '../quiz/QuizPractice'
-import { NodeReinforcement } from '../reinforcement/NodeReinforcement'
 import type { QuestionDto, AnswerFeedbackResponse } from '../../services/learningRoutesApi'
 import './LessonReview.css'
 import { ExplorerBackpack, HappyReviewBook } from './ReviewIllustrations'
+import { CorrectionChallenge } from './CorrectionChallenge'
 
-type Props = { routeId: string; nodeId: string; questions: QuestionDto[]; feedback: Record<string, AnswerFeedbackResponse> }
+type Props = { routeId: string; nodeId: string; questions: QuestionDto[]; feedback: Record<string, AnswerFeedbackResponse>; mode?: "cards" | "practice"; correctionQuestions?: QuestionDto[] }
 function LessonRecall({ questions, feedback, cards = false }: Pick<Props, 'questions' | 'feedback'> & { cards?: boolean }) {
   const [index, setIndex] = useState(0)
   const [revealed, setRevealed] = useState(false)
@@ -37,22 +37,22 @@ function LessonRecall({ questions, feedback, cards = false }: Pick<Props, 'quest
   </div>
 }
 
-export function LessonReview({ routeId, nodeId, questions, feedback }: Props) {
+export function LessonReview({ routeId, nodeId, questions, feedback, mode = "cards", correctionQuestions }: Props) {
   const [active, setActive] = useState<string | null>(null)
   const entries = [
     { id: 'cards', title: '¡Repasar con tarjetas!', text: 'Voltea la tarjeta y descubre la respuesta.', action: '¡Jugar!' },
     { id: 'quiz', title: '¡Practica con Rupi!', text: 'Responde preguntas rápidas sobre tu lección.', action: '¡Empezar!' },
-    { id: 'reinforce', title: '¡Un ratito para practicar!', text: 'Repasa paso a paso lo que acabas de aprender.', action: '¡Vamos!' },
+    { id: 'reinforce', title: '¡Un ratito para practicar!', text: 'Encuentra el error y toca la respuesta correcta.', action: '¡Vamos!' },
   ]
   return <div className="lesson-review study-touch" aria-label="Recursos de repaso">
-    {entries.map(entry => <section key={entry.id} className={`review-tile review-${entry.id}`}>
+    {entries.filter(entry => mode === "cards" ? entry.id === "cards" : entry.id !== "cards").map(entry => <section key={entry.id} className={`review-tile review-${entry.id}`}>
       <div className="review-launch">
         <div className="review-art" aria-hidden="true">{entry.id === 'reinforce' ? <HappyReviewBook /> : entry.id === 'quiz' ? <ExplorerBackpack /> : <RupiCharacter role="reader" mood="idle" accessories={{ sombrero: 'SOMBRERO_EXPLORADOR' }} />}</div>
         <div className="review-copy"><h2>{entry.title}</h2><p>{entry.text}</p></div>
         <button className="review-launch-button" type="button" aria-expanded={active === entry.id} aria-controls={`review-${nodeId}-${entry.id}`} onClick={() => setActive(v => v === entry.id ? null : entry.id)}>{active === entry.id ? 'Cerrar' : entry.action}<ArrowRight size={18} aria-hidden="true" /></button>
       </div>
       <div id={`review-${nodeId}-${entry.id}`} hidden={active !== entry.id} className="review-content">
-        {active === entry.id && (entry.id === 'cards' ? <Flashcards routeId={routeId} nodeId={nodeId} fallback={<LessonRecall questions={questions} feedback={feedback} cards />} /> : entry.id === 'quiz' ? <QuizPractice routeId={routeId} nodeId={nodeId} fallback={<LessonRecall questions={questions} feedback={feedback} />} /> : <><LessonRecall questions={questions.slice(0, 2)} feedback={feedback} /><NodeReinforcement routeId={routeId} nodeId={nodeId} revision={JSON.stringify(feedback)} /></>)}
+        {active === entry.id && (entry.id === 'cards' ? <Flashcards routeId={routeId} nodeId={nodeId} fallback={<LessonRecall questions={questions} feedback={feedback} cards />} /> : entry.id === 'quiz' ? correctionQuestions ? <LessonRecall questions={questions} feedback={feedback} /> : <QuizPractice routeId={routeId} nodeId={nodeId} fallback={<LessonRecall questions={questions} feedback={feedback} />} /> : <CorrectionChallenge questions={correctionQuestions ?? questions} feedback={feedback} />)}
       </div>
     </section>)}
   </div>

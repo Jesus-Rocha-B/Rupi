@@ -25,9 +25,22 @@
 .review-content { padding: 0 18px 18px; }
 .lesson-review .review-content .assigned-tasks, .lesson-review .review-content .node-reinforcement { margin: 10px 0; padding: 12px; box-shadow: none; }
 .lesson-recall { font-size: 14px; }
+.correction-options { display: grid; gap: 8px; margin: 12px 0; }
+.lesson-review .correction-options button { display: flex; align-items: center; gap: 10px; padding: 10px 14px; text-align: left; min-height: 48px; }
+.lesson-review .correction-options button[aria-pressed="true"] { background: #deefd4; border-color: #31724b; }
+.lesson-review .correction-options button:disabled { opacity: 1; }
+.lesson-review .correction-options button:focus-visible { outline: 3px solid #246a91; outline-offset: 3px; }
+.correction-challenge blockquote { margin: 14px 0; padding: 12px; border-left: 4px solid #b94316; background: #fff5df; }
 .lesson-recall fieldset { border: 0; padding: 0; margin: 14px 0; }
 .lesson-recall legend { font-weight: 900; margin-bottom: 12px; }
 .lesson-recall label { display: flex; align-items: center; gap: 10px; min-height: 48px; }
 .lesson-review .recall-face { display: flex; flex-direction: column; justify-content: center; gap: 12px; width: 100%; min-height: 145px; padding: 18px; background: #fffdf7; }
 .recall-navigation { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 @media (max-width: 520px) { .review-launch { grid-template-columns: 58px minmax(0, 1fr); gap: 10px; padding: 12px; } .review-art .rupi-character { width: 58px; height: 65px; } .review-art > svg:not(.rupi-character) { width: 48px; height: 48px; } .lesson-review .review-copy h2 { font-size: 18px; } .review-launch-button { grid-column: 2; justify-self: start; } .review-content { padding: 0 12px 12px; } }
+/* Compact review resources: artwork and spacing reduced by 30%; touch targets stay 48px. */
+.lesson-review { max-width: 600px; margin: 14px auto; gap: 10px; }
+.review-launch { grid-template-columns: 58px minmax(0,1fr) auto; gap: 10px; padding: 11px 13px; }
+.review-art .rupi-character, .review-art > svg:not(.rupi-character) { width: 58px; height: 62px; }
+.review-content { padding: 0 13px 13px; }
+.lesson-review .review-copy h2 { font-size: 18px; margin-bottom: 5px; }
+@media(max-width:520px) { .review-launch { grid-template-columns: 41px minmax(0,1fr); padding: 9px; gap: 7px; } .review-art .rupi-character, .review-art > svg:not(.rupi-character) { width: 41px; height: 46px; } .review-content { padding: 0 9px 10px; } }

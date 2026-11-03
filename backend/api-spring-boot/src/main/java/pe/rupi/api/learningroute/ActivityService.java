@@ -50,6 +50,30 @@ public class ActivityService {
             List<Block> blocks,
             List<QuestionDto> questions
     ) {}
+    public record Review(List<QuestionDto> questions, java.util.Map<String, ReviewAnswer> feedback) {}
+    public record ReviewAnswer(String correctOptionId, String explanation) {}
+
+    @Transactional(readOnly = true)
+    public Review review(UUID studentId, UUID routeId, UUID nodeId) {
+        var params = new MapSqlParameterSource("student", studentId.toString())
+                .addValue("route", routeId.toString()).addValue("node", nodeId.toString());
+        var activityId = jdbc.query("""
+                SELECT va.id
+                FROM aprendizaje_inscripcion_ruta i
+                JOIN aprendizaje_version_ruta vr ON vr.id=i.version_ruta_id
+                JOIN aprendizaje_nodo_ruta n ON n.version_ruta_id=vr.id AND n.id=:node
+                JOIN aprendizaje_version_actividad va ON va.id=n.version_actividad_id
+                JOIN aprendizaje_progreso_nodo p ON p.inscripcion_id=i.id AND p.nodo_ruta_id=n.id AND p.version_ruta_id=vr.id
+                WHERE i.estudiante_id=:student AND vr.id=:route
+                  AND i.estado IN ('ACTIVO','COMPLETADO') AND p.estado='COMPLETADO'
+                  AND vr.estado='PUBLICADO' AND va.estado='PUBLICADO'
+                  AND (n.disponible_desde IS NULL OR n.disponible_desde <= UTC_TIMESTAMP(6))
+                  AND (n.bloqueado_desde IS NULL OR n.bloqueado_desde > UTC_TIMESTAMP(6))
+                """, params, (rs, row) -> rs.getString("id")).stream().findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Completa esta parada para repasarla."));
+        return ReviewExerciseBank.load(jdbc, routeId.toString());
+    }
+
     record Access(String enrollmentId, String activityId, String title, String instructions, String state, java.sql.Timestamp availableFrom, java.sql.Timestamp lockedFrom) {
         Access(String enrollmentId, String activityId, String title, String instructions, String state) {
             this(enrollmentId, activityId, title, instructions, state, null, null);
