@@ -547,7 +547,6 @@ class MainActivity : Activity() {
     .put("routeTitle",route.getString("title")).put("route",route)
    button("Practicar con Rupi (IA)", kind=RupiUi.Kind.LEAF) { loadTopic(topic) }
    button("Repasar con tarjetas", kind=RupiUi.Kind.QUIET) { loadCards(topic) }
-   button("Ver resumen visual", kind=RupiUi.Kind.QUIET) { loadSummary(topic) }
   })
  }
 
@@ -783,7 +782,6 @@ class MainActivity : Activity() {
   page(topic.getString("title")) { backFromTopic(topic) }
   button("Volver a la lección", kind=RupiUi.Kind.QUIET) { backFromTopic(topic) }
   button("Consultar mi práctica", kind=RupiUi.Kind.QUIET) { loadTopic(topic) }
-  button("Ver resumen visual", kind=RupiUi.Kind.LEAF) {loadSummary(topic)}
   button("Repasar con tarjetas", kind=RupiUi.Kind.LEAF) { loadCards(topic) }
   execute({ JSONObject(api!!.request(path(topic))) },{ status ->
    val practice=status.optJSONObject("practice")
