@@ -1,4 +1,3 @@
-import { StudentAssignments } from './features/reinforcement/AssignedTasks'
 import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
@@ -755,7 +754,6 @@ function App() {
       </aside>
 
       <main className="main-content" id="main-content">
-        {student.role === 'ESTUDIANTE' && currentView === 'leccion' && <StudentAssignments key={student.id} />}
         {student.role === 'DOCENTE' && (
           <div className="teacher-preview-topbar" role="status">
             <div className="teacher-preview-info">
