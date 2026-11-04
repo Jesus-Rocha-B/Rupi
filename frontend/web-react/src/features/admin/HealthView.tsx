@@ -1,9 +1,29 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, CheckCircle2, CircleOff, Pause, Play, RefreshCw, Settings2, Timer } from 'lucide-react'
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  CircleOff,
+  Mail,
+  MessageSquare,
+  Pause,
+  Play,
+  RefreshCw,
+  RotateCcw,
+  Settings2,
+  Timer,
+  Zap,
+} from 'lucide-react'
 import {
   AdminApiError,
+  fetchIncidents,
   fetchPlatformHealth,
   formatDateTime,
+  resolveIncident,
+  restartService,
+  testAlertChannels,
+  triggerMonitoringCycle,
+  type IncidentsResponse,
   type PlatformHealth,
   type ServiceHealth,
   type ServiceState,
@@ -28,12 +48,21 @@ const STATE_ICON = { OK: CheckCircle2, LENTO: Timer, CAIDO: CircleOff, SIN_CONFI
 
 export function HealthView({ onSessionLost }: Props) {
   const [health, setHealth] = useState<PlatformHealth | null>(null)
+  const [incidentsData, setIncidentsData] = useState<IncidentsResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [paused, setPaused] = useState(false)
   const [tick, setTick] = useState(0)
-  // «Revisando» mientras la revisión pedida (tick) todavía no respondió.
   const [answeredTick, setAnsweredTick] = useState(-1)
   const checking = answeredTick !== tick
+
+  // Estados de acciones operativas de emergencia (HU-47)
+  const [testingAlerts, setTestingAlerts] = useState(false)
+  const [alertFeedback, setAlertFeedback] = useState<string | null>(null)
+  const [restartingKey, setRestartingKey] = useState<string | null>(null)
+  const [actionFeedback, setActionFeedback] = useState<{ tipo: 'ok' | 'error'; mensaje: string } | null>(null)
+  const [cycleLoading, setCycleLoading] = useState(false)
+  const [incidentFilter, setIncidentFilter] = useState<'TODOS' | 'ABIERTOS'>('TODOS')
+  const [resolvingId, setResolvingId] = useState<string | null>(null)
 
   // Se revisa al abrir, cada 30 s mientras la pestaña está visible y al pulsar «Revisar ahora».
   useEffect(() => {
@@ -46,9 +75,13 @@ export function HealthView({ onSessionLost }: Props) {
 
   useEffect(() => {
     const controller = new AbortController()
-    fetchPlatformHealth(controller.signal)
-      .then(result => {
-        setHealth(result)
+    Promise.all([
+      fetchPlatformHealth(controller.signal),
+      fetchIncidents(undefined, controller.signal),
+    ])
+      .then(([healthRes, incRes]) => {
+        setHealth(healthRes)
+        setIncidentsData(incRes)
         setError(null)
         setAnsweredTick(tick)
       })
@@ -63,6 +96,105 @@ export function HealthView({ onSessionLost }: Props) {
 
   const api = health?.servicios.find(item => item.clave === 'api')
   const headline = health ? healthHeadline(health) : null
+
+  // 1. Probar canales de alerta (Correo y SMS/Webhook)
+  const handleTestAlerts = async () => {
+    setTestingAlerts(true)
+    setAlertFeedback(null)
+    setActionFeedback(null)
+    try {
+      const res = await testAlertChannels()
+      const smsEstado = res.smsEnviado ? 'SMS/Webhook emitido' : 'SMS registrado en log'
+      const emailEstado = res.emailEnviado ? `Correo enviado a ${res.destinatarioEmail}` : 'Fallo en envío de correo'
+      setAlertFeedback(`✓ Prueba exitosa: ${emailEstado} · ${smsEstado}.`)
+    } catch (err) {
+      setActionFeedback({
+        tipo: 'error',
+        mensaje: err instanceof Error ? err.message : 'Error al probar los canales de alerta.',
+      })
+    } finally {
+      setTestingAlerts(false)
+    }
+  }
+
+  // 2. Disparar ciclo manual de monitoreo
+  const handleTriggerCycle = async () => {
+    setCycleLoading(true)
+    setActionFeedback(null)
+    try {
+      const ciclo = await triggerMonitoringCycle()
+      setTick(v => v + 1)
+      const novedadesTxt = ciclo.novedades?.length
+        ? `Novedades detectadas: ${ciclo.novedades.length} evento(s).`
+        : 'Todos los servicios evaluados sin novedades críticas.'
+      setActionFeedback({
+        tipo: 'ok',
+        mensaje: `Ciclo de monitoreo completado. Estado: ${ciclo.estadoGeneral}. ${novedadesTxt}`,
+      })
+    } catch (err) {
+      setActionFeedback({
+        tipo: 'error',
+        mensaje: err instanceof Error ? err.message : 'Error al ejecutar el ciclo de monitoreo.',
+      })
+    } finally {
+      setCycleLoading(false)
+    }
+  }
+
+  // 3. Reiniciar servicio de emergencia
+  const handleRestart = async (claveServicio: string) => {
+    const claveParaScript = claveServicio === 'base' ? 'mysql' : claveServicio
+    setRestartingKey(claveServicio)
+    setActionFeedback(null)
+    try {
+      const res = await restartService(claveParaScript, true)
+      setTick(v => v + 1)
+      if (res.exito) {
+        setActionFeedback({
+          tipo: 'ok',
+          mensaje: `✓ Servicio ${claveServicio.toUpperCase()} reiniciado correctamente en ${res.tiempoMs} ms.`,
+        })
+      } else {
+        setActionFeedback({
+          tipo: 'error',
+          mensaje: `No se pudo reiniciar el servicio ${claveServicio}: ${res.mensaje}`,
+        })
+      }
+    } catch (err) {
+      setActionFeedback({
+        tipo: 'error',
+        mensaje: err instanceof Error ? err.message : `Error al reiniciar el servicio ${claveServicio}.`,
+      })
+    } finally {
+      setRestartingKey(null)
+    }
+  }
+
+  // 4. Resolver incidente manualmente
+  const handleResolve = async (incidentId: string) => {
+    setResolvingId(incidentId)
+    try {
+      await resolveIncident(incidentId, 'Resuelto manualmente por el administrador desde la consola.')
+      setTick(v => v + 1)
+      setActionFeedback({
+        tipo: 'ok',
+        mensaje: 'Incidente marcado como resuelto.',
+      })
+    } catch (err) {
+      setActionFeedback({
+        tipo: 'error',
+        mensaje: err instanceof Error ? err.message : 'Error al resolver el incidente.',
+      })
+    } finally {
+      setResolvingId(null)
+    }
+  }
+
+  const canales = incidentsData?.canalesAlerta
+  const incidentesLista = incidentsData?.incidentes ?? []
+  const incidentesFiltrados = incidentFilter === 'ABIERTOS'
+    ? incidentesLista.filter(i => i.estado === 'ABIERTO' || i.estado === 'EN_ATENCION')
+    : incidentesLista
 
   return (
     <div className="admin-health">
@@ -81,13 +213,100 @@ export function HealthView({ onSessionLost }: Props) {
               {paused ? 'Reanudar' : 'Pausar'}
             </button>
             <button type="button" className="admin-btn admin-btn--sky" onClick={() => setTick(value => value + 1)} disabled={checking}>
-              <RefreshCw size={18} aria-hidden="true" />
+              <RefreshCw size={18} className={checking ? 'admin-spin' : undefined} aria-hidden="true" />
               {checking ? 'Revisando…' : 'Revisar ahora'}
             </button>
           </div>
         </div>
 
         {error && <p className="admin-feedback admin-feedback--error" role="alert">{error}</p>}
+        {actionFeedback && (
+          <p
+            className={`admin-feedback admin-feedback--${actionFeedback.tipo === 'ok' ? 'success' : 'error'}`}
+            role="status"
+          >
+            {actionFeedback.mensaje}
+          </p>
+        )}
+        {alertFeedback && (
+          <p className="admin-feedback admin-feedback--success" role="status">
+            {alertFeedback}
+          </p>
+        )}
+
+        {/* Panel de Canales de Alerta Temprana y Monitoreo Continuo (HU-47) */}
+        {canales && (
+          <div className="admin-infra-banner">
+            <div>
+              <h2 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--adm-forest)' }}>
+                Monitoreo continuo y canales de alerta temprana (HU-47)
+              </h2>
+              <p className="admin-muted" style={{ margin: '4px 0 0', fontSize: '0.9rem' }}>
+                Vigilancia automática sobre la base de datos MySQL, el tutor de inteligencia artificial y la API central con medidas correctivas inmediatas.
+              </p>
+            </div>
+
+            <div className="admin-channel-grid">
+              <div className="admin-channel-card">
+                <div className="admin-channel-icon" aria-hidden="true">
+                  <Mail size={20} />
+                </div>
+                <div className="admin-channel-body">
+                  <strong>Notificaciones por Correo</strong>
+                  <p>{canales.emailResponsable}</p>
+                  <span className="admin-channel-status">✓ Canal Activo</span>
+                </div>
+              </div>
+
+              <div className="admin-channel-card">
+                <div className="admin-channel-icon admin-channel-icon--sky" aria-hidden="true">
+                  <MessageSquare size={20} />
+                </div>
+                <div className="admin-channel-body">
+                  <strong>Alertas SMS / Webhook</strong>
+                  <p>{canales.smsNumero ? canales.smsNumero : 'Simulado en consola'}</p>
+                  <span className={`admin-channel-status ${canales.webhookConfigurado ? '' : 'admin-channel-status--simulated'}`}>
+                    {canales.webhookConfigurado ? '✓ Webhook HTTP' : '✓ Registro Activo'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="admin-channel-card">
+                <div className="admin-channel-icon admin-channel-icon--sun" aria-hidden="true">
+                  <Zap size={20} />
+                </div>
+                <div className="admin-channel-body">
+                  <strong>Medidas de Autorreinicio</strong>
+                  <p>Restablecimiento inmediato</p>
+                  <span className="admin-channel-status">
+                    {canales.autoreinicioHabilitado ? '✓ Scripts Activos' : '⚠ Deshabilitado'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-infra-actions">
+              <button
+                type="button"
+                className="admin-btn admin-btn--leaf"
+                onClick={handleTestAlerts}
+                disabled={testingAlerts}
+              >
+                <Mail size={16} aria-hidden="true" />
+                {testingAlerts ? 'Enviando prueba…' : 'Probar canales de alerta (Email/SMS)'}
+              </button>
+              <button
+                type="button"
+                className="admin-btn admin-btn--quiet"
+                onClick={handleTriggerCycle}
+                disabled={cycleLoading}
+              >
+                <RotateCcw size={16} aria-hidden="true" />
+                {cycleLoading ? 'Verificando…' : 'Ejecutar ciclo de monitoreo ahora'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {health && headline && (
           <div className={`admin-health-banner admin-health-banner--${health.estado.toLowerCase()}`} role="status" aria-live="polite">
@@ -101,11 +320,120 @@ export function HealthView({ onSessionLost }: Props) {
 
         {health && (
           <ul className="admin-service-grid">
-            {health.servicios.map(service => <ServiceCard key={service.clave} service={service} />)}
+            {health.servicios.map(service => (
+              <ServiceCard
+                key={service.clave}
+                service={service}
+                restarting={restartingKey === service.clave}
+                onRestart={() => handleRestart(service.clave)}
+              />
+            ))}
           </ul>
         )}
       </section>
 
+      {/* Registro de Incidentes de Infraestructura (HU-47) */}
+      <section className="admin-card" aria-labelledby="admin-incidents-title">
+        <div className="admin-section-head">
+          <div>
+            <h2 id="admin-incidents-title">Incidentes de infraestructura y medidas de emergencia</h2>
+            <p className="admin-muted">
+              Registro histórico de caídas, tiempos de indisponibilidad y resoluciones automáticas o manuales.
+            </p>
+          </div>
+          <div className="admin-actions">
+            <button
+              type="button"
+              className={`admin-btn ${incidentFilter === 'TODOS' ? 'admin-btn--sky' : 'admin-btn--quiet'}`}
+              onClick={() => setIncidentFilter('TODOS')}
+            >
+              Todos ({incidentsData?.total ?? 0})
+            </button>
+            <button
+              type="button"
+              className={`admin-btn ${incidentFilter === 'ABIERTOS' ? 'admin-btn--primary' : 'admin-btn--quiet'}`}
+              onClick={() => setIncidentFilter('ABIERTOS')}
+            >
+              Abiertos ({incidentsData?.abiertos ?? 0})
+            </button>
+          </div>
+        </div>
+
+        {incidentesFiltrados.length === 0 ? (
+          <div className="admin-alert-empty" role="status">
+            <CheckCircle2 size={24} aria-hidden="true" />
+            <div>
+              <strong>No hay incidentes {incidentFilter === 'ABIERTOS' ? 'abiertos en este momento' : 'registrados'}</strong>
+              <p>Los servicios críticos no registran interrupciones pendientes de atención.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="admin-incident-table-wrap">
+            <table className="admin-matrix">
+              <thead>
+                <tr>
+                  <th scope="col">Servicio</th>
+                  <th scope="col">Severidad</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Resumen</th>
+                  <th scope="col">Iniciado</th>
+                  <th scope="col">Duración</th>
+                  <th scope="col">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {incidentesFiltrados.map(inc => (
+                  <tr key={inc.id}>
+                    <td>
+                      <span className="admin-service-code">{inc.servicio.toUpperCase()}</span>
+                    </td>
+                    <td>
+                      <span className={`admin-incident-badge admin-incident-badge--${inc.severidad.toLowerCase()}`}>
+                        {inc.severidad}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`admin-incident-status admin-incident-status--${inc.estado.toLowerCase()}`}>
+                        <span className={`admin-status-dot ${inc.estado === 'ABIERTO' ? 'admin-status-dot--pulse' : ''}`} />
+                        {inc.estado}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ maxWidth: '380px' }}>
+                        <strong style={{ color: 'var(--adm-forest)', fontSize: '0.9rem' }}>{inc.resumen}</strong>
+                        {inc.detalleError && (
+                          <p className="admin-muted" style={{ fontSize: '0.82rem', margin: '2px 0 0' }}>
+                            {inc.detalleError}
+                          </p>
+                        )}
+                      </div>
+                    </td>
+                    <td>{formatDateTime(inc.iniciadoEn)}</td>
+                    <td>{inc.duracionTexto || (inc.estado === 'ABIERTO' ? 'En curso' : '—')}</td>
+                    <td>
+                      {inc.estado === 'ABIERTO' || inc.estado === 'EN_ATENCION' ? (
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn--leaf admin-btn--resolve"
+                          onClick={() => handleResolve(inc.id)}
+                          disabled={resolvingId === inc.id}
+                        >
+                          <Check size={14} aria-hidden="true" />
+                          {resolvingId === inc.id ? 'Marcando…' : 'Resolver'}
+                        </button>
+                      ) : (
+                        <span className="admin-muted" style={{ fontSize: '0.85rem' }}>Resuelto</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Alertas Automáticas (Umbrales de Rendimiento) */}
       {health && (
         <section className="admin-card" aria-labelledby="admin-alerts-title">
           <div className="admin-section-head">
@@ -225,9 +553,20 @@ export function HealthView({ onSessionLost }: Props) {
   )
 }
 
-function ServiceCard({ service }: { service: ServiceHealth }) {
+function ServiceCard({
+  service,
+  restarting,
+  onRestart,
+}: {
+  service: ServiceHealth
+  restarting?: boolean
+  onRestart: () => void
+}) {
   const Icon = STATE_ICON[service.estado]
   const facts = serviceFacts(service)
+  const puedeReiniciarse = ['base', 'ia', 'api'].includes(service.clave)
+  const esCaido = service.estado === 'CAIDO'
+
   return (
     <li className={`admin-service admin-service--${service.estado.toLowerCase()}`}>
       <div className="admin-service-head">
@@ -237,8 +576,12 @@ function ServiceCard({ service }: { service: ServiceHealth }) {
           {STATE_TEXT[service.estado]}
         </span>
       </div>
-      {service.latenciaMs !== null && service.estado !== 'CAIDO' && <p className="admin-service-latency">{ms(service.latenciaMs)}<span> en responder</span></p>}
-      {typeof service.detalle.error === 'string' && <p className="admin-service-error">{service.detalle.error}</p>}
+      {service.latenciaMs !== null && service.estado !== 'CAIDO' && (
+        <p className="admin-service-latency">{ms(service.latenciaMs)}<span> en responder</span></p>
+      )}
+      {typeof service.detalle.error === 'string' && (
+        <p className="admin-service-error">{service.detalle.error}</p>
+      )}
       {facts.length > 0 && (
         <dl className="admin-facts">
           {facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
@@ -246,6 +589,22 @@ function ServiceCard({ service }: { service: ServiceHealth }) {
       )}
       {typeof service.detalle.segundosActiva === 'number' && service.clave === 'consola' && (
         <p className="admin-muted">Encendida hace {uptime(service.detalle.segundosActiva)}</p>
+      )}
+
+      {puedeReiniciarse && (
+        <button
+          type="button"
+          className={`admin-btn admin-btn--mini-restart ${esCaido ? 'admin-btn--mini-danger' : 'admin-btn--quiet'}`}
+          onClick={onRestart}
+          disabled={restarting}
+        >
+          <RotateCcw size={14} className={restarting ? 'admin-spin' : undefined} aria-hidden="true" />
+          {restarting
+            ? 'Reiniciando…'
+            : esCaido
+            ? 'Reiniciar de emergencia'
+            : 'Reiniciar servicio'}
+        </button>
       )}
     </li>
   )

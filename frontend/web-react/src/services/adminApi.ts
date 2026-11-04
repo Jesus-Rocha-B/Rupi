@@ -231,6 +231,99 @@ export interface PlatformHealth {
 
 export const fetchPlatformHealth = (signal?: AbortSignal) => request<PlatformHealth>('salud', { signal })
 
+export type IncidentSeverity = 'CRITICA' | 'ALTA' | 'MEDIA' | 'BAJA'
+export type IncidentState = 'ABIERTO' | 'EN_ATENCION' | 'RESUELTO' | 'CERRADO'
+
+export interface IncidentDto {
+  id: string
+  servicio: string
+  categoria: string
+  severidad: IncidentSeverity
+  estado: IncidentState
+  resumen: string
+  detalleError?: string | null
+  iniciadoEn: string
+  resueltoEn?: string | null
+  duracionSegundos?: number | null
+  duracionTexto?: string | null
+}
+
+export interface AlertChannelsConfig {
+  emailResponsable: string
+  smsNumero: string | null
+  webhookConfigurado: boolean
+  autoreinicioHabilitado: boolean
+}
+
+export interface IncidentsResponse {
+  incidentes: IncidentDto[]
+  total: number
+  abiertos: number
+  canalesAlerta: AlertChannelsConfig
+}
+
+export interface TestAlertResponse {
+  emailEnviado: boolean
+  destinatarioEmail: string
+  errorEmail?: string | null
+  smsEnviado: boolean
+  destinatarioSms?: string | null
+  mensaje: string
+}
+
+export interface RestartServiceResponse {
+  servicio: string
+  accion: string
+  exito: boolean
+  tiempoMs: number
+  mensaje: string
+  puertos?: { puerto: number; abierto: boolean }[]
+}
+
+export const fetchIncidents = (params?: { estado?: string; limite?: number }, signal?: AbortSignal) => {
+  const query = new URLSearchParams()
+  if (params?.estado) query.set('estado', params.estado)
+  if (params?.limite) query.set('limite', String(params.limite))
+  const qs = query.toString()
+  return request<IncidentsResponse>(`incidentes${qs ? `?${qs}` : ''}`, { signal })
+}
+
+export const resolveIncident = (incidentId: string, comentario?: string) =>
+  request<{ id: string; servicio: string; estado: string; resueltoEn: string; mensaje: string }>(
+    `incidentes/${incidentId}/resolver`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ comentario: comentario ?? '' }),
+    }
+  )
+
+export const triggerMonitoringCycle = () =>
+  request<{
+    revisadoEn: string
+    estadoGeneral: string
+    servicios: ServiceHealth[]
+    alertas: HealthAlert[]
+    novedades: { servicio: string; evento: string; incidenteId?: string; autoreinicio?: string }[]
+    accionesTomadas: { servicio: string; accion: string; exito: boolean; detalle?: string }[]
+    incidentesAbiertos: IncidentDto[]
+    totalIncidentesAbiertos: number
+  }>('monitoreo/ciclo', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
+
+export const testAlertChannels = () =>
+  request<TestAlertResponse>('alertas/probar', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
+
+export const restartService = (servicio: string, forzar: boolean = true) =>
+  request<RestartServiceResponse>(`servicios/${servicio}/reiniciar`, {
+    method: 'POST',
+    body: JSON.stringify({ forzar }),
+  })
+
 export interface SyncTrafficSummary {
   totalTrafico: number
   traficoWeb: number
