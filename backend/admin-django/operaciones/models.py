@@ -75,3 +75,27 @@ class Incidente(models.Model):
     class Meta:
         managed = False
         db_table = 'operaciones_incidente'
+
+
+class HistorialCaida(models.Model):
+    """operaciones_historial_caida: Registro histórico de interrupciones y caídas del servidor principal (HU-48)."""
+    TIPOS = (
+        ('CAIDA', 'Caída'),
+        ('DEGRADACION', 'Degradación'),
+        ('RECUPERACION', 'Recuperación'),
+    )
+
+    id = models.CharField(max_length=36, primary_key=True)
+    servidor = models.CharField(max_length=80, default='servidor_principal')
+    tipo_evento = models.CharField(max_length=20, choices=TIPOS, default='CAIDA')
+    iniciado_en = models.DateTimeField()
+    restablecido_en = models.DateTimeField(null=True, blank=True)
+    duracion_segundos = models.PositiveIntegerField(null=True, blank=True)
+    motivo = models.CharField(max_length=500)
+    codigo_error = models.CharField(max_length=80, null=True, blank=True)
+    impacto_colegios = models.CharField(max_length=255, null=True, blank=True)
+    registrado_en = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'operaciones_historial_caida'
