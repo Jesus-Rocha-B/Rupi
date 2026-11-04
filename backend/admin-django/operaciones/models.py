@@ -37,3 +37,41 @@ class EventoSincronizacion(models.Model):
     class Meta:
         managed = False
         db_table = 'operaciones_evento_sincronizacion'
+
+
+class Incidente(models.Model):
+    """operaciones_incidente: Registro de caídas y alertas de infraestructura (HU-47)."""
+    ESTADOS = (
+        ('ABIERTO', 'Abierto'),
+        ('EN_ATENCION', 'En atención'),
+        ('RESUELTO', 'Resuelto'),
+        ('CERRADO', 'Cerrado'),
+    )
+    SEVERIDADES = (
+        ('BAJA', 'Baja'),
+        ('MEDIA', 'Media'),
+        ('ALTA', 'Alta'),
+        ('CRITICA', 'Crítica'),
+    )
+    CATEGORIAS = (
+        ('DISPONIBILIDAD', 'Disponibilidad'),
+        ('RENDIMIENTO', 'Rendimiento'),
+        ('SINCRONIZACION', 'Sincronización'),
+        ('IA', 'Inteligencia Artificial'),
+        ('BASE_DATOS', 'Base de Datos'),
+        ('OTRO', 'Otro'),
+    )
+
+    id = models.CharField(max_length=36, primary_key=True)
+    servicio = models.CharField(max_length=80)
+    categoria = models.CharField(max_length=30, choices=CATEGORIAS)
+    severidad = models.CharField(max_length=20, choices=SEVERIDADES)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='ABIERTO')
+    resumen = models.CharField(max_length=500)
+    referencia_externa = models.CharField(max_length=255, null=True, blank=True)
+    iniciado_en = models.DateTimeField()
+    resuelto_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'operaciones_incidente'
