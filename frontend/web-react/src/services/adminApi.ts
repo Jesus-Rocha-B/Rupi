@@ -324,6 +324,80 @@ export const restartService = (servicio: string, forzar: boolean = true) =>
     body: JSON.stringify({ forzar }),
   })
 
+// =====================================================================
+// Tablero Centralizado de Arquitectura, Uptime y Errores (HU-48)
+// =====================================================================
+
+export interface ArchitectureSummary {
+  uptime24h: number
+  uptime7d: number
+  uptime30d: number
+  segundosCaida24h: number
+  tiempoCaidaTexto24h: string
+  totalErroresReportados: number
+  errores24h: number
+  incidentesAbiertos: number
+  estadoServidor: 'OPERATIVO' | 'DEGRADADO' | 'CAIDO'
+  slaCalidad: 'EXCELENTE' | 'BUENO' | 'EN_RIESGO'
+  latenciaPromedioMs: number
+}
+
+export interface TimeSeriesPoint {
+  etiqueta: string
+  timestamp: string
+  uptimePercent: number
+  errores: number
+  latenciaMs: number
+}
+
+export interface ErrorCategoryBreakdown {
+  categoria: string
+  cantidad: number
+  porcentaje: number
+  descripcion: string
+  color: string
+}
+
+export interface ServerOutageRecord {
+  id: string
+  servidor: string
+  tipoEvento: 'CAIDA' | 'DEGRADACION' | 'RECUPERACION'
+  iniciadoEn: string
+  restablecidoEn: string | null
+  duracionSegundos: number | null
+  duracionTexto: string
+  motivo: string
+  codigoError?: string | null
+  impactoColegios: string
+  registradoEn: string
+}
+
+export interface ArchitectureDashboardData {
+  revisadoEn: string
+  resumen: ArchitectureSummary
+  serieTemporal24h: TimeSeriesPoint[]
+  serieTemporal7d: TimeSeriesPoint[]
+  desgloseErrores: ErrorCategoryBreakdown[]
+  historialCaidas: ServerOutageRecord[]
+  totalHistorialCaidas: number
+}
+
+export const fetchArchitectureDashboard = (signal?: AbortSignal) =>
+  request<ArchitectureDashboardData>('tablero-arquitectura', { signal })
+
+export const recordServerOutage = (data: {
+  servidor?: string
+  tipoEvento?: string
+  motivo: string
+  codigoError?: string
+  impactoColegios?: string
+  duracionSegundos?: number
+}) =>
+  request<ServerOutageRecord>('tablero-arquitectura/caidas', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+
 export interface SyncTrafficSummary {
   totalTrafico: number
   traficoWeb: number
