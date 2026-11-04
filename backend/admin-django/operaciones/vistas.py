@@ -2,7 +2,7 @@ from django.conf import settings
 from identidad.respuestas import ErrorDePeticion, api, json_ok, leer_json
 from identidad.sesion import requiere_permiso
 
-from . import autoreinicio, incidentes, monitoreo, notificaciones_alertas, salud, sincronizacion
+from . import autoreinicio, incidentes, monitoreo, notificaciones_alertas, salud, sincronizacion, tablero_uptime
 
 
 @api({'GET'})
@@ -133,3 +133,40 @@ def hook_evento_externo(request):
         return json_ok({'mensaje': 'Recuperación registrada', 'incidente': res})
 
     return json_ok({'mensaje': 'Evento recibido sin acción requerida.'})
+
+
+# =====================================================================
+# Tablero Centralizado de Arquitectura, Uptime y Errores (HU-48)
+# =====================================================================
+
+@api({'GET'})
+@requiere_permiso('plataforma.monitorear')
+def tablero_arquitectura(request):
+    """Retorna las métricas de uptime (24h, 7d, 30d), conteo de errores, historial de caídas y series temporales."""
+    datos = tablero_uptime.recopilar_metricas_uptime()
+    return json_ok(datos)
+
+
+@api({'POST'})
+@requiere_permiso('plataforma.monitorear')
+def registrar_caida_servidor_manual(request):
+    """Permite al administrador registrar manualmente una interrupción del servidor principal."""
+    datos = leer_json(request) if request.body else {}
+    servidor = datos.get('servidor', 'servidor_principal')
+    tipo_evento = datos.get('tipoEvento', 'CAIDA')
+    motivo = datos.get('motivo', 'Interrupción reportada manualmente')
+    codigo_error = datos.get('codigoError')
+    impacto = datos.get('impactoColegios')
+    duracion = int(datos.get('duracionSegundos')) if datos.get('duracionSegundos') is not None else None
+    actor_id = getattr(request.administrador, 'id', None)
+
+    res = tablero_uptime.registrar_evento_caida(
+        servidor=servidor,
+        tipo_evento=tipo_evento,
+        motivo=motivo,
+        codigo_error=codigo_error,
+        impacto_colegios=impacto,
+        duracion_segundos=duracion,
+        actor_id=actor_id,
+    )
+    return json_ok(res, estado=201)

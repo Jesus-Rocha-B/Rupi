@@ -1,4 +1,4 @@
-"""Reglas de estado de la salud y sincronización de la plataforma (HU-45, HU-46 y HU-47), sin base de datos ni red."""
+"""Reglas de estado de la salud y sincronización de la plataforma (HU-45, HU-46, HU-47 y HU-48), sin base de datos ni red."""
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
@@ -25,6 +25,12 @@ from .salud import (
     evaluar_alertas,
 )
 from .sincronizacion import evaluar_alertas_sincronizacion
+from .tablero_uptime import (
+    _calcular_porcentaje_uptime,
+    formatear_duracion,
+    recopilar_metricas_uptime,
+    registrar_evento_caida,
+)
 
 
 def servicio(clave, estado, detalle=None, peticiones=None, latencia_ms=None):
@@ -341,3 +347,97 @@ class MonitoreoTest(SimpleTestCase):
         self.assertEqual(res['novedades'][0]['evento'], 'RECUPERACION_REGISTRADA')
         self.assertEqual(res['novedades'][0]['duracionSegundos'], 45)
         self.assertFalse(mock_registrar_caida.called)
+
+
+class TableroUptimeTest(SimpleTestCase):
+    def test_formatear_duracion(self):
+        self.assertEqual(formatear_duracion(None), 'En curso')
+        self.assertEqual(formatear_duracion(45), '45 seg')
+        self.assertEqual(formatear_duracion(120), '2 min')
+        self.assertEqual(formatear_duracion(125), '2m 5s')
+        self.assertEqual(formatear_duracion(3600), '1 h')
+        self.assertEqual(formatear_duracion(3665), '1h 1m')
+
+    def test_calcular_porcentaje_uptime(self):
+        # 0 segundos caídos -> 100%
+        self.assertEqual(_calcular_porcentaje_uptime(86400, 0), 100.0)
+        # 86.4 segundos caídos en 24h -> 99.9%
+        self.assertEqual(_calcular_porcentaje_uptime(86400, 86), 99.9)
+        # 864 segundos caídos en 24h -> 99.0%
+        self.assertEqual(_calcular_porcentaje_uptime(86400, 864), 99.0)
+        # Todos los segundos caídos -> 0%
+        self.assertEqual(_calcular_porcentaje_uptime(86400, 86400), 0.0)
+
+    @patch('operaciones.tablero_uptime.salud.revisar')
+    @patch('operaciones.tablero_uptime.Incidente')
+    @patch('operaciones.tablero_uptime.EventoSincronizacion')
+    @patch('operaciones.tablero_uptime.HistorialCaida')
+    def test_recopilar_metricas_uptime_calcula_resumen_y_series(
+        self,
+        mock_historial_cls,
+        mock_sync_cls,
+        mock_incidente_cls,
+        mock_salud_revisar,
+    ):
+        mock_historial_cls.objects.filter.return_value = []
+        mock_historial_cls.objects.order_by.return_value = []
+        mock_sync_cls.objects.filter.return_value.count.return_value = 0
+        mock_incidente_cls.objects.filter.return_value.count.return_value = 0
+        mock_incidente_cls.objects.count.return_value = 0
+        mock_salud_revisar.return_value = {
+            'estado': 'OK',
+            'servicios': [
+                {
+                    'clave': 'api',
+                    'estado': 'OK',
+                    'latenciaMs': 32.5,
+                    'peticiones': {'ventana': {'serverErrors': 0}},
+                }
+            ],
+        }
+
+        datos = recopilar_metricas_uptime()
+
+        self.assertIn('resumen', datos)
+        resumen = datos['resumen']
+        self.assertEqual(resumen['uptime24h'], 100.0)
+        self.assertEqual(resumen['uptime7d'], 100.0)
+        self.assertEqual(resumen['uptime30d'], 100.0)
+        self.assertEqual(resumen['estadoServidor'], 'OPERATIVO')
+        self.assertEqual(resumen['slaCalidad'], 'EXCELENTE')
+
+        self.assertIn('serieTemporal24h', datos)
+        self.assertEqual(len(datos['serieTemporal24h']), 24)
+
+        self.assertIn('serieTemporal7d', datos)
+        self.assertEqual(len(datos['serieTemporal7d']), 7)
+
+        self.assertIn('desgloseErrores', datos)
+        self.assertEqual(len(datos['desgloseErrores']), 4)
+
+    @patch('operaciones.tablero_uptime.auditoria.registrar')
+    @patch('operaciones.tablero_uptime.HistorialCaida')
+    def test_registrar_evento_caida(self, mock_historial_cls, mock_auditoria):
+        instancia = MagicMock()
+        instancia.id = 'caida-123'
+        instancia.servidor = 'servidor_principal'
+        instancia.tipo_evento = 'CAIDA'
+        instancia.iniciado_en = datetime.now(timezone.utc)
+        instancia.restablecido_en = None
+        instancia.motivo = 'Corte de energia'
+        mock_historial_cls.return_value = instancia
+
+        resultado = registrar_evento_caida(
+            servidor='servidor_principal',
+            tipo_evento='CAIDA',
+            motivo='Corte de energia',
+            codigo_error='POWER_OUT',
+            impacto_colegios='2 aulas afectadas',
+            duracion_segundos=120,
+            actor_id='admin-1',
+        )
+
+        self.assertEqual(resultado['id'], 'caida-123')
+        self.assertEqual(resultado['tipoEvento'], 'CAIDA')
+        self.assertTrue(instancia.save.called)
+        self.assertTrue(mock_auditoria.called)

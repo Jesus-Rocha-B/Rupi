@@ -12,4 +12,7 @@ urlpatterns = [
     path('monitoreo/evento-externo', vistas.hook_evento_externo),
     path('alertas/probar', vistas.probar_alertas),
     path('servicios/<str:servicio>/reiniciar', vistas.reiniciar_servicio_manual),
+    # Tablero centralizado de arquitectura, uptime y errores (HU-48)
+    path('tablero-arquitectura', vistas.tablero_arquitectura),
+    path('tablero-arquitectura/caidas', vistas.registrar_caida_servidor_manual),
 ]
