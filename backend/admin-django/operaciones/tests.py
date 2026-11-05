@@ -11,6 +11,7 @@ from .incidentes import (
 )
 from .monitoreo import ejecutar_ciclo_monitoreo
 from .notificaciones_alertas import (
+    _es_url_segura,
     enviar_alerta_caida_servicio,
     enviar_notificacion_recuperacion,
     probar_canales_alerta,
@@ -480,3 +481,30 @@ class HookEventoExternoTest(SimpleTestCase):
         )
         resp = hook_evento_externo(req)
         self.assertEqual(resp.status_code, 400)
+
+
+class AlertaSeguridadUrlTest(SimpleTestCase):
+    def test_es_url_segura_acepta_http_y_https(self):
+        self.assertTrue(_es_url_segura('https://api.sms-provider.pe/send'))
+        self.assertTrue(_es_url_segura('http://127.0.0.1:8080/webhook'))
+
+    def test_es_url_segura_rechaza_esquemas_peligrosos(self):
+        self.assertFalse(_es_url_segura('file:///etc/passwd'))
+        self.assertFalse(_es_url_segura('ftp://10.0.0.1/malware'))
+        self.assertFalse(_es_url_segura('gopher://127.0.0.1:6379'))
+        self.assertFalse(_es_url_segura('javascript:alert(1)'))
+        self.assertFalse(_es_url_segura(''))
+        self.assertFalse(_es_url_segura(None))
+
+    @patch('operaciones.notificaciones_alertas.urllib.request.urlopen')
+    @patch('operaciones.notificaciones_alertas.send_mail')
+    def test_webhook_inseguro_no_dispara_urlopen(self, mock_send_mail, mock_urlopen):
+        with self.settings(RUPI_ALERTA_SMS_WEBHOOK='file:///etc/shadow'):
+            res = enviar_alerta_caida_servicio(
+                servicio='ia',
+                categoria='IA',
+                severidad='CRITICA',
+                resumen='Prueba de ssrf',
+            )
+            self.assertFalse(mock_urlopen.called)
+            self.assertFalse(res['smsEnviado'])

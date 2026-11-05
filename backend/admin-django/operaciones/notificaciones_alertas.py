@@ -6,6 +6,7 @@ Avisa al instante al responsable de infraestructura ante la caída de servicios 
 import json
 import logging
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 
@@ -35,6 +36,17 @@ def _obtener_nombre_servicio(clave_servicio: str) -> str:
 def _formatear_fecha_actual() -> str:
     ahora = datetime.now(timezone.utc)
     return ahora.strftime('%Y-%m-%d %H:%M:%S UTC')
+
+
+def _es_url_segura(url: str | None) -> bool:
+    """Valida que la URL del webhook sea un endpoint http o https legítimo para mitigar SSRF (CWE-918)."""
+    if not url or not isinstance(url, str):
+        return False
+    try:
+        parsed = urllib.parse.urlparse(url.strip())
+        return parsed.scheme.lower() in ('http', 'https') and bool(parsed.netloc)
+    except Exception:
+        return False
 
 
 def enviar_alerta_caida_servicio(
@@ -124,25 +136,28 @@ def enviar_alerta_caida_servicio(
     sms_texto = f'[RUPI ALERTA {severidad}] Caída en {nombre_serv}. {resumen[:80]}. Revisa consola /admin.'
     webhook_url = getattr(settings, 'RUPI_ALERTA_SMS_WEBHOOK', '')
     if webhook_url:
-        try:
-            payload = json.dumps({
-                'tipo': 'ALERTA_INFRAESTRUCTURA',
-                'servicio': servicio,
-                'severidad': severidad,
-                'mensaje': sms_texto,
-                'timestamp': fecha_str,
-                'telefono': destinatario_sms,
-            }).encode('utf-8')
-            req = urllib.request.Request(
-                webhook_url,
-                data=payload,
-                headers={'Content-Type': 'application/json'},
-                method='POST',
-            )
-            with urllib.request.urlopen(req, timeout=3) as resp:
-                sms_ok = 200 <= resp.getcode() < 300
-        except Exception as e:
-            logger.warning('Fallo al disparar webhook de SMS a %s: %s', webhook_url, e)
+        if not _es_url_segura(webhook_url):
+            logger.warning('URL de webhook SMS descartada por esquema no permitido o SSRF: %s', webhook_url)
+        else:
+            try:
+                payload = json.dumps({
+                    'tipo': 'ALERTA_INFRAESTRUCTURA',
+                    'servicio': servicio,
+                    'severidad': severidad,
+                    'mensaje': sms_texto,
+                    'timestamp': fecha_str,
+                    'telefono': destinatario_sms,
+                }).encode('utf-8')
+                req = urllib.request.Request(
+                    webhook_url,
+                    data=payload,
+                    headers={'Content-Type': 'application/json'},
+                    method='POST',
+                )
+                with urllib.request.urlopen(req, timeout=3) as resp:
+                    sms_ok = 200 <= resp.getcode() < 300
+            except Exception as e:
+                logger.warning('Fallo al disparar webhook de SMS a %s: %s', webhook_url, e)
     else:
         # En entorno local/desarrollo sin pasarela HTTP externa, se simula con registro exitoso en logger
         if destinatario_sms:
@@ -200,18 +215,21 @@ def enviar_notificacion_recuperacion(servicio: str, duracion_segundos: int | Non
     sms_texto = f'[RUPI RESTABLECIDO] {nombre_serv} operativo nuevamente. Incidente cerrado.'
     webhook_url = getattr(settings, 'RUPI_ALERTA_SMS_WEBHOOK', '')
     if webhook_url:
-        try:
-            payload = json.dumps({
-                'tipo': 'RECUPERACION_INFRAESTRUCTURA',
-                'servicio': servicio,
-                'mensaje': sms_texto,
-                'timestamp': fecha_str,
-            }).encode('utf-8')
-            req = urllib.request.Request(webhook_url, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
-            with urllib.request.urlopen(req, timeout=3) as resp:
-                sms_ok = 200 <= resp.getcode() < 300
-        except Exception:
-            pass
+        if not _es_url_segura(webhook_url):
+            logger.warning('URL de webhook SMS de recuperación descartada por esquema no permitido: %s', webhook_url)
+        else:
+            try:
+                payload = json.dumps({
+                    'tipo': 'RECUPERACION_INFRAESTRUCTURA',
+                    'servicio': servicio,
+                    'mensaje': sms_texto,
+                    'timestamp': fecha_str,
+                }).encode('utf-8')
+                req = urllib.request.Request(webhook_url, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
+                with urllib.request.urlopen(req, timeout=3) as resp:
+                    sms_ok = 200 <= resp.getcode() < 300
+            except Exception:
+                pass
     elif destinatario_sms:
         sms_ok = True
 
@@ -262,17 +280,20 @@ def probar_canales_alerta(actor_nombre: str = 'Administrador') -> dict:
     sms_texto = f'[RUPI PRUEBA] Canales de notificación operativos. Probado por {actor_nombre}.'
     webhook_url = getattr(settings, 'RUPI_ALERTA_SMS_WEBHOOK', '')
     if webhook_url:
-        try:
-            payload = json.dumps({
-                'tipo': 'PRUEBA_ALERTA',
-                'mensaje': sms_texto,
-                'timestamp': fecha_str,
-            }).encode('utf-8')
-            req = urllib.request.Request(webhook_url, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
-            with urllib.request.urlopen(req, timeout=3) as resp:
-                sms_ok = 200 <= resp.getcode() < 300
-        except Exception:
-            pass
+        if not _es_url_segura(webhook_url):
+            logger.warning('URL de webhook SMS de prueba descartada por esquema no permitido: %s', webhook_url)
+        else:
+            try:
+                payload = json.dumps({
+                    'tipo': 'PRUEBA_ALERTA',
+                    'mensaje': sms_texto,
+                    'timestamp': fecha_str,
+                }).encode('utf-8')
+                req = urllib.request.Request(webhook_url, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
+                with urllib.request.urlopen(req, timeout=3) as resp:
+                    sms_ok = 200 <= resp.getcode() < 300
+            except Exception:
+                pass
     elif destinatario_sms:
         sms_ok = True
 
