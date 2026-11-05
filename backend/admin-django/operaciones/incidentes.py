@@ -38,7 +38,11 @@ def registrar_caida(
     actor_id: str | None = None,
 ) -> dict:
     """Registra una caída de servicio, dispara alertas tempranas y ejecuta autoreinicio de emergencia."""
-    clave_serv = servicio.lower()
+    clave_serv = str(servicio or '').lower()[:80]
+    severidad_norm = str(severidad or 'CRITICA').strip().upper()
+    if severidad_norm not in ('BAJA', 'MEDIA', 'ALTA', 'CRITICA'):
+        severidad_norm = 'CRITICA'
+
     categoria = MAPA_CATEGORIAS.get(clave_serv, 'DISPONIBILIDAD')
     ahora = dj_timezone.now()
 
@@ -76,7 +80,7 @@ def registrar_caida(
         id=incidente_id,
         servicio=clave_serv,
         categoria=categoria,
-        severidad=severidad,
+        severidad=severidad_norm,
         estado='ABIERTO',
         resumen=resumen[:500],
         referencia_externa=detalle_error[:255] if detalle_error else None,
@@ -108,7 +112,7 @@ def registrar_caida(
     notificacion_res = enviar_alerta_caida_servicio(
         servicio=clave_serv,
         categoria=categoria,
-        severidad=severidad,
+        severidad=severidad_norm,
         resumen=resumen,
         detalle_error=detalle_error,
         autoreinicio_info=autoreinicio_info,

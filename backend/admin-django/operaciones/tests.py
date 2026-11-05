@@ -215,6 +215,39 @@ class IncidentesTest(SimpleTestCase):
         self.assertTrue(mock_enviar_alerta.called)
         self.assertTrue(instancia.save.called)
 
+    @patch('operaciones.incidentes.auditoria.registrar')
+    @patch('operaciones.incidentes.enviar_alerta_caida_servicio')
+    @patch('operaciones.incidentes.ejecutar_reinicio_servicio')
+    @patch('operaciones.incidentes.Incidente')
+    def test_registrar_caida_normaliza_severidad_invalida(
+        self,
+        mock_incidente_cls,
+        mock_reinicio,
+        mock_enviar_alerta,
+        mock_auditoria,
+    ):
+        mock_incidente_cls.objects.filter.return_value.order_by.return_value.first.return_value = None
+        instancia = MagicMock()
+        instancia.id = 'inc-456'
+        instancia.servicio = 'api'
+        instancia.estado = 'ABIERTO'
+        instancia.severidad = 'CRITICA'
+        instancia.resumen = 'Fallo con severidad desconocida'
+        instancia.iniciado_en = datetime.now(timezone.utc)
+        instancia.resuelto_en = None
+        mock_incidente_cls.return_value = instancia
+        mock_reinicio.return_value = {'exito': False}
+        mock_enviar_alerta.return_value = {}
+
+        resultado = registrar_caida(
+            servicio='api',
+            severidad='severidad_inexistente',
+            intentar_autoreinicio=False,
+        )
+        self.assertTrue(resultado['esNuevo'])
+        call_kwargs = mock_incidente_cls.call_args[1]
+        self.assertEqual(call_kwargs['severidad'], 'CRITICA')
+
     @patch('operaciones.incidentes.enviar_alerta_caida_servicio')
     @patch('operaciones.incidentes.Incidente')
     def test_registrar_caida_evita_duplicados_si_ya_esta_abierto(

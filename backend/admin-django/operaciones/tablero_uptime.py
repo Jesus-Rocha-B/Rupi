@@ -77,7 +77,8 @@ def _calcular_porcentaje_uptime(segundos_totales: int, segundos_caida: int) -> f
     """Calcula el porcentaje de disponibilidad exacto limitado entre 0.00% y 100.00%."""
     if segundos_totales <= 0:
         return 100.0
-    segundos_operativos = max(0, segundos_totales - segundos_caida)
+    segundos_caida_seguros = max(0, int(segundos_caida or 0))
+    segundos_operativos = max(0, segundos_totales - segundos_caida_seguros)
     uptime = (segundos_operativos / segundos_totales) * 100.0
     return round(max(0.0, min(100.0, uptime)), 2)
 

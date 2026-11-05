@@ -20,11 +20,18 @@ def auditoria_sincronizacion(request):
         usuario_id = datos.get('usuarioId')
         if not usuario_id:
             raise ErrorDePeticion('Falta usuarioId para registrar el evento de sincronización.')
-        cliente_tipo = datos.get('clienteTipo', 'WEB')
-        tipo_evento = datos.get('tipoEvento', 'AVANCE_LECCION')
-        puntaje_xp = int(datos.get('puntajeXp', 0))
-        lecciones = int(datos.get('leccionesCompletadas', 0))
-        estado = datos.get('estado', 'APLICADO')
+        cliente_tipo = str(datos.get('clienteTipo', 'WEB')).upper()
+        if cliente_tipo not in ('WEB', 'MOVIL', 'SISTEMA'):
+            cliente_tipo = 'WEB'
+        tipo_evento = str(datos.get('tipoEvento', 'AVANCE_LECCION')).upper()
+        try:
+            puntaje_xp = int(datos.get('puntajeXp', 0))
+            lecciones = int(datos.get('leccionesCompletadas', 0))
+        except (TypeError, ValueError):
+            raise ErrorDePeticion('puntajeXp y leccionesCompletadas deben ser valores numéricos enteros.', 400)
+        estado = str(datos.get('estado', 'APLICADO')).upper()
+        if estado not in ('APLICADO', 'DESCARTADO', 'CONFLICTO'):
+            estado = 'APLICADO'
         codigo = datos.get('codigoResultado')
         detalle = datos.get('detalle')
         evento_id = sincronizacion.registrar_evento(
