@@ -441,6 +441,9 @@ function UptimeSvgChart({
     return <div className="admin-chart-empty">Sin datos suficientes para graficar.</div>
   }
 
+  // Asegura geometría y trazado válidos incluso con un solo punto registrado
+  const chartPoints = points.length === 1 ? [points[0], points[0]] : points
+
   const width = 600
   const height = 220
   const paddingX = 40
@@ -449,17 +452,17 @@ function UptimeSvgChart({
   const chartH = height - paddingY * 2
 
   // Escala Y de 90 % a 100 % (o mínimo si hay caída mayor)
-  const minUptime = Math.min(90.0, ...points.map(p => p.uptimePercent))
+  const minUptime = Math.min(90.0, ...chartPoints.map(p => p.uptimePercent))
   const maxUptime = 100.0
 
-  const getX = (i: number) => paddingX + (i / Math.max(1, points.length - 1)) * chartW
+  const getX = (i: number) => paddingX + (i / Math.max(1, chartPoints.length - 1)) * chartW
   const getY = (val: number) => {
     const ratio = (val - minUptime) / Math.max(0.1, maxUptime - minUptime)
     return height - paddingY - ratio * chartH
   }
 
-  const polyPoints = points.map((p, i) => `${getX(i)},${getY(p.uptimePercent)}`).join(' ')
-  const areaPoints = `${getX(0)},${height - paddingY} ${polyPoints} ${getX(points.length - 1)},${height - paddingY}`
+  const polyPoints = chartPoints.map((p, i) => `${getX(i)},${getY(p.uptimePercent)}`).join(' ')
+  const areaPoints = `${getX(0)},${height - paddingY} ${polyPoints} ${getX(chartPoints.length - 1)},${height - paddingY}`
 
   const activePoint = activeIndex !== null && points[activeIndex] ? points[activeIndex] : null
 

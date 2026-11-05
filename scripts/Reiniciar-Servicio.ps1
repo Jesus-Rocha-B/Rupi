@@ -28,10 +28,10 @@ if (Test-Path $envFile) {
     . $envFile
 }
 
-function Test-TcpPort([int]$Port) {
+function Test-TcpPort([int]$Port, [string]$HostName = '127.0.0.1') {
     $client = New-Object Net.Sockets.TcpClient
     try {
-        $ar = $client.BeginConnect('127.0.0.1', $Port, $null, $null)
+        $ar = $client.BeginConnect($HostName, $Port, $null, $null)
         $success = $ar.AsyncWaitHandle.WaitOne(800, $false)
         if ($success -and $client.Connected) {
             $client.EndConnect($ar)
@@ -45,24 +45,45 @@ function Test-TcpPort([int]$Port) {
     }
 }
 
-function Wait-TcpPort([int]$Port, [int]$TimeoutSeconds = 30) {
+function Wait-TcpPort([int]$Port, [int]$TimeoutSeconds = 30, [string]$HostName = '127.0.0.1') {
     for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
-        if (Test-TcpPort $Port) { return $true }
+        if (Test-TcpPort $Port $HostName) { return $true }
         Start-Sleep -Milliseconds 1000
     }
     return $false
 }
 
 function Kill-ProcessOnPort([int]$Port) {
+    $pidsEncontrados = @()
     try {
         $conns = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
-        foreach ($c in $conns) {
-            if ($c.OwningProcess -and $c.OwningProcess -gt 4) {
-                Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue
+        if ($conns) {
+            foreach ($c in $conns) {
+                if ($c.OwningProcess -and $c.OwningProcess -gt 4) {
+                    $pidsEncontrados += $c.OwningProcess
+                }
             }
         }
     } catch {
-        # Si no se tiene permisos de NetTCPConnection, continuar
+        # Si no se tiene permisos de NetTCPConnection, continuar a fallback
+    }
+
+    # Fallback con netstat universal para Windows PowerShell 5.1 y permisos restringidos
+    if ($pidsEncontrados.Count -eq 0) {
+        try {
+            $netLines = netstat -ano 2>$null | Select-String ":$Port\s+.*LISTENING"
+            foreach ($line in $netLines) {
+                $tokens = ($line.ToString().Trim() -split '\s+')
+                $procId = [int]$tokens[-1]
+                if ($procId -gt 4) {
+                    $pidsEncontrados += $procId
+                }
+            }
+        } catch {}
+    }
+
+    foreach ($pidToKill in ($pidsEncontrados | Select-Object -Unique)) {
+        Stop-Process -Id $pidToKill -Force -ErrorAction SilentlyContinue
     }
 }
 
@@ -87,32 +108,47 @@ function Stop-RupiProcess([string]$PidFileName, [int]$Port) {
 $resultados = @()
 
 # -------------------------------------------------------------
-# 1. Reinicio de MySQL (Puerto 3306)
+# 1. Reinicio de MySQL / Comprobación de Base de Datos
 # -------------------------------------------------------------
 if ($Servicio -in @('mysql', 'todos')) {
-    Write-Host "[REINICIO] Restableciendo Base de Datos MySQL..." -ForegroundColor Cyan
-    $mysqlBin = "$root\.local\mysql-8.4.11-winx64\bin"
-    $myIni = "$root\.local\my.ini"
-    $rootCnf = "$root\.local\root.cnf"
+    $dbHost = if ($env:RUPI_ADMIN_DB_HOST) { $env:RUPI_ADMIN_DB_HOST } else { '127.0.0.1' }
+    $dbPort = if ($env:RUPI_ADMIN_DB_PORT) { [int]$env:RUPI_ADMIN_DB_PORT } else { 3306 }
+    $esRemota = $dbHost -notin @('127.0.0.1', 'localhost', '::1')
 
-    if (Test-Path "$mysqlBin\mysqladmin.exe") {
-        & "$mysqlBin\mysqladmin.exe" "--defaults-file=$rootCnf" shutdown 2>$null | Out-Null
-    }
-    Start-Sleep -Milliseconds 800
-    if ($Forzar -or (Test-TcpPort 3306)) {
-        Kill-ProcessOnPort 3306
-    }
+    if ($esRemota) {
+        Write-Host "[VERIFICACIÓN] Base de datos en host remoto/cloud ($($dbHost):$($dbPort))..." -ForegroundColor Cyan
+        $ok = Wait-TcpPort -Port $dbPort -TimeoutSeconds 10 -HostName $dbHost
+        $resultados += [PSCustomObject]@{
+            Servicio = 'mysql'
+            Puerto = $dbPort
+            Exito = $ok
+            Mensaje = $(if ($ok) { "Base de datos remota ($dbHost) operativa en puerto $dbPort." } else { "Base de datos remota ($($dbHost):$($dbPort)) inaccesible. Verifique firewall o conexión de red." })
+        }
+    } else {
+        Write-Host "[REINICIO] Restableciendo Base de Datos MySQL local..." -ForegroundColor Cyan
+        $mysqlBin = "$root\.local\mysql-8.4.11-winx64\bin"
+        $myIni = "$root\.local\my.ini"
+        $rootCnf = "$root\.local\root.cnf"
 
-    if (Test-Path "$mysqlBin\mysqld.exe") {
-        Start-Process "$mysqlBin\mysqld.exe" -ArgumentList "--defaults-file=`"$myIni`"" -WindowStyle Hidden
-    }
+        if (Test-Path "$mysqlBin\mysqladmin.exe") {
+            & "$mysqlBin\mysqladmin.exe" "--defaults-file=$rootCnf" shutdown 2>$null | Out-Null
+        }
+        Start-Sleep -Milliseconds 800
+        if ($Forzar -or (Test-TcpPort 3306)) {
+            Kill-ProcessOnPort 3306
+        }
 
-    $ok = Wait-TcpPort 3306 25
-    $resultados += [PSCustomObject]@{
-        Servicio = 'mysql'
-        Puerto = 3306
-        Exito = $ok
-        Mensaje = $(if ($ok) { 'Base de datos MySQL restablecida en puerto 3306.' } else { 'Fallo al iniciar MySQL en el tiempo límite.' })
+        if (Test-Path "$mysqlBin\mysqld.exe") {
+            Start-Process "$mysqlBin\mysqld.exe" -ArgumentList "--defaults-file=`"$myIni`"" -WindowStyle Hidden
+        }
+
+        $ok = Wait-TcpPort 3306 25
+        $resultados += [PSCustomObject]@{
+            Servicio = 'mysql'
+            Puerto = 3306
+            Exito = $ok
+            Mensaje = $(if ($ok) { 'Base de datos MySQL restablecida en puerto 3306.' } else { 'Fallo al iniciar MySQL en el tiempo límite.' })
+        }
     }
 }
 

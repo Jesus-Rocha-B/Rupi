@@ -22,10 +22,16 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path "$PSScriptRoot\.."
 
-function Test-ServicePort([int]$Port, [int]$TimeoutMs = 1200) {
+# Cargar variables de entorno locales si existen
+$envFile = "$root\.local\env.ps1"
+if (Test-Path $envFile) {
+    . $envFile
+}
+
+function Test-ServicePort([string]$HostName = '127.0.0.1', [int]$Port, [int]$TimeoutMs = 1500) {
     $client = New-Object Net.Sockets.TcpClient
     try {
-        $ar = $client.BeginConnect('127.0.0.1', $Port, $null, $null)
+        $ar = $client.BeginConnect($HostName, $Port, $null, $null)
         $success = $ar.AsyncWaitHandle.WaitOne($TimeoutMs, $false)
         if ($success -and $client.Connected) {
             $client.EndConnect($ar)
@@ -70,22 +76,26 @@ function Ejecutar-CicloMonitoreo {
     $fecha = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
     Write-Host "`n[$fecha] --- Ciclo de Monitoreo Continuo Rupi ---" -ForegroundColor DarkCyan
 
+    $dbHost = if ($env:RUPI_ADMIN_DB_HOST) { $env:RUPI_ADMIN_DB_HOST } else { '127.0.0.1' }
+    $dbPort = if ($env:RUPI_ADMIN_DB_PORT) { [int]$env:RUPI_ADMIN_DB_PORT } else { 3306 }
+    $dbNombre = if ($dbHost -in @('127.0.0.1', 'localhost', '::1')) { "Base de Datos MySQL (Puerto $dbPort)" } else { "Base de Datos Cloud ($($dbHost):$($dbPort))" }
+
     $servicios = @(
-        @{ Clave = 'mysql'; Nombre = 'Base de Datos MySQL'; Puerto = 3306; Critico = $true },
-        @{ Clave = 'ia'; Nombre = 'Servicio de IA (FastAPI)'; Puerto = 8000; Critico = $true },
-        @{ Clave = 'api'; Nombre = 'API Spring Boot'; Puerto = 8081; Critico = $true }
+        @{ Clave = 'mysql'; Nombre = $dbNombre; Host = $dbHost; Puerto = $dbPort; Critico = $true },
+        @{ Clave = 'ia'; Nombre = 'Servicio de IA (FastAPI)'; Host = '127.0.0.1'; Puerto = 8000; Critico = $true },
+        @{ Clave = 'api'; Nombre = 'API Spring Boot'; Host = '127.0.0.1'; Puerto = 8081; Critico = $true }
     )
 
     $caidos = @()
 
     foreach ($s in $servicios) {
-        $ok = Test-ServicePort -Port $s.Puerto
+        $ok = Test-ServicePort -HostName $s.Host -Port $s.Puerto
         if ($ok) {
-            Write-Host "  [OK] $($s.Nombre) respondiendo en puerto $($s.Puerto)." -ForegroundColor Green
+            Write-Host "  [OK] $($s.Nombre) respondiendo en $($s.Host):$($s.Puerto)." -ForegroundColor Green
         } else {
-            Write-Host "  [ALERTA CAIDA] $($s.Nombre) no responde en puerto $($s.Puerto)!" -ForegroundColor Red
+            Write-Host "  [ALERTA CAIDA] $($s.Nombre) no responde en $($s.Host):$($s.Puerto)!" -ForegroundColor Red
             $caidos += $s
-            Invoke-DjangoIncidentHook -Servicio $s.Clave -Estado 'CAIDO' -Detalle "Puerto $($s.Puerto) inaccesible"
+            Invoke-DjangoIncidentHook -Servicio $s.Clave -Estado 'CAIDO' -Detalle "$($s.Host):$($s.Puerto) inaccesible"
         }
     }
 
