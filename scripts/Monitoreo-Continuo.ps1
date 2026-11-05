@@ -48,9 +48,16 @@ function Invoke-DjangoIncidentHook([string]$Servicio, [string]$Estado, [string]$
             detalle = $Detalle
         } | ConvertTo-Json
 
+        $headers = @{
+            "Content-Type" = "application/json"
+        }
+        if ($env:RUPI_MONITOR_TOKEN) {
+            $headers["X-Rupi-Monitor-Token"] = $env:RUPI_MONITOR_TOKEN
+        }
+
         $res = Invoke-RestMethod -Uri "http://127.0.0.1:8082/api/admin/v1/monitoreo/evento-externo" `
             -Method Post `
-            -ContentType "application/json" `
+            -Headers $headers `
             -Body $body `
             -TimeoutSec 3 `
             -ErrorAction SilentlyContinue

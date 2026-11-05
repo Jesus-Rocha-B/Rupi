@@ -1,3 +1,4 @@
+import secrets
 from django.conf import settings
 from identidad.respuestas import ErrorDePeticion, api, json_ok, leer_json
 from identidad.sesion import requiere_permiso
@@ -43,7 +44,11 @@ def auditoria_sincronizacion(request):
 def lista_incidentes(request):
     """Retorna la lista de incidentes de infraestructura y la configuración de canales de alerta."""
     estado = request.GET.get('estado')
-    limite = int(request.GET.get('limite', '50'))
+    try:
+        limite = max(1, min(200, int(request.GET.get('limite', 50))))
+    except (TypeError, ValueError):
+        limite = 50
+
     items = incidentes.listar_incidentes(estado=estado, limite=limite)
     abiertos = [i for i in items if i['estado'] in ('ABIERTO', 'EN_ATENCION')]
 
@@ -107,17 +112,31 @@ def reiniciar_servicio_manual(request, servicio):
     return json_ok(resultado)
 
 
-@api({'POST'})
+@api({'POST'}, exigir_origen=False)
 def hook_evento_externo(request):
     """Hook ligero para que scripts watchdog locales (ej. Monitoreo-Continuo.ps1) reporten caídas."""
     remoto = request.META.get('REMOTE_ADDR')
-    if remoto not in ('127.0.0.1', 'localhost', '::1'):
+    ips_locales = {'127.0.0.1', 'localhost', '::1', '::ffff:127.0.0.1'}
+    token_recibido = request.headers.get('X-Rupi-Monitor-Token')
+    token_esperado = getattr(settings, 'RUPI_MONITOR_TOKEN', '')
+
+    es_loopback = remoto in ips_locales
+    token_valido = bool(token_esperado and token_recibido and secrets.compare_digest(token_recibido, token_esperado))
+
+    if not (es_loopback or token_valido):
         raise ErrorDePeticion('Acceso no permitido.', 403)
 
     datos = leer_json(request)
-    servicio = datos.get('servicio', 'desconocido')
-    estado = datos.get('estado', 'CAIDO')
-    detalle = datos.get('detalle', '')
+    servicio = str(datos.get('servicio', 'desconocido')).strip().lower()[:80]
+    estado = str(datos.get('estado', 'CAIDO')).strip().upper()
+    detalle = str(datos.get('detalle', ''))[:500]
+
+    servicios_permitidos = {'mysql', 'base', 'ia', 'api', 'servidor_principal'}
+    if servicio not in servicios_permitidos:
+        raise ErrorDePeticion(f'Servicio no válido. Permitidos: {", ".join(sorted(servicios_permitidos))}', 400)
+
+    if estado not in ('CAIDO', 'OK'):
+        raise ErrorDePeticion('El estado debe ser CAIDO u OK.', 400)
 
     if estado == 'CAIDO':
         res = incidentes.registrar_caida(
@@ -152,12 +171,22 @@ def tablero_arquitectura(request):
 def registrar_caida_servidor_manual(request):
     """Permite al administrador registrar manualmente una interrupción del servidor principal."""
     datos = leer_json(request) if request.body else {}
-    servidor = datos.get('servidor', 'servidor_principal')
-    tipo_evento = datos.get('tipoEvento', 'CAIDA')
-    motivo = datos.get('motivo', 'Interrupción reportada manualmente')
-    codigo_error = datos.get('codigoError')
-    impacto = datos.get('impactoColegios')
-    duracion = int(datos.get('duracionSegundos')) if datos.get('duracionSegundos') is not None else None
+    servidor = str(datos.get('servidor', 'servidor_principal')).strip()[:80] or 'servidor_principal'
+    tipo_evento = str(datos.get('tipoEvento', 'CAIDA')).strip().upper()
+    if tipo_evento not in ('CAIDA', 'DEGRADACION', 'RECUPERACION'):
+        tipo_evento = 'CAIDA'
+
+    motivo = str(datos.get('motivo', 'Interrupción reportada manualmente')).strip()[:500]
+    codigo_error = str(datos.get('codigoError', '')).strip()[:80] or None
+    impacto = str(datos.get('impactoColegios', '')).strip()[:255] or None
+
+    duracion = None
+    if datos.get('duracionSegundos') is not None:
+        try:
+            duracion = max(0, int(datos.get('duracionSegundos')))
+        except (TypeError, ValueError):
+            duracion = None
+
     actor_id = getattr(request.administrador, 'id', None)
 
     res = tablero_uptime.registrar_evento_caida(

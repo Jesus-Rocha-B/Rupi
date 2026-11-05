@@ -53,14 +53,14 @@ def origen_permitido(request):
         return False
 
 
-def api(metodos):
+def api(metodos, exigir_origen=True):
     """Convierte las vistas en endpoints JSON: método permitido, Origin en escrituras y errores con «detail»."""
     def decorador(vista):
         @wraps(vista)
         def envoltura(request, *args, **kwargs):
             if request.method not in metodos:
                 return json_error('Método no permitido.', 405)
-            if request.method in METODOS_QUE_ESCRIBEN and not origen_permitido(request):
+            if exigir_origen and request.method in METODOS_QUE_ESCRIBEN and not origen_permitido(request):
                 return json_error('Origen no permitido.', 403)
             try:
                 return vista(request, *args, **kwargs)

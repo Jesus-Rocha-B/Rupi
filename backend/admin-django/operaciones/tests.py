@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
-from django.test import SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase
 
 from .incidentes import (
     registrar_caida,
@@ -31,6 +31,7 @@ from .tablero_uptime import (
     recopilar_metricas_uptime,
     registrar_evento_caida,
 )
+from .vistas import hook_evento_externo
 
 
 def servicio(clave, estado, detalle=None, peticiones=None, latencia_ms=None):
@@ -441,3 +442,41 @@ class TableroUptimeTest(SimpleTestCase):
         self.assertEqual(resultado['tipoEvento'], 'CAIDA')
         self.assertTrue(instancia.save.called)
         self.assertTrue(mock_auditoria.called)
+
+
+class HookEventoExternoTest(SimpleTestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    @patch('operaciones.vistas.incidentes.registrar_caida')
+    def test_permite_loopback_sin_origen_navegador(self, mock_registrar_caida):
+        mock_registrar_caida.return_value = {'id': 'inc-ext-1', 'esNuevo': True}
+        req = self.factory.post(
+            '/api/admin/v1/monitoreo/evento-externo',
+            data='{"servicio":"ia","estado":"CAIDO","detalle":"test"}',
+            content_type='application/json',
+            REMOTE_ADDR='127.0.0.1',
+        )
+        resp = hook_evento_externo(req)
+        self.assertEqual(resp.status_code, 201)
+        self.assertTrue(mock_registrar_caida.called)
+
+    def test_bloquea_ip_no_loopback_sin_token(self):
+        req = self.factory.post(
+            '/api/admin/v1/monitoreo/evento-externo',
+            data='{"servicio":"ia","estado":"CAIDO"}',
+            content_type='application/json',
+            REMOTE_ADDR='192.168.1.50',
+        )
+        resp = hook_evento_externo(req)
+        self.assertEqual(resp.status_code, 403)
+
+    def test_rechaza_servicio_invalido(self):
+        req = self.factory.post(
+            '/api/admin/v1/monitoreo/evento-externo',
+            data='{"servicio":"servicio_malicioso","estado":"CAIDO"}',
+            content_type='application/json',
+            REMOTE_ADDR='127.0.0.1',
+        )
+        resp = hook_evento_externo(req)
+        self.assertEqual(resp.status_code, 400)
