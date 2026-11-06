@@ -11,6 +11,10 @@ from .incidentes import (
 )
 from .monitoreo import ejecutar_ciclo_monitoreo
 from .notificaciones_alertas import (
+    DespachadorAlertas,
+    EstrategiaCanalAlerta,
+    MensajeAlerta,
+    ResultadoCanal,
     _es_url_segura,
     enviar_alerta_caida_servicio,
     enviar_notificacion_recuperacion,
@@ -541,3 +545,23 @@ class AlertaSeguridadUrlTest(SimpleTestCase):
             )
             self.assertFalse(mock_urlopen.called)
             self.assertFalse(res['smsEnviado'])
+
+
+class EstrategiaNotificacionesTest(SimpleTestCase):
+    def test_despachador_admite_estrategias_personalizadas_sin_modificar_flujo(self):
+        canal_mock = MagicMock(spec=EstrategiaCanalAlerta)
+        canal_mock.esta_habilitado.return_value = True
+        canal_mock.despachar.return_value = ResultadoCanal(exito=True, destinatario='webhook-personalizado')
+
+        despachador = DespachadorAlertas(canales=[canal_mock])
+        mensaje = MensajeAlerta(
+            asunto='Test',
+            cuerpo='Cuerpo',
+            texto_sms='SMS',
+            servicio='ia',
+            severidad='ALTA',
+        )
+
+        correo_res, sms_res = despachador.despachar(mensaje)
+        self.assertTrue(canal_mock.despachar.called)
+        self.assertEqual(canal_mock.despachar.call_args[0][0].asunto, 'Test')

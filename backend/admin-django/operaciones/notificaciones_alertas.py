@@ -1,14 +1,18 @@
 """Sistema de notificaciones tempranas por correo y SMS para infraestructura (HU-47).
 
-Avisa al instante al responsable de infraestructura ante la caída de servicios críticos
-(Base de datos MySQL, Inteligencia Artificial o API central) para aplicar medidas correctivas de emergencia.
+Aplica el Patrón Estrategia (Strategy Pattern) para el despacho multicanal de alertas,
+permitiendo desacoplar la lógica de formateo y validación de seguridad de cada transporte concreto
+(Correo SMTP, Webhook/SMS, o futuros proveedores como Slack/Telegram).
 """
 import json
 import logging
 import urllib.error
 import urllib.parse
 import urllib.request
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Any
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -49,6 +53,162 @@ def _es_url_segura(url: str | None) -> bool:
         return False
 
 
+# =====================================================================
+# Patrón Estrategia (Strategy Pattern) para Canales de Alerta
+# =====================================================================
+
+@dataclass
+class MensajeAlerta:
+    """Entidad que encapsula los datos normalizados de una alerta de infraestructura."""
+    asunto: str
+    cuerpo: str
+    texto_sms: str
+    servicio: str = ''
+    severidad: str = ''
+    tipo_evento: str = 'ALERTA_INFRAESTRUCTURA'
+    fecha_str: str = ''
+    destinatario_email: str = ''
+    destinatario_sms: str = ''
+    extra_payload: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ResultadoCanal:
+    """Resultado devuelto por una estrategia concreta de notificación."""
+    exito: bool
+    destinatario: str | None = None
+    error: str | None = None
+
+
+class EstrategiaCanalAlerta(ABC):
+    """Interfaz base (Strategy) para canales de notificación."""
+
+    @abstractmethod
+    def esta_habilitado(self) -> bool:
+        """Determina si el canal cuenta con configuración suficiente para operar."""
+        pass
+
+    @abstractmethod
+    def despachar(self, mensaje: MensajeAlerta) -> ResultadoCanal:
+        """Realiza la transmisión física de la alerta a través del transporte."""
+        pass
+
+
+class CanalCorreoAlerta(EstrategiaCanalAlerta):
+    """Estrategia de notificación vía Correo Electrónico SMTP institucional."""
+
+    def esta_habilitado(self) -> bool:
+        return True
+
+    def despachar(self, mensaje: MensajeAlerta) -> ResultadoCanal:
+        destinatario = mensaje.destinatario_email or getattr(
+            settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe'
+        )
+        try:
+            send_mail(
+                mensaje.asunto,
+                mensaje.cuerpo,
+                settings.DEFAULT_FROM_EMAIL,
+                [destinatario],
+                fail_silently=False,
+            )
+            logger.info('Alerta de infraestructura enviada por correo a %s', destinatario)
+            return ResultadoCanal(exito=True, destinatario=destinatario)
+        except Exception as e:
+            logger.warning('Fallo al enviar correo de alerta a %s: %s', destinatario, e)
+            return ResultadoCanal(exito=False, destinatario=destinatario, error=str(e))
+
+
+class CanalWebhookSmsAlerta(EstrategiaCanalAlerta):
+    """Estrategia de notificación vía SMS/Webhook HTTP seguro con validación SSRF."""
+
+    def esta_habilitado(self) -> bool:
+        webhook_url = getattr(settings, 'RUPI_ALERTA_SMS_WEBHOOK', '')
+        destinatario_sms = getattr(settings, 'RUPI_ALERTA_SMS_NUMERO', '')
+        return bool(webhook_url or destinatario_sms)
+
+    def despachar(self, mensaje: MensajeAlerta) -> ResultadoCanal:
+        webhook_url = getattr(settings, 'RUPI_ALERTA_SMS_WEBHOOK', '')
+        destinatario_sms = mensaje.destinatario_sms or getattr(settings, 'RUPI_ALERTA_SMS_NUMERO', '')
+
+        if webhook_url:
+            if not _es_url_segura(webhook_url):
+                logger.warning('URL de webhook SMS descartada por esquema no permitido o SSRF: %s', webhook_url)
+                return ResultadoCanal(
+                    exito=False,
+                    destinatario=destinatario_sms or None,
+                    error='URL descartada por esquema no permitido o SSRF',
+                )
+            try:
+                payload_dict = {
+                    'tipo': mensaje.tipo_evento,
+                    'mensaje': mensaje.texto_sms,
+                    'timestamp': mensaje.fecha_str,
+                }
+                if mensaje.servicio:
+                    payload_dict['servicio'] = mensaje.servicio
+                if mensaje.severidad:
+                    payload_dict['severidad'] = mensaje.severidad
+                if destinatario_sms:
+                    payload_dict['telefono'] = destinatario_sms
+                if mensaje.extra_payload:
+                    payload_dict.update(mensaje.extra_payload)
+
+                payload = json.dumps(payload_dict).encode('utf-8')
+                req = urllib.request.Request(
+                    webhook_url,
+                    data=payload,
+                    headers={'Content-Type': 'application/json'},
+                    method='POST',
+                )
+                with urllib.request.urlopen(req, timeout=3) as resp:
+                    exito = 200 <= resp.getcode() < 300
+                    return ResultadoCanal(exito=exito, destinatario=destinatario_sms or None)
+            except Exception as e:
+                logger.warning('Fallo al disparar webhook de SMS a %s: %s', webhook_url, e)
+                return ResultadoCanal(exito=False, destinatario=destinatario_sms or None, error=str(e))
+
+        # En entorno local/desarrollo sin pasarela HTTP externa, se simula con registro en logger
+        if destinatario_sms:
+            logger.info('[SMS SIMULADO a %s] %s', destinatario_sms, mensaje.texto_sms)
+            return ResultadoCanal(exito=True, destinatario=destinatario_sms)
+
+        return ResultadoCanal(exito=False, destinatario=None, error='Canal SMS no configurado')
+
+
+class DespachadorAlertas:
+    """Contexto del patrón Estrategia: gestiona y ejecuta los canales de notificación configurados."""
+
+    def __init__(self, canales: list[EstrategiaCanalAlerta] | None = None):
+        self.canales = canales if canales is not None else [
+            CanalCorreoAlerta(),
+            CanalWebhookSmsAlerta(),
+        ]
+
+    def despachar(self, mensaje: MensajeAlerta) -> tuple[ResultadoCanal, ResultadoCanal]:
+        """Despacha la alerta a los canales de correo y SMS, retornando el par de resultados."""
+        correo_res = ResultadoCanal(exito=False, error='Canal correo no disponible')
+        sms_res = ResultadoCanal(exito=False, error='Canal SMS no disponible')
+
+        for canal in self.canales:
+            if isinstance(canal, CanalCorreoAlerta):
+                correo_res = canal.despachar(mensaje)
+            elif isinstance(canal, CanalWebhookSmsAlerta):
+                sms_res = canal.despachar(mensaje)
+            elif canal.esta_habilitado():
+                canal.despachar(mensaje)
+
+        return correo_res, sms_res
+
+
+# Instancia por defecto del despachador
+despachador_default = DespachadorAlertas()
+
+
+# =====================================================================
+# API Pública de Notificaciones de Infraestructura (HU-47)
+# =====================================================================
+
 def enviar_alerta_caida_servicio(
     servicio: str,
     categoria: str,
@@ -56,8 +216,10 @@ def enviar_alerta_caida_servicio(
     resumen: str,
     detalle_error: str | None = None,
     autoreinicio_info: str | None = None,
+    despachador: DespachadorAlertas | None = None,
 ) -> dict:
-    """Envía alertas inmediatas por correo electrónico y SMS/Webhook al responsable de infraestructura."""
+    """Envía alertas inmediatas por correo y SMS usando el despachador de estrategias."""
+    desp = despachador or despachador_default
     nombre_serv = _obtener_nombre_servicio(servicio)
     fecha_str = _formatear_fecha_actual()
     impacto = IMPACTOS_ESCOLAR.get(servicio.lower(), 'Afectación en la disponibilidad de la plataforma escolar.')
@@ -113,69 +275,39 @@ def enviar_alerta_caida_servicio(
         '======================================================================',
     ])
     cuerpo_email = '\n'.join(cuerpo_lineas)
-
-    # 1. Envío por Correo Electrónico
-    email_ok = False
-    error_email = None
-    try:
-        send_mail(
-            asunto,
-            cuerpo_email,
-            settings.DEFAULT_FROM_EMAIL,
-            [destinatario_email],
-            fail_silently=False,
-        )
-        email_ok = True
-        logger.info('Alerta de caída de %s enviada por correo a %s', servicio, destinatario_email)
-    except Exception as e:
-        error_email = str(e)
-        logger.warning('Fallo al enviar correo de alerta a %s: %s', destinatario_email, e)
-
-    # 2. Envío por SMS / Webhook Urgente
-    sms_ok = False
     sms_texto = f'[RUPI ALERTA {severidad}] Caída en {nombre_serv}. {resumen[:80]}. Revisa consola /admin.'
-    webhook_url = getattr(settings, 'RUPI_ALERTA_SMS_WEBHOOK', '')
-    if webhook_url:
-        if not _es_url_segura(webhook_url):
-            logger.warning('URL de webhook SMS descartada por esquema no permitido o SSRF: %s', webhook_url)
-        else:
-            try:
-                payload = json.dumps({
-                    'tipo': 'ALERTA_INFRAESTRUCTURA',
-                    'servicio': servicio,
-                    'severidad': severidad,
-                    'mensaje': sms_texto,
-                    'timestamp': fecha_str,
-                    'telefono': destinatario_sms,
-                }).encode('utf-8')
-                req = urllib.request.Request(
-                    webhook_url,
-                    data=payload,
-                    headers={'Content-Type': 'application/json'},
-                    method='POST',
-                )
-                with urllib.request.urlopen(req, timeout=3) as resp:
-                    sms_ok = 200 <= resp.getcode() < 300
-            except Exception as e:
-                logger.warning('Fallo al disparar webhook de SMS a %s: %s', webhook_url, e)
-    else:
-        # En entorno local/desarrollo sin pasarela HTTP externa, se simula con registro exitoso en logger
-        if destinatario_sms:
-            logger.info('[SMS SIMULADO a %s] %s', destinatario_sms, sms_texto)
-            sms_ok = True
+
+    mensaje = MensajeAlerta(
+        asunto=asunto,
+        cuerpo=cuerpo_email,
+        texto_sms=sms_texto,
+        servicio=servicio,
+        severidad=severidad,
+        tipo_evento='ALERTA_INFRAESTRUCTURA',
+        fecha_str=fecha_str,
+        destinatario_email=destinatario_email,
+        destinatario_sms=destinatario_sms,
+    )
+
+    res_correo, res_sms = desp.despachar(mensaje)
 
     return {
-        'emailEnviado': email_ok,
-        'destinatarioEmail': destinatario_email,
-        'errorEmail': error_email,
-        'smsEnviado': sms_ok,
-        'destinatarioSms': destinatario_sms or None,
+        'emailEnviado': res_correo.exito,
+        'destinatarioEmail': res_correo.destinatario,
+        'errorEmail': res_correo.error,
+        'smsEnviado': res_sms.exito,
+        'destinatarioSms': res_sms.destinatario,
         'textoAlerta': sms_texto,
     }
 
 
-def enviar_notificacion_recuperacion(servicio: str, duracion_segundos: int | None = None) -> dict:
+def enviar_notificacion_recuperacion(
+    servicio: str,
+    duracion_segundos: int | None = None,
+    despachador: DespachadorAlertas | None = None,
+) -> dict:
     """Avisa al responsable que el servicio caído volvió a la normalidad."""
+    desp = despachador or despachador_default
     nombre_serv = _obtener_nombre_servicio(servicio)
     fecha_str = _formatear_fecha_actual()
     destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe')
@@ -197,52 +329,34 @@ def enviar_notificacion_recuperacion(servicio: str, duracion_segundos: int | Non
         'Equipo de Monitoreo e Infraestructura · RUPI Plataforma Educativa',
         '======================================================================',
     ])
-
-    email_ok = False
-    try:
-        send_mail(
-            asunto,
-            cuerpo,
-            settings.DEFAULT_FROM_EMAIL,
-            [destinatario_email],
-            fail_silently=False,
-        )
-        email_ok = True
-    except Exception as e:
-        logger.warning('Fallo al enviar correo de recuperación: %s', e)
-
-    sms_ok = False
     sms_texto = f'[RUPI RESTABLECIDO] {nombre_serv} operativo nuevamente. Incidente cerrado.'
-    webhook_url = getattr(settings, 'RUPI_ALERTA_SMS_WEBHOOK', '')
-    if webhook_url:
-        if not _es_url_segura(webhook_url):
-            logger.warning('URL de webhook SMS de recuperación descartada por esquema no permitido: %s', webhook_url)
-        else:
-            try:
-                payload = json.dumps({
-                    'tipo': 'RECUPERACION_INFRAESTRUCTURA',
-                    'servicio': servicio,
-                    'mensaje': sms_texto,
-                    'timestamp': fecha_str,
-                }).encode('utf-8')
-                req = urllib.request.Request(webhook_url, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
-                with urllib.request.urlopen(req, timeout=3) as resp:
-                    sms_ok = 200 <= resp.getcode() < 300
-            except Exception:
-                pass
-    elif destinatario_sms:
-        sms_ok = True
+
+    mensaje = MensajeAlerta(
+        asunto=asunto,
+        cuerpo=cuerpo,
+        texto_sms=sms_texto,
+        servicio=servicio,
+        tipo_evento='RECUPERACION_INFRAESTRUCTURA',
+        fecha_str=fecha_str,
+        destinatario_email=destinatario_email,
+        destinatario_sms=destinatario_sms,
+    )
+
+    res_correo, res_sms = desp.despachar(mensaje)
 
     return {
-        'emailEnviado': email_ok,
-        'smsEnviado': sms_ok,
+        'emailEnviado': res_correo.exito,
+        'smsEnviado': res_sms.exito,
         'mensaje': f'Notificación de recuperación de {nombre_serv} enviada.',
     }
 
 
-def probar_canales_alerta(actor_nombre: str = 'Administrador') -> dict:
+def probar_canales_alerta(
+    actor_nombre: str = 'Administrador',
+    despachador: DespachadorAlertas | None = None,
+) -> dict:
     """Envía un mensaje de prueba a los canales de alerta (Correo y SMS/Webhook) para verificación."""
-    nombre_serv = 'Canal de Monitoreo e Infraestructura'
+    desp = despachador or despachador_default
     fecha_str = _formatear_fecha_actual()
     destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe')
     destinatario_sms = getattr(settings, 'RUPI_ALERTA_SMS_NUMERO', '')
@@ -261,47 +375,25 @@ def probar_canales_alerta(actor_nombre: str = 'Administrador') -> dict:
         'Equipo de Monitoreo e Infraestructura · RUPI Plataforma Educativa',
         '======================================================================',
     ])
-
-    email_ok = False
-    error_email = None
-    try:
-        send_mail(
-            asunto,
-            cuerpo,
-            settings.DEFAULT_FROM_EMAIL,
-            [destinatario_email],
-            fail_silently=False,
-        )
-        email_ok = True
-    except Exception as e:
-        error_email = str(e)
-
-    sms_ok = False
     sms_texto = f'[RUPI PRUEBA] Canales de notificación operativos. Probado por {actor_nombre}.'
-    webhook_url = getattr(settings, 'RUPI_ALERTA_SMS_WEBHOOK', '')
-    if webhook_url:
-        if not _es_url_segura(webhook_url):
-            logger.warning('URL de webhook SMS de prueba descartada por esquema no permitido: %s', webhook_url)
-        else:
-            try:
-                payload = json.dumps({
-                    'tipo': 'PRUEBA_ALERTA',
-                    'mensaje': sms_texto,
-                    'timestamp': fecha_str,
-                }).encode('utf-8')
-                req = urllib.request.Request(webhook_url, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
-                with urllib.request.urlopen(req, timeout=3) as resp:
-                    sms_ok = 200 <= resp.getcode() < 300
-            except Exception:
-                pass
-    elif destinatario_sms:
-        sms_ok = True
+
+    mensaje = MensajeAlerta(
+        asunto=asunto,
+        cuerpo=cuerpo,
+        texto_sms=sms_texto,
+        tipo_evento='PRUEBA_ALERTA',
+        fecha_str=fecha_str,
+        destinatario_email=destinatario_email,
+        destinatario_sms=destinatario_sms,
+    )
+
+    res_correo, res_sms = desp.despachar(mensaje)
 
     return {
-        'emailEnviado': email_ok,
-        'destinatarioEmail': destinatario_email,
-        'errorEmail': error_email,
-        'smsEnviado': sms_ok,
-        'destinatarioSms': destinatario_sms or 'No configurado (se registrará en log)',
+        'emailEnviado': res_correo.exito,
+        'destinatarioEmail': res_correo.destinatario,
+        'errorEmail': res_correo.error,
+        'smsEnviado': res_sms.exito,
+        'destinatarioSms': res_sms.destinatario or 'No configurado (se registrará en log)',
         'mensaje': 'Prueba de canales ejecutada correctamente.',
     }
