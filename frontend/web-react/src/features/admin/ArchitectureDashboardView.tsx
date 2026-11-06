@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import {
   Activity,
   AlertOctagon,
@@ -14,66 +13,30 @@ import {
   Sparkles,
 } from 'lucide-react'
 import {
-  AdminApiError,
-  fetchArchitectureDashboard,
   formatDateTime,
-  type ArchitectureDashboardData,
   type TimeSeriesPoint,
 } from '../../services/adminApi'
-import { SESSION_LOST } from './accountStatus'
+import { useArchitectureDashboard } from './useArchitectureDashboard'
 
 interface Props {
   onSessionLost: (message: string) => void
 }
 
-type RefreshInterval = 5000 | 15000 | 30000 | 0
-type TimeWindow = '24h' | '7d'
-
 export function ArchitectureDashboardView({ onSessionLost }: Props) {
-  const [data, setData] = useState<ArchitectureDashboardData | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(15000)
-  const [timeWindow, setTimeWindow] = useState<TimeWindow>('24h')
-  const [tick, setTick] = useState(0)
-  const [answeredTick, setAnsweredTick] = useState(-1)
-  const [activePointIndex, setActivePointIndex] = useState<number | null>(null)
-
-  const checking = answeredTick !== tick
-
-  // Sondeo en tiempo real según intervalo seleccionado
-  useEffect(() => {
-    if (refreshInterval === 0) return
-    const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        setTick(v => v + 1)
-      }
-    }, refreshInterval)
-    return () => clearInterval(timer)
-  }, [refreshInterval])
-
-  // Carga de datos de arquitectura y uptime
-  useEffect(() => {
-    const controller = new AbortController()
-    fetchArchitectureDashboard(controller.signal)
-      .then(res => {
-        setData(res)
-        setError(null)
-        setAnsweredTick(tick)
-      })
-      .catch(err => {
-        if (controller.signal.aborted) return
-        setAnsweredTick(tick)
-        if (err instanceof AdminApiError && err.status === 401) {
-          onSessionLost(err.message || SESSION_LOST)
-        } else {
-          setError(err instanceof AdminApiError ? err.message : 'No se pudo cargar el tablero de arquitectura.')
-        }
-      })
-    return () => controller.abort()
-  }, [tick, onSessionLost])
-
-  const resumen = data?.resumen
-  const serie = timeWindow === '24h' ? (data?.serieTemporal24h ?? []) : (data?.serieTemporal7d ?? [])
+  const {
+    data,
+    error,
+    refreshInterval,
+    setRefreshInterval,
+    timeWindow,
+    setTimeWindow,
+    checking,
+    activePointIndex,
+    setActivePointIndex,
+    resumen,
+    serie,
+    refreshNow,
+  } = useArchitectureDashboard({ onSessionLost })
 
   return (
     <div className="admin-architecture-dashboard">
@@ -133,7 +96,7 @@ export function ArchitectureDashboardView({ onSessionLost }: Props) {
             <button
               type="button"
               className="admin-btn admin-btn--sky"
-              onClick={() => setTick(v => v + 1)}
+              onClick={refreshNow}
               disabled={checking}
             >
               <RefreshCw size={18} className={checking ? 'admin-spin' : undefined} aria-hidden="true" />
