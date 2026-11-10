@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS curriculo_area (
   version_catalogo_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   codigo VARCHAR(40) NOT NULL,
   nombre VARCHAR(120) NOT NULL,
+  orden TINYINT UNSIGNED NULL,
   UNIQUE KEY uq_area_version_codigo (version_catalogo_id, codigo),
   UNIQUE KEY uq_area_id_version (id, version_catalogo_id),
   FULLTEXT KEY ft_area_busqueda (nombre),
@@ -65,7 +66,8 @@ CREATE TABLE IF NOT EXISTS curriculo_competencia (
   id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
   area_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   codigo VARCHAR(60) NOT NULL,
-  nombre VARCHAR(180) NOT NULL,
+  numero_cneb TINYINT UNSIGNED NULL,
+  nombre VARCHAR(255) NOT NULL,
   descripcion TEXT NULL,
   UNIQUE KEY uq_competencia_area_codigo (area_id, codigo),
   FOREIGN KEY (area_id) REFERENCES curriculo_area(id)
@@ -91,6 +93,16 @@ CREATE TABLE IF NOT EXISTS curriculo_unidad_competencia (
   competencia_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   PRIMARY KEY (unidad_id, competencia_id),
   FOREIGN KEY (unidad_id) REFERENCES curriculo_unidad(id),
+  FOREIGN KEY (competencia_id) REFERENCES curriculo_competencia(id)
+) ENGINE=InnoDB;
+
+-- Capacidades de cada competencia del CNEB (HU-49)
+CREATE TABLE IF NOT EXISTS curriculo_capacidad (
+  id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+  competencia_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  orden TINYINT UNSIGNED NOT NULL,
+  nombre VARCHAR(255) NOT NULL,
+  UNIQUE KEY uq_capacidad_competencia_orden (competencia_id, orden),
   FOREIGN KEY (competencia_id) REFERENCES curriculo_competencia(id)
 ) ENGINE=InnoDB;
 

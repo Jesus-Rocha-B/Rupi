@@ -1,6 +1,6 @@
 # Django · Administración
 
-API JSON de la consola de administración (`/admin` en la web). Administra identidad (cuentas, roles, permisos y sesiones de administración) y, más adelante, el catálogo curricular y la configuración global de IA.
+API JSON de la consola de administración (`/admin` en la web). Administra identidad (cuentas, roles, permisos y sesiones de administración), el catálogo curricular del MINEDU y, más adelante, la configuración global de IA.
 
 ## Reglas de integración
 
@@ -12,7 +12,7 @@ API JSON de la consola de administración (`/admin` en la web). Administra ident
 - Toda escritura exige un `Origin` propio o de la web (igual que `SessionController.checkOrigin`).
 - No guardar secretos en el repositorio. Usar variables de entorno en desarrollo y en el proveedor de despliegue.
 
-`curriculo/` conserva los modelos del catálogo, todavía fuera de `INSTALLED_APPS` hasta que una historia lo necesite.
+`curriculo/` administra el catálogo de grados, áreas, competencias y capacidades (HU-49). Spring lo lee para armar las rutas, los reportes y el banco de repaso.
 
 ## Puesta en marcha local
 
@@ -24,7 +24,7 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 
 1. Crear el usuario MySQL `rupi_admin` y darle permisos (como root):
    `mysql -e "SET @admin_usuario='rupi_admin'; SOURCE database/mysql/grants-django-admin.sql"`
-2. Aplicar `database/mysql/migrations/V31__consola_administracion_cuentas_hu41.sql`, `V32__roles_permisos_estrictos_hu42.sql`, `V33`, `V34` y `V35`.
+2. Aplicar `database/mysql/migrations/V31__consola_administracion_cuentas_hu41.sql`, `V32__roles_permisos_estrictos_hu42.sql`, `V33` a `V36`, `V38` y `V39` (catálogo curricular). Después de la V39 se vuelve a ejecutar el paso 1 para que la consola escriba en `curriculo_capacidad`.
 3. Variables en `.local/env.sh` (o `.local/env.ps1`): `RUPI_ADMIN_DB_PORT`, `RUPI_ADMIN_DB_USERNAME`, `RUPI_ADMIN_DB_PASSWORD`.
 4. Crear la primera cuenta de administración (pide la contraseña sin mostrarla):
    `.venv/bin/python manage.py crear_administrador --usuario admin.rupi --nombre Rosa --apellido Quispe`
@@ -60,6 +60,9 @@ python3 -m venv .venv                       # Windows: py -m venv .venv
 | `POST cuentas/{id}/clave` `{"clave"?: "..."}` | `credenciales.restablecer` | HU-44 · sin `clave` genera una temporal |
 | `POST cuentas/{id}/bloquear` · `POST cuentas/{id}/desbloquear` | `credenciales.restablecer` | HU-44 |
 | `GET salud` | `plataforma.monitorear` | HU-45 · base, API, IA y consola, con tiempos por ruta |
+| `GET curriculo/catalogo?version=` | `curriculo.ver` | HU-49 · versiones, grados, áreas en orden, competencias y capacidades |
+| `POST curriculo/areas` · `PATCH curriculo/areas/{id}` | `curriculo.gestionar` | HU-49 · el código no cambia |
+| `POST curriculo/competencias` · `PATCH curriculo/competencias/{id}` | `curriculo.gestionar` | HU-49 · número CNEB y capacidades en orden |
 
 ### Roles y permisos (HU-42)
 
@@ -85,6 +88,15 @@ Una cuenta tiene como mucho una sesión activa entre la web, el celular y la con
 
 `RUPI_MONITOR_TOKEN` debe ser el mismo en la API y en la consola: `iniciar-rupi.sh` e `Iniciar-Rupi.ps1` lo generan una vez en `.local/monitor.token`. Sin token, el endpoint de Spring no existe (404).
 
+### Catálogo curricular del MINEDU (HU-49)
+
+La V39 completa el CNEB 2017 de primaria: nueve áreas en el orden del programa curricular, las 28 competencias de área con su número oficial y sus 99 capacidades. Las competencias transversales (30 y 31) aún no se cargan porque no pertenecen a un área.
+
+- Los códigos de área y de competencia no cambian una vez creados: las unidades, las rutas y el banco de repaso los usan. El de una competencia empieza con el del área (`MAT-C1`).
+- El número CNEB va de 1 a 31 y no se repite dentro de una versión. Cada competencia tiene de una a ocho capacidades, en orden.
+- Nada se borra, salvo una capacidad sobrante al corregir una competencia. Una versión `RETIRADO` se consulta como registro y ya no se corrige.
+- SOPORTE consulta el catálogo; solo ADMINISTRADOR lo corrige. Cada cambio queda en `operaciones_evento_auditoria` con `dominio = 'curriculo'`.
+
 Los errores responden `{"detail": "..."}` en español.
 
 ## Pruebas
@@ -92,4 +104,5 @@ Los errores responden `{"detail": "..."}` en español.
 ```bash
 .venv/bin/python manage.py test          # sin base de datos
 python3 -I scripts/verify_admin_cuentas.py   # contra Django y Spring levantados (desde la raíz)
+python3 -I scripts/verify_hu49_catalogo.py   # catálogo curricular contra Django y MySQL (desde la raíz)
 ```

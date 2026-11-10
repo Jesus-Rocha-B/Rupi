@@ -32,9 +32,14 @@ BEGIN
     END LOOP;
     CLOSE cur;
 
-    -- Retirar un rol borra su fila de asignación (HU-42); ninguna otra tabla admite DELETE.
+    -- Retirar un rol borra su fila de asignación (HU-42) y corregir una competencia puede quitar una de sus
+    -- capacidades (HU-49), que ninguna otra tabla referencia. Ninguna otra tabla admite DELETE.
     SET @g = CONCAT('GRANT DELETE ON rupi.identidad_usuario_rol TO `', usuario, '`@`', equipo, '`');
     PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'rupi' AND table_name = 'curriculo_capacidad') THEN
+      SET @g = CONCAT('GRANT DELETE ON rupi.curriculo_capacidad TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    END IF;
 
     SET @g = CONCAT('GRANT INSERT ON rupi.operaciones_evento_auditoria TO `', usuario, '`@`', equipo, '`');
     PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;

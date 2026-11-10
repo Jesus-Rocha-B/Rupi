@@ -464,6 +464,81 @@ export interface SyncAuditData {
 
 export const fetchSyncAudit = (signal?: AbortSignal) => request<SyncAuditData>('sincronizacion', { signal })
 
+// Catálogo general de grados, áreas y competencias del MINEDU (HU-49)
+export type CatalogState = 'BORRADOR' | 'ACTIVO' | 'RETIRADO'
+
+export interface CatalogVersion {
+  id: string
+  etiqueta: string
+  referencia: string | null
+  vigenteDesde: string | null
+  estado: CatalogState
+}
+
+export interface CurriculumCapacity {
+  id: string
+  orden: number
+  nombre: string
+}
+
+export interface CurriculumCompetency {
+  id: string
+  codigo: string
+  numeroCneb: number | null
+  nombre: string
+  descripcion: string | null
+  /** Unidades del catálogo que desarrollan esta competencia. */
+  unidades: number
+  capacidades: CurriculumCapacity[]
+}
+
+export interface CurriculumArea {
+  id: string
+  codigo: string
+  nombre: string
+  orden: number | null
+  unidades: number
+  competencias: CurriculumCompetency[]
+}
+
+export interface CurriculumCatalog {
+  versiones: CatalogVersion[]
+  version: CatalogVersion | null
+  /** false si la versión está RETIRADA: queda como registro. */
+  editable: boolean
+  grados: { id: string; numero: number; nombre: string }[]
+  areas: CurriculumArea[]
+  resumen: { grados: number; areas: number; competencias: number; capacidades: number }
+}
+
+export interface AreaInput {
+  version: string
+  codigo: string
+  nombre: string
+  orden: number | null
+}
+
+export interface CompetencyInput {
+  area: string
+  codigo: string
+  numeroCneb: number | null
+  nombre: string
+  descripcion: string
+  capacidades: string[]
+}
+
+export const fetchCurriculumCatalog = (version: string | null, signal?: AbortSignal) =>
+  request<CurriculumCatalog>(`curriculo/catalogo${version ? `?version=${encodeURIComponent(version)}` : ''}`, { signal })
+export const createCurriculumArea = (area: AreaInput) => post<CurriculumCatalog>('curriculo/areas', area)
+export const updateCurriculumArea = (id: string, changes: Pick<AreaInput, 'nombre' | 'orden'>) =>
+  request<CurriculumCatalog>(`curriculo/areas/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(changes) })
+export const createCompetency = (competency: CompetencyInput) => post<CurriculumCatalog>('curriculo/competencias', competency)
+export const updateCompetency = (id: string, changes: Omit<CompetencyInput, 'area' | 'codigo'>) =>
+  request<CurriculumCatalog>(`curriculo/competencias/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(changes),
+  })
+
 
 export const CLIENT_LABELS: Record<SessionClient, string> = {
   WEB_USUARIO: 'Web',
@@ -488,6 +563,8 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'credenciales.restablecer': 'Restablecer contraseñas y desbloquear cuentas',
   'plataforma.monitorear': 'Ver la salud de los servidores',
   'sincronizacion.auditar': 'Auditar sincronización web y celular',
+  'curriculo.ver': 'Consultar el catálogo curricular',
+  'curriculo.gestionar': 'Registrar y corregir el catálogo curricular',
 }
 
 export const STATE_LABELS: Record<AccountState, string> = {

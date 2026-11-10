@@ -1,3 +1,8 @@
+"""Tablas curriculo_* del esquema compartido (database/mysql/schema.sql).
+
+Como en identidad/, son modelos no gestionados: Django es su único escritor, pero el esquema se versiona en
+database/mysql/migrations/. Spring Boot las lee para armar las rutas, los reportes y el banco de repaso.
+"""
 import uuid
 from django.db import models
 
@@ -14,6 +19,7 @@ class VersionCatalogo(models.Model):
     creado_en = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        managed = False
         db_table = 'curriculo_version_catalogo'
         verbose_name = 'Versión de catálogo'
         verbose_name_plural = 'Versiones de catálogo'
@@ -28,6 +34,7 @@ class Grado(models.Model):
     nombre = models.CharField(max_length=80)
 
     class Meta:
+        managed = False
         db_table = 'curriculo_grado'
         ordering = ['numero_grado']
 
@@ -40,8 +47,10 @@ class Area(models.Model):
     version_catalogo = models.ForeignKey(VersionCatalogo, on_delete=models.CASCADE, db_column='version_catalogo_id')
     codigo = models.CharField(max_length=40)
     nombre = models.CharField(max_length=120)
+    orden = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Orden del área en el programa curricular")
 
     class Meta:
+        managed = False
         db_table = 'curriculo_area'
         unique_together = (('version_catalogo', 'codigo'),)
 
@@ -51,17 +60,36 @@ class Area(models.Model):
 
 class Competencia(models.Model):
     id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
-    area = models.ForeignKey(Area, on_delete=models.CASCADE, db_column='area_id')
+    area = models.ForeignKey(Area, on_delete=models.CASCADE, db_column='area_id', related_name='competencias')
     codigo = models.CharField(max_length=60)
-    nombre = models.CharField(max_length=180)
+    numero_cneb = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Número de la competencia en el CNEB (1 a 31)")
+    nombre = models.CharField(max_length=255)
     descripcion = models.TextField(null=True, blank=True)
 
     class Meta:
+        managed = False
         db_table = 'curriculo_competencia'
         unique_together = (('area', 'codigo'),)
 
     def __str__(self):
         return f"{self.codigo}: {self.nombre}"
+
+
+class Capacidad(models.Model):
+    id = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
+    competencia = models.ForeignKey(Competencia, on_delete=models.CASCADE, db_column='competencia_id',
+                                    related_name='capacidades')
+    orden = models.PositiveSmallIntegerField()
+    nombre = models.CharField(max_length=255)
+
+    class Meta:
+        managed = False
+        db_table = 'curriculo_capacidad'
+        ordering = ['orden']
+        unique_together = (('competencia', 'orden'),)
+
+    def __str__(self):
+        return self.nombre
 
 
 class Unidad(models.Model):
@@ -74,6 +102,7 @@ class Unidad(models.Model):
     numero_secuencia = models.PositiveSmallIntegerField(null=True, blank=True)
 
     class Meta:
+        managed = False
         db_table = 'curriculo_unidad'
         unique_together = (('version_catalogo', 'grado', 'area', 'codigo'),)
 
@@ -100,6 +129,7 @@ class ContextoCultural(models.Model):
     actualizado_en = models.DateTimeField(auto_now=True)
 
     class Meta:
+        managed = False
         db_table = 'curriculo_contexto_cultural'
         verbose_name = 'Contexto cultural'
         verbose_name_plural = 'Contextos culturales'
@@ -138,6 +168,7 @@ class ContextoCulturalDato(models.Model):
     actualizado_en = models.DateTimeField(auto_now=True)
 
     class Meta:
+        managed = False
         db_table = 'curriculo_contexto_cultural_dato'
         ordering = ['orden', 'parada_secuencia']
         verbose_name = 'Dato curioso cultural'

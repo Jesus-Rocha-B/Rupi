@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Activity, ArrowLeftRight, BarChart3, LogOut, MonitorSmartphone, ShieldCheck, Users } from 'lucide-react'
+import { Activity, ArrowLeftRight, BarChart3, BookOpen, LogOut, MonitorSmartphone, ShieldCheck, Users } from 'lucide-react'
 import { AdminApiError, adminLogout, fetchAdminSession, type Administrator } from '../../services/adminApi'
 import { AccountsView } from './AccountsView'
 import { AdminLogin } from './AdminLogin'
 import { ArchitectureDashboardView } from './ArchitectureDashboardView'
+import { CurriculumView } from './CurriculumView'
 import { HealthView } from './HealthView'
 import { RolesView } from './RolesView'
 import { SessionsView } from './SessionsView'
 import { SyncAuditView } from './SyncAuditView'
 import './AdminConsole.css'
 
-type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'salud' | 'tablero' | 'sincronizacion'
+type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'catalogo' | 'salud' | 'tablero' | 'sincronizacion'
 
 interface Section {
   id: SectionId
@@ -23,6 +24,7 @@ const SECTIONS: Section[] = [
   { id: 'cuentas', label: 'Cuentas', permission: 'cuentas.ver', icon: Users },
   { id: 'roles', label: 'Roles y permisos', permission: 'cuentas.ver', icon: ShieldCheck },
   { id: 'sesiones', label: 'Sesiones', permission: 'sesiones.gestionar', icon: MonitorSmartphone },
+  { id: 'catalogo', label: 'Catálogo curricular', permission: 'curriculo.ver', icon: BookOpen },
   { id: 'salud', label: 'Salud', permission: 'plataforma.monitorear', icon: Activity },
   { id: 'tablero', label: 'Tablero de Uptime', permission: 'plataforma.monitorear', icon: BarChart3 },
   { id: 'sincronizacion', label: 'Sincronización Web/Móvil', permission: 'sincronizacion.auditar', icon: ArrowLeftRight },
@@ -148,6 +150,7 @@ export function AdminApp() {
         {current?.id === 'cuentas' && <AccountsView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'roles' && <RolesView onSessionLost={handleSessionLost} />}
         {current?.id === 'sesiones' && <SessionsView admin={admin} onSessionLost={handleSessionLost} />}
+        {current?.id === 'catalogo' && <CurriculumView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'salud' && <HealthView onSessionLost={handleSessionLost} />}
         {current?.id === 'tablero' && <ArchitectureDashboardView onSessionLost={handleSessionLost} />}
         {current?.id === 'sincronizacion' && <SyncAuditView onSessionLost={handleSessionLost} />}

@@ -417,6 +417,7 @@ Table curriculo_area {
   version_catalogo_id CHAR(36) [not null]
   codigo VARCHAR(40) [not null]
   nombre VARCHAR(120) [not null]
+  orden TINYINT
   indexes {
     (version_catalogo_id, codigo) [unique]
     (id, version_catalogo_id) [unique]
@@ -428,10 +429,21 @@ Table curriculo_competencia {
   id CHAR(36) [pk]
   area_id CHAR(36) [not null]
   codigo VARCHAR(60) [not null]
-  nombre VARCHAR(180) [not null]
+  numero_cneb TINYINT
+  nombre VARCHAR(255) [not null]
   descripcion TEXT
   indexes {
     (area_id, codigo) [unique]
+  }
+}
+
+Table curriculo_capacidad {
+  id CHAR(36) [pk]
+  competencia_id CHAR(36) [not null]
+  orden TINYINT [not null]
+  nombre VARCHAR(255) [not null]
+  indexes {
+    (competencia_id, orden) [unique]
   }
 }
 
@@ -1322,6 +1334,7 @@ Table operaciones_evento_auditoria {
 Ref: identidad_perfil_usuario.usuario_id > identidad_cuenta_usuario.id
 Ref: curriculo_area.version_catalogo_id > curriculo_version_catalogo.id
 Ref: curriculo_competencia.area_id > curriculo_area.id
+Ref: curriculo_capacidad.competencia_id > curriculo_competencia.id
 Ref: curriculo_unidad.version_catalogo_id > curriculo_version_catalogo.id
 Ref: curriculo_unidad.grado_id > curriculo_grado.id
 Ref: curriculo_unidad.(area_id, version_catalogo_id) > curriculo_area.(id, version_catalogo_id)

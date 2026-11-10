@@ -3,10 +3,10 @@ from django.utils import timezone
 from .models import EventoAuditoria
 
 
-def registrar(actor_id, accion, entidad_id, resultado='CORRECTO', entidad_tipo='CUENTA_USUARIO'):
+def registrar(actor_id, accion, entidad_id, resultado='CORRECTO', entidad_tipo='CUENTA_USUARIO', dominio='identidad'):
     EventoAuditoria.objects.create(
         actor_usuario_id=actor_id,
-        dominio='identidad',
+        dominio=dominio,
         accion=accion,
         entidad_tipo=entidad_tipo,
         entidad_id=entidad_id,

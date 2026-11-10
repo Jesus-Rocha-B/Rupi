@@ -28,6 +28,7 @@ RUPI_ORIGENES_PERMITIDOS = _lista('RUPI_ADMIN_ORIGINS', ['http://localhost:5173'
 INSTALLED_APPS = [
     'identidad',
     'operaciones',
+    'curriculo',
 ]
 
 MIDDLEWARE = [

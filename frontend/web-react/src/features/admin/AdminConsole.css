@@ -1727,6 +1727,194 @@
   gap: 8px;
 }
 
+/* Catálogo curricular del MINEDU (HU-49): fichas de área con su sello de orden y competencias numeradas */
+.admin-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--adm-line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--adm-ink);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.45;
+  resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.admin-field textarea:focus {
+  border-color: var(--adm-sky);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(36, 106, 145, 0.25);
+}
+.admin-field input:disabled {
+  background: var(--adm-paper-deep);
+  color: var(--adm-muted);
+}
+
+.admin-curriculum-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 14px 18px;
+  border: 2px solid var(--adm-line);
+  border-radius: 16px;
+  background: var(--adm-paper-deep);
+}
+.admin-curriculum-version .admin-field {
+  min-width: 220px;
+}
+.admin-curriculum-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--adm-forest);
+  font-size: 1.1rem;
+}
+.admin-curriculum-source {
+  flex-basis: 100%;
+  font-size: 0.9rem;
+}
+
+.admin-curriculum-totals {
+  list-style: none;
+  margin: 16px 0 4px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.admin-curriculum-totals li {
+  display: grid;
+  padding: 10px 12px;
+  border: 2px solid var(--adm-line);
+  border-bottom-width: 4px;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--adm-muted);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+.admin-curriculum-totals strong {
+  color: var(--adm-forest);
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.admin-shell .admin-curriculum-subtitle {
+  margin: 22px 0 10px;
+  font-size: 1.05rem;
+}
+.admin-curriculum-grades {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-area-row {
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+}
+.admin-area-row .admin-account-name {
+  flex: 1;
+}
+.admin-area-row .admin-chips {
+  justify-content: flex-end;
+}
+.admin-area-seal,
+.admin-cneb-seal {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  font-weight: 900;
+  line-height: 1;
+}
+.admin-area-seal {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--adm-sun-dark);
+  border-radius: 12px;
+  background: #fff8e6;
+  color: #85550a;
+  font-size: 1.1rem;
+  box-shadow: 0 3px 0 #f0d9a3;
+}
+.admin-area-row.is-selected .admin-area-seal {
+  border-color: var(--adm-orange-dark);
+  background: #fff0ec;
+  color: var(--adm-orange-dark);
+  box-shadow: 0 3px 0 #f6c7bb;
+}
+
+.admin-competency-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.admin-competency {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 2px solid var(--adm-line);
+  border-left: 6px solid var(--adm-sky);
+  border-radius: 14px;
+  background: var(--adm-paper);
+}
+.admin-competency-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.admin-cneb-seal {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 8px;
+  border: 2px solid var(--adm-sky);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--adm-sky-dark);
+  font-size: 1rem;
+}
+.admin-competency-title {
+  flex: 1;
+  min-width: 0;
+}
+.admin-shell .admin-competency-title h4,
+.admin-shell .admin-competency-form h4 {
+  margin: 0;
+  color: var(--adm-forest);
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.3;
+}
+.admin-competency-title p {
+  margin: 4px 0 0;
+  color: var(--adm-muted);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+.admin-capacity-list {
+  margin: 0;
+  padding: 0 0 0 22px;
+  display: grid;
+  gap: 4px;
+  color: var(--adm-ink);
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.admin-capacity-list li::marker {
+  color: var(--adm-leaf);
+  font-weight: 900;
+}
+.admin-competency-form {
+  gap: 12px;
+}
+
 @media (max-width: 900px) {
   .admin-accounts {
     grid-template-columns: minmax(0, 1fr);
@@ -1759,6 +1947,12 @@
   }
   .admin-filters {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-curriculum-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-area-row {
+    flex-wrap: wrap;
   }
   .admin-card {
     padding: 18px 16px;
