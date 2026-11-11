@@ -19,7 +19,10 @@ interface Shared {
 }
 
 function toNumber(value: string) {
-  return value.trim() === '' ? null : Number(value)
+  const trimmed = value.trim()
+  if (trimmed === '') return null
+  const parsed = Number(trimmed)
+  return Number.isInteger(parsed) ? parsed : null
 }
 
 function useSubmit(onSessionLost: (message: string) => void, fallback: string) {
