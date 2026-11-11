@@ -54,9 +54,10 @@ def _entero(valor, minimo, maximo, etiqueta):
 
 
 def _id(valor, etiqueta):
-    if not isinstance(valor, str) or not _ID.match(valor):
+    normalizado = valor.strip().lower() if isinstance(valor, str) else ''
+    if not normalizado or not _ID.match(normalizado):
         raise ErrorDePeticion(f'Falta {etiqueta}.')
-    return valor
+    return normalizado
 
 
 def normalizar_codigo_area(valor):

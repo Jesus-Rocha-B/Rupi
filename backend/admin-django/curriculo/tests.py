@@ -64,6 +64,14 @@ class NumeroCnebTest(SimpleTestCase):
             with self.assertRaises(ErrorDePeticion, msg=valor):
                 catalogo._entero(valor, 1, 31, 'el número')
 
+    def test_normaliza_uuid_en_mayusculas_y_espacios(self):
+        self.assertEqual(
+            catalogo._id(' C0000000-0000-4000-8000-000000000001 ', 'la versión'),
+            'c0000000-0000-4000-8000-000000000001',
+        )
+        with self.assertRaises(ErrorDePeticion):
+            catalogo._id('uuid-invalido', 'la versión')
+
 
 def _version(estado='ACTIVO'):
     return SimpleNamespace(id=VERSION_ID, etiqueta_version='CNEB-2017', estado=estado)
