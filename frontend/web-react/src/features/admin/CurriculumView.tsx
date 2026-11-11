@@ -281,7 +281,15 @@ export function CurriculumView({ admin, onSessionLost }: Props) {
                     ) : (
                       <>
                         <div className="admin-competency-head">
-                          <span className="admin-cneb-seal" title="Número de la competencia en el CNEB">
+                          <span
+                            className="admin-cneb-seal"
+                            title="Número de la competencia en el CNEB"
+                            aria-label={
+                              competency.numeroCneb
+                                ? `Competencia número ${competency.numeroCneb} del CNEB`
+                                : 'Sin número CNEB asignado'
+                            }
+                          >
                             {competency.numeroCneb ?? '—'}
                           </span>
                           <div className="admin-competency-title">
