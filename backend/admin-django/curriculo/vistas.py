@@ -6,6 +6,7 @@ from identidad.sesion import requiere_permiso
 
 from . import catalogo
 from . import metas
+from . import periodos
 
 PERMISO_GESTIONAR = 'curriculo.gestionar'
 
@@ -81,3 +82,32 @@ def registros_unidad(request, unidad_id):
 @_requiere_gestion
 def corregir_registro(request, unidad_id, tipo, registro_id):
     return json_ok(metas.modificar(unidad_id, tipo, registro_id, leer_json(request), request.administrador))
+
+
+@api({'GET'})
+@requiere_permiso('curriculo.ver')
+def opciones_periodos(request):
+    return json_ok(periodos.opciones())
+
+
+@api({'GET', 'PUT'})
+@requiere_permiso('curriculo.ver')
+def calendario_periodos(request, anio_id):
+    if request.method == 'GET':
+        return json_ok(periodos.consultar(anio_id))
+    if not request.administrador.puede(PERMISO_GESTIONAR):
+        return json_error('Tu rol solo puede consultar los periodos.', 403)
+    return json_ok(periodos.guardar(anio_id, leer_json(request), request.administrador))
+
+
+@api({'POST'})
+@requiere_permiso('curriculo.ver')
+def revisar_periodos(request, anio_id):
+    return json_ok(periodos.vista_previa(anio_id, leer_json(request)))
+
+
+@api({'POST'})
+@requiere_permiso('curriculo.ver')
+@_requiere_gestion
+def aplicar_periodos(request, anio_id):
+    return json_ok(periodos.aplicar(anio_id, leer_json(request), request.administrador))

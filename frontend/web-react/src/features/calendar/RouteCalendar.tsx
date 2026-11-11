@@ -84,6 +84,7 @@ export function RouteCalendar({ routeId, teacher = false, compact = false }: { r
         {visible.length === 0 && <p>No hay fechas programadas para este mes.</p>}
         <ol className="calendar-events">{visible.map(event => <li key={event.id}>
           <span className="calendar-kind">{event.type === 'UNIDAD' ? 'Unidad' : 'Evaluación'}</span><strong>{event.title}</strong>
+          {event.periodName && <span className="calendar-kind">{event.periodName}</span>}
           <time dateTime={event.start}>{dateLabel(event.start)}</time><span>hasta {dateLabel(event.end)}</span>
           {teacher && <div className="calendar-actions"><button type="button" disabled={busy} onClick={() => edit(event)}>Editar fechas</button><button type="button" disabled={busy} onClick={() => remove(event)}>Retirar fecha</button></div>}
         </li>)}</ol>

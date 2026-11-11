@@ -1,5 +1,5 @@
 import { ApiError } from './learningRoutesApi'
-export interface CalendarEvent { id: string; classroomId: string; classroomName: string; type: 'UNIDAD' | 'EVALUACION'; targetId: string; title: string; start: string; end: string }
+export interface CalendarEvent { id: string; classroomId: string; classroomName: string; type: 'UNIDAD' | 'EVALUACION'; targetId: string; title: string; start: string; end: string; periodName?: string | null }
 export interface Schedule { classrooms: {id: string; name: string}[]; targets: {id: string; title: string; type: 'UNIDAD' | 'EVALUACION'}[]; events: CalendarEvent[] }
 export type CalendarDates = Pick<CalendarEvent, 'classroomId' | 'type' | 'targetId' | 'start' | 'end'>
 export async function calendarRequest<T>(role: 'teacher' | 'student', route: string, suffix = '', options: RequestInit = {}): Promise<T> {

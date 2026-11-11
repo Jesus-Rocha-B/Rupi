@@ -46,13 +46,25 @@ public class CalendarRepository {
         String placeholders = String.join(",", java.util.Collections.nCopies(rooms.size(), "?"));
         var args = new java.util.ArrayList<Object>(); args.add(route); rooms.forEach(a->args.add(a.id()));
         return jdbc.query("""
-            SELECT p.*,a.nombre aula_nombre FROM escuela_planificacion_ruta p
-            JOIN escuela_aula a ON a.id=p.aula_id WHERE p.version_ruta_id=? AND p.aula_id IN (
+            SELECT p.*,a.nombre aula_nombre,cp.nombre periodo_nombre,cp.comienza periodo_inicio,cp.termina periodo_fin
+            FROM escuela_planificacion_ruta p
+            JOIN escuela_aula a ON a.id=p.aula_id
+            LEFT JOIN curriculo_periodo_planificacion cp ON cp.planificacion_id=p.id
+            WHERE p.version_ruta_id=? AND p.aula_id IN (
             """ + placeholders + ") ORDER BY p.inicia_en,p.titulo,p.id", (rs,n)->new Event(
                 rs.getString("id"),rs.getString("aula_id"),rs.getString("aula_nombre"),rs.getString("tipo"),
                 rs.getString("referencia_id"),rs.getString("titulo"),
                 rs.getTimestamp("inicia_en").toLocalDateTime().atOffset(java.time.ZoneOffset.UTC).toString(),
-                rs.getTimestamp("termina_en").toLocalDateTime().atOffset(java.time.ZoneOffset.UTC).toString()), args.toArray());
+                rs.getTimestamp("termina_en").toLocalDateTime().atOffset(java.time.ZoneOffset.UTC).toString(),
+                periodName(rs.getString("periodo_nombre"),rs.getDate("periodo_inicio"),rs.getDate("periodo_fin"),
+                    rs.getTimestamp("inicia_en"),rs.getTimestamp("termina_en"))), args.toArray());
+    }
+    // Si el docente cambia las fechas fuera del periodo aplicado, no mostramos una etiqueta incorrecta.
+    static String periodName(String name, java.sql.Date begins, java.sql.Date ends, Timestamp start, Timestamp end) {
+        if (name == null || begins == null || ends == null) return null;
+        var localStart = start.toLocalDateTime().minusHours(5).toLocalDate();
+        var localEnd = end.toLocalDateTime().minusHours(5).toLocalDate();
+        return !localStart.isBefore(begins.toLocalDate()) && !localEnd.isAfter(ends.toLocalDate()) ? name : null;
     }
     public void save(String teacher, String route, Dates dates, Target target) {
         jdbc.update("""

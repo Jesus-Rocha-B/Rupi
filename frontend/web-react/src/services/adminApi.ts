@@ -536,6 +536,20 @@ export interface CompetencyInput {
   capacidades: string[]
 }
 
+export interface SchoolPeriod { nombre: string; comienza: string; termina: string }
+export interface PeriodCalendar { id: string | null; tipo: 'BIMESTRE' | 'TRIMESTRE'; periodos: SchoolPeriod[]; revision: number; editable: boolean }
+export interface PeriodOptions {
+  calendarios: { id: string; anio: number; comienza: string | null; termina: string | null; estado: string; institucion: string }[]
+  grados: { id: string; nombre: string }[]
+  areas: { id: string; nombre: string }[]
+}
+export interface PeriodPreview { token: string; revision: number; aplicables: number; planificaciones: { id: string; titulo: string; aula: string; ruta: string; periodo: SchoolPeriod | null }[] }
+export const fetchPeriodOptions = (signal?: AbortSignal) => request<PeriodOptions>('curriculo/periodos/opciones', { signal })
+export const fetchPeriods = (year: string, signal?: AbortSignal) => request<PeriodCalendar>(`curriculo/periodos/${year}`, { signal })
+export const savePeriods = (year: string, data: Pick<PeriodCalendar, 'tipo' | 'periodos' | 'revision'>) => request<PeriodCalendar>(`curriculo/periodos/${year}`, { method: 'PUT', body: JSON.stringify(data) })
+export const previewPeriods = (year: string, grado: string, areas: string[]) => post<PeriodPreview>(`curriculo/periodos/${year}/revisar`, { grado, areas })
+export const applyPeriods = (year: string, grado: string, areas: string[], token: string) => post<{ aplicadas: number; omitidas: number }>(`curriculo/periodos/${year}/aplicar`, { grado, areas, token })
+
 export const fetchCurriculumCatalog = (version: string | null, signal?: AbortSignal) =>
   request<CurriculumCatalog>(`curriculo/catalogo${version ? `?version=${encodeURIComponent(version)}` : ''}`, { signal })
 export const createCurriculumArea = (area: AreaInput) => post<CurriculumCatalog>('curriculo/areas', area)
