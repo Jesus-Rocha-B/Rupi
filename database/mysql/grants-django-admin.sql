@@ -16,7 +16,8 @@ BEGIN
   DECLARE cur CURSOR FOR
     SELECT table_name FROM information_schema.tables
      WHERE table_schema = 'rupi' AND table_type = 'BASE TABLE'
-       AND (table_name LIKE 'identidad\_%' OR table_name LIKE 'curriculo\_%');
+       AND (table_name LIKE 'identidad\_%' OR table_name LIKE 'curriculo\_%'
+         OR table_name IN ('ia_configuracion_lenguaje','ia_revision_lenguaje'));
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET terminado = 1;
 
   IF EXISTS (SELECT 1 FROM mysql.user WHERE user = usuario AND host = equipo) THEN

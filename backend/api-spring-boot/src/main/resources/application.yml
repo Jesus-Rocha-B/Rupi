@@ -32,6 +32,7 @@ rupi:
 
 
   ai:
+    moderation-url: ${RUPI_ADMIN_URL:http://127.0.0.1:8182}
     endpoint: ${RUPI_AI_ENDPOINT:}
     key: ${RUPI_AI_KEY:}
     provider: ${RUPI_AI_PROVIDER:}

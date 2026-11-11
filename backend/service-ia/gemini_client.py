@@ -4,6 +4,7 @@ import json
 import urllib.request
 import urllib.error
 from pathlib import Path
+from moderation_client import check_response
 
 
 class IANoConfigurada(RuntimeError):
@@ -74,7 +75,12 @@ def call_gemini(system_instruction: str, user_content: str, json_mode: bool = Fa
             candidates = data.get("candidates", [])
             if not candidates:
                 raise IAError("Gemini no devolvió candidatos en la respuesta.")
-            return candidates[0]["content"]["parts"][0]["text"]
+            text = candidates[0]["content"]["parts"][0]["text"]
+            decision = check_response(text)
+            if not decision['permitida']:
+                if json_mode: raise IAError('Contenido generado bloqueado por moderación.')
+                return decision['alternativa']
+            return text
 
     except IAError:
         raise

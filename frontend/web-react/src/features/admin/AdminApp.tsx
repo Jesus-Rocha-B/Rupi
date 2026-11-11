@@ -9,10 +9,11 @@ import { HealthView } from './HealthView'
 import { RolesView } from './RolesView'
 import { SessionsView } from './SessionsView'
 import { SyncAuditView } from './SyncAuditView'
+import { LanguageModerationView } from './LanguageModerationView'
 import './AdminConsole.css'
 import './AdminNavigation.css'
 
-type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'catalogo' | 'salud' | 'tablero' | 'sincronizacion'
+type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'catalogo' | 'moderacion' | 'salud' | 'tablero' | 'sincronizacion'
 
 interface Section {
   id: SectionId
@@ -22,6 +23,7 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
+  { id: 'moderacion', label: 'Moderación IA', permission: 'moderacion.ver', icon: ShieldCheck },
   { id: 'cuentas', label: 'Cuentas', permission: 'cuentas.ver', icon: Users },
   { id: 'roles', label: 'Roles y permisos', permission: 'cuentas.ver', icon: ShieldCheck },
   { id: 'sesiones', label: 'Sesiones', permission: 'sesiones.gestionar', icon: MonitorSmartphone },
@@ -34,6 +36,7 @@ const SECTIONS: Section[] = [
 const GROUPS: { label: string; icon: typeof Users; sections: SectionId[] }[] = [
   { label: 'Usuarios', icon: Users, sections: ['cuentas', 'roles', 'sesiones'] },
   { label: 'Catálogo MINEDU', icon: BookOpen, sections: ['catalogo'] },
+  { label: 'Moderación IA', icon: ShieldCheck, sections: ['moderacion'] },
   { label: 'Monitoreo', icon: Activity, sections: ['salud', 'tablero', 'sincronizacion'] },
 ]
 
@@ -150,7 +153,7 @@ export function AdminApp() {
         </details>
       </header>
       <main id="admin-main" className="admin-main">
-        {currentGroup && current?.id !== 'catalogo' && <nav className="admin-section-nav" aria-label={`Opciones de ${currentGroup.label}`}><span className="admin-section-context">{currentGroup.label}</span>{availableSections.filter(s => currentGroup.sections.includes(s.id)).map(item => { const Icon = item.icon; return <button key={item.id} type="button" className={`admin-section-link ${current.id === item.id ? 'is-active' : ''}`} aria-current={current.id === item.id ? 'page' : undefined} onClick={() => setSection(item.id)}><Icon size={18} aria-hidden="true" />{item.label}</button> })}</nav>}
+        {currentGroup && current?.id !== 'catalogo' && current?.id !== 'moderacion' && <nav className="admin-section-nav" aria-label={`Opciones de ${currentGroup.label}`}><span className="admin-section-context">{currentGroup.label}</span>{availableSections.filter(s => currentGroup.sections.includes(s.id)).map(item => { const Icon = item.icon; return <button key={item.id} type="button" className={`admin-section-link ${current.id === item.id ? 'is-active' : ''}`} aria-current={current.id === item.id ? 'page' : undefined} onClick={() => setSection(item.id)}><Icon size={18} aria-hidden="true" />{item.label}</button> })}</nav>}
         {!current && (
           <section className="admin-card admin-empty">
             <h1>Tu rol todavía no tiene secciones asignadas</h1>
@@ -160,6 +163,7 @@ export function AdminApp() {
         {current?.id === 'cuentas' && <AccountsView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'roles' && <RolesView onSessionLost={handleSessionLost} />}
         {current?.id === 'sesiones' && <SessionsView admin={admin} onSessionLost={handleSessionLost} />}
+        {current?.id === 'moderacion' && <LanguageModerationView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'catalogo' && <CurriculumView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'salud' && <HealthView onSessionLost={handleSessionLost} />}
         {current?.id === 'tablero' && <ArchitectureDashboardView onSessionLost={handleSessionLost} />}

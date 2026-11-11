@@ -20,6 +20,20 @@ export interface Administrator {
   permisos: string[]
 }
 
+export interface LanguageConfig { extras: Record<string, string[]>; alternativa: string }
+export interface LanguageState {
+  configuracion: LanguageConfig; revision: number; versionPublicada: number; probada: boolean
+  reglas: { codigo: string; nombre: string; descripcion: string }[]
+  alternativas: string[]; casos: { nombre: string; texto: string }[]
+  historial: { version: number; fecha: string; autor: string }[]
+}
+export interface LanguageDecision { permitida: boolean; reglas: string[]; alternativa: string | null; metodo: string; aviso: string }
+export const fetchLanguageRules = (signal?: AbortSignal) => request<LanguageState>('moderacion/reglas', { signal })
+export const saveLanguageRules = (revision: number, configuracion: LanguageConfig) => request<LanguageState>('moderacion/reglas', { method: 'PUT', body: JSON.stringify({ revision, configuracion }) })
+export const evaluateLanguage = (revision: number, texto: string) => post<LanguageDecision>('moderacion/evaluar', { revision, texto })
+export const testLanguageRules = (revision: number) => post<{ estado: LanguageState; resultados: { caso: string; correcto: boolean }[] }>('moderacion/probar', { revision })
+export const publishLanguageRules = (revision: number) => post<LanguageState>('moderacion/publicar', { revision })
+
 export interface AccountSummary {
   id: string
   usuario: string
@@ -577,6 +591,8 @@ export const ROLE_LABELS: Record<string, string> = {
 }
 
 export const PERMISSION_LABELS: Record<string, string> = {
+  'moderacion.ver': 'Consultar reglas y probar respuestas de IA',
+  'moderacion.gestionar': 'Configurar y publicar reglas de lenguaje',
   'consola.ingresar': 'Entrar a la consola',
   'cuentas.ver': 'Ver cuentas',
   'cuentas.gestionar': 'Crear, editar y dar de baja cuentas',

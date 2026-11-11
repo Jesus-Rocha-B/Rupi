@@ -34,7 +34,8 @@ class ClaveDeGeminiTest(unittest.TestCase):
     def test_la_clave_viaja_en_cabecera_y_no_en_la_url(self):
         respuesta = json.dumps({'candidates': [{'content': {'parts': [{'text': 'hola'}]}}]}).encode()
         with mock.patch.dict(os.environ, {'GEMINI_API_KEY': 'clave-de-prueba'}), \
-                mock.patch('urllib.request.urlopen', return_value=_Respuesta(respuesta)) as abrir:
+                mock.patch('urllib.request.urlopen', return_value=_Respuesta(respuesta)) as abrir, \
+                mock.patch('gemini_client.check_response', return_value={'permitida': True}):
             self.assertEqual(gemini_client.call_gemini('sistema', 'pregunta'), 'hola')
         peticion = abrir.call_args.args[0]
         self.assertNotIn('clave-de-prueba', peticion.full_url)

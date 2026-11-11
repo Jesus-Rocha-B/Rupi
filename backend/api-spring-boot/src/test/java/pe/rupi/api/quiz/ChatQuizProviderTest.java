@@ -15,7 +15,7 @@ class ChatQuizProviderTest {
  String wrap(String text){return QuizRepository.json(Map.of("choices",List.of(Map.of("finish_reason","stop","message",Map.of("content",text)))));}
  LearningContext context=new LearningContext(3,"MAT","Sumas","Hay cuatro puestos junto a la fuente y tres junto a los arcos. En total hay siete puestos.");
  Draft draft(){return new QuizValidationTest().valid();}
- ChatQuizProvider provider(HttpClient client){return new ChatQuizProvider("https://example.test/v1/chat/completions","test-fixture-not-real","TEST_ONLY","fixture"){@Override HttpClient client(){return client;}};}
+ ChatQuizProvider provider(HttpClient client){return new ChatQuizProvider("https://example.test/v1/chat/completions","test-fixture-not-real","TEST_ONLY","fixture",mock(ModerationClient.class)){@Override HttpClient client(){return client;}};}
  @Test void generationAndReviewUseTwoBoundedRequests() {
   var client=mock(HttpClient.class);
   when(client.sendAsync(any(HttpRequest.class),org.mockito.ArgumentMatchers.<HttpResponse.BodyHandler<String>>any()))

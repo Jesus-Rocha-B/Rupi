@@ -13,15 +13,20 @@ import static pe.rupi.api.quiz.QuizModels.*;
 public class ChatQuizProvider implements QuizProvider {
  public static final String PROMPT_VERSION="rupi-hu21-v1";
  private final String endpoint,key,provider,model;
+ private final ModerationClient moderation;
  private HttpClient client;
  // Do not initialize network machinery while the provider is disabled.
  synchronized HttpClient client() {
   if(client==null)client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build();
   return client;
  }
+ public ChatQuizProvider(String endpoint,String key,String provider,String model) {
+  this(endpoint,key,provider,model,new ModerationClient("",""));
+ }
+ @org.springframework.beans.factory.annotation.Autowired
  public ChatQuizProvider(@Value("${rupi.ai.endpoint:}") String endpoint,@Value("${rupi.ai.key:}") String key,
-      @Value("${rupi.ai.provider:}") String provider,@Value("${rupi.ai.model:}") String model) {
-  this.endpoint=endpoint;this.key=key;this.provider=provider;this.model=model;
+      @Value("${rupi.ai.provider:}") String provider,@Value("${rupi.ai.model:}") String model,ModerationClient moderation) {
+  this.endpoint=endpoint;this.key=key;this.provider=provider;this.model=model;this.moderation=moderation;
  }
  public boolean configured() {
   if(key.isBlank()||provider.isBlank()||provider.length()>80||model.isBlank()||model.length()>120) return false;
@@ -46,6 +51,7 @@ public class ChatQuizProvider implements QuizProvider {
   if(!"stop".equals(root.path("choices").path(0).path("finish_reason").asText())) throw new IOException("Respuesta incompleta");
   String content=root.path("choices").path(0).path("message").path("content").asText();
   if(content.isBlank()||content.length()>30000) throw new IOException("Respuesta no valida");
+  moderation.requireAllowed(content);
   return content;
  }
  @Override public Draft generate(LearningContext context) {
