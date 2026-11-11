@@ -1,4 +1,5 @@
 import os
+import time
 import re
 import json
 import urllib.request
@@ -37,7 +38,7 @@ def get_api_key() -> str:
             
     return ""
 
-def call_gemini(system_instruction: str, user_content: str, json_mode: bool = False, model: str = "gemini-flash-lite-latest") -> str:
+def call_gemini(system_instruction: str, user_content: str, json_mode: bool = False, model: str = "gemini-flash-lite-latest", audit=None) -> str:
     """Llama a la API de Google Gemini en su capa gratuita."""
     api_key = get_api_key()
     if not api_key:
@@ -69,6 +70,7 @@ def call_gemini(system_instruction: str, user_content: str, json_mode: bool = Fa
     
     req = urllib.request.Request(url, data=body_bytes, headers=headers, method="POST")
     
+    started = time.monotonic()
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             data = json.loads(resp.read().decode("utf-8"))
@@ -76,7 +78,7 @@ def call_gemini(system_instruction: str, user_content: str, json_mode: bool = Fa
             if not candidates:
                 raise IAError("Gemini no devolvió candidatos en la respuesta.")
             text = candidates[0]["content"]["parts"][0]["text"]
-            decision = check_response(text)
+            decision = check_response(text, {**(audit or {}), "origen":"SERVICIO_IA", "recurso": "TUTOR" if not json_mode else "RECURSO_JSON", "proveedor":"Google Gemini", "modelo":model, "duracionMs":int((time.monotonic()-started)*1000)})
             if not decision['permitida']:
                 if json_mode: raise IAError('Contenido generado bloqueado por moderación.')
                 return decision['alternativa']

@@ -591,6 +591,8 @@ export const ROLE_LABELS: Record<string, string> = {
 }
 
 export const PERMISSION_LABELS: Record<string, string> = {
+  'interacciones.ver': 'Consultar historial restringido de IA',
+  'interacciones.revisar': 'Revisar interacciones de IA',
   'moderacion.ver': 'Consultar reglas y probar respuestas de IA',
   'moderacion.gestionar': 'Configurar y publicar reglas de lenguaje',
   'consola.ingresar': 'Entrar a la consola',
@@ -641,3 +643,18 @@ export function formatDateTime(value: string | null) {
   return new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Lima' })
     .format(new Date(value))
 }
+
+
+export interface InteractionRow {
+  id: string; recurso: string; origen: string; permitida: boolean; creada_en: string
+  revisada_en: string | null; duracion_ms: number | null
+}
+export interface InteractionDetail extends InteractionRow {
+  proveedor: string | null; modelo: string | null; pregunta: string | null; respuesta: string
+  alternativa: string | null; reglas: string[]; version_reglas: number; revisor_id: string | null
+  traza: { accion: string; fecha: string }[]
+}
+export interface InteractionPage { items: InteractionRow[]; total: number; pendientes: number; promedio: number | null; pagina: number; porPagina: number }
+export const fetchInteractions = (params: URLSearchParams, signal?: AbortSignal) => request<InteractionPage>(`moderacion/interacciones?${params}`, { signal })
+export const fetchInteraction = (id: string, signal?: AbortSignal) => request<InteractionDetail>(`moderacion/interacciones/${encodeURIComponent(id)}`, { signal })
+export const reviewInteraction = (id: string) => post<InteractionDetail>(`moderacion/interacciones/${encodeURIComponent(id)}`)

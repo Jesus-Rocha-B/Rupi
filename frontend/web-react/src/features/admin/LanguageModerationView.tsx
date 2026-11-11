@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CheckCircle2, LockKeyhole, Play, RefreshCw, ShieldCheck } from 'lucide-react'
 import { AdminApiError, fetchLanguageRules, saveLanguageRules, evaluateLanguage, testLanguageRules, publishLanguageRules, type Administrator, type LanguageState, type LanguageDecision } from '../../services/adminApi'
 import './LanguageModeration.css'
+import { InteractionHistoryView } from './InteractionHistoryView'
 
 export function LanguageModerationView({ admin, onSessionLost }: { admin: Administrator; onSessionLost: (message: string) => void }) {
   const [data, setData] = useState<LanguageState | null>(null)
@@ -20,12 +21,12 @@ export function LanguageModerationView({ admin, onSessionLost }: { admin: Admini
   const testPanel = useRef<HTMLElement>(null)
   const writable = admin.permisos.includes('moderacion.gestionar')
   function accept(value: LanguageState) { setData(value); setTerms(Object.fromEntries(Object.entries(value.configuracion.extras).map(([k,v]) => [k,v.join('\n')]))); setAlternative(value.configuracion.alternativa); setDirty(false) }
-  function fail(e: unknown) { if (e instanceof AdminApiError && e.status === 401) onSessionLost(e.message); else setError(e instanceof Error ? e.message : 'No se pudo completar la operación.') }
+  const fail = useCallback((e: unknown) => { if (e instanceof AdminApiError && e.status === 401) onSessionLost(e.message); else setError(e instanceof Error ? e.message : 'No se pudo completar la operación.') }, [onSessionLost])
   useEffect(() => {
-    const c = new AbortController(); setError(''); setData(null)
+    const c = new AbortController()
     fetchLanguageRules(c.signal).then(value => { if (!c.signal.aborted) { accept(value); setText(value.casos[1]?.texto || ''); setExample(value.casos[1]?.nombre || '') } }).catch(e => { if (!c.signal.aborted) fail(e) })
     return () => c.abort()
-  }, [retry, onSessionLost])
+  }, [retry, fail])
   function changed() { setDirty(true); setDecision(null); setResults([]); setMessage('') }
   async function act(action: 'save' | 'test' | 'publish' | 'evaluate') {
     if (!data || busy) return
@@ -42,8 +43,9 @@ export function LanguageModerationView({ admin, onSessionLost }: { admin: Admini
     } catch (e) { fail(e) } finally { setBusy(false) }
   }
   return <section className="language-admin" aria-labelledby="language-title">
-    <nav className="admin-section-nav" aria-label="Secciones de moderación">{[{id:'rules',name:'Reglas de lenguaje'},{id:'tests',name:'Pruebas de respuestas'},{id:'history',name:'Historial de cambios'}].map(item => <button type="button" className={`admin-section-link ${tab === item.id ? 'is-active' : ''}`} aria-current={tab === item.id ? 'page' : undefined} key={item.id} onClick={() => { setTab(item.id); if (item.id === 'tests') setTimeout(() => { testPanel.current?.scrollIntoView({ block:'start', behavior:'auto' }); testPanel.current?.querySelector('textarea')?.focus() },0) }}>{item.name}</button>)}</nav>
-    <header className="language-heading"><div><h1 id="language-title">Reglas de lenguaje <small>HU-53</small></h1><p>Configura reglas de evaluación seguras para estudiantes de primaria.</p></div><button className="admin-btn" disabled={busy} onClick={() => { if (!dirty || window.confirm('Hay cambios sin guardar. ¿Quieres recargar?')) { setRetry(n => n+1); setDecision(null); setResults([]); setMessage('') } }}><RefreshCw size={15} />Recargar</button></header>
+    <nav className="admin-section-nav" aria-label="Secciones de moderación">{[{id:'rules',name:'Reglas de lenguaje'},{id:'tests',name:'Pruebas de respuestas'},{id:'history',name:'Historial de cambios'},...(admin.permisos.includes('interacciones.ver') ? [{id:'interactions',name:'Historial IA'}] : [])].map(item => <button type="button" className={`admin-section-link ${tab === item.id ? 'is-active' : ''}`} aria-current={tab === item.id ? 'page' : undefined} key={item.id} onClick={() => { setTab(item.id); if (item.id === 'tests') setTimeout(() => { testPanel.current?.scrollIntoView({ block:'start', behavior:'auto' }); testPanel.current?.querySelector('textarea')?.focus() },0) }}>{item.name}</button>)}</nav>
+    {tab === 'interactions' ? <InteractionHistoryView admin={admin} onSessionLost={onSessionLost}/> : <>
+    <header className="language-heading"><div><h1 id="language-title">Reglas de lenguaje <small>HU-53</small></h1><p>Configura reglas de evaluación seguras para estudiantes de primaria.</p></div><button className="admin-btn" disabled={busy} onClick={() => { if (!dirty || window.confirm('Hay cambios sin guardar. ¿Quieres recargar?')) { setError(''); setData(null); setRetry(n => n+1); setDecision(null); setResults([]); setMessage('') } }}><RefreshCw size={15} />Recargar</button></header>
     {error && <p role="alert" className="admin-feedback admin-feedback--error">{error}</p>}
     {message && <p role="status" className="admin-feedback admin-feedback--info">{message}</p>}
     {!data && !error && <p role="status">Cargando reglas…</p>}
@@ -70,6 +72,7 @@ export function LanguageModerationView({ admin, onSessionLost }: { admin: Admini
         </aside>
       </div>}
       <p className="language-footer">Cada publicación registra versión, autor y fecha en la base compartida. Las reglas no activan un proveedor de IA.</p>
+    </>}
     </>}
   </section>
 }

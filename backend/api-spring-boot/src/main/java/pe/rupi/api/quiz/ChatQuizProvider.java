@@ -45,13 +45,14 @@ public class ChatQuizProvider implements QuizProvider {
   var request=HttpRequest.newBuilder(URI.create(endpoint)).timeout(Duration.ofSeconds(12)).header("Authorization","Bearer "+key)
    .header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(payload)).build();
   // The future timeout also bounds body delivery; do not retry paid requests automatically.
+  long started=System.nanoTime();
   var response=client().sendAsync(request,HttpResponse.BodyHandlers.ofString()).orTimeout(13,java.util.concurrent.TimeUnit.SECONDS).join();
   if(response.statusCode()!=200||response.body().length()>100000) throw new IOException("Proveedor no disponible");
   var root=QuizValidation.JSON.readTree(response.body());
   if(!"stop".equals(root.path("choices").path(0).path("finish_reason").asText())) throw new IOException("Respuesta incompleta");
   String content=root.path("choices").path(0).path("message").path("content").asText();
   if(content.isBlank()||content.length()>30000) throw new IOException("Respuesta no valida");
-  moderation.requireAllowed(content);
+  moderation.requireAllowed(content,Map.of("origen","SPRING","recurso","RECURSO_JSON","proveedor",provider,"modelo",model,"duracionMs",(System.nanoTime()-started)/1_000_000));
   return content;
  }
  @Override public Draft generate(LearningContext context) {

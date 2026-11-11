@@ -14,14 +14,16 @@ class ModerationTest(unittest.TestCase):
         class Handler(BaseHTTPRequestHandler):
             def do_POST(self):
                 state['token']=self.headers.get('X-Rupi-Monitor-Token')
-                self.rfile.read(int(self.headers['Content-Length']))
+                state['request']=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
                 self.send_response(state['status']);self.end_headers();self.wfile.write(json.dumps(state['body']).encode())
             def log_message(self,*args): pass
         server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
         thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
         try:
             with patch.dict(os.environ,{'RUPI_ADMIN_URL':f'http://127.0.0.1:{server.server_port}','RUPI_MONITOR_TOKEN':'fixture-token'}):
-                self.assertTrue(check_response('Texto')['permitida']);self.assertEqual(state['token'],'fixture-token')
+                self.assertTrue(check_response('Texto', {'modelo':'fixture','duracionMs':45})['permitida']);self.assertEqual(state['token'],'fixture-token')
+                self.assertEqual(state['request']['auditoria']['modelo'],'fixture')
+                self.assertEqual(state['request']['auditoria']['duracionMs'],45)
                 for invalid in [{},{'permitida':'true'},{'permitida':False}]:
                     state['body']=invalid
                     with self.assertRaises(ModerationUnavailable):check_response('Texto')

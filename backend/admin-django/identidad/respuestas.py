@@ -23,10 +23,10 @@ def json_error(mensaje, estado):
     return JsonResponse({'detail': mensaje}, status=estado, json_dumps_params={'ensure_ascii': False})
 
 
-def leer_json(request):
+def leer_json(request, max_bytes=32_768):
     if not request.body:
         return {}
-    if len(request.body) > 32_768:
+    if len(request.body) > max_bytes:
         raise ErrorDePeticion('La solicitud es demasiado grande.', 413)
     try:
         datos = json.loads(request.body)

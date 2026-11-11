@@ -15,7 +15,8 @@ public class ModerationClient {
                             @Value("${rupi.monitor.token:}") String token) {
         this.base=base; this.token=token;
     }
-    public void requireAllowed(String text) {
+    public void requireAllowed(String text) { requireAllowed(text, Map.of()); }
+    public void requireAllowed(String text, Map<String,Object> audit) {
         if (base.isBlank() || token.isBlank()) throw new IllegalStateException("Moderación no configurada");
         try (var client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).followRedirects(HttpClient.Redirect.NEVER).build()) {
             var uri=URI.create(base.replaceAll("/+$", "")+"/api/internal/moderacion/evaluar");
@@ -23,7 +24,7 @@ public class ModerationClient {
                 throw new IllegalStateException("URL de moderación no segura");
             var request=HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(4))
                 .header("X-Rupi-Monitor-Token",token).header("Content-Type","application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(QuizValidation.JSON.writeValueAsString(Map.of("texto",text)))).build();
+                .POST(HttpRequest.BodyPublishers.ofString(QuizValidation.JSON.writeValueAsString(Map.of("texto",text,"auditoria",audit)))).build();
             var response=client.send(request,HttpResponse.BodyHandlers.ofString());
             if (response.statusCode()!=200 || response.body().length()>8000) throw new IllegalStateException("Moderación no disponible");
             var decision=QuizValidation.JSON.readTree(response.body()).path("permitida");

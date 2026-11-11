@@ -15,14 +15,14 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def check_response(text):
+def check_response(text, audit=None):
     base = os.environ.get('RUPI_ADMIN_URL', 'http://127.0.0.1:8182').rstrip('/')
     token = os.environ.get('RUPI_MONITOR_TOKEN', '')
     uri = urlparse(base)
     if not token or not (uri.scheme == 'https' or (uri.scheme == 'http' and uri.hostname in ('127.0.0.1', 'localhost'))):
         raise ModerationUnavailable('Moderación no configurada.')
     request = urllib.request.Request(base + '/api/internal/moderacion/evaluar',
-        data=json.dumps({'texto': text}, ensure_ascii=False).encode('utf-8'),
+        data=json.dumps({'texto': text, 'auditoria': audit or {}}, ensure_ascii=False).encode('utf-8'),
         headers={'Content-Type': 'application/json', 'X-Rupi-Monitor-Token': token}, method='POST')
     try:
         with urllib.request.build_opener(NoRedirect).open(request, timeout=4) as response:

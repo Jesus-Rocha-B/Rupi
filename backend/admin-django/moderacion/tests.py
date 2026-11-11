@@ -56,7 +56,7 @@ class AccessTest(SimpleTestCase):
         self.assertEqual(vistas.reglas(self.request('put',origin='https://ajeno.example')).status_code,403)
 
     @override_settings(RUPI_MONITOR_TOKEN='internal-test-token')
-    @patch('moderacion.servicio.evaluar_publicada')
+    @patch('moderacion.interacciones.registrar')
     def test_internal_requires_secret(self, evaluate):
         req=self.request(body={'texto':'hola'})
         self.assertEqual(vistas.interna(req).status_code,401);evaluate.assert_not_called()

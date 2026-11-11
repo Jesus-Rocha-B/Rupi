@@ -283,7 +283,8 @@ PARADA DONDE ESTÁ EL ESTUDIANTE AHORA:
         reply = call_gemini(
             system_instruction=SYSTEM_RUPI_TUTOR,
             user_content=user_content,
-            json_mode=False
+            json_mode=False,
+            audit={"pregunta": payload.message[:4000]}
         )
         
         return {
