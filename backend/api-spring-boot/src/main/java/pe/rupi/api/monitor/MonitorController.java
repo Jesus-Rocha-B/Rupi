@@ -28,6 +28,7 @@ public class MonitorController {
     private final MonitorService monitorService;
     private final byte[] token;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public MonitorController(MonitorService monitorService, @Value("${rupi.monitor.token:}") String token) {
         this.monitorService = monitorService;
         this.token = token.getBytes(StandardCharsets.UTF_8);
