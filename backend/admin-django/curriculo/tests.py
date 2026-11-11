@@ -2,11 +2,11 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from django.test import SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase
 
 from identidad.respuestas import ErrorDePeticion
 
-from . import catalogo
+from . import catalogo, vistas
 from .catalogo import normalizar_capacidades, normalizar_codigo_area, normalizar_codigo_competencia
 
 ACTOR = SimpleNamespace(id='a0000000-0000-4000-8000-0000000000aa')
@@ -114,3 +114,23 @@ class EscriturasTest(SimpleTestCase):
         mock_capacidad.objects.filter.return_value = [SimpleNamespace(orden=1, nombre='Comprende su cuerpo')]
         self.assertFalse(catalogo._guardar_capacidades(SimpleNamespace(id='c1'), ['Comprende su cuerpo']))
         mock_capacidad.objects.create.assert_not_called()
+
+
+class PermisosVistaTest(SimpleTestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_decorador_bloquea_sin_permiso_de_gestion(self):
+        vista_protegida = vistas._requiere_gestion(lambda request: 'OK')
+        req = self.factory.post('/api/admin/v1/curriculo/areas')
+        req.administrador = SimpleNamespace(puede=lambda permiso: False)
+
+        resp = vista_protegida(req)
+        self.assertEqual(resp.status_code, 403)
+
+    def test_decorador_permite_con_permiso_de_gestion(self):
+        vista_protegida = vistas._requiere_gestion(lambda request: 'OK')
+        req = self.factory.post('/api/admin/v1/curriculo/areas')
+        req.administrador = SimpleNamespace(puede=lambda permiso: permiso == 'curriculo.gestionar')
+
+        self.assertEqual(vista_protegida(req), 'OK')
