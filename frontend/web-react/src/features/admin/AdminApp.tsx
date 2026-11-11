@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Activity, ArrowLeftRight, BarChart3, BookOpen, LogOut, MonitorSmartphone, ShieldCheck, Users } from 'lucide-react'
+import { Activity, ArrowLeftRight, BarChart3, BookOpen, ChevronDown, LogOut, MonitorSmartphone, ShieldCheck, UserRound, Users } from 'lucide-react'
 import { AdminApiError, adminLogout, fetchAdminSession, type Administrator } from '../../services/adminApi'
 import { AccountsView } from './AccountsView'
 import { AdminLogin } from './AdminLogin'
@@ -10,6 +10,7 @@ import { RolesView } from './RolesView'
 import { SessionsView } from './SessionsView'
 import { SyncAuditView } from './SyncAuditView'
 import './AdminConsole.css'
+import './AdminNavigation.css'
 
 type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'catalogo' | 'salud' | 'tablero' | 'sincronizacion'
 
@@ -28,6 +29,12 @@ const SECTIONS: Section[] = [
   { id: 'salud', label: 'Salud', permission: 'plataforma.monitorear', icon: Activity },
   { id: 'tablero', label: 'Tablero de Uptime', permission: 'plataforma.monitorear', icon: BarChart3 },
   { id: 'sincronizacion', label: 'Sincronización Web/Móvil', permission: 'sincronizacion.auditar', icon: ArrowLeftRight },
+]
+
+const GROUPS: { label: string; icon: typeof Users; sections: SectionId[] }[] = [
+  { label: 'Usuarios', icon: Users, sections: ['cuentas', 'roles', 'sesiones'] },
+  { label: 'Catálogo MINEDU', icon: BookOpen, sections: ['catalogo'] },
+  { label: 'Monitoreo', icon: Activity, sections: ['salud', 'tablero', 'sincronizacion'] },
 ]
 
 export function AdminApp() {
@@ -102,29 +109,31 @@ export function AdminApp() {
 
   const availableSections = SECTIONS.filter(s => admin.permisos.includes(s.permission))
   const current = availableSections.find(s => s.id === section) || availableSections[0]
+  const groups = GROUPS.filter(group => availableSections.some(s => group.sections.includes(s.id)))
+  const currentGroup = groups.find(group => current && group.sections.includes(current.id))
 
   return (
     <div className="admin-shell">
       <a href="#admin-main" className="admin-skip">Saltar al contenido principal</a>
-      <header className="admin-topbar">
+      <header className="admin-topbar admin-topbar--grouped">
         <div className="admin-brand">
-          <span className="admin-brand-mark" aria-hidden="true">R</span>
+          <img className="admin-original-logo" src="/rupi-logo.jpg" alt="Rupi" />
           <div>
-            <strong>RUPI</strong>
-            <span>Consola de Administración</span>
+            <strong>Rupi</strong>
+            <span>Administración</span>
           </div>
         </div>
         <nav className="admin-nav" aria-label="Secciones de la consola">
-          {availableSections.map(item => {
+          {groups.map(item => {
             const Icon = item.icon
-            const active = current?.id === item.id
+            const active = currentGroup === item
             return (
               <button
-                key={item.id}
+                key={item.label}
                 type="button"
                 className={`admin-nav-btn ${active ? 'is-current' : ''}`}
-                aria-current={active ? 'page' : undefined}
-                onClick={() => setSection(item.id)}
+                aria-current={active ? 'location' : undefined}
+                onClick={() => { if (!active) setSection(availableSections.find(s => item.sections.includes(s.id))!.id) }}
               >
                 <Icon size={18} aria-hidden="true" />
                 <span>{item.label}</span>
@@ -132,15 +141,16 @@ export function AdminApp() {
             )
           })}
         </nav>
-        <div className="admin-user">
-          <span className="admin-user-name">{admin.nombre}</span>
-          <button type="button" className="admin-btn admin-btn--logout" onClick={handleLogout}>
+        <details className="admin-account-menu" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() } }}>
+          <summary><UserRound size={19} aria-hidden="true" /><span>{admin.nombre}</span><ChevronDown size={15} aria-hidden="true" /></summary>
+          <div className="admin-account-popover"><span>Sesión de administración</span><button type="button" className="admin-btn" onClick={handleLogout}>
             <LogOut size={16} aria-hidden="true" />
             Cerrar sesión
-          </button>
-        </div>
+          </button></div>
+        </details>
       </header>
       <main id="admin-main" className="admin-main">
+        {currentGroup && current?.id !== 'catalogo' && <nav className="admin-section-nav" aria-label={`Opciones de ${currentGroup.label}`}><span className="admin-section-context">{currentGroup.label}</span>{availableSections.filter(s => currentGroup.sections.includes(s.id)).map(item => { const Icon = item.icon; return <button key={item.id} type="button" className={`admin-section-link ${current.id === item.id ? 'is-active' : ''}`} aria-current={current.id === item.id ? 'page' : undefined} onClick={() => setSection(item.id)}><Icon size={18} aria-hidden="true" />{item.label}</button> })}</nav>}
         {!current && (
           <section className="admin-card admin-empty">
             <h1>Tu rol todavía no tiene secciones asignadas</h1>
