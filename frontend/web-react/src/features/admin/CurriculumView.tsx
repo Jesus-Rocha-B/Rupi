@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BookOpen, Pencil, Plus } from 'lucide-react'
+import { BookOpen, Layers, Pencil, Plus, Target } from 'lucide-react'
 import {
   AdminApiError,
   fetchCurriculumCatalog,
@@ -10,6 +10,7 @@ import {
 } from '../../services/adminApi'
 import { SESSION_LOST } from './accountStatus'
 import { AreaForm, CompetencyForm } from './CurriculumForms'
+import { CurriculumGoalsView } from './CurriculumGoalsView'
 
 interface Props {
   admin: Administrator
@@ -40,7 +41,12 @@ function plural(count: number, one: string, many: string) {
 }
 
 /** Catálogo general del MINEDU (HU-49): grados, áreas en el orden del programa y competencias del CNEB. */
-export function CurriculumView({ admin, onSessionLost }: Props) {
+export function CurriculumView(props: Props) {
+  const [tab, setTab] = useState<'structure' | 'goals'>('structure')
+  return <><nav className="admin-section-nav" aria-label="Secciones del catálogo"><span className="admin-section-context">Catálogo MINEDU</span><button className={`admin-section-link ${tab === 'structure' ? 'is-active' : ''}`} aria-current={tab === 'structure' ? 'page' : undefined} onClick={() => setTab('structure')}><Layers size={18} aria-hidden="true" />Grados y competencias</button><button className={`admin-section-link ${tab === 'goals' ? 'is-active' : ''}`} aria-current={tab === 'goals' ? 'page' : undefined} onClick={() => setTab('goals')}><Target size={18} aria-hidden="true" />Metas y estándares</button></nav>{tab === 'goals' ? <CurriculumGoalsView {...props} /> : <CurriculumStructure {...props} />}</>
+}
+
+function CurriculumStructure({ admin, onSessionLost }: Props) {
   const [versionId, setVersionId] = useState<string | null>(null)
   const [catalog, setCatalog] = useState<CurriculumCatalog | null>(null)
   const [error, setError] = useState<string | null>(null)

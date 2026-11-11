@@ -518,6 +518,15 @@ export interface AreaInput {
   orden: number | null
 }
 
+export interface CurriculumUnit { id: string; codigo: string; titulo: string; gradoId: string; areaId: string; grado: string; area: string; estado: string }
+export interface CurriculumGoal { id: string; codigo: string; descripcion: string; competenciaId: string; competencia: string; tipo: 'META' | 'ESTANDAR'; revision: string; unidadesVinculadas: number; historial: { anterior: string | null; nueva: string; motivo: string; fecha: string; autor: string }[] }
+export interface UnitGoals { competencias: { id: string; codigo: string; nombre: string }[]; registros: CurriculumGoal[]; editable: boolean }
+export interface GoalInput { tipo: 'META' | 'ESTANDAR'; codigo: string; descripcion: string; competenciaId: string }
+export const fetchCurriculumUnits = (version: string, signal?: AbortSignal) => request<CurriculumUnit[]>(`curriculo/unidades?version=${encodeURIComponent(version)}`, { signal })
+export const fetchUnitGoals = (unit: string, signal?: AbortSignal) => request<UnitGoals>(`curriculo/unidades/${unit}/registros`, { signal })
+export const createUnitGoal = (unit: string, data: GoalInput) => post<UnitGoals>(`curriculo/unidades/${unit}/registros`, data)
+export const updateUnitGoal = (unit: string, record: CurriculumGoal, descripcion: string, motivo: string) => request<UnitGoals>(`curriculo/unidades/${unit}/registros/${record.tipo}/${record.id}`, { method: 'PATCH', body: JSON.stringify({ descripcion, motivo, revision: record.revision }) })
+
 export interface CompetencyInput {
   area: string
   codigo: string

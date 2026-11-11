@@ -5,6 +5,7 @@ from identidad.respuestas import api, json_error, json_ok, leer_json
 from identidad.sesion import requiere_permiso
 
 from . import catalogo
+from . import metas
 
 PERMISO_GESTIONAR = 'curriculo.gestionar'
 
@@ -57,3 +58,26 @@ def competencias(request):
 def competencia(request, competencia_id):
     """Actualiza una competencia curricular existente."""
     return json_ok(catalogo.modificar_competencia(competencia_id, leer_json(request), request.administrador))
+
+
+@api({'GET'})
+@requiere_permiso('curriculo.ver')
+def unidades_metas(request):
+    return json_ok(metas.unidades(request.GET.get('version')))
+
+
+@api({'GET', 'POST'})
+@requiere_permiso('curriculo.ver')
+def registros_unidad(request, unidad_id):
+    if request.method == 'GET':
+        return json_ok(metas.consultar(unidad_id))
+    if not request.administrador.puede(PERMISO_GESTIONAR):
+        return json_error('Tu rol puede consultar el catálogo, pero no corregirlo.', 403)
+    return json_ok(metas.crear(unidad_id, leer_json(request), request.administrador), 201)
+
+
+@api({'PATCH'})
+@requiere_permiso('curriculo.ver')
+@_requiere_gestion
+def corregir_registro(request, unidad_id, tipo, registro_id):
+    return json_ok(metas.modificar(unidad_id, tipo, registro_id, leer_json(request), request.administrador))
