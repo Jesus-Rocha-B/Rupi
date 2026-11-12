@@ -40,8 +40,11 @@ const toDraft = (policy: AccessPolicy): Draft => ({
   bloqueoAutomatico: policy.bloqueoAutomatico,
 })
 
-const time = (value: string) =>
-  new Intl.DateTimeFormat('es-PE', { timeStyle: 'short', timeZone: 'America/Lima' }).format(new Date(value))
+const time = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return new Intl.DateTimeFormat('es-PE', { timeStyle: 'short', timeZone: 'America/Lima' }).format(date)
+}
 
 const plural = (value: number, one: string, many: string) => `${value} ${value === 1 ? one : many}`
 
@@ -76,7 +79,8 @@ export function AccessPolicyView({ admin, onSessionLost }: Props) {
   function problem(current: Draft): string | null {
     if (!data) return null
     for (const key of Object.keys(FIELDS) as AccessPolicyNumber[]) {
-      const value = Number(current[key])
+      const raw = current[key].trim()
+      const value = raw === '' ? Number.NaN : Number(raw)
       const { min, max } = data.limites[key]
       if (!Number.isInteger(value) || value < min || value > max) return `${FIELDS[key].label}: escribe un número entre ${min} y ${max}.`
     }
