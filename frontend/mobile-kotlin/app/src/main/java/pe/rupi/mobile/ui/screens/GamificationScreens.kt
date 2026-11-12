@@ -3,12 +3,14 @@ package pe.rupi.mobile.ui.screens
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.text.SpannableStringBuilder
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import pe.rupi.mobile.DailyGoalRing
+import pe.rupi.mobile.R
 import pe.rupi.mobile.RupiUi
 import pe.rupi.mobile.RupiVoice
 import pe.rupi.mobile.data.model.ScoreComparison
@@ -24,20 +26,21 @@ fun renderAchievementsBody(
  onBackToTopics: () -> Unit
 ) {
  scaffold.rebuildBody(preserveScroll = true) {
-  button("Volver a mis temas", kind = RupiUi.Kind.QUIET) { onBackToTopics() }
+  backButton("Volver a mis temas") { onBackToTopics() }
   val overview = state.overview ?: return@rebuildBody
 
-  card {
+  heroCard {
    text("${overview.experience.totalXp} XP", 28)
    muted("Tu experiencia total en Rupi: sube con cada parada, reto y práctica.")
    val days = overview.streak.days
    if (days > 0) {
     val risk = if (overview.streak.atRisk) " · ¡estudia hoy para no perderla!" else ""
     chip(
-     "🔥 Racha: $days ${if (days == 1) "día seguido" else "días seguidos"}$risk",
+     "Racha: $days ${if (days == 1) "día seguido" else "días seguidos"}$risk",
      Color.rgb(255, 248, 230),
      RupiUi.SUN,
-     Color.rgb(107, 71, 5)
+     Color.rgb(107, 71, 5),
+     iconRes = R.drawable.ic_flame
     )
    } else {
     chip("Empieza tu racha completando una parada hoy", Color.WHITE, RupiUi.LINE, RupiUi.MUTED)
@@ -50,7 +53,7 @@ fun renderAchievementsBody(
     muted("Todavía no tienes insignias. Termina paradas y rutas para ganarlas.")
    }
    overview.badges.forEach { badge ->
-    chip("🏅 ${badge.name}", Color.rgb(255, 248, 230), RupiUi.SUN, Color.rgb(107, 71, 5))
+    chip(badge.name, Color.rgb(255, 248, 230), RupiUi.SUN, Color.rgb(107, 71, 5), iconRes = R.drawable.ic_award)
     badge.description?.let { muted(it) }
    }
   }
@@ -60,13 +63,18 @@ fun renderAchievementsBody(
    text("Tabla de mi aula", 20)
    muted("${board.classroomName} · puesto ${board.myRank} de ${board.totalStudents}")
    board.entries.forEach { entry ->
-    val streakSuffix = if (entry.streakDays > 0) " · 🔥${entry.streakDays}" else ""
-    val line = "${entry.rank}. ${entry.displayName} · ${entry.totalXp} XP$streakSuffix"
-    if (entry.isCurrentUser) {
-     chip(line, Color.rgb(238, 246, 251), Color.rgb(147, 196, 223), RupiUi.SKY_DARK)
+    val textColor = if (entry.isCurrentUser) RupiUi.SKY_DARK else RupiUi.INK
+    val backColor = if (entry.isCurrentUser) Color.rgb(238, 246, 251) else Color.WHITE
+    val borderColor = if (entry.isCurrentUser) Color.rgb(147, 196, 223) else RupiUi.LINE
+    val line = "${entry.rank}. ${entry.displayName} · ${entry.totalXp} XP"
+    val trailingStreak = if (entry.streakDays > 0) {
+     SpannableStringBuilder(" · ").append(
+      iconLabel(R.drawable.ic_flame, RupiUi.ORANGE, "${entry.streakDays}", iconDp = 14)
+     )
     } else {
-     chip(line, Color.WHITE, RupiUi.LINE, RupiUi.INK)
+     null
     }
+    chip(line, backColor, borderColor, textColor, trailingValue = trailingStreak)
    }
    muted("Tus compañeros te ven con tu alias solo si lo eliges en la web (Tabla de Aula).")
   }
@@ -82,14 +90,14 @@ fun renderDailyGoalBody(
  onSelectTarget: (Int) -> Unit
 ) {
  scaffold.rebuildBody(preserveScroll = true) {
-  button("Volver a mis temas", kind = RupiUi.Kind.QUIET) { onBackToTopics() }
-  button("Actualizar mi avance", kind = RupiUi.Kind.QUIET) { onRefresh() }
+  backButton("Volver a mis temas") { onBackToTopics() }
+  button("Actualizar mi avance", kind = RupiUi.Kind.LEAF) { onRefresh() }
   val dashboard = state.dashboard ?: return@rebuildBody
   val today = dashboard.overview
   val comparison = dashboard.comparison
   val lessonsWord = if (today.targetLessons == 1) "lección" else "lecciones"
 
-  card {
+  goalCard(today.isGoalMet) {
    addView(
     DailyGoalRing(context, today.completedLessons, today.targetLessons, today.isGoalMet),
     LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8); bottomMargin = dp(8) }
@@ -99,7 +107,7 @@ fun renderDailyGoalBody(
     max = maxVal
     progress = today.completedLessons.coerceAtMost(maxVal)
     minimumHeight = dp(16)
-    progressTintList = ColorStateList.valueOf(if (today.isGoalMet) RupiUi.SUN else RupiUi.LEAF)
+    progressTintList = ColorStateList.valueOf(if (today.isGoalMet) RupiUi.GOLD_STROKE else RupiUi.LEAF)
     progressBackgroundTintList = ColorStateList.valueOf(RupiUi.PAPER_DEEP)
     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
    }
@@ -115,10 +123,11 @@ fun renderDailyGoalBody(
    muted(today.motivationalMessage)
    if (today.currentStreakDays > 0) {
     chip(
-     "🔥 Racha: ${today.currentStreakDays} ${if (today.currentStreakDays == 1) "día seguido" else "días seguidos"}",
+     "Racha: ${today.currentStreakDays} ${if (today.currentStreakDays == 1) "día seguido" else "días seguidos"}",
      Color.rgb(255, 248, 230),
      RupiUi.SUN,
-     Color.rgb(107, 71, 5)
+     Color.rgb(107, 71, 5),
+     iconRes = R.drawable.ic_flame
     )
    }
    listen("mi avance de hoy") {
@@ -133,7 +142,13 @@ fun renderDailyGoalBody(
    today.weeklyHistory.forEach { day ->
     val name = if (day.isToday) "Hoy" else day.dayOfWeek
     if (day.isGoalMet) {
-     chip("✓ $name · meta cumplida", Color.rgb(238, 247, 237), Color.rgb(148, 208, 161), Color.rgb(27, 83, 41))
+     chip(
+      "$name · meta cumplida",
+      Color.rgb(238, 247, 237),
+      Color.rgb(148, 208, 161),
+      Color.rgb(27, 83, 41),
+      iconRes = R.drawable.ic_check
+     )
     } else {
      chip("$name · ${day.completedLessons} de ${day.targetLessons}", Color.WHITE, RupiUi.LINE, RupiUi.MUTED)
     }
@@ -144,9 +159,10 @@ fun renderDailyGoalBody(
   today.availableTargetOptions.forEach { option ->
    val current = option == today.currentDailyTargetSetting
    button(
-    label = "${if (current) "✓ " else ""}$option ${if (option == 1) "parada" else "paradas"}",
+    label = "$option ${if (option == 1) "parada" else "paradas"}",
     enabled = true,
-    kind = if (current) RupiUi.Kind.LEAF else RupiUi.Kind.QUIET
+    kind = if (current) RupiUi.Kind.LEAF else RupiUi.Kind.QUIET,
+    iconRes = if (current) R.drawable.ic_check else null
    ) {
     if (!current) onSelectTarget(option)
    }
@@ -174,12 +190,12 @@ private fun renderScoreComparison(
  }
  row("Hoy", comparison.todayExperience, comparison.todayLessons, RupiUi.LEAF)
  row("Ayer", comparison.yesterdayExperience, comparison.yesterdayLessons, Color.rgb(167, 154, 133))
- val prefix = when (comparison.trend) {
-  "SUBE" -> "↑ "
-  "BAJA" -> "↓ "
-  else -> "= "
+ val trendIcon = when (comparison.trend) {
+  "SUBE" -> R.drawable.ic_trending_up
+  "BAJA" -> R.drawable.ic_trending_down
+  else -> R.drawable.ic_trend_equal
  }
- scaffold.feedback(prefix + comparison.message, if (comparison.trend == "BAJA") NoticeTone.RETRY else NoticeTone.OK)
+ scaffold.feedback(comparison.message, if (comparison.trend == "BAJA") NoticeTone.RETRY else NoticeTone.OK, iconRes = trendIcon)
 }
 
 fun renderDailyChallengeBody(
@@ -191,23 +207,23 @@ fun renderDailyChallengeBody(
  onCompleteChallenge: (challengeId: String) -> Unit
 ) {
  scaffold.rebuildBody(preserveScroll = true) {
-  button("Volver a mis temas", kind = RupiUi.Kind.QUIET) { onBackToTopics() }
+  backButton("Volver a mis temas") { onBackToTopics() }
   val challenge = state.challenge ?: return@rebuildBody
 
-  card {
+  accentCard(if (challenge.skill == "COMPRENSION_LECTORA") RupiUi.SKY else RupiUi.ORANGE) {
    if (challenge.skill == "COMPRENSION_LECTORA") {
     chip(
      "Comprensión lectora · ${challenge.estimatedMinutes} min · +${challenge.experienceReward} XP",
-     Color.rgb(238, 246, 251),
+     Color.rgb(227, 240, 248),
      Color.rgb(147, 196, 223),
      RupiUi.SKY_DARK
     )
    } else {
     chip(
      "Razonamiento lógico · ${challenge.estimatedMinutes} min · +${challenge.experienceReward} XP",
-     Color.rgb(255, 244, 240),
+     Color.rgb(255, 227, 217),
      Color.rgb(240, 160, 140),
-     Color.rgb(127, 36, 16)
+     Color.rgb(138, 42, 18)
     )
    }
    text(challenge.title, 22)
@@ -227,7 +243,7 @@ fun renderDailyChallengeBody(
   }
 
   if (challenge.readingText.isNotBlank()) {
-   card {
+   readingCard {
     text("Lectura", 20)
     challenge.readingText.split("\n\n").forEach { text(it) }
     listen("la lectura") { challenge.readingText }
@@ -244,7 +260,11 @@ fun renderDailyChallengeBody(
     q.options.forEachIndexed { j, option ->
      val radio = RadioButton(context).apply {
       id = j + 1
-      text = if (fb != null && option.id == fb.correctOptionId) "✓ ${option.text}" else option.text
+      text = if (fb != null && option.id == fb.correctOptionId) {
+       iconLabel(R.drawable.ic_check, RupiUi.LEAF_DARK, option.text, iconDp = 16)
+      } else {
+       option.text
+      }
       minHeight = dp(48)
       minWidth = dp(48)
       setSingleLine(false)

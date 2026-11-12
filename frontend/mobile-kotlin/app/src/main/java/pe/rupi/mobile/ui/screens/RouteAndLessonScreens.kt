@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import pe.rupi.mobile.R
 import pe.rupi.mobile.RupiUi
 import pe.rupi.mobile.RupiVoice
 import pe.rupi.mobile.data.model.ActivityType
@@ -30,12 +31,12 @@ fun renderRouteDetailBody(
  onBlockedNode: () -> Unit
 ) {
  scaffold.rebuildBody(preserveScroll = true) {
-  button("Volver a mis temas", kind = RupiUi.Kind.QUIET) { onBackToTopics() }
+  backButton("Volver a mis temas") { onBackToTopics() }
   val detail = state.detail ?: return@rebuildBody
   val route = state.route ?: detail.route
   val summary = detail.route
 
-  card {
+  heroCard {
    val areaGrade = listOf(summary.areaName, summary.gradeName).filter { it.isNotBlank() }.joinToString(" · ")
    chip(areaGrade, Color.rgb(238, 246, 251), Color.rgb(147, 196, 223), RupiUi.SKY_DARK)
    text(summary.title, 22)
@@ -78,12 +79,15 @@ private fun renderNodeTile(
  onOpenNode: (LearningRouteSummary, RouteNode) -> Unit,
  onBlockedNode: () -> Unit
 ) {
- val minutesPart = if (node.estimatedMinutes > 0) " · ${node.estimatedMinutes} min" else ""
- val detail = "Parada ${node.sequence} · ${node.state.label}$minutesPart"
- when (node.state) {
-  RouteNodeState.COMPLETADO -> scaffold.tile(node.title, detail, "✓") { onOpenNode(route, node) }
-  RouteNodeState.BLOQUEADO -> scaffold.tile(node.title, detail, "🔒", locked = true) { onBlockedNode() }
-  else -> scaffold.tile(node.title, detail, "›") { onOpenNode(route, node) }
+ scaffold.routeStopTile(
+  sequence = node.sequence,
+  title = node.title,
+  stateLabel = node.state.label,
+  estimatedMinutes = node.estimatedMinutes,
+  completed = node.state == RouteNodeState.COMPLETADO,
+  locked = node.state == RouteNodeState.BLOQUEADO
+ ) {
+  if (node.state == RouteNodeState.BLOQUEADO) onBlockedNode() else onOpenNode(route, node)
  }
 }
 
@@ -102,15 +106,16 @@ fun renderLessonBody(
  val route = state.route ?: return
  val node = state.node ?: return
  scaffold.rebuildBody(preserveScroll = true) {
-  button("Volver a la ruta", kind = RupiUi.Kind.QUIET) { onBackToRoute(route) }
+  backButton("Volver a la ruta") { onBackToRoute(route) }
   val lesson = state.lesson ?: return@rebuildBody
 
-  card {
+  stickerCard {
+   chip("Parada ${node.sequence}", RupiUi.SUN, RupiUi.FOREST, RupiUi.FOREST)
    chip(
     "${node.activityType.label} · ${route.title}",
-    Color.rgb(238, 247, 237),
+    RupiUi.LEAF_SOFT,
     Color.rgb(148, 208, 161),
-    Color.rgb(27, 83, 41)
+    RupiUi.LEAF_DARK
    )
    text(lesson.title.ifBlank { node.title }, 22)
    if (lesson.instructions != null) muted(lesson.instructions)
@@ -128,7 +133,7 @@ fun renderLessonBody(
     block.type == LessonBlockType.VIDEO && link != null -> card {
      text("Video de la lección", 20)
      if (body != null) muted(body)
-     button("▶ Ver el video", kind = RupiUi.Kind.SKY) { onOpenExternalLink(link) }
+     button("Ver el video", kind = RupiUi.Kind.SKY, iconRes = R.drawable.ic_play) { onOpenExternalLink(link) }
     }
     link != null || block.type == LessonBlockType.ADJUNTO -> card {
      chip("Material del profesor", Color.rgb(255, 248, 230), RupiUi.SUN, Color.rgb(107, 71, 5))
@@ -155,7 +160,11 @@ fun renderLessonBody(
     q.options.forEachIndexed { j, option ->
      val radio = RadioButton(context).apply {
       id = j + 1
-      text = if (answer != null && option.id == answer.correctOptionId) "✓ ${option.text}" else option.text
+      text = if (answer != null && option.id == answer.correctOptionId) {
+       iconLabel(R.drawable.ic_check, RupiUi.LEAF_DARK, option.text, iconDp = 16)
+      } else {
+       option.text
+      }
       minWidth = dp(48)
       setSingleLine(false)
       setHorizontallyScrolling(false)
@@ -194,7 +203,7 @@ fun renderLessonBody(
     NoticeTone.OK
    )
    result.badgeName?.let { badge ->
-    chip("🏅 Insignia: $badge", Color.rgb(255, 248, 230), RupiUi.SUN, Color.rgb(107, 71, 5))
+    chip("Insignia: $badge", Color.rgb(255, 248, 230), RupiUi.SUN, Color.rgb(107, 71, 5), iconRes = R.drawable.ic_award)
    }
    if (result.isRouteCompleted) {
     val bonus = result.routeBonusExperience.takeIf { it > 0 }?.let { "+$it XP de bonificación." } ?: ""

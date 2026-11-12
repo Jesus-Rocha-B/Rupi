@@ -37,7 +37,7 @@ fun renderAiPracticeBody(
 ) {
  val topic = state.topic ?: return
  scaffold.rebuildBody(preserveScroll = true) {
-  button("Volver a la lección", kind = RupiUi.Kind.QUIET) { onBackToLesson(topic) }
+  backButton("Volver a la lección") { onBackToLesson(topic) }
   button("Consultar mi práctica", kind = RupiUi.Kind.QUIET) { onRefresh(topic) }
   button("Repasar con tarjetas", kind = RupiUi.Kind.LEAF) { onOpenFlashcards(topic) }
 
@@ -179,98 +179,99 @@ fun renderFlashcardsBody(
 ) {
  val topic = state.topic ?: return
  scaffold.rebuildBody(preserveScroll = true) {
-  button("Volver al tema", kind = RupiUi.Kind.QUIET) { onBackToTopic(topic) }
+  backButton("Volver al tema") { onBackToTopic(topic) }
   button("Recuperar mi repaso", kind = RupiUi.Kind.QUIET) { onRefresh(topic) }
 
   val deck = state.deck ?: return@rebuildBody
-  text("Piensa en la respuesta y voltea la tarjeta. Tu autoevaluación no cambia tus notas.")
-  val cards = deck.cards
-  if (cards.isEmpty()) {
-   text("Todavía no hay tarjetas revisadas para esta actividad.")
-   return@rebuildBody
-  }
-  val index = cards.indexOfFirst { it.id == deck.currentCardId }.let { if (it >= 0) it else 0 }
-  val card = cards[index]
-  val revealed = deck.revealed
-  fun move(delta: Int) {
-   val next = index + delta
-   if (next in cards.indices) {
-    onAction(topic, deck.revision, "NAVIGATE", cards[next].id)
+  card {
+   text("Tarjetas de estudio", 20)
+   muted("Piensa en la respuesta y voltea la tarjeta. Tu autoevaluación no cambia tus notas.")
+   val cards = deck.cards
+   if (cards.isEmpty()) {
+    muted("Todavía no hay tarjetas revisadas para esta actividad.")
+    return@card
    }
-  }
-
-  val stateLabel = when (card.state) {
-   "PRACTICAR" -> "Necesito practicar"
-   "RECUERDO" -> "Lo recuerdo"
-   else -> "Por descubrir"
-  }
-  text("Tarjeta ${index + 1} de ${cards.size} · $stateLabel")
-
-  val face = button(
-   label = (if (revealed) "Respuesta: " else "Pregunta: ") + (if (revealed) card.answer else card.question)
-  ) {
-   onAction(topic, deck.revision, if (revealed) "NAVIGATE" else "REVEAL", card.id)
-  }
-  face.minHeight = dp(200)
-  face.setBackgroundColor(if (revealed) Color.rgb(233, 243, 231) else Color.rgb(255, 245, 216))
-  face.setTextColor(Color.rgb(23, 62, 48))
-
-  var startX = 0f
-  var startY = 0f
-  var dragged = false
-  face.setOnTouchListener { _, event ->
-   when (event.actionMasked) {
-    MotionEvent.ACTION_DOWN -> {
-     startX = event.x
-     startY = event.y
-     dragged = false
-     false
+   val index = cards.indexOfFirst { it.id == deck.currentCardId }.let { if (it >= 0) it else 0 }
+   val card = cards[index]
+   val revealed = deck.revealed
+   fun move(delta: Int) {
+    val next = index + delta
+    if (next in cards.indices) {
+     onAction(topic, deck.revision, "NAVIGATE", cards[next].id)
     }
-    MotionEvent.ACTION_MOVE -> {
-     val dx = event.x - startX
-     val dy = event.y - startY
-     if (abs(dx) > dp(10) || abs(dy) > dp(10)) dragged = true
-     if (abs(dx) > abs(dy) * 1.5 && abs(dx) > dp(10)) {
-      face.parent.requestDisallowInterceptTouchEvent(true)
-     }
-     dragged
-    }
-    MotionEvent.ACTION_UP -> {
-     val dx = event.x - startX
-     val dy = event.y - startY
-     face.parent.requestDisallowInterceptTouchEvent(false)
-     face.isPressed = false
-     if (!scaffold.isBusy && abs(dx) > dp(60) && abs(dx) > abs(dy) * 1.5) {
-      move(if (dx < 0) 1 else -1)
-      true
-     } else {
-      if (!dragged) face.performClick()
-      true
-     }
-    }
-    MotionEvent.ACTION_CANCEL -> {
-     dragged = true
-     face.isPressed = false
-     face.parent.requestDisallowInterceptTouchEvent(false)
-     true
-    }
-    else -> false
    }
-  }
 
-  listen(if (revealed) "la respuesta" else "la pregunta") { if (revealed) card.answer else card.question }
-  button(if (revealed) "Ver pregunta" else "Ver respuesta", kind = RupiUi.Kind.QUIET) {
-   onAction(topic, deck.revision, if (revealed) "NAVIGATE" else "REVEAL", card.id)
+   val stateLabel = when (card.state) {
+    "PRACTICAR" -> "Necesito practicar"
+    "RECUERDO" -> "Lo recuerdo"
+    else -> "Por descubrir"
+   }
+   chip("Tarjeta ${index + 1} de ${cards.size} · $stateLabel", RupiUi.SUN, RupiUi.FOREST, RupiUi.FOREST)
+
+   val face = flashcardButton(
+    label = (if (revealed) "Respuesta:\n\n" else "Pregunta:\n\n") + (if (revealed) card.answer else card.question),
+    revealed = revealed
+   ) {
+    onAction(topic, deck.revision, if (revealed) "NAVIGATE" else "REVEAL", card.id)
+   }
+
+   var startX = 0f
+   var startY = 0f
+   var dragged = false
+   face.setOnTouchListener { _, event ->
+    when (event.actionMasked) {
+     MotionEvent.ACTION_DOWN -> {
+      startX = event.x
+      startY = event.y
+      dragged = false
+      false
+     }
+     MotionEvent.ACTION_MOVE -> {
+      val dx = event.x - startX
+      val dy = event.y - startY
+      if (abs(dx) > dp(10) || abs(dy) > dp(10)) dragged = true
+      if (abs(dx) > abs(dy) * 1.5 && abs(dx) > dp(10)) {
+       face.parent.requestDisallowInterceptTouchEvent(true)
+      }
+      dragged
+     }
+     MotionEvent.ACTION_UP -> {
+      val dx = event.x - startX
+      val dy = event.y - startY
+      face.parent.requestDisallowInterceptTouchEvent(false)
+      face.isPressed = false
+      if (!scaffold.isBusy && abs(dx) > dp(60) && abs(dx) > abs(dy) * 1.5) {
+       move(if (dx < 0) 1 else -1)
+       true
+      } else {
+       if (!dragged) face.performClick()
+       true
+      }
+     }
+     MotionEvent.ACTION_CANCEL -> {
+      dragged = true
+      face.isPressed = false
+      face.parent.requestDisallowInterceptTouchEvent(false)
+      true
+     }
+     else -> false
+    }
+   }
+
+   listen(if (revealed) "la respuesta" else "la pregunta") { if (revealed) card.answer else card.question }
+   button(if (revealed) "Ver pregunta" else "Ver respuesta", kind = RupiUi.Kind.STICKER) {
+    onAction(topic, deck.revision, if (revealed) "NAVIGATE" else "REVEAL", card.id)
+   }
+   button("Anterior", index > 0, kind = RupiUi.Kind.QUIET) { move(-1) }
+   button("Siguiente", index < cards.size - 1, kind = RupiUi.Kind.QUIET) { move(1) }
+   if (revealed) {
+    button("Lo recuerdo", kind = RupiUi.Kind.LEAF) { onAction(topic, deck.revision, "REMEMBER", card.id) }
+    button("Necesito practicar", kind = RupiUi.Kind.SUN) { onAction(topic, deck.revision, "PRACTICE", card.id) }
+   }
+   muted("Fuente indicada por tu docente: ${card.source}")
+   muted("Primero repasamos lo que necesita práctica; después las tarjetas nuevas y lo que recuerdas.")
+   button("Volver a repasar", kind = RupiUi.Kind.QUIET) { onAction(topic, deck.revision, "RESTART", card.id) }
   }
-  button("Anterior", index > 0, kind = RupiUi.Kind.QUIET) { move(-1) }
-  button("Siguiente", index < cards.size - 1, kind = RupiUi.Kind.QUIET) { move(1) }
-  if (revealed) {
-   button("Lo recuerdo") { onAction(topic, deck.revision, "REMEMBER", card.id) }
-   button("Necesito practicar", kind = RupiUi.Kind.QUIET) { onAction(topic, deck.revision, "PRACTICE", card.id) }
-  }
-  text("Fuente indicada por tu docente: ${card.source}")
-  text("Primero repasamos lo que necesita práctica; después las tarjetas nuevas y lo que recuerdas.")
-  button("Volver a repasar", kind = RupiUi.Kind.QUIET) { onAction(topic, deck.revision, "RESTART", card.id) }
  }
 }
 
@@ -286,7 +287,7 @@ fun renderVisualSummaryBody(
 ) {
  val topic = state.topic ?: return
  scaffold.rebuildBody(preserveScroll = true) {
-  button("Volver al tema", kind = RupiUi.Kind.QUIET) { onBackToTopic(topic) }
+  backButton("Volver al tema") { onBackToTopic(topic) }
   button("Comprobar versión y revisión", kind = RupiUi.Kind.QUIET) { onRefresh(topic) }
   val lookup = state.lookup ?: return@rebuildBody
   val resource = lookup.resource
@@ -314,8 +315,8 @@ fun renderSavedSummariesBody(
  onOpenSaved: (SavedVisualSummary) -> Unit
 ) {
  scaffold.rebuildBody(preserveScroll = false) {
-  text("Copias guardadas en este dispositivo. Pueden estar desactualizadas; vuelve al tema con conexión para comprobar su vigencia.")
-  button("Volver", kind = RupiUi.Kind.QUIET) { onBack() }
+  muted("Copias guardadas en este dispositivo. Pueden estar desactualizadas; vuelve al tema con conexión para comprobar su vigencia.")
+  backButton("Volver") { onBack() }
   val items = state.result.items
   if (items.isEmpty() && state.result.unreadableCount == 0) {
    text("Todavía no guardaste resúmenes.")
@@ -338,7 +339,7 @@ fun renderSavedSummaryDetailBody(
  onVerifyOnline: (StudyTopic) -> Unit
 ) {
  scaffold.rebuildBody(preserveScroll = false) {
-  button("Volver a mis descargas", kind = RupiUi.Kind.QUIET) { onBackToSavedList() }
+  backButton("Volver a mis descargas") { onBackToSavedList() }
   if (isAuthenticated) {
    button("Comprobar vigencia", kind = RupiUi.Kind.QUIET) { onVerifyOnline(saved.topic) }
   }
@@ -364,43 +365,55 @@ private fun renderVisualSummaryResource(
  onReport: (StudyTopic, resourceId: String, reason: String) -> Unit
 ) {
  if (offline) {
-  scaffold.text("Copia descargada. No pudimos comprobar su vigencia. Puede haber una versión nueva o estar retirada.")
+  scaffold.feedback("Copia descargada. No pudimos comprobar su vigencia. Puede haber una versión nueva o estar retirada.", NoticeTone.INFO)
  }
  val content = resource.content
  if (content == null) {
-  scaffold.text(
-   when (resource.state) {
-    "GENERANDO" -> "Preparando el resumen. Consulta nuevamente en unos segundos."
-    "FALLIDO" -> "No pudimos preparar el resumen. Continúa tu lección."
-    else -> "Resumen retirado o pendiente de revisión."
-   }
-  )
+  scaffold.card {
+   muted(
+    when (resource.state) {
+     "GENERANDO" -> "Preparando el resumen. Consulta nuevamente en unos segundos."
+     "FALLIDO" -> "No pudimos preparar el resumen. Continúa tu lección."
+     else -> "Resumen retirado o pendiente de revisión."
+    }
+   )
+  }
   return
  }
- scaffold.text("Contenido asistido por IA · ${resource.grade}.º de primaria")
- scaffold.text(
-  if (resource.state == "REVISADO_DOCENTE") "Revisado por docente." else "Validación automática; puede contener errores."
- )
- scaffold.text(content.title, 24)
- scaffold.listen("el resumen") {
-  val parts = mutableListOf(content.title)
-  content.concepts.forEach { parts.add("${it.title}: ${it.text}") }
-  content.steps.forEachIndexed { i, step -> parts.add("Paso ${i + 1}: $step") }
-  parts.add("Ejemplo explicado: ${content.example}")
-  parts.add("Para recordar: ${content.remember}")
-  parts.joinToString(" ")
+ scaffold.heroCard {
+  chip("Contenido asistido por IA · ${resource.grade}.º de primaria", RupiUi.LEAF_SOFT, RupiUi.SOFT_LINE, RupiUi.FOREST)
+  muted(
+   if (resource.state == "REVISADO_DOCENTE") "Revisado por docente." else "Validación automática; puede contener errores."
+  )
+  text(content.title, 24)
+  listen("el resumen") {
+   val parts = mutableListOf(content.title)
+   content.concepts.forEach { parts.add("${it.title}: ${it.text}") }
+   content.steps.forEachIndexed { i, step -> parts.add("Paso ${i + 1}: $step") }
+   parts.add("Ejemplo explicado: ${content.example}")
+   parts.add("Para recordar: ${content.remember}")
+   parts.joinToString(" ")
+  }
  }
  content.concepts.forEachIndexed { i, concept ->
-  scaffold.text("${i + 1}. ${concept.title}", 20)
-  scaffold.text(concept.text)
+  scaffold.card {
+   text("${i + 1}. ${concept.title}", 20)
+   text(concept.text, 17)
+  }
  }
- scaffold.text("Paso a paso", 20)
- content.steps.forEachIndexed { i, step -> scaffold.text("${i + 1}. $step") }
- scaffold.text("Ejemplo explicado", 20)
- scaffold.text(content.example)
- scaffold.text("Para recordar", 20)
- scaffold.text(content.remember)
- scaffold.text("Fuente: ${resource.source}")
+ scaffold.card {
+  text("Paso a paso", 20)
+  content.steps.forEachIndexed { i, step -> text("${i + 1}. $step", 17) }
+ }
+ scaffold.accentCard(RupiUi.SKY) {
+  text("Ejemplo explicado", 20)
+  text(content.example, 17)
+ }
+ scaffold.accentCard(RupiUi.SUN) {
+  text("Para recordar", 20)
+  text(content.remember, 17)
+  muted("Fuente: ${resource.source}")
+ }
  if (!offline) {
   scaffold.button("Guardar para consultar sin conexión", kind = RupiUi.Kind.LEAF) {
    onSaveOffline(topic, resource.id)

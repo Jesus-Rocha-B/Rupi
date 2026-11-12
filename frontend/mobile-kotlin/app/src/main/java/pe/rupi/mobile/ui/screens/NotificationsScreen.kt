@@ -7,6 +7,7 @@ import android.widget.ArrayAdapter
 import android.widget.CheckBox
 import android.widget.Spinner
 import android.widget.TextView
+import pe.rupi.mobile.R
 import pe.rupi.mobile.RupiUi
 import pe.rupi.mobile.data.model.StudyPreferences
 import pe.rupi.mobile.ui.components.ScreenScaffold
@@ -23,7 +24,7 @@ fun renderNotificationsBody(
  onMarkAsRead: (String) -> Unit
 ) {
  scaffold.rebuildBody(preserveScroll = true) {
-  button("Volver a mis temas", kind = RupiUi.Kind.QUIET) { onBackToTopics() }
+  backButton("Volver a mis temas") { onBackToTopics() }
   val dashboard = state.dashboard ?: return@rebuildBody
   val status = dashboard.status
   val prefs = status.preferences
@@ -65,6 +66,7 @@ fun renderNotificationsBody(
     setHorizontallyScrolling(false)
     setPadding(dp(8), dp(12), dp(8), dp(12))
     textSize = 16f
+    typeface = RupiUi.fontBold(context)
     setTextColor(RupiUi.INK)
     buttonTintList = ColorStateList.valueOf(RupiUi.LEAF)
     addView(this)
@@ -107,7 +109,13 @@ fun renderNotificationsBody(
     text(item.title, 20)
     text(item.body, 16)
     if (item.read) {
-     chip("✓ Leído", Color.rgb(238, 247, 237), Color.rgb(148, 208, 161), Color.rgb(27, 83, 41))
+     chip(
+      "Leído",
+      Color.rgb(238, 247, 237),
+      Color.rgb(148, 208, 161),
+      Color.rgb(27, 83, 41),
+      iconRes = R.drawable.ic_check
+     )
     } else {
      button("Marcar como leído", kind = RupiUi.Kind.QUIET) { onMarkAsRead(item.id) }
     }
