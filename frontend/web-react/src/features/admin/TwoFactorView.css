@@ -1,0 +1,158 @@
+.tfa-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.tfa-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.tfa-own-box {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #f8f5ec;
+  border: 1.5px solid #dfd7c5;
+}
+
+.tfa-own-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.tfa-eyebrow {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #31724b;
+}
+
+.tfa-own-status h2 {
+  margin: 4px 0;
+  font-size: 1.15rem;
+  color: #173e30;
+}
+
+.tfa-own-status p {
+  margin: 0;
+}
+
+.tfa-setup-wrap {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1.5px solid #d9d1c2;
+  padding: 18px;
+}
+
+.tfa-reset-preview {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff9e8;
+  border: 1.5px solid #ffd26a;
+}
+
+.tfa-reset-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tfa-reset-head h3 {
+  margin: 0 0 4px;
+  color: #173e30;
+  font-size: 1rem;
+}
+
+.tfa-reset-head p {
+  margin: 0;
+}
+
+.tfa-reset-body {
+  display: grid;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #173e30;
+}
+
+.tfa-reset-body code {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e4d9bc;
+  word-break: break-all;
+}
+
+.tfa-summary-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tfa-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f5f1e6;
+  color: #173e30;
+  font-size: 0.92rem;
+}
+
+.tfa-stat--ok {
+  background: #eaf5ee;
+  color: #173e30;
+}
+
+.tfa-stat--warn {
+  background: #fff4d9;
+  color: #704900;
+}
+
+.tfa-account-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.tfa-account-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #e4ddd0;
+  background: #ffffff;
+}
+
+.tfa-account-info {
+  display: grid;
+  gap: 6px;
+}
+
+.tfa-account-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  color: #173e30;
+}
+
+.tfa-account-title span {
+  color: #5b6e64;
+  font-size: 0.9rem;
+}

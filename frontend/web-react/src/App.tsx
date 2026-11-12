@@ -522,11 +522,11 @@ function App() {
     }
   }
 
-  async function handleLogin(username: string, password: string) {
+  async function handleLogin(username: string, password: string, totpCode?: string) {
     setSessionBusy(true)
     setErrorType(null)
     try {
-      const current = await login(username, password)
+      const current = await login(username, password, totpCode)
       setSessionNotice(null)
       clearStoredNavigation()
       resetView()

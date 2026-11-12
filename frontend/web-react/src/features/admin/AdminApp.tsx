@@ -11,11 +11,12 @@ import { HealthView } from './HealthView'
 import { RolesView } from './RolesView'
 import { SessionsView } from './SessionsView'
 import { SyncAuditView } from './SyncAuditView'
+import { TwoFactorView } from './TwoFactorView'
 import { LanguageModerationView } from './LanguageModerationView'
 import './AdminConsole.css'
 import './AdminNavigation.css'
 
-type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'acceso' | 'catalogo' | 'moderacion' | 'salud' | 'tablero' | 'sincronizacion' | 'respaldos'
+type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'acceso' | '2fa' | 'catalogo' | 'moderacion' | 'salud' | 'tablero' | 'sincronizacion' | 'respaldos'
 
 interface Section {
   id: SectionId
@@ -30,6 +31,7 @@ const SECTIONS: Section[] = [
   { id: 'roles', label: 'Roles y permisos', permission: 'cuentas.ver', icon: ShieldCheck },
   { id: 'sesiones', label: 'Sesiones', permission: 'sesiones.gestionar', icon: MonitorSmartphone },
   { id: 'acceso', label: 'Bloqueo por intentos', permission: 'acceso.ver', icon: LockKeyhole },
+  { id: '2fa', label: 'Doble factor (2FA)', permission: 'consola.ingresar', icon: ShieldCheck },
   { id: 'catalogo', label: 'Catálogo curricular', permission: 'curriculo.ver', icon: BookOpen },
   { id: 'salud', label: 'Salud', permission: 'plataforma.monitorear', icon: Activity },
   { id: 'tablero', label: 'Tablero de Uptime', permission: 'plataforma.monitorear', icon: BarChart3 },
@@ -38,7 +40,7 @@ const SECTIONS: Section[] = [
 ]
 
 const GROUPS: { label: string; icon: typeof Users; sections: SectionId[] }[] = [
-  { label: 'Usuarios', icon: Users, sections: ['cuentas', 'roles', 'sesiones', 'acceso'] },
+  { label: 'Usuarios', icon: Users, sections: ['cuentas', 'roles', 'sesiones', 'acceso', '2fa'] },
   { label: 'Catálogo MINEDU', icon: BookOpen, sections: ['catalogo'] },
   { label: 'Moderación IA', icon: ShieldCheck, sections: ['moderacion'] },
   { label: 'Monitoreo', icon: Activity, sections: ['salud', 'tablero', 'sincronizacion', 'respaldos'] },
@@ -168,6 +170,7 @@ export function AdminApp() {
         {current?.id === 'roles' && <RolesView onSessionLost={handleSessionLost} />}
         {current?.id === 'sesiones' && <SessionsView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'acceso' && <AccessPolicyView admin={admin} onSessionLost={handleSessionLost} />}
+        {current?.id === '2fa' && <TwoFactorView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'moderacion' && <LanguageModerationView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'catalogo' && <CurriculumView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'salud' && <HealthView onSessionLost={handleSessionLost} />}

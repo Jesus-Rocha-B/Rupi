@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent, type KeyboardEvent } from 'react'
 import {
   AlertCircle,
+  ArrowLeft,
   ArrowRight,
   BookOpen,
   Calculator,
@@ -11,17 +12,24 @@ import {
   HelpCircle,
   KeyRound,
   Lock,
+  ShieldCheck,
   Smartphone,
   Sparkles,
   User,
   Volume2,
 } from 'lucide-react'
 import { RupiCharacter, type RupiRole } from '../../components/RupiCharacter'
+import { TwoFactorSetupCard } from '../../components/TwoFactorSetupCard'
 import { speakText } from '../../utils/speech'
 import { ApiError } from '../../services/learningRoutesApi'
+import {
+  AdminApiError,
+  confirmTeacherTwoFactorSetup,
+  startTeacherTwoFactorSetup,
+} from '../../services/adminApi'
 
 type Props = {
-  onLogin: (username: string, password: string) => Promise<void>
+  onLogin: (username: string, password: string, totpCode?: string) => Promise<void>
   onLoginDemo: () => Promise<void>
   sessionBusy: boolean
   demoAvailable: boolean
@@ -71,6 +79,16 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
   const [feedbackType, setFeedbackType] = useState<'error' | 'info'>('error')
   const [rupiJumping, setRupiJumping] = useState(false)
   const [courseIndex, setCourseIndex] = useState(0)
+  const [totpCode, setTotpCode] = useState('')
+  const [twoFactorBusy, setTwoFactorBusy] = useState(false)
+  const [twoFactorStep, setTwoFactorStep] = useState<'none' | 'token' | 'setup'>('none')
+  const [teacherSetup, setTeacherSetup] = useState<{
+    username: string
+    password: string
+    challenge: string
+    otpauthUri: string
+    secretBase32: string
+  } | null>(null)
 
   const currentCourse = RUPI_COURSES[courseIndex]
 
@@ -107,23 +125,52 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
     setTimeout(() => setRupiJumping(false), 1200)
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
+  async function attemptLogin(targetUser: string, targetPass: string, code?: string) {
     setFeedback(null)
-
-    const trimmedUser = username.trim()
-    const trimmedPass = password.trim()
-
-    if (!trimmedUser || !trimmedPass) {
-      setFeedback('Escribe tu usuario y tu contraseña para ingresar a clase.')
-      setFeedbackType('error')
-      return
-    }
-
     try {
-      await onLogin(trimmedUser, password)
+      await onLogin(targetUser, targetPass, code)
     } catch (err) {
       if (err instanceof ApiError) {
+        if (err.code === 'TOTP_SETUP_REQUIRED') {
+          setTwoFactorBusy(true)
+          try {
+            const init = await startTeacherTwoFactorSetup(targetUser, targetPass)
+            if (init.yaConfigurado) {
+              setUsername(targetUser)
+              setPassword(targetPass)
+              setTwoFactorStep('token')
+              setFeedback('Ingresa tu código temporal de 6 dígitos de tu aplicación autenticadora.')
+              setFeedbackType('info')
+            } else if (init.desafio && init.otpauthUri && init.secretoBase32) {
+              setUsername(targetUser)
+              setPassword(targetPass)
+              setTeacherSetup({
+                username: init.usuario,
+                password: targetPass,
+                challenge: init.desafio,
+                otpauthUri: init.otpauthUri,
+                secretBase32: init.secretoBase32,
+              })
+              setTwoFactorStep('setup')
+            }
+          } catch (setupErr) {
+            setFeedback(setupErr instanceof AdminApiError
+              ? setupErr.message
+              : 'No pudimos preparar tu código QR de doble factor.')
+            setFeedbackType('error')
+          } finally {
+            setTwoFactorBusy(false)
+          }
+          return
+        }
+        if (err.code === 'TOTP_REQUIRED' || err.code === 'TOTP_INVALID') {
+          setUsername(targetUser)
+          setPassword(targetPass)
+          setTwoFactorStep('token')
+          setFeedback(err.message)
+          setFeedbackType(err.code === 'TOTP_INVALID' ? 'error' : 'info')
+          return
+        }
         // HU-58: la API dice cuántos minutos esperar; si no llega ese dato, se muestra el aviso general.
         const wait = /\d+ minutos?/.exec(err.message)?.[0]
         if (err.status === 429) {
@@ -147,6 +194,52 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
         setFeedback('No pudimos conectar con tu aula. Espera un momento y vuelve a intentar.')
       }
       setFeedbackType('error')
+    }
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setFeedback(null)
+
+    const trimmedUser = username.trim()
+    const trimmedPass = password.trim()
+
+    if (!trimmedUser || !trimmedPass) {
+      setFeedback('Escribe tu usuario y tu contraseña para ingresar a clase.')
+      setFeedbackType('error')
+      return
+    }
+
+    if (twoFactorStep === 'token') {
+      const cleanCode = totpCode.replace(/\D/g, '')
+      if (cleanCode.length !== 6) {
+        setFeedback('Escribe los 6 dígitos temporales de tu aplicación autenticadora.')
+        setFeedbackType('error')
+        return
+      }
+      await attemptLogin(trimmedUser, password, cleanCode)
+      return
+    }
+
+    await attemptLogin(trimmedUser, password)
+  }
+
+  async function handleConfirmTeacherSetup(code: string) {
+    if (!teacherSetup) return
+    setTwoFactorBusy(true)
+    setFeedback(null)
+    try {
+      await confirmTeacherTwoFactorSetup(teacherSetup.challenge, code)
+      setTwoFactorStep('none')
+      setTeacherSetup(null)
+      await attemptLogin(teacherSetup.username, teacherSetup.password, code)
+    } catch (err) {
+      setFeedback(err instanceof AdminApiError
+        ? err.message
+        : 'El código temporal no coincide. Intenta con el siguiente código.')
+      setFeedbackType('error')
+    } finally {
+      setTwoFactorBusy(false)
     }
   }
 
@@ -384,7 +477,25 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
             </p>
           </header>
 
-          <form className="student-login-form" onSubmit={handleSubmit} noValidate>
+          {twoFactorStep === 'setup' && teacherSetup ? (
+            <div style={{ background: '#ffffff', padding: 18, borderRadius: 18, border: '2px solid #dfd7c5' }}>
+              <TwoFactorSetupCard
+                username={teacherSetup.username}
+                otpauthUri={teacherSetup.otpauthUri}
+                secretBase32={teacherSetup.secretBase32}
+                busy={sessionBusy || twoFactorBusy}
+                error={feedbackType === 'error' ? feedback : null}
+                submitLabel="Activar 2FA y entrar"
+                onVerify={handleConfirmTeacherSetup}
+                onCancel={() => {
+                  setTwoFactorStep('none')
+                  setTeacherSetup(null)
+                  setFeedback(null)
+                }}
+              />
+            </div>
+          ) : (
+            <form className="student-login-form" onSubmit={handleSubmit} noValidate>
               {serviceError && <p role="alert" className="auth-feedback error">{serviceError}</p>}
               {sessionNotice && !feedback && (
                 <div className="login-alert-banner info" role="status">
@@ -392,113 +503,166 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
                   <p>{sessionNotice}</p>
                 </div>
               )}
-            {/* Campo Usuario */}
-            <div className="form-group">
-              <label htmlFor="student-username" className="field-label">
-                <User size={18} aria-hidden="true" />
-                <span>Usuario escolar</span>
-              </label>
-              <div className="input-shell">
-                <input
-                  id="student-username"
-                  name="username"
-                  type="text"
-                  className="field-input"
-                  placeholder="Tu usuario"
-                  autoComplete="username"
-                  inputMode="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  disabled={sessionBusy}
-                  required
-                />
-              </div>
-            </div>
 
-            {/* Campo Contraseña con toggle de visibilidad */}
-            <div className="form-group">
-              <label htmlFor="student-password" className="field-label">
-                <KeyRound size={18} aria-hidden="true" />
-                <span>Contraseña secreta</span>
-              </label>
-              <div className="input-shell with-toggle">
-                <input
-                  id="student-password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  className="field-input"
-                  placeholder="Tu contraseña"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={handleKeyActivity}
-                  onKeyUp={handleKeyActivity}
-                  disabled={sessionBusy}
-                  aria-describedby={capsLockActive ? 'caps-lock-warning' : undefined}
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle-btn"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
-                  title={showPassword ? 'Ocultar' : 'Ver'}
+              {twoFactorStep === 'token' ? (
+                <div className="form-group">
+                  <label htmlFor="teacher-totp" className="field-label">
+                    <ShieldCheck size={18} aria-hidden="true" />
+                    <span>Código de verificación 2FA (@{username.trim()})</span>
+                  </label>
+                  <div className="input-shell">
+                    <input
+                      id="teacher-totp"
+                      name="totpCode"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      placeholder="000000"
+                      className="field-input"
+                      style={{ letterSpacing: '0.32em', textAlign: 'center', fontFamily: 'monospace', fontSize: '1.25rem' }}
+                      value={totpCode}
+                      onChange={e => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      disabled={sessionBusy || twoFactorBusy}
+                      required
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Campo Usuario */}
+                  <div className="form-group">
+                    <label htmlFor="student-username" className="field-label">
+                      <User size={18} aria-hidden="true" />
+                      <span>Usuario escolar</span>
+                    </label>
+                    <div className="input-shell">
+                      <input
+                        id="student-username"
+                        name="username"
+                        type="text"
+                        className="field-input"
+                        placeholder="Tu usuario"
+                        autoComplete="username"
+                        inputMode="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        disabled={sessionBusy || twoFactorBusy}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Campo Contraseña con toggle de visibilidad */}
+                  <div className="form-group">
+                    <label htmlFor="student-password" className="field-label">
+                      <KeyRound size={18} aria-hidden="true" />
+                      <span>Contraseña secreta</span>
+                    </label>
+                    <div className="input-shell with-toggle">
+                      <input
+                        id="student-password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        className="field-input"
+                        placeholder="Tu contraseña"
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={handleKeyActivity}
+                        onKeyUp={handleKeyActivity}
+                        disabled={sessionBusy || twoFactorBusy}
+                        aria-describedby={capsLockActive ? 'caps-lock-warning' : undefined}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                        title={showPassword ? 'Ocultar' : 'Ver'}
+                      >
+                        {showPassword ? (
+                          <EyeOff size={20} aria-hidden="true" />
+                        ) : (
+                          <Eye size={20} aria-hidden="true" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Advertencia de Bloq Mayús */}
+                    {capsLockActive && (
+                      <div id="caps-lock-warning" className="caps-warning" role="status">
+                        <AlertCircle size={15} aria-hidden="true" />
+                        <span>Tienes las mayúsculas activadas</span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Mensajes de feedback accesibles */}
+              {feedback && (
+                <div
+                  className={`login-alert-banner ${feedbackType}`}
+                  role="alert"
+                  aria-live="polite"
                 >
-                  {showPassword ? (
-                    <EyeOff size={20} aria-hidden="true" />
-                  ) : (
-                    <Eye size={20} aria-hidden="true" />
-                  )}
-                </button>
-              </div>
-
-              {/* Advertencia de Bloq Mayús */}
-              {capsLockActive && (
-                <div id="caps-lock-warning" className="caps-warning" role="status">
-                  <AlertCircle size={15} aria-hidden="true" />
-                  <span>Tienes las mayúsculas activadas</span>
+                  <AlertCircle size={18} aria-hidden="true" />
+                  <p>{feedback}</p>
                 </div>
               )}
-            </div>
 
-            {/* Mensajes de feedback accesibles */}
-            {feedback && (
-              <div
-                className={`login-alert-banner ${feedbackType}`}
-                role="alert"
-                aria-live="polite"
+              {/* Botón principal único con estado de carga */}
+              <button
+                type="submit"
+                className="primary-login-btn"
+                disabled={sessionBusy || twoFactorBusy}
+                aria-label="Entrar a mi aula"
               >
-                <AlertCircle size={18} aria-hidden="true" />
-                <p>{feedback}</p>
+                <span>
+                  {sessionBusy || twoFactorBusy
+                    ? 'Entrando a tu aula…'
+                    : twoFactorStep === 'token'
+                    ? 'Confirmar código 2FA'
+                    : 'Entrar a mi aula'}
+                </span>
+                <ArrowRight size={20} aria-hidden="true" />
+              </button>
+
+              {twoFactorStep === 'token' && (
+                <button
+                  type="button"
+                  className="dev-demo-trigger-btn"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                  disabled={sessionBusy || twoFactorBusy}
+                  onClick={() => {
+                    setTwoFactorStep('none')
+                    setTotpCode('')
+                    setFeedback(null)
+                  }}
+                >
+                  <ArrowLeft size={15} aria-hidden="true" />
+                  <span>Cambiar usuario</span>
+                </button>
+              )}
+
+              {/* Ayuda escolar en línea */}
+              <div className="school-help-line">
+                <HelpCircle size={16} aria-hidden="true" />
+                <span>¿Olvidaste tu contraseña? Pide ayuda a tu profe.</span>
               </div>
-            )}
-
-            {/* Botón principal único con estado de carga */}
-            <button
-              type="submit"
-              className="primary-login-btn"
-              disabled={sessionBusy}
-              aria-label="Entrar a mi aula"
-            >
-              <span>{sessionBusy ? 'Entrando a tu aula…' : 'Entrar a mi aula'}</span>
-              <ArrowRight size={20} aria-hidden="true" />
-            </button>
-
-            {/* Ayuda escolar en línea */}
-            <div className="school-help-line">
-              <HelpCircle size={16} aria-hidden="true" />
-              <span>¿Olvidaste tu contraseña? Pide ayuda a tu profe.</span>
-            </div>
-          </form>
+            </form>
+          )}
 
           {/* Acceso técnico de prueba local: solo en desarrollo y sin datos personales */}
-          {import.meta.env.DEV && demoAvailable && (
+          {import.meta.env.DEV && demoAvailable && twoFactorStep === 'none' && (
             <div className="dev-demo-wrapper">
               <button
                 type="button"
                 className="dev-demo-trigger-btn"
                 onClick={handleDirectDemoAccess}
-                disabled={sessionBusy}
+                disabled={sessionBusy || twoFactorBusy}
                 aria-label="Acceder con sesión de prueba local de estudiante"
               >
                 <Sparkles size={14} aria-hidden="true" />
@@ -507,8 +671,8 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
               <button
                 type="button"
                 className="dev-demo-trigger-btn dev-demo-teacher-btn"
-                onClick={() => onLogin('profesor.demo', '123456')}
-                disabled={sessionBusy}
+                onClick={() => { void attemptLogin('profesor.demo', '123456') }}
+                disabled={sessionBusy || twoFactorBusy}
                 aria-label="Acceder con sesión de prueba local de profesor"
               >
                 <GraduationCap size={14} aria-hidden="true" />

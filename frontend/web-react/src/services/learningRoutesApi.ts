@@ -213,13 +213,22 @@ export interface RouteDiplomaResponse {
 
 export class ApiError extends Error {
   status: number
+  /** HU-60: código opcional de desafío de seguridad (p. ej. `TOTP_REQUIRED`, `TOTP_SETUP_REQUIRED`, `TOTP_INVALID`). */
+  code: string | null
   /** HU-43: por qué terminó la sesión (`OTRO_DISPOSITIVO`, `CERRADA` o `EXPIRADA`) y dónde se abrió la nueva. */
   sessionEnd: string | null
   sessionNewClient: string | null
-  constructor(status: number, message: string, sessionEnd: string | null = null, sessionNewClient: string | null = null) {
+  constructor(
+    status: number,
+    message: string,
+    sessionEnd: string | null = null,
+    sessionNewClient: string | null = null,
+    code: string | null = null
+  ) {
     super(message)
     this.status = status
     this.name = 'ApiError'
+    this.code = code
     this.sessionEnd = sessionEnd
     this.sessionNewClient = sessionNewClient
   }
@@ -252,8 +261,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 async function apiErrorFrom(response: Response): Promise<ApiError> {
   let msg = `No se pudo consultar la información (${response.status})`
+  let code: string | null = null
   try {
     const errData = await response.json()
+    if (typeof errData?.code === 'string') code = errData.code
     if (errData?.message) msg = errData.message
     else if (errData?.detail) msg = errData.detail
     else if (errData?.error) msg = errData.error
@@ -262,7 +273,7 @@ async function apiErrorFrom(response: Response): Promise<ApiError> {
     // Ignora error de parseo si no es JSON
   }
   return new ApiError(response.status, msg, response.headers.get('X-Rupi-Sesion-Cerrada'),
-    response.headers.get('X-Rupi-Sesion-Nueva'))
+    response.headers.get('X-Rupi-Sesion-Nueva'), code)
 }
 
 export interface UnitPackage {
@@ -303,11 +314,11 @@ export const fetchSession = (signal?: AbortSignal) => request<Student>('student/
 /** Comprobación liviana de la sesión única (HU-43): sirve igual para estudiantes y docentes. */
 export const checkSession = (signal?: AbortSignal) => request<Student>('auth/session', { signal })
 export const fetchSessionOptions = (signal?: AbortSignal) => request<{ demoAvailable: boolean }>('auth/options', { signal })
-export const login = (username: string, password: string) =>
+export const login = (username: string, password: string, totpCode?: string) =>
   request<Student>('auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify(totpCode ? { username, password, totpCode } : { username, password }),
   })
 export const loginDemo = () => request<Student>('auth/demo', { method: 'POST' })
 export const logout = () => request<void>('auth/logout', { method: 'POST' })

@@ -124,7 +124,97 @@ const post = <T>(path: string, body?: unknown) =>
   request<T>(path, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) })
 
 export const fetchAdminSession = (signal?: AbortSignal) => request<Administrator>('sesion', { signal })
-export const adminLogin = (usuario: string, clave: string) => post<Administrator>('sesion', { usuario, clave })
+export type AdminLoginOutcome =
+  | { kind: 'authenticated'; admin: Administrator }
+  | {
+      kind: 'challenge'
+      configured: boolean
+      challenge: string
+      username: string
+      otpauthUri?: string
+      secretBase32?: string
+    }
+
+export async function adminLogin(usuario: string, clave: string, codigo?: string): Promise<AdminLoginOutcome> {
+  const payload = await request<Administrator | {
+    requiere2fa: true
+    configurado: boolean
+    desafio: string
+    usuario: string
+    otpauthUri?: string
+    secretoBase32?: string
+  }>('sesion', { method: 'POST', body: JSON.stringify(codigo ? { usuario, clave, codigo } : { usuario, clave }) })
+  if ('requiere2fa' in payload) {
+    return {
+      kind: 'challenge',
+      configured: payload.configurado,
+      challenge: payload.desafio,
+      username: payload.usuario,
+      otpauthUri: payload.otpauthUri,
+      secretBase32: payload.secretoBase32,
+    }
+  }
+  return { kind: 'authenticated', admin: payload }
+}
+
+export const verifyAdminTwoFactor = (desafio: string, codigo: string) =>
+  post<Administrator>('sesion/2fa', { desafio, codigo })
+
+export interface TeacherTwoFactorInit {
+  yaConfigurado: boolean
+  usuario: string
+  desafio?: string
+  otpauthUri?: string
+  secretoBase32?: string
+}
+
+export const startTeacherTwoFactorSetup = (usuario: string, clave: string) =>
+  post<TeacherTwoFactorInit>('2fa/docente/iniciar', { usuario, clave })
+
+export const confirmTeacherTwoFactorSetup = (desafio: string, codigo: string) =>
+  post<{ verificado: boolean; usuario: string }>('2fa/docente/confirmar', { desafio, codigo })
+
+export interface OwnTwoFactorState {
+  requerido: boolean
+  verificado: boolean
+  activadoEn: string | null
+  actualizadoEn: string | null
+  secretoBase32?: string
+  otpauthUri?: string
+}
+
+export interface TwoFactorAccountRow {
+  id: string
+  usuario: string
+  nombre: string
+  estadoCuenta: AccountState
+  roles: string[]
+  verificado: boolean
+  pendienteQr: boolean
+  activadoEn: string | null
+}
+
+export interface TwoFactorOverview {
+  propio: OwnTwoFactorState
+  puedeGestionar: boolean
+  cuentas: TwoFactorAccountRow[]
+}
+
+export interface TwoFactorResetResult {
+  cuentaId: string
+  usuario: string
+  verificado: boolean
+  pendienteQr: boolean
+  secretoBase32: string
+  otpauthUri: string
+}
+
+export const fetchTwoFactorOverview = (signal?: AbortSignal) => request<TwoFactorOverview>('seguridad/2fa', { signal })
+export const rotateMyTwoFactor = () => post<OwnTwoFactorState>('seguridad/2fa/mi-rotacion')
+export const confirmMyTwoFactor = (codigo: string) => post<OwnTwoFactorState>('seguridad/2fa/mi-confirmacion', { codigo })
+export const resetAccountTwoFactor = (accountId: string) =>
+  post<TwoFactorResetResult>(`seguridad/2fa/cuentas/${encodeURIComponent(accountId)}/reiniciar`)
+
 export const adminLogout = () => request<void>('sesion', { method: 'DELETE' })
 
 export function fetchAccounts(filters: AccountFilters, signal?: AbortSignal) {
