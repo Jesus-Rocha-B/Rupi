@@ -3,9 +3,10 @@ package pe.rupi.mobile
 import android.app.*
 import android.app.job.*
 import android.content.*
-
 import android.security.keystore.*
 import org.json.JSONObject
+import pe.rupi.mobile.data.model.RupiSessionExpired
+import pe.rupi.mobile.data.remote.RupiApi
 import java.security.KeyStore
 import javax.crypto.*
 import javax.crypto.spec.GCMParameterSpec
