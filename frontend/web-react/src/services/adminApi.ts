@@ -658,3 +658,35 @@ export interface InteractionPage { items: InteractionRow[]; total: number; pendi
 export const fetchInteractions = (params: URLSearchParams, signal?: AbortSignal) => request<InteractionPage>(`moderacion/interacciones?${params}`, { signal })
 export const fetchInteraction = (id: string, signal?: AbortSignal) => request<InteractionDetail>(`moderacion/interacciones/${encodeURIComponent(id)}`, { signal })
 export const reviewInteraction = (id: string) => post<InteractionDetail>(`moderacion/interacciones/${encodeURIComponent(id)}`)
+
+// HU-51 · Resoluciones ministeriales y correspondencia curricular
+export type CorrespondenceChange = 'SE_MANTIENE' | 'MODIFICADA' | 'RETIRADA' | 'NUEVA'
+export type CorrespondenceType = 'AREA' | 'COMPETENCIA' | 'UNIDAD'
+export interface Resolution {
+  id: string; numero: string; fechaEmision: string; resumen: string; enlace: string | null
+  origen: { id: string; etiqueta: string; estado: CatalogState }
+  destino: { id: string; etiqueta: string; estado: CatalogState; vigenteDesde: string | null }
+  estado: 'BORRADOR' | 'PUBLICADA'; creadoEn: string; publicadoEn: string | null
+}
+export interface ResolutionList {
+  resoluciones: Resolution[]; vigente: { id: string; etiqueta: string; vigenteDesde: string | null } | null; puedeRegistrar: boolean
+}
+export interface CorrespondenceItem {
+  id: string | null; codigo: string; grado: string | null; origen: string | null; destino: string | null
+  cambio: CorrespondenceChange; nota: string | null; editable: boolean
+}
+export interface ResolutionDetail {
+  resolucion: Resolution; editable: boolean
+  elementos: Record<CorrespondenceType, CorrespondenceItem[]>
+  resumen: Record<CorrespondenceType, Record<CorrespondenceChange, number>>
+  impacto: { rutas: number; rutasPublicadas: number; paradasSinUnidad: number }
+}
+export interface ResolutionInput { numero: string; fechaEmision: string; resumen: string; enlace?: string; etiqueta: string; vigenteDesde: string }
+export interface CorrespondenceInput { accion: 'MANTENER' | 'CORREGIR' | 'RETIRAR'; titulo?: string; nota?: string }
+export const fetchResolutions = (signal?: AbortSignal) => request<ResolutionList>('curriculo/resoluciones', { signal })
+export const fetchResolution = (id: string, signal?: AbortSignal) => request<ResolutionDetail>(`curriculo/resoluciones/${encodeURIComponent(id)}`, { signal })
+export const registerResolution = (data: ResolutionInput) => post<ResolutionDetail>('curriculo/resoluciones', data)
+export const updateCorrespondence = (resolution: string, item: string, data: CorrespondenceInput) =>
+  request<ResolutionDetail>(`curriculo/resoluciones/${encodeURIComponent(resolution)}/correspondencias/${encodeURIComponent(item)}`, { method: 'PATCH', body: JSON.stringify(data) })
+export const publishResolution = (resolution: string, confirmacion: string) =>
+  post<ResolutionDetail>(`curriculo/resoluciones/${encodeURIComponent(resolution)}/publicar`, { confirmacion })

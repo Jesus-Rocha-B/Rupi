@@ -1,0 +1,27 @@
+/* HU-51 · Aviso de actualización curricular en el editor de la ruta */
+.curriculum-update { margin: 0 0 20px; padding: 18px 20px; border: 2px solid #173e30; border-left: 8px solid #f95738; border-radius: 16px; background: #fff6e3; color: #173e30; box-shadow: 0 4px 0 #173e30; }
+.curriculum-update-head { display: flex; gap: 14px; align-items: flex-start; }
+.curriculum-update-head svg { flex-shrink: 0; color: #a33800; margin-top: 2px; }
+.curriculum-update h3 { margin: 0 0 4px; font-size: 1.1rem; font-weight: 900; }
+.curriculum-update p { margin: 0; line-height: 1.5; }
+.curriculum-update-norm { margin: 14px 0 0; padding: 12px 14px; border-radius: 12px; background: #fff; border: 1.5px solid #ffd26a; overflow-wrap: anywhere; }
+.curriculum-update-norm p { margin: 4px 0; }
+.curriculum-update-norm a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: #246a91; font-weight: 800; text-underline-offset: 3px; }
+.curriculum-update-units { margin: 14px 0 0; }
+.curriculum-update-units summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 800; }
+.curriculum-update-units ul { list-style: none; margin: 4px 0 0; padding: 0; }
+.curriculum-update-units li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; padding: 10px 0; border-top: 1px solid #f1d9a6; overflow-wrap: anywhere; }
+.curriculum-update-units li span { font-weight: 700; }
+.curriculum-update-units li svg { vertical-align: middle; color: #a33800; }
+.curriculum-update-units small { font-weight: 800; color: #43614c; }
+.curriculum-update-units li.is-retirada small { color: #a33800; }
+.curriculum-update-warning { margin-top: 12px !important; padding: 10px 12px; border-radius: 10px; background: #fff; border: 1px solid #e9c36b; font-weight: 700; }
+.curriculum-update-error { margin-top: 12px !important; padding: 10px 12px; border-radius: 10px; background: #fff1ed; border: 1px solid #e3a595; color: #7f2410; font-weight: 700; }
+.curriculum-update-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; margin-top: 14px; padding: 0 20px; border: 2px solid #14532d; border-radius: 12px; background: #31724b; color: #fff; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #14532d; transition: transform 0.08s ease, box-shadow 0.08s ease; }
+.curriculum-update-btn:hover:not(:disabled) { background: #2a6541; }
+.curriculum-update-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #14532d; }
+.curriculum-update-btn:disabled { opacity: 0.6; cursor: wait; }
+.curriculum-update :focus-visible { outline: 3px solid #246a91; outline-offset: 3px; }
+.curriculum-update-done { display: flex; align-items: center; gap: 10px; margin: 0 0 20px; padding: 14px 16px; border: 2px solid #31724b; border-radius: 14px; background: #edf4e9; color: #173e30; font-weight: 800; }
+.curriculum-update-done svg { flex-shrink: 0; color: #31724b; }
+@media (max-width: 600px) { .curriculum-update { padding: 14px; } .curriculum-update-btn { width: 100%; } }

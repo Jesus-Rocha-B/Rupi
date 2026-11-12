@@ -1,0 +1,77 @@
+/* HU-51 · Resoluciones ministeriales y correspondencia curricular */
+.admin-resolutions { color: #173e30; }
+.res-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.res-heading h1 { margin: 0; font-size: 1.65rem; }
+.res-heading h1 small { font-size: 12px; padding: 4px 9px; border: 1px solid #aabb9a; border-radius: 8px; background: #e7efd7; vertical-align: middle; }
+.res-heading p { margin: 6px 0 0; line-height: 1.5; }
+.res-heading-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.admin-resolutions h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+.admin-resolutions :is(button, input, textarea, a):focus-visible { outline: 3px solid #246a91; outline-offset: 3px; }
+.admin-resolutions .admin-feedback { margin: 0 0 16px; }
+
+.res-form { margin-bottom: 20px; }
+.res-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.res-full { grid-column: 1 / -1; }
+.admin-resolutions textarea { width: 100%; box-sizing: border-box; padding: 12px 14px; border: 2px solid var(--adm-line); border-radius: 12px; font: inherit; font-weight: 600; color: var(--adm-ink); background: #fff; resize: vertical; }
+.admin-resolutions textarea:focus { border-color: var(--adm-sky); outline: none; box-shadow: 0 0 0 3px rgba(36, 106, 145, 0.25); }
+.res-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.res-empty p { margin: 4px 0; }
+
+.res-layout { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.res-list { padding: 18px; }
+.res-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.res-list button { width: 100%; display: grid; justify-items: start; gap: 6px; min-height: 48px; padding: 12px 14px; text-align: left; border: 2px solid var(--adm-line); border-radius: 14px; background: #fffdf8; color: #173e30; font: inherit; cursor: pointer; box-shadow: 0 3px 0 #d7e4cc; transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.12s ease; }
+.res-list button:hover { border-color: #31724b; }
+.res-list button:active { transform: translateY(2px); box-shadow: 0 1px 0 #d7e4cc; }
+.res-list button.is-active { border-color: #173e30; background: #edf4e9; box-shadow: 0 3px 0 #173e30; }
+.res-list button span:not(.admin-chip) { display: inline-flex; align-items: center; gap: 4px; font-size: 0.88rem; font-weight: 700; color: var(--adm-muted); }
+
+.res-detail { display: grid; gap: 20px; min-width: 0; }
+.res-summary-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; flex-wrap: wrap; }
+.res-summary > p { line-height: 1.55; }
+.res-link { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; color: #246a91; font-weight: 800; text-underline-offset: 3px; }
+.res-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 8px 0 16px; }
+.res-counts > div { padding: 12px 14px; border: 1.5px solid #d7e4cc; border-radius: 12px; background: #fdfbf7; }
+.res-counts dt { font-weight: 900; margin-bottom: 6px; }
+.res-counts dd { margin: 0; display: grid; gap: 2px; font-size: 0.9rem; font-weight: 700; color: var(--adm-muted); }
+.res-impact { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 12px; border: 1.5px solid #ffd26a; border-left: 6px solid #f95738; background: #fff6e3; line-height: 1.5; }
+.res-impact svg { flex-shrink: 0; margin-top: 3px; color: #a33800; }
+
+.res-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.res-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 2px solid #96ae96; border-radius: 12px; background: #fffdf8; color: #173e30; font: inherit; font-weight: 800; cursor: pointer; }
+.res-tabs button span { padding: 1px 8px; border-radius: 999px; background: #e7efdf; font-size: 0.8rem; }
+.res-tabs button[aria-pressed='true'] { background: #173e30; border-color: #173e30; color: #fff; }
+.res-tabs button[aria-pressed='true'] span { background: #31724b; color: #fff; }
+.res-rows { list-style: none; margin: 0; padding: 0; }
+.res-rows > li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 14px 0; border-top: 1px solid #e5dece; }
+.res-row-main { min-width: 0; overflow-wrap: anywhere; }
+.res-row-main p { margin: 4px 0 0; font-weight: 700; }
+.res-row-main del { color: var(--adm-muted); font-weight: 600; }
+.res-row-main svg { vertical-align: middle; color: #a33800; }
+.res-row-main small { display: block; margin-top: 4px; color: var(--adm-muted); font-weight: 600; }
+.res-code { font-size: 0.8rem; font-weight: 900; color: #246a91; letter-spacing: 0.02em; }
+.res-edit { min-height: 44px; }
+
+.res-editor { grid-column: 1 / -1; display: grid; gap: 12px; padding: 16px; border: 2px solid #173e30; border-radius: 14px; background: #fdfbf7; box-shadow: 0 3px 0 #173e30; }
+.res-editor fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.res-editor legend { font-weight: 800; margin-bottom: 8px; }
+.res-choices { display: flex; flex-wrap: wrap; gap: 10px; }
+.res-choices label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 2px solid #d7e4cc; border-radius: 12px; background: #fff; font-weight: 800; cursor: pointer; }
+.res-choices label:has(input:checked) { border-color: #31724b; background: #edf4e9; }
+.res-choices input { width: 18px; height: 18px; accent-color: #31724b; }
+.res-warning { margin: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid #e9c36b; background: #fff2d5; font-weight: 700; font-size: 0.92rem; }
+.res-editor .res-actions { margin-top: 0; }
+
+.res-publish { border-color: #f95738; }
+.res-publish p { line-height: 1.55; }
+.res-publish .admin-field { margin: 12px 0 16px; max-width: 420px; }
+
+@media (max-width: 960px) { .res-layout { grid-template-columns: 1fr; } }
+@media (max-width: 600px) {
+  .res-heading h1 { font-size: 1.4rem; }
+  .res-form-grid, .res-counts { grid-template-columns: 1fr; }
+  .res-rows > li { grid-template-columns: minmax(0, 1fr) auto; }
+  .res-rows > li > .res-edit { grid-column: 1 / -1; justify-self: start; }
+  .admin-resolutions .admin-card { padding: 16px; }
+}
+.res-search { margin-bottom: 12px; max-width: 420px; }

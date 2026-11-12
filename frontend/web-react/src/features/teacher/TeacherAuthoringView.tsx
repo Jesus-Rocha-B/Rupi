@@ -129,6 +129,8 @@ import { generateRoadmapFromFile } from '../../services/aiApi'
 
 import { resolveEducationalVideo } from '../../utils/educationalVideos'
 
+import { CurriculumUpdateNotice } from './CurriculumUpdateNotice'
+
 import './TeacherAuthoring.css'
 
 
@@ -1987,6 +1989,13 @@ export function TeacherAuthoringView({ teacherName, schoolName, onLogout, onSwit
             </div>
 
 
+
+            {/* HU-51: aviso cuando una resolución ministerial retiró el catálogo de la ruta */}
+            <CurriculumUpdateNotice
+              key={`curriculo:${activeRouteDetail.routeId}`}
+              routeId={activeRouteDetail.routeId}
+              onUpdated={() => handleOpenRouteDetail(activeRouteDetail.routeId)}
+            />
 
             {/* SECCIÓN PRINCIPAL: CALENDARIO COMPACTO (IZQUIERDA) Y ACCIONES VINCULADAS (DERECHA) */}
 

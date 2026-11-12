@@ -41,6 +41,24 @@ BEGIN
       SET @g = CONCAT('GRANT DELETE ON rupi.curriculo_capacidad TO `', usuario, '`@`', equipo, '`');
       PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
     END IF;
+    -- HU-51: al publicar una resolución se quita de la versión BORRADOR lo que la norma retira. El código solo
+    -- borra filas de esa versión en borrador; las versiones vigentes y retiradas no se tocan.
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'rupi' AND table_name = 'curriculo_correspondencia') THEN
+      SET @g = CONCAT('GRANT DELETE ON rupi.curriculo_unidad TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+      SET @g = CONCAT('GRANT DELETE ON rupi.curriculo_unidad_competencia TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+      SET @g = CONCAT('GRANT DELETE ON rupi.curriculo_unidad_meta TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+      SET @g = CONCAT('GRANT DELETE ON rupi.curriculo_unidad_estandar TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+      SET @g = CONCAT('GRANT DELETE ON rupi.curriculo_competencia TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+      SET @g = CONCAT('GRANT DELETE ON rupi.curriculo_meta_aprendizaje TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+      SET @g = CONCAT('GRANT DELETE ON rupi.curriculo_estandar TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    END IF;
 
     SET @g = CONCAT('GRANT INSERT ON rupi.operaciones_evento_auditoria TO `', usuario, '`@`', equipo, '`');
     PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;

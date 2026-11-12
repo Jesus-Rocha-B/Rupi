@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BookOpen, CalendarDays, Layers, Pencil, Plus, Target } from 'lucide-react'
+import { BookOpen, CalendarDays, FileText, Layers, Pencil, Plus, Target } from 'lucide-react'
 import {
   AdminApiError,
   fetchCurriculumCatalog,
@@ -12,6 +12,7 @@ import { SESSION_LOST } from './accountStatus'
 import { AreaForm, CompetencyForm } from './CurriculumForms'
 import { CurriculumGoalsView } from './CurriculumGoalsView'
 import { CurriculumPeriodsView } from './CurriculumPeriodsView'
+import { CurriculumResolutionsView } from './CurriculumResolutionsView'
 
 interface Props {
   admin: Administrator
@@ -43,8 +44,8 @@ function plural(count: number, one: string, many: string) {
 
 /** Catálogo general del MINEDU (HU-49): grados, áreas en el orden del programa y competencias del CNEB. */
 export function CurriculumView(props: Props) {
-  const [tab, setTab] = useState<'structure' | 'goals' | 'periods'>('structure')
-  return <><nav className="admin-section-nav" aria-label="Secciones del catálogo"><span className="admin-section-context">Catálogo MINEDU</span><button className={`admin-section-link ${tab === 'structure' ? 'is-active' : ''}`} aria-current={tab === 'structure' ? 'page' : undefined} onClick={() => setTab('structure')}><Layers size={18} aria-hidden="true" />Grados y competencias</button><button className={`admin-section-link ${tab === 'goals' ? 'is-active' : ''}`} aria-current={tab === 'goals' ? 'page' : undefined} onClick={() => setTab('goals')}><Target size={18} aria-hidden="true" />Metas y estándares</button><button className={`admin-section-link ${tab === 'periods' ? 'is-active' : ''}`} aria-current={tab === 'periods' ? 'page' : undefined} onClick={() => setTab('periods')}><CalendarDays size={18} aria-hidden="true" />Periodos escolares</button></nav>{tab === 'periods' ? <CurriculumPeriodsView {...props} /> : tab === 'goals' ? <CurriculumGoalsView {...props} /> : <CurriculumStructure {...props} />}</>
+  const [tab, setTab] = useState<'structure' | 'goals' | 'periods' | 'resolutions'>('structure')
+  return <><nav className="admin-section-nav" aria-label="Secciones del catálogo"><span className="admin-section-context">Catálogo MINEDU</span><button className={`admin-section-link ${tab === 'structure' ? 'is-active' : ''}`} aria-current={tab === 'structure' ? 'page' : undefined} onClick={() => setTab('structure')}><Layers size={18} aria-hidden="true" />Grados y competencias</button><button className={`admin-section-link ${tab === 'goals' ? 'is-active' : ''}`} aria-current={tab === 'goals' ? 'page' : undefined} onClick={() => setTab('goals')}><Target size={18} aria-hidden="true" />Metas y estándares</button><button className={`admin-section-link ${tab === 'periods' ? 'is-active' : ''}`} aria-current={tab === 'periods' ? 'page' : undefined} onClick={() => setTab('periods')}><CalendarDays size={18} aria-hidden="true" />Periodos escolares</button><button className={`admin-section-link ${tab === 'resolutions' ? 'is-active' : ''}`} aria-current={tab === 'resolutions' ? 'page' : undefined} onClick={() => setTab('resolutions')}><FileText size={18} aria-hidden="true" />Resoluciones</button></nav>{tab === 'resolutions' ? <CurriculumResolutionsView {...props} /> : tab === 'periods' ? <CurriculumPeriodsView {...props} /> : tab === 'goals' ? <CurriculumGoalsView {...props} /> : <CurriculumStructure {...props} />}</>
 }
 
 function CurriculumStructure({ admin, onSessionLost }: Props) {

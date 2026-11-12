@@ -7,6 +7,7 @@ from identidad.sesion import requiere_permiso
 from . import catalogo
 from . import metas
 from . import periodos
+from . import resoluciones as normas
 
 PERMISO_GESTIONAR = 'curriculo.gestionar'
 
@@ -111,3 +112,40 @@ def revisar_periodos(request, anio_id):
 @_requiere_gestion
 def aplicar_periodos(request, anio_id):
     return json_ok(periodos.aplicar(anio_id, leer_json(request), request.administrador))
+
+
+# HU-51 · Resoluciones ministeriales y correspondencia curricular
+
+@api({'GET', 'POST'})
+@requiere_permiso('curriculo.ver')
+def resoluciones(request):
+    if request.method == 'GET':
+        return json_ok(normas.listar())
+    if not request.administrador.puede(PERMISO_GESTIONAR):
+        return json_error('Tu rol puede consultar las resoluciones, pero no registrarlas.', 403)
+    return json_ok(normas.registrar(leer_json(request), request.administrador), 201)
+
+
+@api({'GET', 'PATCH'})
+@requiere_permiso('curriculo.ver')
+def resolucion(request, resolucion_id):
+    if request.method == 'GET':
+        return json_ok(normas.detalle(resolucion_id))
+    if not request.administrador.puede(PERMISO_GESTIONAR):
+        return json_error('Tu rol puede consultar las resoluciones, pero no corregirlas.', 403)
+    return json_ok(normas.corregir_resolucion(resolucion_id, leer_json(request), request.administrador))
+
+
+@api({'PATCH'})
+@requiere_permiso('curriculo.ver')
+@_requiere_gestion
+def correspondencia(request, resolucion_id, correspondencia_id):
+    return json_ok(normas.corregir_correspondencia(resolucion_id, correspondencia_id, leer_json(request),
+                                                   request.administrador))
+
+
+@api({'POST'})
+@requiere_permiso('curriculo.ver')
+@_requiere_gestion
+def publicar_resolucion(request, resolucion_id):
+    return json_ok(normas.publicar(resolucion_id, leer_json(request), request.administrador))
