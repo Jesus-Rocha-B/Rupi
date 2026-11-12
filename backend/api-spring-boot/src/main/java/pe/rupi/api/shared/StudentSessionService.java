@@ -6,12 +6,16 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +27,8 @@ import org.springframework.stereotype.Service;
  * Spring Boot actúa como emisor y validador de sesiones activas (identidad_sesion_usuario)
  * y supervisor de intentos de acceso (identidad_intento_acceso), garantizando:
  *  1. Rotación y revocación segura de tokens criptográficos de alta entropía.
- *  2. Mitigación de fuerza bruta con bloqueo temporal por combinación de cuenta + IP.
+ *  2. Mitigación de fuerza bruta con la política de la consola (HU-58): límite por cuenta + IP, por IP y
+ *     bloqueo automático de la cuenta, calculado con los intentos sin escribir identidad_cuenta_usuario.
  *  3. Verificación de credenciales compatible con Django (BCrypt y PBKDF2) sin timing attacks.
  *  4. Almacenamiento exclusivo del hash SHA-256 de los tokens en MySQL.
  */
@@ -112,32 +117,50 @@ public class StudentSessionService {
         }
     }
 
+    /**
+     * {@code retryMinutes} acompaña al límite por equipo y al bloqueo automático (HU-58) para decir cuánto esperar.
+     * Un bloqueo pedido a la consola (HU-44) no tiene plazo: se espera el desbloqueo.
+     */
     public record AuthenticationResult(
             boolean authenticated,
             boolean rateLimited,
             boolean consoleOnly,
             boolean locked,
             Student student,
-            String token
+            String token,
+            int retryMinutes
     ) {
         public static AuthenticationResult success(Student student, String token) {
-            return new AuthenticationResult(true, false, false, false, student, token);
+            return new AuthenticationResult(true, false, false, false, student, token, 0);
         }
 
         public static AuthenticationResult throttled() {
-            return new AuthenticationResult(false, true, false, false, null, null);
+            return throttled(LoginPolicy.DEFAULT.windowMinutes());
+        }
+
+        public static AuthenticationResult throttled(int minutes) {
+            return new AuthenticationResult(false, true, false, false, null, null, minutes);
         }
 
         public static AuthenticationResult badCredentials() {
-            return new AuthenticationResult(false, false, false, false, null, null);
+            return new AuthenticationResult(false, false, false, false, null, null, 0);
         }
 
         public static AuthenticationResult consoleAccount() {
-            return new AuthenticationResult(false, false, true, false, null, null);
+            return new AuthenticationResult(false, false, true, false, null, null, 0);
         }
 
         public static AuthenticationResult lockedAccount() {
-            return new AuthenticationResult(false, false, false, true, null, null);
+            return new AuthenticationResult(false, false, false, true, null, null, 0);
+        }
+
+        /** HU-58: la cuenta acumuló demasiados fallos y quedó bloqueada unos minutos. */
+        public static AuthenticationResult autoLocked(int minutes) {
+            return new AuthenticationResult(false, false, false, true, null, null, minutes);
+        }
+
+        public boolean temporary() {
+            return retryMinutes > 0;
         }
     }
 
@@ -287,14 +310,19 @@ public class StudentSessionService {
         byte[] idHash = sha256(username.toLowerCase());
         byte[] originHash = clientIp != null && !clientIp.isBlank() ? sha256(clientIp) : null;
 
-        // 1. Mitigación de fuerza bruta: límite por cuenta e IP combinados
+        // 1. Mitigación de fuerza bruta (HU-58): límite por cuenta y equipo, límite por equipo y bloqueo automático
+        // de la cuenta, con los valores que la consola guarda en identidad_politica_acceso.
+        // Desbloquear la cuenta en la consola también reinicia su límite en el equipo (intentos_reiniciados_en).
+        LoginPolicy policy = policy();
         Integer accountIpFailures = originHash != null
                 ? jdbc.queryForObject("""
                         SELECT COUNT(*) FROM identidad_intento_acceso
                         WHERE identificador_hash = ? AND origen_hash = ?
                           AND resultado IN ('INCORRECTO', 'BLOQUEADO')
-                          AND ocurrido_en > UTC_TIMESTAMP(6) - INTERVAL 5 MINUTE
-                        """, Integer.class, idHash, originHash)
+                          AND ocurrido_en > UTC_TIMESTAMP(6) - INTERVAL ? MINUTE
+                          AND ocurrido_en > COALESCE((SELECT MAX(c.intentos_reiniciados_en) FROM identidad_cuenta_usuario c
+                                                      WHERE c.nombre_usuario = ?), '1000-01-01')
+                        """, Integer.class, idHash, originHash, policy.windowMinutes(), username)
                 : 0;
 
         Integer ipFailures = originHash != null
@@ -302,16 +330,22 @@ public class StudentSessionService {
                         SELECT COUNT(*) FROM identidad_intento_acceso
                         WHERE origen_hash = ?
                           AND resultado IN ('INCORRECTO', 'BLOQUEADO')
-                          AND ocurrido_en > UTC_TIMESTAMP(6) - INTERVAL 5 MINUTE
-                        """, Integer.class, originHash)
+                          AND ocurrido_en > UTC_TIMESTAMP(6) - INTERVAL ? MINUTE
+                        """, Integer.class, originHash, policy.windowMinutes())
                 : 0;
 
-        if ((accountIpFailures != null && accountIpFailures >= 5) || (ipFailures != null && ipFailures >= 20)) {
-            jdbc.update("""
-                    INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
-                    VALUES (NULL, ?, 'BLOQUEADO', ?, UTC_TIMESTAMP(6))
-                    """, idHash, originHash);
-            return AuthenticationResult.throttled();
+        if ((accountIpFailures != null && accountIpFailures >= policy.perDeviceAccount())
+                || (ipFailures != null && ipFailures >= policy.perDevice())) {
+            recordBlocked(idHash, originHash);
+            return AuthenticationResult.throttled(policy.windowMinutes());
+        }
+
+        // El bloqueo automático se decide antes de probar la clave: mientras dura, ni la clave correcta entra.
+        // Se calcula por nombre de usuario, exista o no la cuenta, para no revelar cuáles existen.
+        Optional<Instant> lockedUntil = lockedUntil(policy, idHash, username);
+        if (lockedUntil.isPresent()) {
+            recordBlocked(idHash, originHash);
+            return AuthenticationResult.autoLocked(LoginPolicy.minutesLeft(lockedUntil.get(), Instant.now()));
         }
 
         // 2. Consulta de cuenta de usuario
@@ -411,6 +445,53 @@ public class StudentSessionService {
                 """, sessionId, account.id(), tokenHash, sessionClient);
 
         return AuthenticationResult.success(new Student(account.id(), account.displayName(), account.schoolName(), account.role(), account.gradeNumber(), account.gradeName()), token);
+    }
+
+    /** La política vigente; antes de aplicar V46 (o si la fila falta) valen los límites de siempre. */
+    LoginPolicy policy() {
+        try {
+            return jdbc.query("""
+                    SELECT ventana_minutos, max_fallos_equipo_cuenta, max_fallos_equipo, bloqueo_automatico,
+                           max_fallos_cuenta, minutos_bloqueo
+                    FROM identidad_politica_acceso WHERE id = 1
+                    """, (rs, row) -> new LoginPolicy(rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getBoolean(4),
+                            rs.getInt(5), rs.getInt(6)))
+                    .stream().findFirst().orElse(LoginPolicy.DEFAULT);
+        } catch (BadSqlGrammarException missingTable) {
+            return LoginPolicy.DEFAULT;
+        }
+    }
+
+    /**
+     * Fallos de clave del usuario desde {@link LoginPolicy#lookback}, sin los anteriores al último desbloqueo de la
+     * consola (intentos_reiniciados_en). Las fechas se miden con el reloj de MySQL para no depender de la zona de la JVM.
+     */
+    private Optional<Instant> lockedUntil(LoginPolicy policy, byte[] idHash, String username) {
+        if (!policy.autoLock()) {
+            return Optional.empty();
+        }
+        Instant now = Instant.now();
+        var ages = jdbc.queryForList("""
+                SELECT TIMESTAMPDIFF(MICROSECOND, i.ocurrido_en, UTC_TIMESTAMP(6))
+                FROM identidad_intento_acceso i
+                WHERE i.identificador_hash = ? AND i.resultado = 'INCORRECTO'
+                  AND i.ocurrido_en > UTC_TIMESTAMP(6) - INTERVAL ? MINUTE
+                  AND i.ocurrido_en > COALESCE((SELECT MAX(c.intentos_reiniciados_en) FROM identidad_cuenta_usuario c
+                                                WHERE c.nombre_usuario = ?), '1000-01-01')
+                ORDER BY i.ocurrido_en DESC LIMIT 500
+                """, Long.class, idHash, policy.windowMinutes() + policy.lockMinutes(), username);
+        List<Instant> failures = new ArrayList<>(ages.size());
+        for (int i = ages.size() - 1; i >= 0; i--) {
+            failures.add(now.minus(ages.get(i), ChronoUnit.MICROS));
+        }
+        return policy.lockedUntil(failures, now);
+    }
+
+    private void recordBlocked(byte[] idHash, byte[] originHash) {
+        jdbc.update("""
+                INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
+                VALUES (NULL, ?, 'BLOQUEADO', ?, UTC_TIMESTAMP(6))
+                """, idHash, originHash);
     }
 
     boolean isConsoleOnly(String userId) {

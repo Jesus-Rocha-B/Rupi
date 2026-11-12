@@ -1,4 +1,4 @@
-from . import credenciales, cuentas, roles, sesion, sesiones
+from . import credenciales, cuentas, politica_acceso, roles, sesion, sesiones
 from .respuestas import ErrorDePeticion, api, json_error, json_ok, leer_json
 from .sesion import requiere_permiso
 
@@ -12,8 +12,16 @@ def sesion_actual(request):
     if request.method == 'POST':
         datos = leer_json(request)
         resultado = sesion.iniciar(datos.get('usuario'), datos.get('clave'), request.META.get('REMOTE_ADDR'))
-        if resultado == 'LIMITE':
-            return json_error('Hubo demasiados intentos. Espera cinco minutos y vuelve a probar.', 429)
+        if isinstance(resultado, sesion.Freno):
+            espera = '1 minuto' if resultado.minutos == 1 else f'{resultado.minutos} minutos'
+            if resultado.cuenta_bloqueada:
+                respuesta = json_error('Por seguridad, esta cuenta se bloqueó tras varios intentos fallidos. Vuelve a '
+                                       f'probar en {espera} o pide a otra persona de administración que la desbloquee.',
+                                       423)
+            else:
+                respuesta = json_error(f'Hubo demasiados intentos. Espera {espera} y vuelve a probar.', 429)
+            respuesta['Retry-After'] = str(resultado.minutos * 60)
+            return respuesta
         if resultado is None:
             return json_error('Usuario o contraseña incorrectos.', 401)
         token, admin = resultado
@@ -114,3 +122,14 @@ def bloqueo(request, cuenta_id):
 @requiere_permiso('credenciales.restablecer')
 def desbloqueo(request, cuenta_id):
     return json_ok(credenciales.desbloquear(cuenta_id, request.administrador, cuentas.ve_datos(request.administrador)))
+
+
+@api({'GET', 'PUT'})
+@requiere_permiso('acceso.ver')
+def politica_de_acceso(request):
+    """HU-58: límite de intentos y bloqueo automático para la web, el celular y la consola."""
+    if request.method == 'PUT':
+        if not request.administrador.puede('acceso.configurar'):
+            return json_error('Tu rol solo puede consultar la política de acceso.', 403)
+        return json_ok(politica_acceso.actualizar(leer_json(request), request.administrador))
+    return json_ok(politica_acceso.detalle())

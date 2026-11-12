@@ -46,6 +46,8 @@ export interface AccountSummary {
   estado: AccountState
   bloqueada: boolean
   bloqueadoHasta: string | null
+  /** HU-58: se bloqueó sola por intentos fallidos; termina en bloqueadoHasta o al desbloquearla. */
+  bloqueoAutomatico?: boolean
   roles: string[]
   creadoEn: string | null
   desactivadoEn: string | null
@@ -606,6 +608,8 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'sincronizacion.auditar': 'Auditar sincronización web y celular',
   'curriculo.ver': 'Consultar el catálogo curricular',
   'curriculo.gestionar': 'Registrar y corregir el catálogo curricular',
+  'acceso.ver': 'Consultar la política de bloqueo y las cuentas bloqueadas',
+  'acceso.configurar': 'Configurar el límite de intentos y el bloqueo automático',
 }
 
 export const STATE_LABELS: Record<AccountState, string> = {
@@ -624,6 +628,7 @@ export const AUDIT_LABELS: Record<string, string> = {
   CLAVE_RESTABLECIDA: 'Contraseña restablecida',
   CUENTA_BLOQUEADA: 'Cuenta bloqueada',
   CUENTA_DESBLOQUEADA: 'Cuenta desbloqueada',
+  POLITICA_ACCESO_ACTUALIZADA: 'Política de bloqueo actualizada',
 }
 
 export function auditLabel(action: string) {
@@ -690,3 +695,30 @@ export const updateCorrespondence = (resolution: string, item: string, data: Cor
   request<ResolutionDetail>(`curriculo/resoluciones/${encodeURIComponent(resolution)}/correspondencias/${encodeURIComponent(item)}`, { method: 'PATCH', body: JSON.stringify(data) })
 export const publishResolution = (resolution: string, confirmacion: string) =>
   post<ResolutionDetail>(`curriculo/resoluciones/${encodeURIComponent(resolution)}/publicar`, { confirmacion })
+
+// HU-58 · Límite de intentos y bloqueo automático
+export interface AccessPolicy {
+  ventanaMinutos: number
+  maxFallosEquipoCuenta: number
+  maxFallosEquipo: number
+  bloqueoAutomatico: boolean
+  maxFallosCuenta: number
+  minutosBloqueo: number
+}
+export type AccessPolicyNumber = Exclude<keyof AccessPolicy, 'bloqueoAutomatico'>
+export interface AutoLockedAccount { id: string; usuario: string; nombre: string; roles: string[]; bloqueadoHasta: string }
+export interface AccessPolicyState {
+  politica: AccessPolicy
+  limites: Record<AccessPolicyNumber, { min: number; max: number }>
+  actualizadoEn: string | null
+  actualizadoPor: string | null
+  cuentasBloqueadas: AutoLockedAccount[]
+  ultimas24h: { fallidos: number; frenados: number; correctos: number }
+}
+/** Los valores con los que nace la política (V46): los límites de siempre y el bloqueo de 10 fallos por 15 minutos. */
+export const RECOMMENDED_ACCESS_POLICY: AccessPolicy = {
+  ventanaMinutos: 5, maxFallosEquipoCuenta: 5, maxFallosEquipo: 20, bloqueoAutomatico: true, maxFallosCuenta: 10, minutosBloqueo: 15,
+}
+export const fetchAccessPolicy = (signal?: AbortSignal) => request<AccessPolicyState>('acceso/politica', { signal })
+export const saveAccessPolicy = (policy: AccessPolicy) =>
+  request<AccessPolicyState>('acceso/politica', { method: 'PUT', body: JSON.stringify(policy) })

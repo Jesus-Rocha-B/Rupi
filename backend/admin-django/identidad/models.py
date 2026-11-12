@@ -26,6 +26,8 @@ class CuentaUsuario(models.Model):
     hash_clave = models.CharField(max_length=255)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='INVITADO')
     bloqueado_hasta = models.DateTimeField(null=True, blank=True)
+    # HU-58: al desbloquear desde la consola, los fallos anteriores dejan de contar para el bloqueo automático.
+    intentos_reiniciados_en = models.DateTimeField(null=True, blank=True)
     clave_cambiada_en = models.DateTimeField()
     creado_en = models.DateTimeField()
     actualizado_en = models.DateTimeField()
@@ -134,3 +136,21 @@ class IntentoAcceso(models.Model):
     class Meta:
         managed = False
         db_table = 'identidad_intento_acceso'
+
+
+class PoliticaAcceso(models.Model):
+    """HU-58: fila única (id=1) con el límite de intentos y el bloqueo automático. Spring la lee al iniciar sesión."""
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1)
+    ventana_minutos = models.PositiveSmallIntegerField()
+    max_fallos_equipo_cuenta = models.PositiveSmallIntegerField()
+    max_fallos_equipo = models.PositiveSmallIntegerField()
+    bloqueo_automatico = models.BooleanField()
+    max_fallos_cuenta = models.PositiveSmallIntegerField()
+    minutos_bloqueo = models.PositiveSmallIntegerField()
+    actualizado_por = models.ForeignKey(CuentaUsuario, on_delete=models.DO_NOTHING, db_column='actualizado_por',
+                                        null=True, related_name='+')
+    actualizado_en = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'identidad_politica_acceso'

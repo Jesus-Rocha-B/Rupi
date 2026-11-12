@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from operaciones import auditoria
 
-from . import claves, notificaciones
+from . import claves, notificaciones, politica_acceso
 from .cuentas import detalle, obtener, otro_administrador_activo
 from .models import CuentaUsuario, UsuarioRol
 from .respuestas import ErrorDePeticion
@@ -50,8 +50,9 @@ def restablecer_clave(cuenta_id, datos, actor, ver_datos=True):
     if problema:
         raise ErrorDePeticion(problema)
     ahora = timezone.now()
+    # Con la clave nueva, los fallos de la anterior ya no cuentan para el bloqueo automático (HU-58).
     CuentaUsuario.objects.filter(id=cuenta.id).update(hash_clave=claves.cifrar(clave), clave_cambiada_en=ahora,
-                                                      actualizado_en=ahora)
+                                                      intentos_reiniciados_en=ahora, actualizado_en=ahora)
     revocar_sesiones(cuenta.id, ahora)
     auditoria.registrar(actor.id, 'CLAVE_RESTABLECIDA', cuenta.id)
     correo_enviado = notificaciones.notificar_recuperacion_clave(
@@ -86,10 +87,16 @@ def desbloquear(cuenta_id, actor, ver_datos=True):
     cuenta = obtener(cuenta_id)
     _proteger(cuenta, actor)
     ahora = timezone.now()
-    bloqueada = cuenta.estado == 'BLOQUEADO' or (cuenta.bloqueado_hasta is not None and cuenta.bloqueado_hasta > ahora)
+    a_pedido = cuenta.estado == 'BLOQUEADO' or (cuenta.bloqueado_hasta is not None and cuenta.bloqueado_hasta > ahora)
+    # HU-58: el bloqueo por intentos fallidos se levanta reiniciando el conteo; el estado de la cuenta no cambia.
+    automatico = cuenta.id in politica_acceso.bloqueos_de_cuentas([cuenta], ahora=ahora)
+    bloqueada = a_pedido or automatico
     correo_enviado = False
     if bloqueada:
-        CuentaUsuario.objects.filter(id=cuenta.id).update(estado='ACTIVO', bloqueado_hasta=None, actualizado_en=ahora)
+        cambios = {'intentos_reiniciados_en': ahora, 'actualizado_en': ahora}
+        if a_pedido:
+            cambios.update(estado='ACTIVO', bloqueado_hasta=None)
+        CuentaUsuario.objects.filter(id=cuenta.id).update(**cambios)
         auditoria.registrar(actor.id, 'CUENTA_DESBLOQUEADA', cuenta.id)
         correo_enviado = notificaciones.notificar_cuenta_desbloqueada(
             cuenta.correo, cuenta.nombre_usuario, _nombre(cuenta)

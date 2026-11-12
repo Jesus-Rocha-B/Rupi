@@ -29,4 +29,5 @@ urlpatterns = [
     path('cuentas/<uuid36:cuenta_id>/desbloquear', vistas.desbloqueo),
     path('roles', vistas.catalogo_roles),
     path('sesiones', vistas.sesiones_activas),
+    path('acceso/politica', vistas.politica_de_acceso),
 ]

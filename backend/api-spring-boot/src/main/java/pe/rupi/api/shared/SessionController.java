@@ -71,8 +71,19 @@ public class SessionController {
         var result = sessions.authenticate(body.username(), body.password(), clientIp,
                 StudentSessionService.clientOf(request));
 
+        // HU-58: los dos frenos dicen cuánto esperar, en el mensaje y en Retry-After para el celular.
         if (result.rateLimited()) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS);
+            response.setHeader("Retry-After", String.valueOf(result.retryMinutes() * 60));
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Hubo muchos intentos seguidos desde este equipo. Espera " + minutes(result.retryMinutes())
+                            + " y vuelve a probar.");
+        }
+
+        if (result.locked() && result.temporary()) {
+            response.setHeader("Retry-After", String.valueOf(result.retryMinutes() * 60));
+            throw new ResponseStatusException(HttpStatus.LOCKED,
+                    "Por seguridad, esta cuenta se bloqueó tras varios intentos fallidos. Vuelve a probar en "
+                            + minutes(result.retryMinutes()) + " o pide a tu profe que solicite el desbloqueo.");
         }
 
         if (result.locked()) {
@@ -99,6 +110,10 @@ public class SessionController {
                 .toString());
 
         return result.student();
+    }
+
+    private static String minutes(int value) {
+        return value == 1 ? "1 minuto" : value + " minutos";
     }
 
     @PostMapping("/api/v1/auth/demo")

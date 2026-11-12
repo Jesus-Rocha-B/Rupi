@@ -124,8 +124,14 @@ export function LoginView({ onLogin, onLoginDemo, sessionBusy, demoAvailable, se
       await onLogin(trimmedUser, password)
     } catch (err) {
       if (err instanceof ApiError) {
+        // HU-58: la API dice cuántos minutos esperar; si no llega ese dato, se muestra el aviso general.
+        const wait = /\d+ minutos?/.exec(err.message)?.[0]
         if (err.status === 429) {
-          setFeedback('Muchos intentos seguidos. Espera unos minutitos con tu profe para volver a probar.')
+          setFeedback(wait
+            ? `Muchos intentos seguidos. Espera ${wait} con tu profe y vuelve a probar.`
+            : 'Muchos intentos seguidos. Espera unos minutitos con tu profe para volver a probar.')
+        } else if (err.status === 423 && wait) {
+          setFeedback(`Por seguridad, tu cuenta se bloqueó un ratito. Vuelve a probar en ${wait} o pide ayuda a tu profe.`)
         } else if (err.status === 401 || err.status === 400) {
           setFeedback('Revisa tu usuario o contraseña con ayuda de tu profe.')
         } else if (err.status === 423) {

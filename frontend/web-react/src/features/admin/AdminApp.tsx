@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Activity, ArrowLeftRight, BarChart3, BookOpen, ChevronDown, LogOut, MonitorSmartphone, ShieldCheck, UserRound, Users } from 'lucide-react'
+import { Activity, ArrowLeftRight, BarChart3, BookOpen, ChevronDown, LockKeyhole, LogOut, MonitorSmartphone, ShieldCheck, UserRound, Users } from 'lucide-react'
 import { AdminApiError, adminLogout, fetchAdminSession, type Administrator } from '../../services/adminApi'
+import { AccessPolicyView } from './AccessPolicyView'
 import { AccountsView } from './AccountsView'
 import { AdminLogin } from './AdminLogin'
 import { ArchitectureDashboardView } from './ArchitectureDashboardView'
@@ -13,7 +14,7 @@ import { LanguageModerationView } from './LanguageModerationView'
 import './AdminConsole.css'
 import './AdminNavigation.css'
 
-type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'catalogo' | 'moderacion' | 'salud' | 'tablero' | 'sincronizacion'
+type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'acceso' | 'catalogo' | 'moderacion' | 'salud' | 'tablero' | 'sincronizacion'
 
 interface Section {
   id: SectionId
@@ -27,6 +28,7 @@ const SECTIONS: Section[] = [
   { id: 'cuentas', label: 'Cuentas', permission: 'cuentas.ver', icon: Users },
   { id: 'roles', label: 'Roles y permisos', permission: 'cuentas.ver', icon: ShieldCheck },
   { id: 'sesiones', label: 'Sesiones', permission: 'sesiones.gestionar', icon: MonitorSmartphone },
+  { id: 'acceso', label: 'Bloqueo por intentos', permission: 'acceso.ver', icon: LockKeyhole },
   { id: 'catalogo', label: 'Catálogo curricular', permission: 'curriculo.ver', icon: BookOpen },
   { id: 'salud', label: 'Salud', permission: 'plataforma.monitorear', icon: Activity },
   { id: 'tablero', label: 'Tablero de Uptime', permission: 'plataforma.monitorear', icon: BarChart3 },
@@ -34,7 +36,7 @@ const SECTIONS: Section[] = [
 ]
 
 const GROUPS: { label: string; icon: typeof Users; sections: SectionId[] }[] = [
-  { label: 'Usuarios', icon: Users, sections: ['cuentas', 'roles', 'sesiones'] },
+  { label: 'Usuarios', icon: Users, sections: ['cuentas', 'roles', 'sesiones', 'acceso'] },
   { label: 'Catálogo MINEDU', icon: BookOpen, sections: ['catalogo'] },
   { label: 'Moderación IA', icon: ShieldCheck, sections: ['moderacion'] },
   { label: 'Monitoreo', icon: Activity, sections: ['salud', 'tablero', 'sincronizacion'] },
@@ -163,6 +165,7 @@ export function AdminApp() {
         {current?.id === 'cuentas' && <AccountsView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'roles' && <RolesView onSessionLost={handleSessionLost} />}
         {current?.id === 'sesiones' && <SessionsView admin={admin} onSessionLost={handleSessionLost} />}
+        {current?.id === 'acceso' && <AccessPolicyView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'moderacion' && <LanguageModerationView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'catalogo' && <CurriculumView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'salud' && <HealthView onSessionLost={handleSessionLost} />}

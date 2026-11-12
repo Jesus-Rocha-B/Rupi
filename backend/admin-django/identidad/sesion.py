@@ -13,7 +13,7 @@ from functools import wraps
 from django.db import transaction
 from django.utils import timezone
 
-from . import claves
+from . import claves, politica_acceso
 from .models import CuentaUsuario, IntentoAcceso, RolPermiso, SesionUsuario, UsuarioRol
 from .respuestas import json_error
 
@@ -23,8 +23,7 @@ DURACION = timedelta(hours=8)
 ROL_ADMINISTRADOR = 'ADMINISTRADOR'
 # Entran a la consola los roles que tienen este permiso (ADMINISTRADOR y SOPORTE desde V32), no un rol fijo.
 PERMISO_CONSOLA = 'consola.ingresar'
-# Igual que StudentSessionService: 5 fallos por cuenta y equipo, o 20 por equipo, en 5 minutos.
-VENTANA_INTENTOS = timedelta(minutes=5)
+# Los límites de intentos salen de la política de la consola (HU-58), la misma que aplica StudentSessionService.
 _ACTIVIDAD_CADA = timedelta(minutes=5)
 
 
@@ -66,21 +65,40 @@ def _intento(cuenta_id, id_hash, resultado, origen_hash, ahora):
                                  origen_hash=origen_hash, ocurrido_en=ahora)
 
 
+@dataclass(frozen=True)
+class Freno:
+    """Intento rechazado antes de probar la clave: por el límite del equipo o por el bloqueo automático (HU-58)."""
+    minutos: int
+    cuenta_bloqueada: bool
+
+
 def iniciar(nombre_usuario, clave, ip):
-    """Devuelve (token, administrador), 'LIMITE' si se superó el límite de intentos o None si no procede."""
+    """Devuelve (token, administrador), un Freno si se superó un límite de la política o None si no procede."""
     nombre_usuario = (nombre_usuario or '').strip()
     if not nombre_usuario or not clave:
         return None
     ahora = timezone.now()
     id_hash = sha256(nombre_usuario.lower())
     origen_hash = sha256(ip) if ip else None
+    politica = politica_acceso.vigente()
     fallos = IntentoAcceso.objects.filter(resultado__in=('INCORRECTO', 'BLOQUEADO'),
-                                          ocurrido_en__gt=ahora - VENTANA_INTENTOS)
+                                          ocurrido_en__gt=ahora - politica.ventana)
+    # Desbloquear la cuenta en la consola también reinicia su límite en el equipo (intentos_reiniciados_en).
+    reinicio = (CuentaUsuario.objects.filter(nombre_usuario=nombre_usuario)
+                .values_list('intentos_reiniciados_en', flat=True).first())
+    de_la_cuenta = fallos.filter(identificador_hash=id_hash, origen_hash=origen_hash)
+    if reinicio is not None:
+        de_la_cuenta = de_la_cuenta.filter(ocurrido_en__gt=reinicio)
     if origen_hash is not None and (
-            fallos.filter(identificador_hash=id_hash, origen_hash=origen_hash).count() >= 5
-            or fallos.filter(origen_hash=origen_hash).count() >= 20):
+            de_la_cuenta.count() >= politica.max_fallos_equipo_cuenta
+            or fallos.filter(origen_hash=origen_hash).count() >= politica.max_fallos_equipo):
         _intento(None, id_hash, 'BLOQUEADO', origen_hash, ahora)
-        return 'LIMITE'
+        return Freno(politica.ventana_minutos, False)
+    # Mientras dura el bloqueo automático ni la clave correcta entra, así no se sigue probando claves.
+    hasta = politica_acceso.bloqueo_de(nombre_usuario, politica, ahora)
+    if hasta is not None:
+        _intento(None, id_hash, 'BLOQUEADO', origen_hash, ahora)
+        return Freno(politica_acceso.minutos_restantes(hasta, ahora), True)
 
     cuenta = CuentaUsuario.objects.select_related('perfil').filter(nombre_usuario=nombre_usuario).first()
     if cuenta is None:

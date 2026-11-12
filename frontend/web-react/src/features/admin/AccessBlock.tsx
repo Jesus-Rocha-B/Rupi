@@ -53,7 +53,7 @@ export function AccessBlock({ account, busy, run }: Props) {
           <dd>
             {account.intentosFallidos} en los últimos 15 minutos
             {account.intentosFallidos >= 5 && (
-              <small className="admin-masked-note">Tras 5 seguidos, Rupi espera 5 minutos antes de dejarla intentar otra vez.</small>
+              <small className="admin-masked-note">Los límites están en Usuarios · Bloqueo por intentos.</small>
             )}
           </dd>
         </div>
@@ -105,7 +105,11 @@ export function AccessBlock({ account, busy, run }: Props) {
 
       {account.bloqueada ? (
         <div className="admin-confirm admin-confirm--calm">
-          <p>Está bloqueada: no puede ingresar a Rupi hasta que la desbloquees.</p>
+          {account.bloqueoAutomatico && account.bloqueadoHasta ? (
+            <p>Se bloqueó sola por varios intentos fallidos. Podrá volver a ingresar el {formatDateTime(account.bloqueadoHasta)}, o ahora si la desbloqueas.</p>
+          ) : (
+            <p>Está bloqueada: no puede ingresar a Rupi hasta que la desbloquees.</p>
+          )}
           <button
             type="button"
             className="admin-btn admin-btn--leaf"

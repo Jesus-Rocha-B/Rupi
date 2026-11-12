@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from operaciones import auditoria
 
-from . import claves
+from . import claves, politica_acceso
 from .models import CuentaUsuario, IntentoAcceso, PerfilUsuario, Rol, SesionUsuario, UsuarioRol
 from .respuestas import ErrorDePeticion
 from .sesion import ROL_ADMINISTRADOR, cuenta_disponible, revocar_sesiones
@@ -98,9 +98,13 @@ def ve_datos(actor):
     return actor.puede(PERMISO_DATOS)
 
 
-def resumen(cuenta, roles, sesion, ahora, ver_datos=True):
+def resumen(cuenta, roles, sesion, ahora, ver_datos=True, bloqueo_automatico=None):
+    """`bloqueo_automatico` es el fin del bloqueo por intentos fallidos (HU-58), que no se guarda en la cuenta."""
     perfil = getattr(cuenta, 'perfil', None)
     bloqueada = cuenta.estado == 'BLOQUEADO' or (cuenta.bloqueado_hasta is not None and cuenta.bloqueado_hasta > ahora)
+    hasta = cuenta.bloqueado_hasta if bloqueada else None
+    if bloqueo_automatico is not None and cuenta.estado != 'BLOQUEADO':
+        hasta = max(hasta, bloqueo_automatico) if hasta else bloqueo_automatico
     return {
         'id': cuenta.id,
         'usuario': cuenta.nombre_usuario,
@@ -110,8 +114,9 @@ def resumen(cuenta, roles, sesion, ahora, ver_datos=True):
         'correo': cuenta.correo if ver_datos else enmascarar_correo(cuenta.correo),
         'datosCompletos': ver_datos,
         'estado': cuenta.estado,
-        'bloqueada': bloqueada,
-        'bloqueadoHasta': _iso(cuenta.bloqueado_hasta),
+        'bloqueada': bloqueada or bloqueo_automatico is not None,
+        'bloqueadoHasta': _iso(hasta) if hasta else _iso(cuenta.bloqueado_hasta),
+        'bloqueoAutomatico': bloqueo_automatico is not None and not bloqueada,
         'roles': roles,
         'creadoEn': _iso(cuenta.creado_en),
         'desactivadoEn': _iso(cuenta.desactivado_en),
@@ -137,7 +142,8 @@ def listar(q=None, rol=None, estado=None, pagina=1, ver_datos=True):
     if rol:
         consulta = consulta.filter(roles_asignados__rol__codigo=rol)
     if estado == 'BLOQUEADO':
-        consulta = consulta.filter(Q(estado='BLOQUEADO') | Q(bloqueado_hasta__gt=ahora))
+        automaticas = list(politica_acceso.bloqueadas_ahora(ahora=ahora)[1])
+        consulta = consulta.filter(Q(estado='BLOQUEADO') | Q(bloqueado_hasta__gt=ahora) | Q(id__in=automaticas))
     elif estado in ESTADOS:
         consulta = consulta.filter(estado=estado)
     consulta = consulta.distinct().order_by('perfil__apellido', 'perfil__nombre', 'nombre_usuario')
@@ -147,8 +153,10 @@ def listar(q=None, rol=None, estado=None, pagina=1, ver_datos=True):
     ids = [c.id for c in cuentas]
     roles = roles_por_cuenta(ids)
     sesiones = _sesiones_activas(ids, ahora)
+    bloqueos = politica_acceso.bloqueos_de_cuentas(cuentas, ahora=ahora)
     return {
-        'items': [resumen(c, roles.get(c.id, []), sesiones.get(c.id), ahora, ver_datos) for c in cuentas],
+        'items': [resumen(c, roles.get(c.id, []), sesiones.get(c.id), ahora, ver_datos, bloqueos.get(c.id))
+                  for c in cuentas],
         'total': total,
         'pagina': pagina,
         'porPagina': POR_PAGINA,
@@ -166,11 +174,12 @@ def detalle(cuenta_id, ver_datos=True):
     ahora = timezone.now()
     cuenta = obtener(cuenta_id)
     datos = resumen(cuenta, roles_por_cuenta([cuenta.id]).get(cuenta.id, []),
-                    _sesiones_activas([cuenta.id], ahora).get(cuenta.id), ahora, ver_datos)
+                    _sesiones_activas([cuenta.id], ahora).get(cuenta.id), ahora, ver_datos,
+                    politica_acceso.bloqueos_de_cuentas([cuenta], ahora=ahora).get(cuenta.id))
     datos['ultimoIngreso'] = _iso(IntentoAcceso.objects.filter(usuario_id=cuenta.id, resultado='CORRECTO')
                                   .aggregate(m=Max('ocurrido_en'))['m'])
     datos['claveCambiadaEn'] = _iso(cuenta.clave_cambiada_en)
-    # Ayuda a la mesa de ayuda a reconocer «se equivocó muchas veces»: Spring frena 5 minutos tras 5 fallos.
+    # Ayuda a la mesa de ayuda a reconocer «se equivocó muchas veces» (límites de la política de acceso, HU-58).
     datos['intentosFallidos'] = IntentoAcceso.objects.filter(
         usuario_id=cuenta.id, resultado__in=('INCORRECTO', 'BLOQUEADO'),
         ocurrido_en__gt=ahora - timedelta(minutes=15)).count()
