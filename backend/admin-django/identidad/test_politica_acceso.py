@@ -59,6 +59,11 @@ class BloqueoAutomaticoTest(SimpleTestCase):
         # Spring guarda SHA-256 del usuario en minúsculas; el mismo valor permite contar los fallos de ambos lados.
         self.assertEqual(identificador('  Lucia.Huaman '), hashlib.sha256(b'lucia.huaman').digest())
 
+    def test_identificador_tolera_valores_no_cadena(self):
+        vacio = hashlib.sha256(b'').digest()
+        self.assertEqual(identificador(None), vacio)
+        self.assertEqual(identificador(123), vacio)
+
 
 class ValidarPoliticaTest(SimpleTestCase):
     def test_acepta_una_politica_valida(self):

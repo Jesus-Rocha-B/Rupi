@@ -88,7 +88,8 @@ def minutos_restantes(hasta, ahora):
 
 
 def identificador(nombre_usuario):
-    return hashlib.sha256((nombre_usuario or '').strip().lower().encode('utf-8')).digest()
+    texto = nombre_usuario.strip().lower() if isinstance(nombre_usuario, str) else ''
+    return hashlib.sha256(texto.encode('utf-8')).digest()
 
 
 def _fallos(filtro, reinicio, politica, ahora):
