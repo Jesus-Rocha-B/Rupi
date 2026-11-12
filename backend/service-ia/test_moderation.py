@@ -31,6 +31,14 @@ class ModerationTest(unittest.TestCase):
                 with self.assertRaises(ModerationUnavailable):check_response('Texto')
         finally:server.shutdown();server.server_close();thread.join()
 
+    def test_empty_token_or_non_local_http_raises_unavailable(self):
+        with patch.dict(os.environ, {'RUPI_ADMIN_URL': 'http://192.168.1.10:8182', 'RUPI_MONITOR_TOKEN': 'tok'}):
+            with self.assertRaises(ModerationUnavailable):
+                check_response('Texto')
+        with patch.dict(os.environ, {'RUPI_ADMIN_URL': 'http://127.0.0.1:8182', 'RUPI_MONITOR_TOKEN': '   '}):
+            with self.assertRaises(ModerationUnavailable):
+                check_response('Texto')
+
     def test_generated_output_is_replaced_or_rejected(self):
         from test_servicio_ia import _Respuesta
         payload=json.dumps({'candidates':[{'content':{'parts':[{'text':'No sabes nada'}]}}]}).encode()

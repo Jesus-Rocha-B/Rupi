@@ -16,10 +16,10 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def check_response(text, audit=None):
-    base = os.environ.get('RUPI_ADMIN_URL', 'http://127.0.0.1:8182').rstrip('/')
-    token = os.environ.get('RUPI_MONITOR_TOKEN', '')
+    base = os.environ.get('RUPI_ADMIN_URL', 'http://127.0.0.1:8182').strip().rstrip('/')
+    token = os.environ.get('RUPI_MONITOR_TOKEN', '').strip()
     uri = urlparse(base)
-    if not token or not (uri.scheme == 'https' or (uri.scheme == 'http' and uri.hostname in ('127.0.0.1', 'localhost'))):
+    if not token or not (uri.scheme == 'https' or (uri.scheme == 'http' and uri.hostname in ('127.0.0.1', 'localhost', '::1'))):
         raise ModerationUnavailable('Moderación no configurada.')
     request = urllib.request.Request(base + '/api/internal/moderacion/evaluar',
         data=json.dumps({'texto': text, 'auditoria': audit or {}}, ensure_ascii=False).encode('utf-8'),
