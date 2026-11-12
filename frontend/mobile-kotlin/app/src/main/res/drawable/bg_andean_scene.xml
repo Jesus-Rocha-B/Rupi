@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="108dp"
+    android:viewportWidth="600"
+    android:viewportHeight="360">
+    <!-- Sol andino -->
+    <path
+        android:fillColor="#ffd26a"
+        android:pathData="M51,65 a34,34 0 1,0 68,0 a34,34 0 1,0 -68,0 Z" />
+    <path
+        android:fillColor="#d9fff0b8"
+        android:pathData="M63,65 a22,22 0 1,0 44,0 a22,22 0 1,0 -44,0 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#f4a261"
+        android:strokeWidth="2.5"
+        android:pathData="M41,65 a44,44 0 1,0 88,0 a44,44 0 1,0 -88,0 Z" />
+
+    <!-- Nubes andinas -->
+    <path
+        android:fillColor="#ccffffff"
+        android:pathData="M140,75 Q160,55 185,75 Q210,65 225,87 Q240,102 220,109 Q200,114 165,109 Q135,109 140,75 Z" />
+    <path
+        android:fillColor="#a6ffffff"
+        android:pathData="M390,55 Q405,39 425,55 Q445,47 455,65 Q465,77 450,83 Q435,87 408,83 Q386,83 390,55 Z" />
+
+    <!-- Capas de montañas andinas con pico nevado -->
+    <path
+        android:fillColor="#bfd5e9dc"
+        android:pathData="M0,240 Q140,130 290,190 Q440,250 600,160 L600,360 L0,360 Z" />
+    <path
+        android:fillColor="#f2ffffff"
+        android:pathData="M260,178 L290,155 L320,178 Q305,183 290,174 Q275,183 260,178 Z" />
+    <path
+        android:fillColor="#e0bddcc7"
+        android:pathData="M0,260 Q180,180 340,230 Q500,280 600,210 L600,360 L0,360 Z" />
+    <path
+        android:fillColor="#a3cfae"
+        android:pathData="M0,280 Q220,230 420,270 Q620,310 600,250 L600,360 L0,360 Z" />
+
+    <!-- Camino sinuoso y paradas -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#b3e8c09a"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M50,320 C140,270 170,210 280,220 C380,230 430,180 530,190" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#f95738"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M50,320 C140,270 170,210 280,220 C380,230 430,180 530,190" />
+    <path
+        android:fillColor="#31724b"
+        android:strokeColor="#ffffff"
+        android:strokeWidth="2.5"
+        android:pathData="M133,270 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 Z" />
+    <path
+        android:fillColor="#59ffd26a"
+        android:pathData="M265,220 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0 Z" />
+    <path
+        android:fillColor="#f95738"
+        android:strokeColor="#ffffff"
+        android:strokeWidth="2.5"
+        android:pathData="M271,220 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 Z" />
+    <path
+        android:fillColor="#ffd26a"
+        android:strokeColor="#173e30"
+        android:strokeWidth="2"
+        android:pathData="M423,180 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 Z" />
+</vector>
