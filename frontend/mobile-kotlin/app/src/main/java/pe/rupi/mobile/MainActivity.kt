@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.Uri
@@ -799,15 +800,15 @@ class MainActivity : ComponentActivity() {
 
  @Suppress("DEPRECATION")
  private fun styleSystemBars() {
-  window.statusBarColor = RupiUi.FOREST
+  window.statusBarColor = Color.WHITE
   val decor = window.decorView
   if (Build.VERSION.SDK_INT >= 30) {
-   decor.windowInsetsController?.setSystemBarsAppearance(
-    WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+   val mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
     WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-   )
+   decor.windowInsetsController?.setSystemBarsAppearance(mask, mask)
   } else {
-   decor.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+   decor.systemUiVisibility =
+    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
   }
  }
 }
