@@ -12,6 +12,17 @@ Cliente Kotlin nativo con vistas Android, sin WebView. Permite iniciar sesión c
 
 La sesión permanece en memoria y se solicita de nuevo al cerrar el proceso. Los avances pertenecen al alumno autenticado y se recuperan del servidor. No se guardan claves del alumno en preferencias. La disponibilidad de IA depende de la configuración del backend; sin proveedor no se simula generación.
 
+## Arquitectura móvil (MVVM + Repository)
+La app Android sigue una arquitectura **MVVM + Repository** separada por capas bajo `pe.rupi.mobile`:
+- `data/model/`: modelos inmutables del dominio (`LearningModels`, `GamificationModels`, `NotificationModels`, `StudyResourceModels`, `AuthModels`).
+- `data/remote/`: cliente HTTP REST (`RupiApi` con `HttpURLConnection`, cookie `rupi_session`, cabecera `X-Rupi-Cliente: MOVIL` y verificación SHA-256), `RupiJsonMapper`, `AttachmentParser` y `RupiRemoteDataSource`.
+- `data/local/`: `LocalSummaryDataSource` (caché offline ZIP/JSON de resúmenes visuales) y `SessionAlertsDataSource` (cifrado de sesión con `AndroidKeyStore` + `JobScheduler` vía `StudyAlerts`).
+- `data/repository/`: repositorios con contratos de interfaz (`AuthRepository`, `LearningRepository`, `GamificationRepository`, `NotificationRepository`, `StudyResourcesRepository`) como fuente única de verdad entre API REST y almacenamiento local.
+- `ui/state/` y `ui/viewmodel/`: `ViewModel`s de AndroidX (`NavigationViewModel` con `SavedStateHandle`, `AuthViewModel`, `TopicsViewModel`, `RouteLessonViewModel`, `GamificationViewModel`, `NotificationsViewModel`, `StudyResourcesViewModel`) exponiendo estados inmutables mediante `StateFlow` / `SharedFlow` sobre `viewModelScope`.
+- `ui/components/`, `ui/screens/` y `MainActivity`: capa View (`ComponentActivity`) que observa los estados reactivos y renderiza las pantallas nativas sin lógica de red ni negocio.
+
+Pruebas unitarias JVM en `app/src/test/java/pe/rupi/mobile/` ejecutables con `:app:testDebugUnitTest`.
+
 ## Estado verificado (29 oct 2026)
 - `assembleDebug` correcto (`ANDROID_HOME=~/Android/Sdk bash ./gradlew assembleDebug`) y recorrido completo en el emulador `Pixel_8` (API 35) contra el backend local:
   - ingreso;
