@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -88,12 +89,19 @@ public class StudentSessionService {
 
     private final JdbcTemplate jdbc;
     private final PasswordService passwordService;
+    private final TotpService totpService;
     private final SecureRandom secureRandom = new SecureRandom();
     private final Map<String, Long> lastActivity = new ConcurrentHashMap<>();
 
     public StudentSessionService(JdbcTemplate jdbc, PasswordService passwordService) {
+        this(jdbc, passwordService, new TotpService());
+    }
+
+    @Autowired
+    public StudentSessionService(JdbcTemplate jdbc, PasswordService passwordService, TotpService totpService) {
         this.jdbc = jdbc;
         this.passwordService = passwordService;
+        this.totpService = totpService;
     }
 
     public record Student(
@@ -126,12 +134,15 @@ public class StudentSessionService {
             boolean rateLimited,
             boolean consoleOnly,
             boolean locked,
+            boolean totpRequired,
+            boolean totpSetupRequired,
+            boolean totpInvalid,
             Student student,
             String token,
             int retryMinutes
     ) {
         public static AuthenticationResult success(Student student, String token) {
-            return new AuthenticationResult(true, false, false, false, student, token, 0);
+            return new AuthenticationResult(true, false, false, false, false, false, false, student, token, 0);
         }
 
         public static AuthenticationResult throttled() {
@@ -139,24 +150,39 @@ public class StudentSessionService {
         }
 
         public static AuthenticationResult throttled(int minutes) {
-            return new AuthenticationResult(false, true, false, false, null, null, minutes);
+            return new AuthenticationResult(false, true, false, false, false, false, false, null, null, minutes);
         }
 
         public static AuthenticationResult badCredentials() {
-            return new AuthenticationResult(false, false, false, false, null, null, 0);
+            return new AuthenticationResult(false, false, false, false, false, false, false, null, null, 0);
         }
 
         public static AuthenticationResult consoleAccount() {
-            return new AuthenticationResult(false, false, true, false, null, null, 0);
+            return new AuthenticationResult(false, false, true, false, false, false, false, null, null, 0);
         }
 
         public static AuthenticationResult lockedAccount() {
-            return new AuthenticationResult(false, false, false, true, null, null, 0);
+            return new AuthenticationResult(false, false, false, true, false, false, false, null, null, 0);
         }
 
         /** HU-58: la cuenta acumuló demasiados fallos y quedó bloqueada unos minutos. */
         public static AuthenticationResult autoLocked(int minutes) {
-            return new AuthenticationResult(false, false, false, true, null, null, minutes);
+            return new AuthenticationResult(false, false, false, true, false, false, false, null, null, minutes);
+        }
+
+        /** HU-60: la cuenta docente requiere activar su código QR antes de iniciar sesión. */
+        public static AuthenticationResult requireTotpSetup() {
+            return new AuthenticationResult(false, false, false, false, true, true, false, null, null, 0);
+        }
+
+        /** HU-60: la cuenta docente ya tiene 2FA activo y debe enviar su código de 6 dígitos. */
+        public static AuthenticationResult requireTotp() {
+            return new AuthenticationResult(false, false, false, false, true, false, false, null, null, 0);
+        }
+
+        /** HU-60: el código temporal 2FA ingresado no coincide o venció. */
+        public static AuthenticationResult invalidTotp() {
+            return new AuthenticationResult(false, false, false, false, true, false, true, null, null, 0);
         }
 
         public boolean temporary() {
@@ -301,6 +327,11 @@ public class StudentSessionService {
 
     @org.springframework.transaction.annotation.Transactional
     public AuthenticationResult authenticate(String rawUsername, String rawPassword, String clientIp, String client) {
+        return authenticate(rawUsername, rawPassword, clientIp, client, null);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public AuthenticationResult authenticate(String rawUsername, String rawPassword, String clientIp, String client, String totpCode) {
         String sessionClient = CLIENT_MOBILE.equals(client) ? CLIENT_MOBILE : CLIENT_WEB;
         if (rawUsername == null || rawUsername.isBlank() || rawPassword == null || rawPassword.isBlank()) {
             return AuthenticationResult.badCredentials();
@@ -418,6 +449,24 @@ public class StudentSessionService {
             return AuthenticationResult.consoleAccount();
         }
 
+        // 3c. Autenticación de doble factor obligatoria (HU-60) para cuentas docentes o con rol administrativo.
+        if (requiresTwoFactor(account.id())) {
+            var twoFactor = findTwoFactor(account.id());
+            if (twoFactor.isEmpty() || !twoFactor.get().verified()) {
+                return AuthenticationResult.requireTotpSetup();
+            }
+            if (totpCode == null || totpCode.isBlank()) {
+                return AuthenticationResult.requireTotp();
+            }
+            if (!totpService.verify(account.id(), twoFactor.get().secretBase32(), totpCode)) {
+                jdbc.update("""
+                        INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
+                        VALUES (?, ?, 'INCORRECTO', ?, UTC_TIMESTAMP(6))
+                        """, account.id(), idHash, originHash);
+                return AuthenticationResult.invalidTotp();
+            }
+        }
+
         // 4. Registro de acceso exitoso
         jdbc.update("""
                     INSERT INTO identidad_intento_acceso (usuario_id, identificador_hash, resultado, origen_hash, ocurrido_en)
@@ -494,6 +543,30 @@ public class StudentSessionService {
                 """, idHash, originHash);
     }
 
+    private record TwoFactorSecret(String secretBase32, boolean verified) {}
+
+    boolean requiresTwoFactor(String userId) {
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*)
+                FROM identidad_usuario_rol ur
+                JOIN identidad_rol r ON r.id = ur.rol_id
+                WHERE ur.usuario_id = ?
+                  AND r.codigo IN ('ADMINISTRADOR', 'SOPORTE', 'DOCENTE')
+                """, Integer.class, userId);
+        return count != null && count > 0;
+    }
+
+    private Optional<TwoFactorSecret> findTwoFactor(String userId) {
+        return jdbc.query("""
+                SELECT secreto_base32, verificado
+                FROM identidad_doble_factor
+                WHERE usuario_id = ?
+                """, (rs, rowNum) -> new TwoFactorSecret(
+                rs.getString("secreto_base32"),
+                rs.getBoolean("verificado")
+        ), userId).stream().findFirst();
+    }
+
     boolean isConsoleOnly(String userId) {
         var counts = jdbc.queryForMap("""
                 SELECT COUNT(*) AS total,

@@ -13,8 +13,8 @@ from functools import wraps
 from django.db import transaction
 from django.utils import timezone
 
-from . import claves, politica_acceso
-from .models import CuentaUsuario, IntentoAcceso, RolPermiso, SesionUsuario, UsuarioRol
+from . import claves, doble_factor, politica_acceso
+from .models import CuentaUsuario, DobleFactorUsuario, IntentoAcceso, RolPermiso, SesionUsuario, UsuarioRol
 from .respuestas import json_error
 
 COOKIE = 'rupi_admin'
@@ -72,18 +72,37 @@ class Freno:
     cuenta_bloqueada: bool
 
 
-def iniciar(nombre_usuario, clave, ip):
-    """Devuelve (token, administrador), un Freno si se superó un límite de la política o None si no procede."""
-    nombre_usuario = (nombre_usuario or '').strip()
-    if not nombre_usuario or not clave:
-        return None
-    ahora = timezone.now()
+@dataclass(frozen=True)
+class Desafio2FA:
+    """HU-60: la clave pasó, pero falta configurar o validar el código temporal TOTP antes de abrir sesión."""
+    configurado: bool
+    desafio: str
+    usuario: str
+    otpauth_uri: str | None = None
+    secreto_base32: str | None = None
+
+
+@dataclass(frozen=True)
+class Error2FA:
+    """HU-60: el código temporal 2FA es inválido o venció."""
+    mensaje: str = 'El código de doble factor (2FA) es incorrecto o venció.'
+
+
+def _crear_sesion_admin(cuenta, permisos, ahora):
+    token = secrets.token_urlsafe(32)
+    with transaction.atomic():
+        revocar_sesiones(cuenta.id, ahora)
+        sesion = SesionUsuario.objects.create(usuario_id=cuenta.id, token_hash=sha256(token), cliente='WEB_ADMIN',
+                                              creada_en=ahora, actividad_en=ahora, expira_en=ahora + DURACION)
+    return token, Administrador(cuenta.id, cuenta.nombre_usuario, nombre_visible(cuenta), permisos, sesion.id)
+
+
+def _verificar_freno(nombre_usuario, ip, ahora):
     id_hash = sha256(nombre_usuario.lower())
     origen_hash = sha256(ip) if ip else None
     politica = politica_acceso.vigente()
     fallos = IntentoAcceso.objects.filter(resultado__in=('INCORRECTO', 'BLOQUEADO'),
                                           ocurrido_en__gt=ahora - politica.ventana)
-    # Desbloquear la cuenta en la consola también reinicia su límite en el equipo (intentos_reiniciados_en).
     reinicio = (CuentaUsuario.objects.filter(nombre_usuario=nombre_usuario)
                 .values_list('intentos_reiniciados_en', flat=True).first())
     de_la_cuenta = fallos.filter(identificador_hash=id_hash, origen_hash=origen_hash)
@@ -93,12 +112,23 @@ def iniciar(nombre_usuario, clave, ip):
             de_la_cuenta.count() >= politica.max_fallos_equipo_cuenta
             or fallos.filter(origen_hash=origen_hash).count() >= politica.max_fallos_equipo):
         _intento(None, id_hash, 'BLOQUEADO', origen_hash, ahora)
-        return Freno(politica.ventana_minutos, False)
-    # Mientras dura el bloqueo automático ni la clave correcta entra, así no se sigue probando claves.
+        return id_hash, origen_hash, Freno(politica.ventana_minutos, False)
     hasta = politica_acceso.bloqueo_de(nombre_usuario, politica, ahora)
     if hasta is not None:
         _intento(None, id_hash, 'BLOQUEADO', origen_hash, ahora)
-        return Freno(politica_acceso.minutos_restantes(hasta, ahora), True)
+        return id_hash, origen_hash, Freno(politica_acceso.minutos_restantes(hasta, ahora), True)
+    return id_hash, origen_hash, None
+
+
+def iniciar(nombre_usuario, clave, ip, codigo_totp=None):
+    """Devuelve (token, administrador), Desafio2FA, Error2FA, Freno o None si las credenciales fallan."""
+    nombre_usuario = (nombre_usuario or '').strip()
+    if not nombre_usuario or not clave:
+        return None
+    ahora = timezone.now()
+    id_hash, origen_hash, freno = _verificar_freno(nombre_usuario, ip, ahora)
+    if freno is not None:
+        return freno
 
     cuenta = CuentaUsuario.objects.select_related('perfil').filter(nombre_usuario=nombre_usuario).first()
     if cuenta is None:
@@ -114,14 +144,93 @@ def iniciar(nombre_usuario, clave, ip):
     if not cuenta_disponible(cuenta, ahora) or PERMISO_CONSOLA not in permisos:
         _intento(cuenta.id, id_hash, 'BLOQUEADO', origen_hash, ahora)
         return None
-    _intento(cuenta.id, id_hash, 'CORRECTO', origen_hash, ahora)
 
-    token = secrets.token_urlsafe(32)
-    with transaction.atomic():
-        revocar_sesiones(cuenta.id, ahora)
-        sesion = SesionUsuario.objects.create(usuario_id=cuenta.id, token_hash=sha256(token), cliente='WEB_ADMIN',
-                                              creada_en=ahora, actividad_en=ahora, expira_en=ahora + DURACION)
-    return token, Administrador(cuenta.id, cuenta.nombre_usuario, nombre_visible(cuenta), permisos, sesion.id)
+    # HU-60: 2FA obligatorio para cuentas de administración, soporte o consola.
+    registro_2fa = DobleFactorUsuario.objects.filter(usuario_id=cuenta.id).first()
+    if registro_2fa is None or not registro_2fa.verificado:
+        registro_2fa = doble_factor.preparar_enrolamiento(cuenta)
+        return Desafio2FA(
+            configurado=False,
+            desafio=doble_factor.crear_desafio(cuenta.id, 'admin_login'),
+            usuario=cuenta.nombre_usuario,
+            otpauth_uri=doble_factor.construir_uri_otpauth(cuenta.nombre_usuario, registro_2fa.secreto_base32),
+            secreto_base32=registro_2fa.secreto_base32,
+        )
+
+    if codigo_totp is None or not str(codigo_totp).strip():
+        return Desafio2FA(
+            configurado=True,
+            desafio=doble_factor.crear_desafio(cuenta.id, 'admin_login'),
+            usuario=cuenta.nombre_usuario,
+        )
+
+    if not doble_factor.validar_inicio_sesion(cuenta, codigo_totp):
+        _intento(cuenta.id, id_hash, 'INCORRECTO', origen_hash, ahora)
+        return Error2FA()
+
+    _intento(cuenta.id, id_hash, 'CORRECTO', origen_hash, ahora)
+    return _crear_sesion_admin(cuenta, permisos, ahora)
+
+
+def completar_2fa(desafio_token, codigo, ip):
+    """HU-60: verifica el código TOTP (activación inicial o login diario) y emite la sesión WEB_ADMIN."""
+    cuenta_id = doble_factor.leer_desafio(desafio_token, 'admin_login')
+    cuenta = CuentaUsuario.objects.select_related('perfil').filter(id=cuenta_id).first()
+    if cuenta is None:
+        return None
+    ahora = timezone.now()
+    id_hash, origen_hash, freno = _verificar_freno(cuenta.nombre_usuario, ip, ahora)
+    if freno is not None:
+        return freno
+    permisos = permisos_de(cuenta.id)
+    if not cuenta_disponible(cuenta, ahora) or PERMISO_CONSOLA not in permisos:
+        _intento(cuenta.id, id_hash, 'BLOQUEADO', origen_hash, ahora)
+        return None
+
+    registro = DobleFactorUsuario.objects.filter(usuario_id=cuenta.id).first()
+    if registro is None or not registro.verificado:
+        ok, _ = doble_factor.confirmar_enrolamiento(cuenta, codigo, actor=cuenta)
+    else:
+        ok = doble_factor.validar_inicio_sesion(cuenta, codigo)
+    if not ok:
+        _intento(cuenta.id, id_hash, 'INCORRECTO', origen_hash, ahora)
+        return Error2FA()
+
+    _intento(cuenta.id, id_hash, 'CORRECTO', origen_hash, ahora)
+    return _crear_sesion_admin(cuenta, permisos, ahora)
+
+
+def iniciar_enrolamiento_docente(nombre_usuario, clave, ip):
+    """HU-60: valida clave de docente antes de entregar su QR inicial en el portal escolar."""
+    nombre_usuario = (nombre_usuario or '').strip()
+    if not nombre_usuario or not clave:
+        return None
+    ahora = timezone.now()
+    id_hash, origen_hash, freno = _verificar_freno(nombre_usuario, ip, ahora)
+    if freno is not None:
+        return freno
+    cuenta = CuentaUsuario.objects.filter(nombre_usuario=nombre_usuario).first()
+    if cuenta is None:
+        claves.simular_verificacion(clave)
+        _intento(None, id_hash, 'INCORRECTO', origen_hash, ahora)
+        return None
+    if not claves.verificar(clave, cuenta.hash_clave):
+        _intento(cuenta.id, id_hash, 'INCORRECTO', origen_hash, ahora)
+        return None
+    if not cuenta_disponible(cuenta, ahora) or not doble_factor.requiere_doble_factor(cuenta.id):
+        _intento(cuenta.id, id_hash, 'BLOQUEADO', origen_hash, ahora)
+        return None
+    registro = DobleFactorUsuario.objects.filter(usuario_id=cuenta.id).first()
+    if registro is not None and registro.verificado:
+        return {'yaConfigurado': True, 'usuario': cuenta.nombre_usuario}
+    registro = doble_factor.preparar_enrolamiento(cuenta)
+    return {
+        'yaConfigurado': False,
+        'desafio': doble_factor.crear_desafio(cuenta.id, 'docente_enrolar'),
+        'usuario': cuenta.nombre_usuario,
+        'otpauthUri': doble_factor.construir_uri_otpauth(cuenta.nombre_usuario, registro.secreto_base32),
+        'secretoBase32': registro.secreto_base32,
+    }
 
 
 def revocar_sesiones(usuario_id, ahora=None, excepto=None):

@@ -2,11 +2,13 @@ package pe.rupi.api.shared;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Map;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -21,7 +23,11 @@ public class SessionController {
         this.demoToken = demoToken;
     }
 
-    public record LoginRequest(String username, String password) {}
+    public record LoginRequest(String username, String password, String totpCode) {
+        public LoginRequest(String username, String password) {
+            this(username, password, null);
+        }
+    }
 
     public record SessionOptions(boolean demoAvailable) {}
 
@@ -57,6 +63,25 @@ public class SessionController {
         return new SessionOptions(!demoToken.isBlank() && isLocal(request));
     }
 
+    static final class TwoFactorChallengeException extends RuntimeException {
+        private final HttpStatus status;
+        private final String code;
+
+        TwoFactorChallengeException(HttpStatus status, String code, String message) {
+            super(message);
+            this.status = status;
+            this.code = code;
+        }
+
+        HttpStatus status() { return status; }
+        String code() { return code; }
+    }
+
+    @ExceptionHandler(TwoFactorChallengeException.class)
+    public ResponseEntity<Map<String, String>> handleTwoFactorChallenge(TwoFactorChallengeException ex) {
+        return ResponseEntity.status(ex.status()).body(Map.of("code", ex.code(), "message", ex.getMessage()));
+    }
+
     @PostMapping("/api/v1/auth/login")
     public StudentSessionService.Student login(@RequestBody(required = false) LoginRequest body,
                                               HttpServletRequest request,
@@ -68,8 +93,10 @@ public class SessionController {
         }
 
         String clientIp = resolveClientIp(request);
-        var result = sessions.authenticate(body.username(), body.password(), clientIp,
-                StudentSessionService.clientOf(request));
+        String client = StudentSessionService.clientOf(request);
+        var result = (body.totpCode() == null || body.totpCode().isBlank())
+                ? sessions.authenticate(body.username(), body.password(), clientIp, client)
+                : sessions.authenticate(body.username(), body.password(), clientIp, client, body.totpCode());
 
         // HU-58: los dos frenos dicen cuánto esperar, en el mensaje y en Retry-After para el celular.
         if (result.rateLimited()) {
@@ -94,6 +121,20 @@ public class SessionController {
         if (result.consoleOnly()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Esta cuenta es de administración: ingresa desde la consola /admin.");
+        }
+
+        // HU-60: cuentas docentes requieren 2FA (configuración QR inicial o token TOTP temporal).
+        if (result.totpSetupRequired()) {
+            throw new TwoFactorChallengeException(HttpStatus.PRECONDITION_REQUIRED, "TOTP_SETUP_REQUIRED",
+                    "Por seguridad debes escanear tu código QR de doble factor (2FA) antes de ingresar.");
+        }
+        if (result.totpRequired() && !result.totpInvalid()) {
+            throw new TwoFactorChallengeException(HttpStatus.PRECONDITION_REQUIRED, "TOTP_REQUIRED",
+                    "Ingresa el código temporal de 6 dígitos de tu aplicación autenticadora.");
+        }
+        if (result.totpInvalid()) {
+            throw new TwoFactorChallengeException(HttpStatus.UNAUTHORIZED, "TOTP_INVALID",
+                    "El código de doble factor (2FA) es incorrecto o venció.");
         }
 
         if (!result.authenticated() || result.token() == null) {

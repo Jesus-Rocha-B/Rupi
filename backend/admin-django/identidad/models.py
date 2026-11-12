@@ -154,3 +154,18 @@ class PoliticaAcceso(models.Model):
     class Meta:
         managed = False
         db_table = 'identidad_politica_acceso'
+
+
+class DobleFactorUsuario(models.Model):
+    """HU-60: secreto TOTP (RFC 6238) obligatorio para administración, soporte y docentes."""
+    usuario = models.OneToOneField(CuentaUsuario, primary_key=True, on_delete=models.DO_NOTHING,
+                                   db_column='usuario_id', related_name='doble_factor')
+    secreto_base32 = models.CharField(max_length=64)
+    verificado = models.BooleanField(default=False)
+    ultimo_paso_usado = models.BigIntegerField(null=True, blank=True)
+    activado_en = models.DateTimeField(null=True, blank=True)
+    actualizado_en = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'identidad_doble_factor'
