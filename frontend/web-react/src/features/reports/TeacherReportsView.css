@@ -84,3 +84,23 @@
   .student-overview .roadmap-stop { flex-wrap: wrap; }
   .roadmap-stop-grade { margin-left: 54px; }
 }
+
+/* HU-15 · Ayuda del tutor Rupi por aula */
+.tutor-support { margin: 24px 0; padding: clamp(16px, 3vw, 24px); border: 2px solid #173e30; border-top: 6px solid #31724b; border-radius: 18px; background: white; box-shadow: 0 4px 0 #d7e4cc; }
+.tutor-support-head h2 { margin: 0 0 6px; font-family: var(--display-font, 'Nunito', sans-serif); font-weight: 900; font-size: clamp(1.2rem, 3vw, 1.45rem); }
+.tutor-support-head p { margin: 0; }
+.tutor-support fieldset { border: 0; margin: 16px 0 0; padding: 0; min-width: 0; }
+.tutor-support .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tutor-support-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.tutor-support-option { position: relative; display: grid; gap: 8px; align-content: start; min-height: 48px; padding: 16px 16px 16px 50px; border: 2px solid #d7e4cc; border-radius: 14px; background: #fdfbf7; cursor: pointer; line-height: 1.5; box-shadow: 0 3px 0 #d7e4cc; transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s cubic-bezier(0.16, 1, 0.3, 1); }
+.tutor-support-option:hover { border-color: #31724b; }
+.tutor-support-option:active { transform: translateY(2px); box-shadow: 0 1px 0 #d7e4cc; }
+.tutor-support-option input { position: absolute; left: 16px; top: 18px; width: 22px; height: 22px; margin: 0; accent-color: #31724b; cursor: pointer; }
+.tutor-support-option input:focus-visible { outline: 3px solid #246a91; outline-offset: 3px; }
+.tutor-support-option.is-selected { border-color: #173e30; background: #edf4e9; box-shadow: 0 4px 0 #173e30; }
+.tutor-support-option-title { display: inline-flex; align-items: center; gap: 8px; font-weight: 900; font-size: 1.05rem; color: #173e30; }
+.tutor-support-option-title svg { color: #31724b; flex-shrink: 0; }
+.tutor-support-example { padding: 8px 12px; border-left: 4px solid #ffd26a; border-radius: 6px; background: #fff6e3; color: #5c3000; font-size: 0.9rem; font-style: italic; }
+.tutor-support-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
+.tutor-support-foot p { margin: 0; flex: 1 1 260px; }
+.tutor-support .report-error { margin: 12px 0 0; }

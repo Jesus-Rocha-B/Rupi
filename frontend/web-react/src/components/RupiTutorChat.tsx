@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { X, Send, Volume2, Loader2, RotateCcw } from 'lucide-react'
-import { askRupiTutor, type ChatMessage } from '../services/aiApi'
+import { X, Send, Volume2, Loader2, RotateCcw, Footprints, BookOpenCheck } from 'lucide-react'
+import { askRupiTutor, fetchTutorSupport, type ChatMessage, type TutorSupport } from '../services/aiApi'
 import { RupiCharacter, type EquippedAccessories } from './RupiCharacter'
 import { speakText } from '../utils/speech'
 import './RupiTutorChat.css'
@@ -197,6 +197,17 @@ export function RupiTutorChat({
     setMessages(loadHistoryFromStorage(storageKey, defaultGreeting))
   }
 
+  // HU-15: el docente decide si Rupi guía con pistas o explica directo; se consulta al abrir el chat.
+  const [support, setSupport] = useState<TutorSupport | null>(null)
+  const routeForSupport = roadmapId && /^[0-9a-f-]{36}$/i.test(roadmapId) ? roadmapId : ''
+  useEffect(() => {
+    if (!isOpen || !routeForSupport) return
+    const controller = new AbortController()
+    fetchTutorSupport(routeForSupport, controller.signal).then(setSupport).catch(() => {})
+    return () => controller.abort()
+  }, [isOpen, routeForSupport])
+  const directMode = support?.mode === 'EXPLICACION_DIRECTA'
+
   // Guardar mensajes automáticamente en localStorage al recibir o enviar
   useEffect(() => {
     if (messages.length > 1) {
@@ -238,6 +249,7 @@ export function RupiTutorChat({
           currentSubject: currentSubject || '',
           stopTitle: stopTitle || 'Parada Activa',
           lessonContent: lessonContent || '',
+          assistanceMode: support?.mode ?? 'PISTAS_GUIADAS',
         },
         // El servicio usa los últimos mensajes; mandar toda la conversación guardada solo pesaba más.
         newMessages.slice(-20)
@@ -344,6 +356,18 @@ export function RupiTutorChat({
             </div>
           </div>
 
+          {support && (
+            <p className={`rupi-mode-note ${directMode ? 'is-direct' : ''}`} role="note">
+              {directMode ? <BookOpenCheck size={16} aria-hidden="true" /> : <Footprints size={16} aria-hidden="true" />}
+              <span>
+                {directMode
+                  ? 'Rupi te explica paso a paso y te muestra el resultado.'
+                  : 'Rupi te da pistas para que tú encuentres la respuesta.'}
+                {support.source === 'AULA' && support.classroomName && <small> Lo eligió tu docente para {support.classroomName}.</small>}
+              </span>
+            </p>
+          )}
+
           {/* Lista de mensajes */}
           <div className="rupi-chat-messages">
             {messages.map((m, idx) => (
@@ -378,7 +402,7 @@ export function RupiTutorChat({
                 </div>
                 <div className="rupi-message-bubble loading">
                   <Loader2 size={16} className="rupi-spin" />
-                  <span>Rupi está pensando una buena pista...</span>
+                  <span>{directMode ? 'Rupi está preparando la explicación...' : 'Rupi está pensando una buena pista...'}</span>
                 </div>
               </div>
             )}

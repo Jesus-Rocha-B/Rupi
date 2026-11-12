@@ -208,6 +208,41 @@
 }
 
 /* Mensajes */
+/* HU-15: modo de ayuda elegido por el docente */
+.rupi-mode-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #173e30;
+  background-color: #edf4e9;
+  border-bottom: 2px solid #d7e4cc;
+}
+
+.rupi-mode-note svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #31724b;
+}
+
+.rupi-mode-note small {
+  font-weight: 600;
+  color: #43614c;
+}
+
+.rupi-mode-note.is-direct {
+  background-color: #fff6e3;
+  border-bottom-color: #ffd26a;
+}
+
+.rupi-mode-note.is-direct svg {
+  color: #a33800;
+}
+
 .rupi-chat-messages {
   flex: 1;
   overflow-y: auto;

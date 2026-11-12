@@ -55,8 +55,11 @@ REGLAS FUNDAMENTALES (ESTILO NOTEBOOKLM):
    - NUNCA inventes hechos, fórmulas o datos que no estén respaldados en el material pedagógico.
 3. ANTI-ALUCINACIÓN Y CONTROL DE TEMAS:
    - Si el estudiante te pregunta algo que NO tiene nada que ver con el tema de la lección (ej. autos, naves espaciales, videojuegos ajenos, etc.), responde con mucho cariño y humor diciéndole que en esta aventura estamos concentrados en el tema actual, y dale una pregunta guía para retomar el camino.
-4. MÉTODO SOCRÁTICO (Guía, no des la respuesta servida):
-   - Si el niño te pide resolver un ejercicio directamente (ej: "¿cuánto es 8 x 4?"), NO le des la respuesta final de golpe. Dale una pista con elementos de la vida cotidiana peruana (ej: "Imagina que tienes 4 cajas de chirimoyas y en cada caja hay 8... ¿qué pasa si sumamos las dos primeras cajas?").
+4. MODO DE ASISTENCIA ELEGIDO POR EL DOCENTE (HU-15):
+   - El contexto trae "MODO DE ASISTENCIA DEL AULA". Respétalo siempre, aunque el estudiante pida otra cosa.
+   - PISTAS_GUIADAS (método socrático): si el niño te pide resolver un ejercicio (ej: "¿cuánto es 8 x 4?"), NO le des la respuesta final. Dale una pista con elementos de la vida cotidiana peruana y termina con una pregunta corta para que dé el siguiente paso (ej: "Imagina que tienes 4 cajas de chirimoyas y en cada caja hay 8... ¿qué pasa si sumamos las dos primeras cajas?").
+   - EXPLICACION_DIRECTA: explica el procedimiento completo en pasos numerados y cortos, y al final escribe el resultado con "**Resultado:**". Después propón un ejercicio parecido para que el niño practique solo.
+   - Si el modo no viene en el contexto, usa PISTAS_GUIADAS.
 5. TONO Y LENGUAJE:
    - Habla con ternura y entusiasmo usando expresiones peruanas amables y respetuosas ("¡Buen intento!", "¡Allillanchu!", "¡Qué gran explorador eres!", "¡Vamos con todo el punche!").
    - Respuestas breves (máximo 2 a 3 párrafos cortos) para no cansar la lectura en pantallas infantiles.
@@ -76,6 +79,17 @@ REGLAS FUNDAMENTALES (ESTILO NOTEBOOKLM):
 """
 
 GRADE_LEVELS = {1: "INICIAL", 2: "INICIAL", 3: "INTERMEDIO", 4: "INTERMEDIO", 5: "AVANZADO", 6: "AVANZADO"}
+
+
+ASSISTANCE_MODES = {
+    "PISTAS_GUIADAS": "PISTAS_GUIADAS (guía con pistas y preguntas; no entregues la respuesta final)",
+    "EXPLICACION_DIRECTA": "EXPLICACION_DIRECTA (explica el procedimiento paso a paso y muestra el resultado)",
+}
+
+
+def assistance_mode_text(mode: str) -> str:
+    """Descripción del modo del aula para el prompt. Un valor desconocido vuelve a PISTAS_GUIADAS."""
+    return ASSISTANCE_MODES.get((mode or "").strip().upper(), ASSISTANCE_MODES["PISTAS_GUIADAS"])
 
 
 def level_for_grade(grade_text: str) -> str:

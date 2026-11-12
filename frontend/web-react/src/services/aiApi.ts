@@ -33,6 +33,28 @@ export interface ChatContext {
   currentSubject?: string
   stopTitle?: string
   lessonContent?: string
+  /** HU-15: modo que el docente eligió para el aula. */
+  assistanceMode?: TutorAssistanceMode
+}
+
+export type TutorAssistanceMode = 'PISTAS_GUIADAS' | 'EXPLICACION_DIRECTA'
+export interface TutorSupport { mode: TutorAssistanceMode; classroomName: string | null; source: 'AULA' | 'PREDETERMINADO' }
+
+/** HU-15: modo de ayuda del tutor para el aula de esta ruta. Ante cualquier fallo se guía con pistas. */
+export async function fetchTutorSupport(routeId: string, signal?: AbortSignal): Promise<TutorSupport> {
+  const fallback: TutorSupport = { mode: 'PISTAS_GUIADAS', classroomName: null, source: 'PREDETERMINADO' }
+  try {
+    const res = await fetch(`/api/v1/student/tutor-support?routeId=${encodeURIComponent(routeId)}`, {
+      credentials: 'same-origin',
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000),
+    })
+    if (!res.ok) return fallback
+    const data = (await res.json()) as TutorSupport
+    return data.mode === 'EXPLICACION_DIRECTA' || data.mode === 'PISTAS_GUIADAS' ? data : fallback
+  } catch (error) {
+    if (signal?.aborted) throw error
+    return fallback
+  }
 }
 
 export interface ChatMessage {

@@ -137,5 +137,30 @@ class ValidacionTest(unittest.TestCase):
             self.assertEqual(cliente.post('/api/v1/ia/roadmap/generate-from-file', files=grande).status_code, 413)
 
 
+class ModoDeAsistenciaTest(unittest.TestCase):
+    """HU-15: el tutor respeta el modo de asistencia que el docente fijó para el aula."""
+
+    def _contexto_enviado(self, contexto):
+        with mock.patch.object(main, 'call_gemini', return_value='¡Vamos!') as gemini:
+            r = cliente.post('/api/v1/ia/tutor/chat', json={'message': '¿cuánto es 8 x 4?', 'context': contexto})
+        self.assertEqual(r.status_code, 200)
+        return gemini.call_args.kwargs['user_content']
+
+    def test_sin_modo_se_guia_con_pistas(self):
+        self.assertIn('MODO DE ASISTENCIA DEL AULA: PISTAS_GUIADAS', self._contexto_enviado({}))
+
+    def test_la_explicacion_directa_llega_al_prompt(self):
+        enviado = self._contexto_enviado({'assistanceMode': 'EXPLICACION_DIRECTA'})
+        self.assertIn('MODO DE ASISTENCIA DEL AULA: EXPLICACION_DIRECTA', enviado)
+
+    def test_un_modo_inventado_se_rechaza(self):
+        r = cliente.post('/api/v1/ia/tutor/chat', json={'message': 'hola', 'context': {'assistanceMode': 'DAME_TODO'}})
+        self.assertEqual(r.status_code, 422)
+
+    def test_el_prompt_explica_ambos_modos(self):
+        self.assertIn('PISTAS_GUIADAS', main.SYSTEM_RUPI_TUTOR)
+        self.assertIn('EXPLICACION_DIRECTA', main.SYSTEM_RUPI_TUTOR)
+
+
 if __name__ == '__main__':
     unittest.main()

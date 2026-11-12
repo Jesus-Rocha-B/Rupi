@@ -7,6 +7,7 @@ import { StudentOverviewView } from './StudentOverviewView'
 import { ReportDownload } from './ReportDownload'
 import { useReportData } from './useReportData'
 import { GradesReportView } from './GradesReportView'
+import { TutorSupportSetting } from './TutorSupportSetting'
 import { useState } from 'react'
 import { ArrowLeft, BookOpen, LogOut } from 'lucide-react'
 import { reportQuery, type ReportMember, type ReportClassroom, type ReportRoute, type ResultsReport, type StudentResult } from '../../services/reportsApi'
@@ -98,6 +99,6 @@ export function TeacherReportsView({ onBack, onLogout, initialRouteId, initialGr
     {rooms && !rooms.length && <p className="report-empty">Aún no tienes aulas activas asignadas. Solicita que te registren como docente o responsable de tu aula para consultar sus resultados.</p>}
     {rooms && room && <><label className="report-filter">Aula<select value={room} onChange={event => setSelected(event.target.value)}>
       {rooms.map(r => <option key={r.id} value={r.id}>{r.name} · {r.grade}.º de primaria</option>)}
-    </select></label><ClassroomReports key={room} room={room} view={view} onViewChange={setView} initialRouteId={initialRouteId} /></>}
+    </select></label><TutorSupportSetting key={`tutor:${room}`} room={room} /><ClassroomReports key={room} room={room} view={view} onViewChange={setView} initialRouteId={initialRouteId} /></>}
   </main>
 }

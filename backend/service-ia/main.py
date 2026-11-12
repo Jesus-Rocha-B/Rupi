@@ -9,7 +9,7 @@ import os
 
 from extractor import extract_text_from_file
 from gemini_client import IAError, IANoConfigurada, call_gemini, get_api_key
-from prompts import SYSTEM_ROADMAP_GENERATOR, SYSTEM_RUPI_TUTOR, level_for_grade
+from prompts import SYSTEM_ROADMAP_GENERATOR, SYSTEM_RUPI_TUTOR, assistance_mode_text, level_for_grade
 
 log = logging.getLogger("rupi.ia")
 
@@ -69,6 +69,8 @@ class ChatContext(BaseModel):
     currentSubject: recortado(120) = ""
     stopTitle: recortado(300) = "Parada Actual"
     lessonContent: recortado(20000) = ""
+    # HU-15: lo fija el docente por aula en Spring; la web lo reenvía al abrir el chat.
+    assistanceMode: Literal["PISTAS_GUIADAS", "EXPLICACION_DIRECTA"] = "PISTAS_GUIADAS"
 
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant"]
@@ -261,6 +263,7 @@ DOCUMENTO Y CONTEXTO COMPLETO DEL ROADMAP (GROUNDING NOTEBOOKLM):
 - Descripción General de la Ruta: {ctx.roadmapDescription if ctx.roadmapDescription else "Aventura escolar de aprendizaje por etapas."}
 - Materia y Grado: {ctx.currentSubject} {ctx.currentGrade}
 - NIVEL DEL ESTUDIANTE: {level_for_grade(ctx.currentGrade)}
+- MODO DE ASISTENCIA DEL AULA: {assistance_mode_text(ctx.assistanceMode)}
 - Paradas Didácticas que componen este Roadmap:
 {ctx.stopsSummary if ctx.stopsSummary else "Secuencia didáctica de paradas y lecciones interactivas."}
 
