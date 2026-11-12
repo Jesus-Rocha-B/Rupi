@@ -67,13 +67,15 @@ def consultar(unidad_id):
                 FROM curriculo_registro_revision h LEFT JOIN identidad_cuenta_usuario a ON a.id=h.actor_id
                 WHERE h.registro_id=%s AND h.tipo=%s ORDER BY h.creado_en DESC,h.id DESC LIMIT 20''', [row['id'], tipo])
             for event in row['historial']:
-                if event['fecha'].tzinfo is None:
+                if event.get('fecha') and event['fecha'].tzinfo is None:
                     event['fecha'] = event['fecha'].replace(tzinfo=timezone.utc)
         registros.extend(rows)
     return {'competencias': competencias, 'registros': registros, 'editable': u['estado'] != 'RETIRADO'}
 
 
 def validar(datos, editando=False):
+    if not isinstance(datos, dict):
+        raise ErrorDePeticion('Envía los datos del registro como un objeto JSON.')
     permitidos = {'descripcion', 'motivo', 'revision'} if editando else {'tipo', 'codigo', 'descripcion', 'competenciaId'}
     if set(datos) - permitidos:
         raise ErrorDePeticion('No se permite modificar la unidad, el grado, el tipo, el código ni la competencia del registro.')

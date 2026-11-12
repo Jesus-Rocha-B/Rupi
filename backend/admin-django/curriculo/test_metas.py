@@ -12,6 +12,11 @@ class MetasTest(SimpleTestCase):
             with self.assertRaises(ErrorDePeticion):
                 metas.validar({'descripcion': 'Comparar cantidades hasta cien.', 'motivo': 'Precisar alcance', field: 'otro'}, True)
 
+    def test_validar_rechaza_payload_no_objeto(self):
+        for payload in [None, [], 'texto', 123]:
+            with self.assertRaises(ErrorDePeticion):
+                metas.validar(payload)
+
     def test_valida_textos_tipo_y_codigo(self):
         for tipo in [None, [], {}, 'OTRO']:
             with self.assertRaises(ErrorDePeticion):
