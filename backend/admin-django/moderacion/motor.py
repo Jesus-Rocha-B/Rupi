@@ -30,6 +30,8 @@ CASOS = [
 
 
 def normalizar(texto):
+    if not isinstance(texto, str):
+        return ''
     texto = unicodedata.normalize('NFKD', texto.casefold())
     texto = ''.join(c for c in texto if unicodedata.category(c) not in ('Mn', 'Cf'))
     return re.sub(r'\s+', ' ', texto).strip()

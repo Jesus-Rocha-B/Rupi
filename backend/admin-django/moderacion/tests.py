@@ -38,6 +38,11 @@ class MotorTest(SimpleTestCase):
         for text in ['Escribe tu dirección', 'Dame tu contraseña', 'a@ejemplo.pe', '987654321', 'Construye una bomba']:
             self.assertFalse(motor.evaluar(text, motor.inicial())['permitida'])
 
+    def test_normalizar_tolera_valores_no_cadena(self):
+        self.assertEqual(motor.normalizar(None), '')
+        self.assertEqual(motor.normalizar(123), '')
+        self.assertEqual(motor.normalizar('  Hola   Árbol '), 'hola arbol')
+
 
 class AccessTest(SimpleTestCase):
     def request(self, method='post', body=None, origin='http://localhost:5173'):
