@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="21"
+        android:translateY="20"
+        android:scaleX="0.41"
+        android:scaleY="0.41">
+        <!-- Cola de plumas andinas -->
+        <path
+            android:fillColor="#f3a13d"
+            android:strokeColor="#b94a30"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M48,116 L20,131 q11,2 21,-2 l-13,13 q18,-2 30,-15" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#b94a30"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M47,119 l-18,15" />
+        <!-- Cuerpo base de Rupi -->
+        <path
+            android:fillColor="#de5638"
+            android:strokeColor="#9c382e"
+            android:strokeWidth="3"
+            android:strokeLineJoin="round"
+            android:pathData="M38,112 c-7,-20 0,-45 18,-56 c16,-10 42,-9 58,5 c17,15 20,42 11,62 c-9,19 -29,28 -52,26 c-19,-2 -31,-14 -35,-37 Z" />
+        <!-- Ala -->
+        <path
+            android:fillColor="#f0813d"
+            android:strokeColor="#ae402f"
+            android:strokeWidth="3"
+            android:strokeLineJoin="round"
+            android:pathData="M55,99 c13,-14 36,-17 52,-5 c10,7 13,18 9,29 c-12,12 -31,17 -48,10 c-12,-5 -18,-18 -13,-34 Z" />
+        <!-- Copete de gallito de las rocas -->
+        <path
+            android:fillColor="#f0523b"
+            android:strokeColor="#a9322c"
+            android:strokeWidth="3"
+            android:strokeLineJoin="round"
+            android:pathData="M42,65 c-12,-7 -10,-20 4,-24 c-4,-13 8,-22 21,-17 c3,-15 19,-18 29,-7 c12,-11 27,-3 26,11 c15,3 17,17 7,25 c7,10 0,21 -12,22 c-16,-12 -42,-15 -63,-7 c-8,3 -14,1 -17,-3 c-10,7 -21,0 -20,-10 c0,-4 3,-8 8,-10 c5,-2 12,0 17,3 Z" />
+        <!-- Rostro -->
+        <path
+            android:fillColor="#e85d3a"
+            android:pathData="M56,72 c13,-12 39,-15 56,-3 c13,9 16,27 7,40 c-9,14 -31,18 -49,11 c-19,-7 -27,-32 -14,-48 Z" />
+        <!-- Pico -->
+        <path
+            android:fillColor="#ffd057"
+            android:strokeColor="#a74e2d"
+            android:strokeWidth="3"
+            android:strokeLineJoin="round"
+            android:pathData="M111,77 l38,13 l-37,12 q-11,-11 -1,-25 Z" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#fff0a8"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:pathData="M116,83 l25,7 l-26,2" />
+        <!-- Ojo -->
+        <path
+            android:fillColor="#ffffff"
+            android:strokeColor="#a13730"
+            android:strokeWidth="3"
+            android:pathData="M78,83 a13,16 0 1,0 26,0 a13,16 0 1,0 -26,0 Z" />
+        <path
+            android:fillColor="#3f292a"
+            android:pathData="M89,85 a6,9 0 1,0 12,0 a6,9 0 1,0 -12,0 Z" />
+        <path
+            android:fillColor="#ffffff"
+            android:pathData="M94.5,81 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0 Z" />
+        <!-- Mejilla y patitas -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#ff9a71"
+            android:strokeWidth="4"
+            android:strokeLineCap="round"
+            android:pathData="M67,102 q9,8 17,1" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#efb542"
+            android:strokeWidth="4"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M70,145 l-3,9 M70,150 l-7,2 M106,145 l2,9 M106,150 l7,2" />
+    </group>
+</vector>
