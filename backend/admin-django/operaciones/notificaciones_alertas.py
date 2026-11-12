@@ -397,3 +397,89 @@ def probar_canales_alerta(
         'destinatarioSms': res_sms.destinatario or 'No configurado (se registrará en log)',
         'mensaje': 'Prueba de canales ejecutada correctamente.',
     }
+
+
+def enviar_alerta_fallo_respaldo(
+    respaldo_id: str,
+    origen: str,
+    almacenamiento: str,
+    detalle_error: str,
+    email_destino: str | None = None,
+    despachador: DespachadorAlertas | None = None,
+) -> dict:
+    """Notifica de inmediato al administrador cuando falla el respaldo nocturno o manual (HU-57)."""
+    desp = despachador or despachador_default
+    fecha_str = _formatear_fecha_actual()
+    destinatario_email = (email_destino or '').strip() or getattr(
+        settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe'
+    )
+    destinatario_sms = getattr(settings, 'RUPI_ALERTA_SMS_NUMERO', '')
+
+    asunto = f'[ALERTA RESPALDO RUPI] Fallo en respaldo {origen.lower()} de base de datos'
+    cuerpo = '\n'.join([
+        '======================================================================',
+        '         ALERTA CRÍTICA DE RESPALDO DE BASE DE DATOS - RUPI           ',
+        '======================================================================',
+        '',
+        f'ID de Respaldo     : {respaldo_id}',
+        f'Origen de Ejecución: {origen}',
+        f'Destino Externo    : {almacenamiento}',
+        f'Fecha y Hora       : {fecha_str}',
+        '',
+        'MOTIVO DEL FALLO:',
+        f'{detalle_error}',
+        '',
+        'IMPACTO Y RECOMENDACIÓN:',
+        'El respaldo nocturno fuera de horario escolar no pudo completarse.',
+        'Verifica el espacio/conectividad del almacenamiento externo y ejecuta',
+        'un respaldo manual desde Consola /admin -> Respaldos automáticos.',
+        '',
+        'Equipo de Seguridad y Respaldos · RUPI Plataforma Educativa',
+        '======================================================================',
+    ])
+    sms_texto = (
+        f'[RUPI ALERTA RESPALDO] Fallo en copia {origen.lower()} ({almacenamiento}): '
+        f'{detalle_error[:90]}'
+    )
+
+    mensaje = MensajeAlerta(
+        asunto=asunto,
+        cuerpo=cuerpo,
+        texto_sms=sms_texto,
+        servicio='respaldo_nocturno',
+        severidad='ALTA',
+        tipo_evento='FALLO_RESPALDO_NOCTURNO',
+        fecha_str=fecha_str,
+        destinatario_email=destinatario_email,
+        destinatario_sms=destinatario_sms,
+        extra_payload={'respaldoId': respaldo_id, 'origen': origen, 'almacenamiento': almacenamiento},
+    )
+
+    res_correo, res_sms = desp.despachar(mensaje)
+
+    return {
+        'emailEnviado': res_correo.exito,
+        'destinatarioEmail': res_correo.destinatario,
+        'errorEmail': res_correo.error,
+        'smsEnviado': res_sms.exito,
+        'destinatarioSms': res_sms.destinatario,
+        'textoAlerta': sms_texto,
+    }
+
+
+def probar_alerta_respaldo(
+    actor_nombre: str = 'Administrador',
+    email_destino: str | None = None,
+    despachador: DespachadorAlertas | None = None,
+) -> dict:
+    """Envía una notificación simulada de fallo de respaldo para comprobar alertas (HU-57)."""
+    res = enviar_alerta_fallo_respaldo(
+        respaldo_id='PRUEBA-HU57',
+        origen='PROGRAMADO (PRUEBA)',
+        almacenamiento='Almacenamiento externo configurado',
+        detalle_error=f'Simulación de alerta disparada por {actor_nombre} desde Consola /admin.',
+        email_destino=email_destino,
+        despachador=despachador,
+    )
+    res['mensaje'] = 'Alerta de prueba para respaldos nocturnos ejecutada correctamente.'
+    return res

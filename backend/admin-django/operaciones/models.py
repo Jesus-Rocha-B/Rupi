@@ -99,3 +99,75 @@ class HistorialCaida(models.Model):
     class Meta:
         managed = False
         db_table = 'operaciones_historial_caida'
+
+
+class PoliticaRespaldo(models.Model):
+    """operaciones_politica_respaldo: Programación nocturna y almacenamiento externo de respaldos (HU-57)."""
+    FRECUENCIAS = (
+        ('DIARIO', 'Diario'),
+        ('SEMANAL', 'Semanal'),
+    )
+    TIPOS_ALMACENAMIENTO = (
+        ('CARPETA_SEGURA', 'Carpeta externa segura'),
+        ('S3_COMPATIBLE', 'Almacenamiento S3 compatible'),
+        ('SFTP_REMOTO', 'Servidor SFTP remoto'),
+    )
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1)
+    habilitado = models.BooleanField(default=True)
+    hora_programada = models.CharField(max_length=5, default='02:30')
+    frecuencia = models.CharField(max_length=10, choices=FRECUENCIAS, default='DIARIO')
+    dia_semana = models.PositiveSmallIntegerField(null=True, blank=True)
+    retencion_dias = models.PositiveSmallIntegerField(default=30)
+    almacenamiento_externo_tipo = models.CharField(
+        max_length=20, choices=TIPOS_ALMACENAMIENTO, default='CARPETA_SEGURA'
+    )
+    almacenamiento_externo_ruta = models.CharField(max_length=500, default='backups-externos/rupi')
+    cifrado_activo = models.BooleanField(default=True)
+    alertar_si_falla = models.BooleanField(default=True)
+    email_alerta = models.CharField(max_length=180, null=True, blank=True)
+    ultima_ejecucion_en = models.DateTimeField(null=True, blank=True)
+    proximo_respaldo_en = models.DateTimeField(null=True, blank=True)
+    actualizado_por = models.CharField(max_length=36, null=True, blank=True)
+    actualizado_en = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'operaciones_politica_respaldo'
+
+
+class Respaldo(models.Model):
+    """operaciones_respaldo: Historial de copias de seguridad, checksums y alertas de fallo (HU-57)."""
+    TIPOS = (
+        ('COMPLETO', 'Completo'),
+        ('INCREMENTAL', 'Incremental'),
+        ('BINLOG', 'Binlog'),
+    )
+    ORIGENES = (
+        ('PROGRAMADO', 'Programado'),
+        ('MANUAL', 'Manual'),
+    )
+    ESTADOS = (
+        ('EN_CURSO', 'En curso'),
+        ('CORRECTO', 'Correcto'),
+        ('FALLIDO', 'Fallido'),
+        ('VERIFICADO', 'Verificado'),
+    )
+
+    id = models.CharField(max_length=36, primary_key=True)
+    tipo = models.CharField(max_length=20, choices=TIPOS, default='COMPLETO')
+    origen = models.CharField(max_length=15, choices=ORIGENES, default='PROGRAMADO')
+    iniciado_en = models.DateTimeField()
+    finalizado_en = models.DateTimeField(null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='EN_CURSO')
+    ubicacion_referencia = models.CharField(max_length=500, null=True, blank=True)
+    almacenamiento_externo = models.CharField(max_length=60, null=True, blank=True)
+    checksum_sha256 = models.BinaryField(null=True, blank=True)
+    tamano_bytes = models.BigIntegerField(null=True, blank=True)
+    version_esquema = models.CharField(max_length=60, null=True, blank=True)
+    detalle_error = models.CharField(max_length=500, null=True, blank=True)
+    alerta_enviada = models.BooleanField(default=False)
+
+    class Meta:
+        managed = False
+        db_table = 'operaciones_respaldo'

@@ -96,3 +96,14 @@ RUPI_ALERTA_EMAIL_RESPONSABLE = os.environ.get('RUPI_ALERTA_EMAIL_RESPONSABLE', 
 RUPI_ALERTA_SMS_NUMERO = os.environ.get('RUPI_ALERTA_SMS_NUMERO', '')
 RUPI_ALERTA_SMS_WEBHOOK = os.environ.get('RUPI_ALERTA_SMS_WEBHOOK', '')
 RUPI_AUTOREINICIO_HABILITADO = os.environ.get('RUPI_AUTOREINICIO_HABILITADO', 'true').lower() in ('1', 'true', 'si')
+
+# Respaldos automáticos nocturnos y almacenamiento externo (HU-57)
+RUPI_BACKUP_EXTERNAL_DIR = os.environ.get(
+    'RUPI_BACKUP_EXTERNAL_DIR',
+    str(BASE_DIR.parent.parent / '.local' / 'respaldos-externos'),
+)
+RUPI_BACKUP_ENCRYPTION_KEY = os.environ.get('RUPI_BACKUP_ENCRYPTION_KEY', '')
+RUPI_BACKUP_S3_ENDPOINT = os.environ.get('RUPI_BACKUP_S3_ENDPOINT', '')
+RUPI_BACKUP_S3_TOKEN = os.environ.get('RUPI_BACKUP_S3_TOKEN', '')
+RUPI_BACKUP_SFTP_CMD = os.environ.get('RUPI_BACKUP_SFTP_CMD', '')
+RUPI_MYSQLDUMP_BIN = os.environ.get('RUPI_MYSQLDUMP_BIN', '')

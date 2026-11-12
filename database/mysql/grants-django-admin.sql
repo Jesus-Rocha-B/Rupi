@@ -65,6 +65,23 @@ BEGIN
     -- HU-46: la consola registra eventos de sincronización web/celular.
     SET @g = CONCAT('GRANT INSERT ON rupi.operaciones_evento_sincronizacion TO `', usuario, '`@`', equipo, '`');
     PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    -- HU-47, HU-48 y HU-57: monitoreo de incidentes, caídas y programación/ejecución de respaldos en Django.
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'rupi' AND table_name = 'operaciones_incidente') THEN
+      SET @g = CONCAT('GRANT INSERT, UPDATE ON rupi.operaciones_incidente TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'rupi' AND table_name = 'operaciones_historial_caida') THEN
+      SET @g = CONCAT('GRANT INSERT, UPDATE ON rupi.operaciones_historial_caida TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'rupi' AND table_name = 'operaciones_respaldo') THEN
+      SET @g = CONCAT('GRANT INSERT, UPDATE ON rupi.operaciones_respaldo TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'rupi' AND table_name = 'operaciones_politica_respaldo') THEN
+      SET @g = CONCAT('GRANT INSERT, UPDATE ON rupi.operaciones_politica_respaldo TO `', usuario, '`@`', equipo, '`');
+      PREPARE s FROM @g; EXECUTE s; DEALLOCATE PREPARE s;
+    END IF;
   END IF;
 END//
 DELIMITER ;

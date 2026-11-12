@@ -15,4 +15,9 @@ urlpatterns = [
     # Tablero centralizado de arquitectura, uptime y errores (HU-48)
     path('tablero-arquitectura', vistas.tablero_arquitectura),
     path('tablero-arquitectura/caidas', vistas.registrar_caida_servidor_manual),
+    # Respaldos automáticos nocturnos, almacenamiento externo y alertas por fallo (HU-57)
+    path('respaldos', vistas.estado_respaldos),
+    path('respaldos/politica', vistas.actualizar_politica_respaldos),
+    path('respaldos/ejecutar', vistas.ejecutar_respaldo_manual),
+    path('respaldos/probar-alerta', vistas.probar_alerta_respaldo),
 ]

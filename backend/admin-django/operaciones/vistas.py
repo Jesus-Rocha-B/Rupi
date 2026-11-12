@@ -3,7 +3,16 @@ from django.conf import settings
 from identidad.respuestas import ErrorDePeticion, api, json_ok, leer_json
 from identidad.sesion import requiere_permiso
 
-from . import autoreinicio, incidentes, monitoreo, notificaciones_alertas, salud, sincronizacion, tablero_uptime
+from . import (
+    autoreinicio,
+    incidentes,
+    monitoreo,
+    notificaciones_alertas,
+    respaldos,
+    salud,
+    sincronizacion,
+    tablero_uptime,
+)
 
 
 @api({'GET'})
@@ -206,3 +215,50 @@ def registrar_caida_servidor_manual(request):
         actor_id=actor_id,
     )
     return json_ok(res, estado=201)
+
+
+# =====================================================================
+# Respaldos Automáticos Nocturnos y Almacenamiento Externo (HU-57)
+# =====================================================================
+
+@api({'GET'})
+@requiere_permiso('respaldos.ver')
+def estado_respaldos(request):
+    """Retorna la programación nocturna, guía de tarea del servidor, canales de alerta e historial."""
+    try:
+        limite = max(1, min(100, int(request.GET.get('limite', 20))))
+    except (TypeError, ValueError):
+        limite = 20
+    return json_ok(respaldos.estado_respaldos(limite=limite))
+
+
+@api({'PUT'})
+@requiere_permiso('respaldos.gestionar')
+def actualizar_politica_respaldos(request):
+    """Guarda horario de madrugada, retención, almacenamiento externo y alertas por fallo (HU-57)."""
+    datos = leer_json(request)
+    actor_id = getattr(request.administrador, 'id', None)
+    return json_ok(respaldos.actualizar_politica(datos, actor_id=actor_id))
+
+
+@api({'POST'})
+@requiere_permiso('respaldos.gestionar')
+def ejecutar_respaldo_manual(request):
+    """Dispara un respaldo completo inmediato hacia el almacenamiento externo configurado."""
+    actor_id = getattr(request.administrador, 'id', None)
+    resultado = respaldos.ejecutar_respaldo(origen='MANUAL', actor_id=actor_id)
+    estado_http = 201 if resultado.get('estado') in ('CORRECTO', 'VERIFICADO') else 500
+    return json_ok(resultado, estado=estado_http)
+
+
+@api({'POST'})
+@requiere_permiso('respaldos.gestionar')
+def probar_alerta_respaldo(request):
+    """Envía una notificación simulada de fallo nocturno al administrador para verificar alertas."""
+    nombre_actor = getattr(request.administrador, 'nombre', 'Administrador')
+    politica = respaldos.politica_vigente()
+    resultado = notificaciones_alertas.probar_alerta_respaldo(
+        actor_nombre=nombre_actor,
+        email_destino=politica.email_alerta,
+    )
+    return json_ok(resultado)
