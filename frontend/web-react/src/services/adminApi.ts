@@ -610,6 +610,8 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'curriculo.gestionar': 'Registrar y corregir el catálogo curricular',
   'acceso.ver': 'Consultar la política de bloqueo y las cuentas bloqueadas',
   'acceso.configurar': 'Configurar el límite de intentos y el bloqueo automático',
+  'respaldos.ver': 'Consultar la programación de respaldos e historial',
+  'respaldos.gestionar': 'Programar respaldos nocturnos, alertas y copias manuales',
 }
 
 export const STATE_LABELS: Record<AccountState, string> = {
@@ -629,6 +631,11 @@ export const AUDIT_LABELS: Record<string, string> = {
   CUENTA_BLOQUEADA: 'Cuenta bloqueada',
   CUENTA_DESBLOQUEADA: 'Cuenta desbloqueada',
   POLITICA_ACCESO_ACTUALIZADA: 'Política de bloqueo actualizada',
+  POLITICA_RESPALDO_ACTUALIZADA: 'Programación de respaldos actualizada',
+  RESPALDO_PROGRAMADO_COMPLETADO: 'Respaldo nocturno completado',
+  RESPALDO_MANUAL_COMPLETADO: 'Respaldo manual completado',
+  RESPALDO_PROGRAMADO_FALLIDO: 'Fallo en respaldo nocturno',
+  RESPALDO_MANUAL_FALLIDO: 'Fallo en respaldo manual',
 }
 
 export function auditLabel(action: string) {
@@ -722,3 +729,81 @@ export const RECOMMENDED_ACCESS_POLICY: AccessPolicy = {
 export const fetchAccessPolicy = (signal?: AbortSignal) => request<AccessPolicyState>('acceso/politica', { signal })
 export const saveAccessPolicy = (policy: AccessPolicy) =>
   request<AccessPolicyState>('acceso/politica', { method: 'PUT', body: JSON.stringify(policy) })
+
+// HU-57 · Respaldos automáticos nocturnos, almacenamiento externo y alertas por fallo
+export type BackupFrequency = 'DIARIO' | 'SEMANAL'
+export type BackupStorageType = 'CARPETA_SEGURA' | 'S3_COMPATIBLE' | 'SFTP_REMOTO'
+export type BackupStatus = 'EN_CURSO' | 'CORRECTO' | 'FALLIDO' | 'VERIFICADO'
+
+export interface BackupPolicy {
+  habilitado: boolean
+  horaProgramada: string
+  frecuencia: BackupFrequency
+  diaSemana: number | null
+  retencionDias: number
+  almacenamientoExternoTipo: BackupStorageType
+  almacenamientoExternoRuta: string
+  cifradoActivo: boolean
+  alertarSiFalla: boolean
+  emailAlerta: string
+  ultimaEjecucionEn?: string | null
+  proximoRespaldoEn?: string | null
+  actualizadoEn?: string | null
+}
+
+export interface BackupRecord {
+  id: string
+  tipo: 'COMPLETO' | 'INCREMENTAL' | 'BINLOG'
+  origen: 'PROGRAMADO' | 'MANUAL'
+  estado: BackupStatus
+  iniciadoEn: string
+  finalizadoEn: string | null
+  duracionSegundos: number | null
+  ubicacionReferencia: string | null
+  almacenamientoExterno: string | null
+  checksumSha256: string | null
+  tamanoBytes: number | null
+  versionEsquema: string | null
+  detalleError: string | null
+  alertaEnviada: boolean
+}
+
+export interface BackupServerTask {
+  cronExpresion: string
+  cronLinea: string
+  comandoDjango: string
+  windowsScript: string
+  windowsInstalador: string
+  programacionResumen: string
+  frecuenciaEtiqueta: string
+}
+
+export interface BackupsState {
+  politica: BackupPolicy
+  limites: {
+    horaMadrugada: { min: string; max: string; zonaHoraria: string }
+    retencionDias: { min: number; max: number }
+    frecuencias: BackupFrequency[]
+    tiposAlmacenamiento: BackupStorageType[]
+  }
+  tareaServidor: BackupServerTask
+  canalesAlerta: {
+    emailResponsable: string
+    smsNumero: string | null
+    webhookConfigurado: boolean
+  }
+  estadisticas: {
+    total30d: number
+    exitosos30d: number
+    fallidos30d: number
+    tasaExitoPercent: number
+    ultimoRespaldo: BackupRecord | null
+  }
+  historial: BackupRecord[]
+}
+
+export const fetchBackups = (signal?: AbortSignal) => request<BackupsState>('respaldos', { signal })
+export const saveBackupPolicy = (policy: Omit<BackupPolicy, 'ultimaEjecucionEn' | 'proximoRespaldoEn' | 'actualizadoEn'>) =>
+  request<BackupsState>('respaldos/politica', { method: 'PUT', body: JSON.stringify(policy) })
+export const runBackupNow = () => post<BackupRecord>('respaldos/ejecutar')
+export const testBackupAlert = () => post<TestAlertResponse>('respaldos/probar-alerta')

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Activity, ArrowLeftRight, BarChart3, BookOpen, ChevronDown, LockKeyhole, LogOut, MonitorSmartphone, ShieldCheck, UserRound, Users } from 'lucide-react'
+import { Activity, ArrowLeftRight, BarChart3, BookOpen, ChevronDown, DatabaseBackup, LockKeyhole, LogOut, MonitorSmartphone, ShieldCheck, UserRound, Users } from 'lucide-react'
 import { AdminApiError, adminLogout, fetchAdminSession, type Administrator } from '../../services/adminApi'
 import { AccessPolicyView } from './AccessPolicyView'
 import { AccountsView } from './AccountsView'
 import { AdminLogin } from './AdminLogin'
 import { ArchitectureDashboardView } from './ArchitectureDashboardView'
+import { BackupsView } from './BackupsView'
 import { CurriculumView } from './CurriculumView'
 import { HealthView } from './HealthView'
 import { RolesView } from './RolesView'
@@ -14,7 +15,7 @@ import { LanguageModerationView } from './LanguageModerationView'
 import './AdminConsole.css'
 import './AdminNavigation.css'
 
-type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'acceso' | 'catalogo' | 'moderacion' | 'salud' | 'tablero' | 'sincronizacion'
+type SectionId = 'cuentas' | 'roles' | 'sesiones' | 'acceso' | 'catalogo' | 'moderacion' | 'salud' | 'tablero' | 'sincronizacion' | 'respaldos'
 
 interface Section {
   id: SectionId
@@ -33,13 +34,14 @@ const SECTIONS: Section[] = [
   { id: 'salud', label: 'Salud', permission: 'plataforma.monitorear', icon: Activity },
   { id: 'tablero', label: 'Tablero de Uptime', permission: 'plataforma.monitorear', icon: BarChart3 },
   { id: 'sincronizacion', label: 'Sincronización Web/Móvil', permission: 'sincronizacion.auditar', icon: ArrowLeftRight },
+  { id: 'respaldos', label: 'Respaldos automáticos', permission: 'respaldos.ver', icon: DatabaseBackup },
 ]
 
 const GROUPS: { label: string; icon: typeof Users; sections: SectionId[] }[] = [
   { label: 'Usuarios', icon: Users, sections: ['cuentas', 'roles', 'sesiones', 'acceso'] },
   { label: 'Catálogo MINEDU', icon: BookOpen, sections: ['catalogo'] },
   { label: 'Moderación IA', icon: ShieldCheck, sections: ['moderacion'] },
-  { label: 'Monitoreo', icon: Activity, sections: ['salud', 'tablero', 'sincronizacion'] },
+  { label: 'Monitoreo', icon: Activity, sections: ['salud', 'tablero', 'sincronizacion', 'respaldos'] },
 ]
 
 export function AdminApp() {
@@ -171,6 +173,7 @@ export function AdminApp() {
         {current?.id === 'salud' && <HealthView onSessionLost={handleSessionLost} />}
         {current?.id === 'tablero' && <ArchitectureDashboardView onSessionLost={handleSessionLost} />}
         {current?.id === 'sincronizacion' && <SyncAuditView onSessionLost={handleSessionLost} />}
+        {current?.id === 'respaldos' && <BackupsView admin={admin} onSessionLost={handleSessionLost} />}
       </main>
     </div>
   )

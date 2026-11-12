@@ -1,0 +1,207 @@
+/* HU-57 · Respaldos automáticos nocturnos: cuaderno de registro escolar con sellos táctiles. */
+.backups-view h2 {
+  margin: 0 0 12px;
+  color: var(--adm-forest);
+  font-size: 1.2rem;
+}
+
+.backups-form {
+  display: grid;
+  gap: 18px;
+}
+
+.backups-group {
+  margin: 0;
+  padding: 18px 20px 20px;
+  border: 2px solid var(--adm-line);
+  border-radius: 16px;
+  background: #fffdf8;
+  box-shadow: 0 4px 0 var(--adm-paper-deep);
+  min-width: 0;
+}
+
+.backups-group legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  color: var(--adm-forest);
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.backups-group legend svg {
+  color: var(--adm-leaf);
+}
+
+.backups-group > .admin-muted {
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.backups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-items: start;
+  gap: 16px;
+}
+
+.backups-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  margin-bottom: 14px;
+  font-weight: 800;
+  color: var(--adm-forest);
+  cursor: pointer;
+}
+
+.backups-switch input {
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  accent-color: var(--adm-leaf);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.backups-switch input:focus-visible {
+  outline: 3px solid var(--adm-sky);
+  outline-offset: 3px;
+}
+
+.backups-summary {
+  margin: 0;
+  padding: 14px 16px;
+  border: 2px solid var(--adm-sun);
+  border-left: 8px solid var(--adm-sun-dark);
+  border-radius: 14px;
+  background: #fff8e3;
+  color: var(--adm-ink);
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.backups-summary strong {
+  color: var(--adm-forest);
+}
+
+.backups-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.backups-footer .admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.backups-section {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 2px dashed var(--adm-line);
+}
+
+.backups-tasks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.backups-task-card {
+  padding: 14px 16px;
+  border: 2px solid var(--adm-line);
+  border-left: 6px solid var(--adm-sky);
+  border-radius: 14px;
+  background: #fffdf8;
+  display: grid;
+  gap: 8px;
+}
+
+.backups-task-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 800;
+  color: var(--adm-forest);
+}
+
+.backups-code {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--adm-paper-deep);
+  border: 1px solid var(--adm-line);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.85rem;
+  color: var(--adm-ink);
+  overflow-x: auto;
+  word-break: break-all;
+}
+
+.backups-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.backups-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px 16px;
+  padding: 14px 16px;
+  border: 2px solid var(--adm-line);
+  border-left: 8px solid var(--adm-leaf);
+  border-radius: 14px;
+  background: #fffdf8;
+}
+
+.backups-history-row.is-failed {
+  border-left-color: var(--adm-orange);
+  background: #fff7f4;
+}
+
+.backups-meta {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.backups-meta strong {
+  color: var(--adm-forest);
+  font-size: 1rem;
+}
+
+.backups-meta small {
+  color: var(--adm-muted);
+  word-break: break-word;
+}
+
+.backups-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.backups-copy-btn {
+  min-height: 48px;
+}
+
+@media (max-width: 640px) {
+  .backups-history-row {
+    grid-template-columns: 1fr;
+  }
+  .backups-badges {
+    justify-content: flex-start;
+  }
+}
