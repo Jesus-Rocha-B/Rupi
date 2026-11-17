@@ -6,6 +6,8 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import pe.rupi.mobile.data.model.*
+import java.net.URLEncoder
+import java.util.Locale
 import java.util.UUID
 
 /**
@@ -70,6 +72,29 @@ class DefaultRupiRemoteDataSource(
  private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : RupiRemoteDataSource {
 
+ companion object {
+  /**
+   * Valida y codifica un segmento de ruta REST para prevenir path parameter injection (`/`, `?`, `#`, `..`).
+   */
+  fun safePathSegment(raw: String): String {
+   val trimmed = raw.trim()
+   val lowered = trimmed.lowercase(Locale.ROOT)
+   require(
+    trimmed.isNotEmpty() &&
+     !trimmed.contains('/') &&
+     !trimmed.contains('\\') &&
+     !trimmed.contains('?') &&
+     !trimmed.contains('#') &&
+     !trimmed.contains("..") &&
+     !lowered.contains("%2e") &&
+     !lowered.contains("%2f") &&
+     !lowered.contains("%5c") &&
+     trimmed.none { it.code < 0x20 || it.code == 0x7F }
+   ) { "Identificador de recurso inválido." }
+   return URLEncoder.encode(trimmed, Charsets.UTF_8.name()).replace("+", "%20")
+  }
+ }
+
  override suspend fun login(serverUrl: String, username: String, password: String): RupiApi =
   withContext(ioDispatcher) {
    val client = RupiApi(serverUrl)
@@ -79,8 +104,11 @@ class DefaultRupiRemoteDataSource(
   }
 
  override suspend fun logout() = withContext(ioDispatcher) {
-  sessionHolder.get()?.request("/api/v1/auth/logout", "POST")
-  sessionHolder.clear()
+  try {
+   sessionHolder.get()?.request("/api/v1/auth/logout", "POST")
+  } finally {
+   sessionHolder.clear()
+  }
  }
 
  override suspend fun getLearningRoutes(): List<LearningRouteSummary> = withContext(ioDispatcher) {
@@ -98,13 +126,14 @@ class DefaultRupiRemoteDataSource(
 
  override suspend fun getRouteDetail(routeId: String): RouteDetail = withContext(ioDispatcher) {
   val client = sessionHolder.require()
-  val json = JSONObject(client.request("/api/v1/student/learning-routes/$routeId"))
+  val safeRoute = safePathSegment(routeId)
+  val json = JSONObject(client.request("/api/v1/student/learning-routes/$safeRoute"))
   RupiJsonMapper.parseRouteDetail(json)
  }
 
  override suspend fun startLessonNode(routeId: String, nodeId: String): LessonDetail = withContext(ioDispatcher) {
   val client = sessionHolder.require()
-  val json = JSONObject(client.request("/api/v1/student/learning-routes/$routeId/nodes/$nodeId/start", "POST"))
+  val json = JSONObject(client.request(nodePath(routeId, nodeId, "start"), "POST"))
   RupiJsonMapper.parseLessonDetail(json, client::resource)
  }
 
@@ -114,15 +143,16 @@ class DefaultRupiRemoteDataSource(
   selectedOptionId: String
  ): QuestionFeedback = withContext(ioDispatcher) {
   val client = sessionHolder.require()
+  val safeActivity = safePathSegment(activityId)
   val body = JSONObject().put("questionId", questionId).put("selectedOptionId", selectedOptionId)
-  val json = JSONObject(client.request("/api/v1/student/activities/$activityId/questions/answer", "POST", body))
+  val json = JSONObject(client.request("/api/v1/student/activities/$safeActivity/questions/answer", "POST", body))
   RupiJsonMapper.parseQuestionFeedback(json, questionId)
  }
 
  override suspend fun completeNode(routeId: String, nodeId: String): NodeCompletionResult =
   withContext(ioDispatcher) {
    val client = sessionHolder.require()
-   val json = JSONObject(client.request("/api/v1/student/learning-routes/$routeId/nodes/$nodeId/complete", "POST"))
+   val json = JSONObject(client.request(nodePath(routeId, nodeId, "complete"), "POST"))
    RupiJsonMapper.parseNodeCompletion(json)
   }
 
@@ -155,6 +185,7 @@ class DefaultRupiRemoteDataSource(
 
  override suspend fun updateDailyGoalTarget(target: Int) {
   withContext(ioDispatcher) {
+   require(target in 1..20) { "La meta diaria debe estar entre 1 y 20 lecciones." }
    sessionHolder.require().request("/api/v1/student/daily-goal/target?target=$target", "PUT")
   }
  }
@@ -166,7 +197,8 @@ class DefaultRupiRemoteDataSource(
 
  override suspend fun completeDailyChallenge(challengeId: String): DailyChallengeCompletion =
   withContext(ioDispatcher) {
-   val json = JSONObject(sessionHolder.require().request("/api/v1/student/daily-challenge/$challengeId/complete", "POST"))
+   val safeChallenge = safePathSegment(challengeId)
+   val json = JSONObject(sessionHolder.require().request("/api/v1/student/daily-challenge/$safeChallenge/complete", "POST"))
    DailyChallengeCompletion(rupiMessage = json.getString("rupiMessage"))
   }
 
@@ -186,12 +218,13 @@ class DefaultRupiRemoteDataSource(
 
  override suspend fun markNotificationAsRead(notificationId: String) {
   withContext(ioDispatcher) {
-   sessionHolder.require().request("/api/v1/student/notifications/$notificationId/read", "PUT")
+   val safeId = safePathSegment(notificationId)
+   sessionHolder.require().request("/api/v1/student/notifications/$safeId/read", "PUT")
   }
  }
 
  private fun nodePath(routeId: String, nodeId: String, suffix: String) =
-  "/api/v1/student/learning-routes/$routeId/nodes/$nodeId/$suffix"
+  "/api/v1/student/learning-routes/${safePathSegment(routeId)}/nodes/${safePathSegment(nodeId)}/$suffix"
 
  override suspend fun getAiPractice(routeId: String, nodeId: String): AiPracticeStatus = withContext(ioDispatcher) {
   val json = JSONObject(sessionHolder.require().request(nodePath(routeId, nodeId, "ai-quiz")))
@@ -210,8 +243,9 @@ class DefaultRupiRemoteDataSource(
 
  override suspend fun answerAiQuestion(practiceId: String, questionId: String, optionId: String) {
   withContext(ioDispatcher) {
+   val safePractice = safePathSegment(practiceId)
    sessionHolder.require().request(
-    "/api/v1/student/ai-quizzes/$practiceId/answers",
+    "/api/v1/student/ai-quizzes/$safePractice/answers",
     "POST",
     JSONObject().put("questionId", questionId).put("optionId", optionId)
    )
@@ -220,8 +254,9 @@ class DefaultRupiRemoteDataSource(
 
  override suspend fun reportAiQuestion(practiceId: String, questionId: String, reason: String) {
   withContext(ioDispatcher) {
+   val safePractice = safePathSegment(practiceId)
    sessionHolder.require().request(
-    "/api/v1/student/ai-quizzes/$practiceId/reports",
+    "/api/v1/student/ai-quizzes/$safePractice/reports",
     "POST",
     JSONObject().put("questionId", questionId).put("reason", reason)
    )
@@ -230,8 +265,10 @@ class DefaultRupiRemoteDataSource(
 
  override suspend fun getAiQuestionHint(practiceId: String, questionId: String): QuestionHint =
   withContext(ioDispatcher) {
+   val safePractice = safePathSegment(practiceId)
+   val safeQuestion = safePathSegment(questionId)
    val json = JSONObject(
-    sessionHolder.require().request("/api/v1/student/ai-quizzes/$practiceId/questions/$questionId/hint", "POST")
+    sessionHolder.require().request("/api/v1/student/ai-quizzes/$safePractice/questions/$safeQuestion/hint", "POST")
    )
    RupiJsonMapper.parseQuestionHint(json)
   }
@@ -276,13 +313,15 @@ class DefaultRupiRemoteDataSource(
 
  override suspend fun downloadVisualSummaryPackage(routeId: String, nodeId: String, resourceId: String): ByteArray =
   withContext(ioDispatcher) {
-   sessionHolder.require().download("${nodePath(routeId, nodeId, "visual-summary")}/$resourceId/package")
+   val safeResource = safePathSegment(resourceId)
+   sessionHolder.require().download("${nodePath(routeId, nodeId, "visual-summary")}/$safeResource/package")
   }
 
  override suspend fun reportVisualSummary(routeId: String, nodeId: String, resourceId: String, reason: String) {
   withContext(ioDispatcher) {
+   val safeResource = safePathSegment(resourceId)
    sessionHolder.require().request(
-    "${nodePath(routeId, nodeId, "visual-summary")}/$resourceId/report",
+    "${nodePath(routeId, nodeId, "visual-summary")}/$safeResource/report",
     "POST",
     JSONObject().put("reason", reason)
    )
