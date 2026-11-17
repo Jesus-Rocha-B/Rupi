@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import pe.rupi.mobile.data.model.SavedVisualSummary
 import pe.rupi.mobile.data.model.StudyTopic
-import pe.rupi.mobile.data.model.VisualSummaryResource
+import pe.rupi.mobile.data.remote.RupiApi
 import pe.rupi.mobile.data.remote.RupiJsonMapper
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -28,6 +28,7 @@ sealed interface SavedCopyCheck {
 
 /**
  * Fuente de datos local para resúmenes visuales descargados sin conexión (HU-23).
+ * Protegida contra ZIP Slip, ZIP Bomb (CWE-409) y escape de directorio en almacenamiento interno.
  */
 interface LocalSummaryDataSource {
  suspend fun listSaved(): SavedSummariesReadResult
@@ -42,14 +43,41 @@ class FileLocalSummaryDataSource(
  private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : LocalSummaryDataSource {
 
+ companion object {
+  const val MAX_ZIP_ENTRIES = 100
+  const val MAX_UNCOMPRESSED_BYTES = 5 * 1024 * 1024
+ }
+
  private fun folder(): File = File(filesDir, "visual-summaries")
+
+ private fun sanitizeFileToken(raw: String): String {
+  val trimmed = raw.trim()
+  require(trimmed.isNotEmpty()) { "Identificador de archivo vacío." }
+  return try {
+   UUID.fromString(trimmed).toString()
+  } catch (_: Exception) {
+   trimmed.replace(Regex("[^a-zA-Z0-9_-]"), "_").take(80).ifBlank {
+    throw IllegalArgumentException("Identificador de archivo inválido.")
+   }
+  }
+ }
 
  private fun summaryFile(routeId: String, nodeId: String): File {
   val dir = folder()
   dir.mkdirs()
-  val safeRoute = try { UUID.fromString(routeId).toString() } catch (_: Exception) { routeId.replace(Regex("[^a-zA-Z0-9_-]"), "_") }
-  val safeNode = try { UUID.fromString(nodeId).toString() } catch (_: Exception) { nodeId.replace(Regex("[^a-zA-Z0-9_-]"), "_") }
-  return File(dir, "$safeRoute-$safeNode.json")
+  val safeRoute = sanitizeFileToken(routeId)
+  val safeNode = sanitizeFileToken(nodeId)
+  val baseDir = dir.canonicalFile
+  val target = File(baseDir, "$safeRoute-$safeNode.json").canonicalFile
+  require(target.path.startsWith(baseDir.path + File.separator)) {
+   "Ruta de almacenamiento fuera del directorio autorizado."
+  }
+  return target
+ }
+
+ private fun readJsonSafely(file: File): JSONObject {
+  require(file.length() <= MAX_UNCOMPRESSED_BYTES) { "Archivo local excede el límite permitido." }
+  return JSONObject(file.readText(Charsets.UTF_8))
  }
 
  override suspend fun listSaved(): SavedSummariesReadResult = withContext(ioDispatcher) {
@@ -57,8 +85,9 @@ class FileLocalSummaryDataSource(
   val items = mutableListOf<SavedVisualSummary>()
   var unreadable = 0
   files.forEach { file ->
+   if (!file.isFile || !file.name.endsWith(".json")) return@forEach
    try {
-    val saved = JSONObject(file.readText(Charsets.UTF_8))
+    val saved = readJsonSafely(file)
     val topic = RupiJsonMapper.parseStudyTopic(saved.getJSONObject("topic"))
     val resource = RupiJsonMapper.parseVisualSummaryResource(saved.getJSONObject("resource"))
     items.add(SavedVisualSummary(topic = topic, resource = resource))
@@ -72,7 +101,7 @@ class FileLocalSummaryDataSource(
  override suspend fun readSaved(routeId: String, nodeId: String): SavedVisualSummary? = withContext(ioDispatcher) {
   val file = summaryFile(routeId, nodeId)
   if (!file.exists()) return@withContext null
-  val saved = JSONObject(file.readText(Charsets.UTF_8))
+  val saved = readJsonSafely(file)
   SavedVisualSummary(
    topic = RupiJsonMapper.parseStudyTopic(saved.getJSONObject("topic")),
    resource = RupiJsonMapper.parseVisualSummaryResource(saved.getJSONObject("resource"))
@@ -83,7 +112,7 @@ class FileLocalSummaryDataSource(
   val file = summaryFile(routeId, nodeId)
   if (!file.exists()) return@withContext SavedCopyCheck.Missing
   try {
-   val saved = JSONObject(file.readText(Charsets.UTF_8))
+   val saved = readJsonSafely(file)
    val version = saved.getJSONObject("resource").optString("version")
    SavedCopyCheck.Valid(version)
   } catch (_: Exception) {
@@ -93,12 +122,21 @@ class FileLocalSummaryDataSource(
 
  override suspend fun saveFromZipPackage(topic: StudyTopic, zipBytes: ByteArray) = withContext(ioDispatcher) {
   var payload: JSONObject? = null
+  var entryCount = 0
   ZipInputStream(ByteArrayInputStream(zipBytes)).use { zip ->
    var entry = zip.nextEntry
    while (entry != null) {
-    if (entry.name == "contenido.json") {
-     payload = JSONObject(zip.readBytes().toString(Charsets.UTF_8))
+    entryCount++
+    check(entryCount <= MAX_ZIP_ENTRIES) { "Paquete ZIP rechazado por exceder el máximo de entradas permitidas." }
+    val name = entry.name
+    require(!name.contains("..") && !name.contains('\\') && !name.startsWith("/")) {
+     "Entrada ZIP insegura detectada."
     }
+    if (!entry.isDirectory && name == "contenido.json") {
+     val contentBytes = RupiApi.readBoundedBytes(zip, MAX_UNCOMPRESSED_BYTES)
+     payload = JSONObject(contentBytes.toString(Charsets.UTF_8))
+    }
+    zip.closeEntry()
     entry = zip.nextEntry
    }
   }
