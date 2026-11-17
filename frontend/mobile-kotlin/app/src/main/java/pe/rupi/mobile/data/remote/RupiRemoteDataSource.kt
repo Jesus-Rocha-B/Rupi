@@ -103,11 +103,13 @@ class DefaultRupiRemoteDataSource(
    client
   }
 
- override suspend fun logout() = withContext(ioDispatcher) {
-  try {
-   sessionHolder.get()?.request("/api/v1/auth/logout", "POST")
-  } finally {
-   sessionHolder.clear()
+ override suspend fun logout() {
+  withContext(ioDispatcher) {
+   try {
+    sessionHolder.get()?.request("/api/v1/auth/logout", "POST")
+   } finally {
+    sessionHolder.clear()
+   }
   }
  }
 
