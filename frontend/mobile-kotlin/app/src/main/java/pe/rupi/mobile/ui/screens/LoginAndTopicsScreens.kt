@@ -33,8 +33,8 @@ fun mountLoginScreen(
    user = input("Usuario escolar")
    password = input("Contraseña", password = true)
    button("Entrar a aprender") {
-    val serverText = server.text.toString()
-    val username = user.text.toString()
+    val serverText = server.text.toString().trim()
+    val username = user.text.toString().trim()
     val secret = password.text.toString()
     password.setText("")
     onLogin(serverText, username, secret)
@@ -84,7 +84,8 @@ fun mountTopicsScreen(
    code.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
    code.filters = arrayOf(InputFilter.LengthFilter(40), InputFilter.AllCaps())
    button("Unirme a la ruta", kind = RupiUi.Kind.LEAF) {
-    onJoinByCode(code.text.toString())
+    val rawCode = code.text.toString().trim()
+    if (rawCode.isNotBlank()) onJoinByCode(rawCode)
    }
   }
   section("Más opciones")

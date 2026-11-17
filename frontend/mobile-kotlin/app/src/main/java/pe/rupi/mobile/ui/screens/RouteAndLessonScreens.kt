@@ -220,8 +220,13 @@ fun renderLessonBody(
    if (completed && !answeredAll) {
     feedback("Ya completaste esta parada. Puedes repasarla cuando quieras.", NoticeTone.OK)
    } else {
+    val buttonLabel = when {
+     answeredAll -> "Terminar parada"
+     lesson.questions.size == 1 -> "Responde la pregunta pendiente para terminar"
+     else -> "Responde las ${lesson.questions.size} preguntas para terminar"
+    }
     button(
-     label = if (answeredAll) "Terminar parada" else "Responde las ${lesson.questions.size} preguntas para terminar",
+     label = buttonLabel,
      enabled = answeredAll
     ) { onCompleteNode() }
    }
