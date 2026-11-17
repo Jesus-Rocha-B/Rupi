@@ -47,8 +47,8 @@ class FileLocalSummaryDataSource(
  private fun summaryFile(routeId: String, nodeId: String): File {
   val dir = folder()
   dir.mkdirs()
-  val safeRoute = UUID.fromString(routeId).toString()
-  val safeNode = UUID.fromString(nodeId).toString()
+  val safeRoute = try { UUID.fromString(routeId).toString() } catch (_: Exception) { routeId.replace(Regex("[^a-zA-Z0-9_-]"), "_") }
+  val safeNode = try { UUID.fromString(nodeId).toString() } catch (_: Exception) { nodeId.replace(Regex("[^a-zA-Z0-9_-]"), "_") }
   return File(dir, "$safeRoute-$safeNode.json")
  }
 

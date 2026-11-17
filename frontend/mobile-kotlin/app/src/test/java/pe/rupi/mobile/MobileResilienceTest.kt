@@ -48,4 +48,16 @@ class MobileResilienceTest {
   val routes = RupiJsonMapper.parseLearningRoutes(jsonSinItems)
   assertTrue(routes.isEmpty())
  }
+
+ @Test
+ fun `FileLocalSummaryDataSource checkSavedCopy tolera identificadores no UUID sin excepcion`() = kotlinx.coroutines.test.runTest {
+  val tempDir = java.nio.file.Files.createTempDirectory("rupi-test").toFile()
+  try {
+   val localDs = pe.rupi.mobile.data.local.FileLocalSummaryDataSource(tempDir)
+   val check = localDs.checkSavedCopy("ruta-demo-123", "nodo-demo-456")
+   assertEquals(pe.rupi.mobile.data.local.SavedCopyCheck.Missing, check)
+  } finally {
+   tempDir.deleteRecursively()
+  }
+ }
 }
