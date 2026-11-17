@@ -13,12 +13,12 @@ object RupiJsonMapper {
   json.optString(key).takeIf { it.isNotBlank() && it != "null" }
 
  fun parseLearningRoutes(json: JSONObject): List<LearningRouteSummary> {
-  val items = json.getJSONArray("items")
+  val items = json.optJSONArray("items") ?: JSONArray()
   return List(items.length()) { index ->
    val item = items.getJSONObject(index)
    LearningRouteSummary(
-    versionRouteId = item.getString("versionRouteId"),
-    title = item.getString("title"),
+    versionRouteId = item.optString("versionRouteId"),
+    title = item.optString("title"),
     gradeName = item.optJSONObject("grade")?.optString("name").orEmpty(),
     areaName = item.optJSONObject("area")?.optString("name").orEmpty(),
     completedNodes = item.optInt("completedNodes"),
@@ -30,7 +30,7 @@ object RupiJsonMapper {
  fun parseJoinRouteResult(json: JSONObject): JoinRouteResult {
   val title = json.optString("routeTitle")
   val route = LearningRouteSummary(
-   versionRouteId = json.getString("versionRouteId"),
+   versionRouteId = json.optString("versionRouteId"),
    title = title,
    gradeName = json.optJSONObject("grade")?.optString("name").orEmpty(),
    areaName = json.optJSONObject("area")?.optString("name").orEmpty()
@@ -40,21 +40,21 @@ object RupiJsonMapper {
  }
 
  fun parseRouteDetail(json: JSONObject): RouteDetail {
-  val progress = json.getJSONObject("progress")
+  val progress = json.optJSONObject("progress")
   val route = LearningRouteSummary(
-   versionRouteId = json.getString("versionRouteId").ifBlank { "" },
-   title = json.getString("title"),
+   versionRouteId = json.optString("versionRouteId").ifBlank { "" },
+   title = json.optString("title"),
    gradeName = json.optJSONObject("grade")?.optString("name").orEmpty(),
    areaName = json.optJSONObject("area")?.optString("name").orEmpty(),
-   completedNodes = progress.optInt("completedNodes"),
-   totalNodes = progress.optInt("totalNodes")
+   completedNodes = progress?.optInt("completedNodes") ?: 0,
+   totalNodes = progress?.optInt("totalNodes") ?: 0
   )
-  val nodesArray = json.getJSONArray("nodes")
+  val nodesArray = json.optJSONArray("nodes") ?: JSONArray()
   val nodes = List(nodesArray.length()) { index ->
    val n = nodesArray.getJSONObject(index)
    RouteNode(
-    id = n.getString("id"),
-    title = n.getString("title"),
+    id = n.optString("id"),
+    title = n.optString("title"),
     sequence = n.optInt("sequence"),
     state = RouteNodeState.fromApi(n.optString("state")),
     estimatedMinutes = n.optInt("estimatedMinutes"),
@@ -112,14 +112,14 @@ object RupiJsonMapper {
  private fun parseLessonQuestions(questionsJson: JSONArray): List<LessonQuestion> =
   List(questionsJson.length()) { i ->
    val q = questionsJson.getJSONObject(i)
-   val optsJson = q.getJSONArray("options")
+   val optsJson = q.optJSONArray("options") ?: JSONArray()
    LessonQuestion(
-    id = q.getString("id"),
-    statement = q.getString("statement"),
+    id = q.optString("id"),
+    statement = q.optString("statement"),
     explanation = q.optString("explanation"),
     options = List(optsJson.length()) { j ->
      val opt = optsJson.getJSONObject(j)
-     QuestionOption(id = opt.getString("id"), text = opt.getString("text"))
+     QuestionOption(id = opt.optString("id"), text = opt.optString("text"))
     }
    )
   }
