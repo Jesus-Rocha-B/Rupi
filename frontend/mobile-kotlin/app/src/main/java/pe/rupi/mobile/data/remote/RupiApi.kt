@@ -31,8 +31,24 @@ class RupiApi(server: String) {
   ) { "Usa la dirección base del servidor Rupi." }
   require(
    base.scheme == "https" ||
-    (BuildConfig.DEBUG && base.scheme == "http" && base.host in setOf("10.0.2.2", "127.0.0.1", "localhost"))
-  ) { "Usa HTTPS. En debug se permite el emulador local." }
+    (BuildConfig.DEBUG && base.scheme == "http" && isLocalOrLanHost(base.host))
+  ) { "Usa HTTPS. En debug se permite el emulador local o red LAN de desarrollo." }
+ }
+
+ companion object {
+  fun isLocalOrLanHost(host: String?): Boolean {
+   if (host == null) return false
+   if (host in setOf("10.0.2.2", "127.0.0.1", "localhost")) return true
+   val parts = host.split('.')
+   if (parts.size == 4 && parts.all { it.toIntOrNull() in 0..255 }) {
+    val b0 = parts[0].toInt()
+    val b1 = parts[1].toInt()
+    if (b0 == 192 && b1 == 168) return true
+    if (b0 == 10) return true
+    if (b0 == 172 && b1 in 16..31) return true
+   }
+   return false
+  }
  }
 
  fun request(path: String, method: String = "GET", body: JSONObject? = null): String =
@@ -63,7 +79,12 @@ class RupiApi(server: String) {
    if (status !in 200..299) {
     val text = connection.errorStream?.bufferedReader()?.use { it.readText().take(4000) }.orEmpty()
     val message = try {
-     JSONObject(text).optString("detail")
+     val json = JSONObject(text)
+     json.optString("detail").ifBlank {
+      json.optString("message").ifBlank {
+       json.optString("error")
+      }
+     }
     } catch (_: Exception) {
      ""
     }
