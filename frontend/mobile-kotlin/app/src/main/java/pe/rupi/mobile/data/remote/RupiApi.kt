@@ -3,18 +3,21 @@ package pe.rupi.mobile.data.remote
 import org.json.JSONObject
 import pe.rupi.mobile.BuildConfig
 import pe.rupi.mobile.data.model.sessionEnded
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.net.CookieManager
 import java.net.CookiePolicy
 import java.net.HttpCookie
 import java.net.HttpURLConnection
 import java.net.URI
 import java.security.MessageDigest
+import java.util.Locale
 import java.util.UUID
 
 /**
  * Cliente HTTP REST que conversa únicamente con Spring Boot.
  * Mantiene cookies de sesión en memoria, cabecera HU-43 (`X-Rupi-Cliente: MOVIL`),
- * validación HTTPS en release y comprobación SHA-256 de paquetes descargados.
+ * validación HTTPS en release, límites de respuesta anti-DoS y comprobación SHA-256 en tiempo constante.
  */
 class RupiApi(server: String) {
  private val base = URI(server.trim().trimEnd('/'))
@@ -36,6 +39,10 @@ class RupiApi(server: String) {
  }
 
  companion object {
+  const val MAX_JSON_RESPONSE_BYTES = 2 * 1024 * 1024
+  const val MAX_DOWNLOAD_BYTES = 15 * 1024 * 1024
+  private const val SESSION_COOKIE_NAME = "rupi_session"
+
   fun isLocalOrLanHost(host: String?): Boolean {
    if (host == null) return false
    if (host in setOf("10.0.2.2", "127.0.0.1", "localhost")) return true
@@ -49,16 +56,66 @@ class RupiApi(server: String) {
    }
    return false
   }
+
+  /**
+   * Valida que la ruta API sea relativa a `/api/v1/`, libre de path traversal (crudo o codificado),
+   * caracteres de control CR/LF y que tras normalizar mantenga el mismo origen (`scheme`, `host`, `port`).
+   */
+  fun validateApiPath(baseUri: URI, path: String): URI {
+   val lowered = path.lowercase(Locale.ROOT)
+   require(
+    path.startsWith("/api/v1/") &&
+     !path.contains("..") &&
+     !lowered.contains("%2e") &&
+     !path.contains('\\') &&
+     !lowered.contains("%5c") &&
+     path.none { it == '\r' || it == '\n' || it.code < 0x20 || it.code == 0x7F }
+   ) { "Ruta API no permitida." }
+   val resolved = baseUri.resolve(path).normalize()
+   require(
+    resolved.scheme == baseUri.scheme &&
+     resolved.host == baseUri.host &&
+     resolved.port == baseUri.port &&
+     resolved.userInfo == null &&
+     (resolved.path ?: "").startsWith("/api/v1/")
+   ) { "La ruta resuelta sale del origen autorizado de Rupi." }
+   return resolved
+  }
+
+  /** Lee un flujo HTTP imponiendo un tope de memoria para prevenir ataques DoS por respuestas ilimitadas. */
+  fun readBoundedBytes(input: InputStream, maxBytes: Int): ByteArray {
+   val buffer = ByteArray(8192)
+   val output = ByteArrayOutputStream()
+   var total = 0
+   while (true) {
+    val read = input.read(buffer)
+    if (read == -1) break
+    total += read
+    check(total <= maxBytes) { "La respuesta del servidor excede el tamaño máximo permitido." }
+    output.write(buffer, 0, read)
+   }
+   return output.toByteArray()
+  }
+
+  /** Compara un digest SHA-256 en tiempo constante para mitigar ataques de temporización. */
+  fun verifySha256ConstantTime(bytes: ByteArray, expectedHex: String): Boolean {
+   val normalized = expectedHex.trim().lowercase(Locale.ROOT)
+   if (normalized.length != 64 || normalized.any { it !in '0'..'9' && it !in 'a'..'f' }) return false
+   val expectedBytes = ByteArray(32) { i ->
+    normalized.substring(i * 2, i * 2 + 2).toInt(16).toByte()
+   }
+   val actualBytes = MessageDigest.getInstance("SHA-256").digest(bytes)
+   return MessageDigest.isEqual(actualBytes, expectedBytes)
+  }
  }
 
  fun request(path: String, method: String = "GET", body: JSONObject? = null): String =
-  requestBytes(path, method, body).toString(Charsets.UTF_8)
+  requestBytes(path, method, body, MAX_JSON_RESPONSE_BYTES).toString(Charsets.UTF_8)
 
- fun download(path: String): ByteArray = requestBytes(path, "GET", null)
+ fun download(path: String): ByteArray = requestBytes(path, "GET", null, MAX_DOWNLOAD_BYTES)
 
- private fun requestBytes(path: String, method: String, body: JSONObject?): ByteArray {
-  require(path.startsWith("/api/v1/") && !path.contains(".."))
-  val uri = base.resolve(path)
+ private fun requestBytes(path: String, method: String, body: JSONObject?, maxBytes: Int): ByteArray {
+  val uri = validateApiPath(base, path)
   val connection = uri.toURL().openConnection() as HttpURLConnection
   try {
    connection.instanceFollowRedirects = false
@@ -68,6 +125,7 @@ class RupiApi(server: String) {
    connection.setRequestProperty("Content-Type", "application/json")
    connection.setRequestProperty("Origin", base.toString())
    connection.setRequestProperty("X-Rupi-Cliente", "MOVIL")
+   connection.setRequestProperty("X-Requested-With", "XMLHttpRequest")
    for ((name, values) in cookies.get(uri, emptyMap())) {
     connection.setRequestProperty(name, values.joinToString("; "))
    }
@@ -98,11 +156,12 @@ class RupiApi(server: String) {
     throw IllegalStateException(message.ifBlank { "No pudimos consultar Rupi. Revisa tu conexión o vuelve a iniciar sesión." })
    }
    cookies.put(uri, connection.headerFields)
-   val bytes = if (status == 204) byteArrayOf() else connection.inputStream.use { it.readBytes() }
+   val bytes = if (status == 204) byteArrayOf() else connection.inputStream.use { readBoundedBytes(it, maxBytes) }
    val expected = connection.getHeaderField("X-Rupi-Paquete-Sha256")
    if (expected != null) {
-    val actual = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
-    check(actual.equals(expected, true)) { "La descarga no pasó la verificación. Vuelve a intentarlo." }
+    check(verifySha256ConstantTime(bytes, expected)) {
+     "La descarga no pasó la verificación de integridad. Vuelve a intentarlo."
+    }
    }
    return bytes
   } finally {
@@ -126,18 +185,27 @@ class RupiApi(server: String) {
 
  fun requestId(node: String): String = pending.getOrPut(node) { UUID.randomUUID().toString() }
 
- /** Enlace para abrir fuera de la app (video o material del docente): los relativos van al mismo servidor. Solo http(s). */
+ /**
+  * Enlace para abrir fuera de la app (video o material del docente): los relativos van al mismo servidor.
+  * Exige HTTPS en producción (HTTP solo en debug local/LAN) y bloquea `userInfo` contra phishing.
+  */
  fun resource(url: String): String? {
+  val raw = url.trim()
+  if (raw.isEmpty() || raw.any { it.code < 0x20 || it.code == 0x7F }) return null
   val target = try {
-   base.resolve(url.trim())
+   base.resolve(raw).normalize()
   } catch (_: Exception) {
    return null
   }
-  return if (target.scheme == "https" || target.scheme == "http") target.toString() else null
+  val scheme = target.scheme?.lowercase(Locale.ROOT) ?: return null
+  val host = target.host?.takeIf { it.isNotBlank() } ?: return null
+  if (target.userInfo != null) return null
+  val allowed = scheme == "https" || (BuildConfig.DEBUG && scheme == "http" && isLocalOrLanHost(host))
+  return if (allowed) target.toString() else null
  }
 
  fun exportSession(): JSONObject {
-  val cookie = cookies.cookieStore.cookies.firstOrNull { !it.hasExpired() && it.name == "rupi_session" }
+  val cookie = cookies.cookieStore.cookies.firstOrNull { !it.hasExpired() && it.name == SESSION_COOKIE_NAME }
    ?: error("Vuelve a iniciar sesión.")
   val lifetime = if (cookie.maxAge > 0) minOf(cookie.maxAge, 86400L) else 86400L
   return JSONObject()
@@ -148,8 +216,12 @@ class RupiApi(server: String) {
  }
 
  fun importSession(value: JSONObject) {
-  val cookie = HttpCookie(value.getString("name"), value.getString("value"))
+  val name = value.getString("name")
+  val cookieValue = value.getString("value")
+  require(name == SESSION_COOKIE_NAME && cookieValue.isNotBlank()) { "Sesión inválida." }
+  val cookie = HttpCookie(name, cookieValue)
   cookie.version = 0
+  cookie.domain = base.host
   cookie.path = "/"
   cookie.secure = base.scheme == "https"
   cookie.isHttpOnly = true
