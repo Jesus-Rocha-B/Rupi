@@ -141,6 +141,10 @@ export interface UploadMaterialResult {
 import { ApiError } from './learningRoutesApi'
 
 async function teacherRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const lowered = path.toLowerCase()
+  if (!path || path.startsWith('/') || path.includes('..') || lowered.includes('%2e') || path.includes('\\')) {
+    throw new ApiError(400, 'Ruta de docente inválida.')
+  }
   const url = `/api/v1/${path}`
   const headers = new Headers(options.headers || {})
   headers.set('X-Requested-With', 'XMLHttpRequest')
@@ -148,7 +152,11 @@ async function teacherRequest<T>(path: string, options: RequestInit = {}): Promi
   const res = await fetch(url, {
     ...options,
     headers,
-    credentials: 'include',
+    credentials: 'same-origin',
+    redirect: 'error',
+    signal: options.signal
+      ? AbortSignal.any([options.signal, AbortSignal.timeout(15000)])
+      : AbortSignal.timeout(15000),
   })
 
   if (!res.ok) {
@@ -242,7 +250,9 @@ export const uploadTeacherMaterial = async (file: File): Promise<UploadMaterialR
   const res = await fetch('/api/v1/teacher/materials/upload', {
     method: 'POST',
     body: formData,
-    credentials: 'include',
+    credentials: 'same-origin',
+    redirect: 'error',
+    signal: AbortSignal.timeout(45000),
     headers: {
       'X-Requested-With': 'XMLHttpRequest',
     },

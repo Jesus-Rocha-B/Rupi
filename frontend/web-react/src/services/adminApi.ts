@@ -97,11 +97,31 @@ export interface NewAccount {
 
 export type AccountChanges = Partial<Pick<NewAccount, 'usuario' | 'nombre' | 'apellido' | 'nombrePreferido' | 'correo'>>
 
+function assertSafeAdminPath(path: string): void {
+  const lowered = path.toLowerCase()
+  if (
+    !path ||
+    path.startsWith('/') ||
+    lowered.startsWith('http://') ||
+    lowered.startsWith('https://') ||
+    path.includes('..') ||
+    lowered.includes('%2e') ||
+    path.includes('\\') ||
+    /[\r\n]/.test(path)
+  ) {
+    throw new AdminApiError(400, 'Ruta administrativa inválida.')
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  assertSafeAdminPath(path)
+  const baseHeaders: Record<string, string> = { 'X-Requested-With': 'XMLHttpRequest' }
+  if (options.body) baseHeaders['Content-Type'] = 'application/json'
   const response = await fetch(`${ADMIN_BASE}/${path}`, {
     credentials: 'same-origin',
+    redirect: 'error',
     ...options,
-    headers: options.body ? { 'Content-Type': 'application/json', ...options.headers } : options.headers,
+    headers: { ...baseHeaders, ...options.headers },
     signal: options.signal
       ? AbortSignal.any([options.signal, AbortSignal.timeout(15000)])
       : AbortSignal.timeout(15000),
@@ -629,9 +649,9 @@ export interface CurriculumGoal { id: string; codigo: string; descripcion: strin
 export interface UnitGoals { competencias: { id: string; codigo: string; nombre: string }[]; registros: CurriculumGoal[]; editable: boolean }
 export interface GoalInput { tipo: 'META' | 'ESTANDAR'; codigo: string; descripcion: string; competenciaId: string }
 export const fetchCurriculumUnits = (version: string, signal?: AbortSignal) => request<CurriculumUnit[]>(`curriculo/unidades?version=${encodeURIComponent(version)}`, { signal })
-export const fetchUnitGoals = (unit: string, signal?: AbortSignal) => request<UnitGoals>(`curriculo/unidades/${unit}/registros`, { signal })
-export const createUnitGoal = (unit: string, data: GoalInput) => post<UnitGoals>(`curriculo/unidades/${unit}/registros`, data)
-export const updateUnitGoal = (unit: string, record: CurriculumGoal, descripcion: string, motivo: string) => request<UnitGoals>(`curriculo/unidades/${unit}/registros/${record.tipo}/${record.id}`, { method: 'PATCH', body: JSON.stringify({ descripcion, motivo, revision: record.revision }) })
+export const fetchUnitGoals = (unit: string, signal?: AbortSignal) => request<UnitGoals>(`curriculo/unidades/${encodeURIComponent(unit)}/registros`, { signal })
+export const createUnitGoal = (unit: string, data: GoalInput) => post<UnitGoals>(`curriculo/unidades/${encodeURIComponent(unit)}/registros`, data)
+export const updateUnitGoal = (unit: string, record: CurriculumGoal, descripcion: string, motivo: string) => request<UnitGoals>(`curriculo/unidades/${encodeURIComponent(unit)}/registros/${encodeURIComponent(record.tipo)}/${encodeURIComponent(record.id)}`, { method: 'PATCH', body: JSON.stringify({ descripcion, motivo, revision: record.revision }) })
 
 export interface CompetencyInput {
   area: string
@@ -651,10 +671,10 @@ export interface PeriodOptions {
 }
 export interface PeriodPreview { token: string; revision: number; aplicables: number; planificaciones: { id: string; titulo: string; aula: string; ruta: string; periodo: SchoolPeriod | null }[] }
 export const fetchPeriodOptions = (signal?: AbortSignal) => request<PeriodOptions>('curriculo/periodos/opciones', { signal })
-export const fetchPeriods = (year: string, signal?: AbortSignal) => request<PeriodCalendar>(`curriculo/periodos/${year}`, { signal })
-export const savePeriods = (year: string, data: Pick<PeriodCalendar, 'tipo' | 'periodos' | 'revision'>) => request<PeriodCalendar>(`curriculo/periodos/${year}`, { method: 'PUT', body: JSON.stringify(data) })
-export const previewPeriods = (year: string, grado: string, areas: string[]) => post<PeriodPreview>(`curriculo/periodos/${year}/revisar`, { grado, areas })
-export const applyPeriods = (year: string, grado: string, areas: string[], token: string) => post<{ aplicadas: number; omitidas: number }>(`curriculo/periodos/${year}/aplicar`, { grado, areas, token })
+export const fetchPeriods = (year: string, signal?: AbortSignal) => request<PeriodCalendar>(`curriculo/periodos/${encodeURIComponent(year)}`, { signal })
+export const savePeriods = (year: string, data: Pick<PeriodCalendar, 'tipo' | 'periodos' | 'revision'>) => request<PeriodCalendar>(`curriculo/periodos/${encodeURIComponent(year)}`, { method: 'PUT', body: JSON.stringify(data) })
+export const previewPeriods = (year: string, grado: string, areas: string[]) => post<PeriodPreview>(`curriculo/periodos/${encodeURIComponent(year)}/revisar`, { grado, areas })
+export const applyPeriods = (year: string, grado: string, areas: string[], token: string) => post<{ aplicadas: number; omitidas: number }>(`curriculo/periodos/${encodeURIComponent(year)}/aplicar`, { grado, areas, token })
 
 export const fetchCurriculumCatalog = (version: string | null, signal?: AbortSignal) =>
   request<CurriculumCatalog>(`curriculo/catalogo${version ? `?version=${encodeURIComponent(version)}` : ''}`, { signal })
