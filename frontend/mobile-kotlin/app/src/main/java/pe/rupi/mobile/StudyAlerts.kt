@@ -56,7 +56,10 @@ object StudyAlerts {
  fun paused(context:Context,reason:String) {
   if(!allowed(context))return
   val pending=PendingIntent.getActivity(context,JOB,Intent(context,MainActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-  val notification=Notification.Builder(context,CHANNEL).setSmallIcon(android.R.drawable.ic_dialog_info)
+  val notification=Notification.Builder(context,CHANNEL)
+   .setSmallIcon(R.mipmap.ic_launcher)
+   .setColor(RupiUi.FOREST)
+   .setCategory(Notification.CATEGORY_STATUS)
    .setContentTitle("Tus avisos de Rupi están en pausa").setContentText(reason)
    .setStyle(Notification.BigTextStyle().bigText(reason)).setAutoCancel(true)
    .setVisibility(Notification.VISIBILITY_PRIVATE).setContentIntent(pending).build()
@@ -64,7 +67,10 @@ object StudyAlerts {
  }
  fun allowed(context:Context):Boolean {
   val manager=context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-  manager.createNotificationChannel(NotificationChannel(CHANNEL,"Recordatorios de estudio",NotificationManager.IMPORTANCE_DEFAULT))
+  val channel = NotificationChannel(CHANNEL,"Recordatorios de estudio",NotificationManager.IMPORTANCE_DEFAULT).apply {
+   description = "Avisos de tareas, retos diarios y novedades de tu docente"
+  }
+  manager.createNotificationChannel(channel)
   return manager.areNotificationsEnabled() && manager.getNotificationChannel(CHANNEL).importance!=NotificationManager.IMPORTANCE_NONE
  }
  fun deliver(context:Context,api:RupiApi,active:()->Boolean) {
@@ -81,7 +87,10 @@ object StudyAlerts {
    if(!active()||!file(context).exists())return
    val intent=Intent(context,MainActivity::class.java).putExtra("notifications",true)
    val pending=PendingIntent.getActivity(context,JOB,intent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-   val notification=Notification.Builder(context,CHANNEL).setSmallIcon(android.R.drawable.ic_dialog_info)
+   val notification=Notification.Builder(context,CHANNEL)
+    .setSmallIcon(R.mipmap.ic_launcher)
+    .setColor(RupiUi.FOREST)
+    .setCategory(Notification.CATEGORY_REMINDER)
     .setContentTitle(item.getString("title")).setContentText(item.getString("body"))
     .setStyle(Notification.BigTextStyle().bigText(item.getString("body"))).setAutoCancel(true)
     .setVisibility(Notification.VISIBILITY_PRIVATE).setContentIntent(pending).build()
