@@ -26,4 +26,11 @@ class AttachmentAndVoiceTest {
   assertEquals("**¿Cuánto es 2 + 2?** · ✓ Alternativa a: 3. Alternativa b: 4.", text)
   assertEquals("¿Cuánto es 2 + 2?", RupiVoice.clean("**¿Cuánto es 2 + 2?** · ✓"))
  }
+
+ @Test
+ fun `RupiVoice limpia enlaces markdown y formato enriquecido para narracion oral`() {
+  val raw = "Lee atentamente [este cuento andino](https://rupi.pe/lecturas/1) antes de `responder`."
+  val cleaned = RupiVoice.clean(raw)
+  assertEquals("Lee atentamente este cuento andino antes de responder.", cleaned)
+ }
 }
