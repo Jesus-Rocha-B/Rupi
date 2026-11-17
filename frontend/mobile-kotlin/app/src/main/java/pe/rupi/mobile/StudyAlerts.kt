@@ -4,8 +4,10 @@ import android.app.*
 import android.app.job.*
 import android.content.*
 import android.security.keystore.*
+import org.json.JSONArray
 import org.json.JSONObject
 import pe.rupi.mobile.data.model.RupiSessionExpired
+import pe.rupi.mobile.data.remote.DefaultRupiRemoteDataSource
 import pe.rupi.mobile.data.remote.RupiApi
 import java.security.KeyStore
 import javax.crypto.*
@@ -37,9 +39,13 @@ object StudyAlerts {
   check((context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler).schedule(job)==JobScheduler.RESULT_SUCCESS) { "Android no pudo programar los avisos." }
  }
  fun restore(context:Context):RupiApi? {
-  if(!file(context).exists())return null
+  val sessionFile = file(context)
+  if(!sessionFile.exists())return null
   return try {
-   val bytes=file(context).readBytes();val cipher=Cipher.getInstance("AES/GCM/NoPadding")
+   val bytes=sessionFile.readBytes()
+   // AES-GCM requiere al menos 12 bytes de IV + 16 bytes de tag de autenticación
+   if (bytes.size <= 28 || bytes.size > 65536) { disable(context); return null }
+   val cipher=Cipher.getInstance("AES/GCM/NoPadding")
    cipher.init(Cipher.DECRYPT_MODE,key(),GCMParameterSpec(128,bytes.copyOfRange(0,12)))
    val value=JSONObject(cipher.doFinal(bytes.copyOfRange(12,bytes.size)).toString(Charsets.UTF_8))
    if(value.getLong("expires")<=System.currentTimeMillis()){disable(context);null}
@@ -77,13 +83,14 @@ object StudyAlerts {
   if(!allowed(context))return
   val inbox=JSONObject(api.request("/api/v1/student/notifications"))
   if(inbox.optBoolean("quiet")||!inbox.optBoolean("system"))return
-  val items=inbox.getJSONArray("items")
+  val items=inbox.optJSONArray("items") ?: JSONArray()
   for(i in 0 until items.length()) {
    if(!active()||!file(context).exists())return
    val item=items.getJSONObject(i)
    if(item.optBoolean("read"))continue
-   val id=item.getString("id")
-   if(!JSONObject(api.request("/api/v1/student/notifications/$id/claim","POST")).optBoolean("claimed"))continue
+   val id=item.optString("id")
+   val safeId = try { DefaultRupiRemoteDataSource.safePathSegment(id) } catch (_: Exception) { continue }
+   if(!JSONObject(api.request("/api/v1/student/notifications/$safeId/claim","POST")).optBoolean("claimed"))continue
    if(!active()||!file(context).exists())return
    val intent=Intent(context,MainActivity::class.java).putExtra("notifications",true)
    val pending=PendingIntent.getActivity(context,JOB,intent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
