@@ -777,8 +777,17 @@ class MainActivity : ComponentActivity() {
  }
 
  private fun openExternalLink(link: String) {
+  val safeUrl = ExternalLinkPolicy.sanitizeExternalUrl(link)
+  if (safeUrl == null) {
+   scaffold.showLocalNotice("Enlace bloqueado por seguridad: solo se permiten direcciones HTTPS válidas.", NoticeTone.ERROR)
+   return
+  }
   try {
-   startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)))
+   val intent = Intent(Intent.ACTION_VIEW, Uri.parse(safeUrl)).apply {
+    addCategory(Intent.CATEGORY_BROWSABLE)
+    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+   }
+   startActivity(intent)
   } catch (_: ActivityNotFoundException) {
    scaffold.showLocalNotice("No hay una app para abrir este enlace en el teléfono.", NoticeTone.ERROR)
   }
