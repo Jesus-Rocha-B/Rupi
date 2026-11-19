@@ -12,11 +12,11 @@ import java.util.ArrayList
  * ViewModel de navegación de pantalla única (back stack tipado + preservación en SavedStateHandle).
  */
 class NavigationViewModel(
- private val savedStateHandle: SavedStateHandle
+ private val savedStateHandle: SavedStateHandle? = null
 ) : ViewModel() {
 
  private val _backStack = MutableStateFlow<List<NavDestination>>(
-  savedStateHandle.get<ArrayList<NavDestination>>(KEY_BACK_STACK)?.toList() ?: listOf(NavDestination.Login)
+  savedStateHandle?.get<ArrayList<NavDestination>>(KEY_BACK_STACK)?.toList() ?: listOf(NavDestination.Login)
  )
  val backStack: StateFlow<List<NavDestination>> = _backStack.asStateFlow()
 
@@ -24,7 +24,7 @@ class NavigationViewModel(
   get() = _backStack.value.lastOrNull() ?: NavDestination.Login
 
  fun initialize(authenticated: Boolean, openNotifications: Boolean) {
-  val restored = savedStateHandle.get<ArrayList<NavDestination>>(KEY_BACK_STACK)?.toList()
+  val restored = savedStateHandle?.get<ArrayList<NavDestination>>(KEY_BACK_STACK)?.toList()
   if (restored != null && restored.isNotEmpty()) {
    if (authenticated && restored.first() == NavDestination.Login) {
     setStack(listOf(NavDestination.Topics))
@@ -84,7 +84,7 @@ class NavigationViewModel(
 
  private fun setStack(stack: List<NavDestination>) {
   _backStack.value = stack
-  savedStateHandle[KEY_BACK_STACK] = ArrayList(stack)
+  savedStateHandle?.set(KEY_BACK_STACK, ArrayList(stack))
  }
 
  companion object {
