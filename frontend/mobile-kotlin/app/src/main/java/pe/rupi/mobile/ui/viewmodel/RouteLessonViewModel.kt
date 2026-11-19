@@ -1,6 +1,7 @@
 package pe.rupi.mobile.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,8 @@ class RouteLessonViewModel(
  private val learningRepository: LearningRepository,
  private val authRepository: AuthRepository
 ) : ViewModel() {
+
+ private var activeJob: Job? = null
 
  private val _routeDetailState = MutableStateFlow(RouteDetailUiState())
  val routeDetailState: StateFlow<RouteDetailUiState> = _routeDetailState.asStateFlow()
@@ -42,7 +45,8 @@ class RouteLessonViewModel(
    detail = if (current.route?.versionRouteId == route.versionRouteId) current.detail else null,
    notice = loadingNotice()
   )
-  launchSessionAware(
+  activeJob?.cancel()
+  activeJob = launchSessionAware(
    authRepository = authRepository,
    onError = { msg ->
     _routeDetailState.value = _routeDetailState.value.copy(isLoading = false, notice = errorNotice(msg))
@@ -86,7 +90,8 @@ class RouteLessonViewModel(
    completionResult = completionResult,
    notice = loadingNotice()
   )
-  launchSessionAware(
+  activeJob?.cancel()
+  activeJob = launchSessionAware(
    authRepository = authRepository,
    onError = { msg ->
     _lessonState.value = _lessonState.value.copy(isLoading = false, notice = errorNotice(msg))
@@ -114,8 +119,15 @@ class RouteLessonViewModel(
  ) {
   val current = _lessonState.value
   if (current.isLoading) return
+  if (activityId.isBlank() || questionId.isBlank() || selectedOptionId.isBlank()) {
+   _lessonState.value = current.copy(
+    notice = NoticeMessage("Elige una alternativa antes de comprobar.", NoticeTone.INFO, scrollToTop = false)
+   )
+   return
+  }
   _lessonState.value = current.copy(isLoading = true, notice = loadingNotice())
-  launchSessionAware(
+  activeJob?.cancel()
+  activeJob = launchSessionAware(
    authRepository = authRepository,
    onError = { msg ->
     _lessonState.value = _lessonState.value.copy(isLoading = false, notice = errorNotice(msg))
@@ -141,7 +153,8 @@ class RouteLessonViewModel(
   val current = _lessonState.value
   if (current.isLoading) return
   _lessonState.value = current.copy(isLoading = true, notice = loadingNotice())
-  launchSessionAware(
+  activeJob?.cancel()
+  activeJob = launchSessionAware(
    authRepository = authRepository,
    onError = { msg ->
     _lessonState.value = _lessonState.value.copy(isLoading = false, notice = errorNotice(msg))
@@ -163,6 +176,8 @@ class RouteLessonViewModel(
  }
 
  fun clear() {
+  activeJob?.cancel()
+  activeJob = null
   _routeDetailState.value = RouteDetailUiState()
   _lessonState.value = LessonUiState()
  }
