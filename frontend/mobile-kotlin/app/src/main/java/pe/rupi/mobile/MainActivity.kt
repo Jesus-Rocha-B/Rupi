@@ -473,6 +473,7 @@ class MainActivity : ComponentActivity() {
  }
 
  private fun renderDestination(destination: NavDestination) {
+  voice?.stop()
   if (mountedDestination == destination) return
   mountedDestination = destination
   networkLostDuringView = false
