@@ -19,10 +19,13 @@ import pe.rupi.mobile.data.repository.DefaultAuthRepository
 import pe.rupi.mobile.data.repository.DefaultGamificationRepository
 import pe.rupi.mobile.data.repository.DefaultLearningRepository
 import pe.rupi.mobile.data.repository.DefaultNotificationRepository
+import pe.rupi.mobile.data.repository.DefaultStudyResourcesRepository
 import pe.rupi.mobile.data.repository.SessionState
 import pe.rupi.mobile.ui.viewmodel.GamificationViewModel
 import pe.rupi.mobile.ui.viewmodel.NotificationsViewModel
 import pe.rupi.mobile.ui.viewmodel.RouteLessonViewModel
+import pe.rupi.mobile.ui.viewmodel.StudyResourcesViewModel
+import pe.rupi.mobile.ui.viewmodel.TopicsViewModel
 
 class MvvmViewModelsTest {
 
@@ -130,5 +133,67 @@ class MvvmViewModelsTest {
   vm.loadDailyChallenge(force = true)
   assertNull(vm.dailyChallengeState.value.answers["q-day1"])
   assertEquals("2026-11-12", vm.dailyChallengeState.value.activeDay)
+ }
+
+ @Test
+ fun `TopicsViewModel rechaza codigo en blanco sin invocar repositorio`() = runTest {
+  val remote = FakeRupiRemoteDataSource()
+  val authRepo = DefaultAuthRepository(remote, SessionClientHolder(), FakeSessionAlertsDataSource())
+  val learningRepo = DefaultLearningRepository(remote)
+  val vm = TopicsViewModel(learningRepo, authRepo)
+
+  var joinedCalled = false
+  vm.joinByCode("   ") { joinedCalled = true }
+
+  assertFalse(joinedCalled)
+  assertTrue(vm.uiState.value.notice?.text?.contains("Escribe el código") == true)
+ }
+
+ @Test
+ fun `GamificationViewModel valida rango de meta diaria entre 1 y 20`() = runTest {
+  val remote = FakeRupiRemoteDataSource()
+  val authRepo = DefaultAuthRepository(remote, SessionClientHolder(), FakeSessionAlertsDataSource())
+  val gamificationRepo = DefaultGamificationRepository(remote)
+  val vm = GamificationViewModel(gamificationRepo, authRepo)
+
+  vm.updateDailyTarget(0)
+  assertTrue(vm.dailyGoalState.value.notice?.text?.contains("entre 1 y 20") == true)
+
+  vm.updateDailyTarget(25)
+  assertTrue(vm.dailyGoalState.value.notice?.text?.contains("entre 1 y 20") == true)
+ }
+
+ @Test
+ fun `RouteLessonViewModel rechaza comprobacion si alternativa esta en blanco`() = runTest {
+  val remote = FakeRupiRemoteDataSource()
+  val authRepo = DefaultAuthRepository(remote, SessionClientHolder(), FakeSessionAlertsDataSource())
+  val learningRepo = DefaultLearningRepository(remote)
+  val vm = RouteLessonViewModel(learningRepo, authRepo)
+
+  val route = LearningRouteSummary("r-1", "Matemática")
+  val node = RouteNode("n-1", "Sumas", 1, RouteNodeState.DISPONIBLE)
+
+  vm.submitLessonAnswer(route, node, "act-1", "q-1", "")
+  assertTrue(vm.lessonState.value.notice?.text?.contains("Elige una alternativa") == true)
+ }
+
+ @Test
+ fun `StudyResourcesViewModel reinicia todos los estados en clear`() = runTest {
+  val remote = FakeRupiRemoteDataSource()
+  val authRepo = DefaultAuthRepository(remote, SessionClientHolder(), FakeSessionAlertsDataSource())
+  val repo = DefaultStudyResourcesRepository(remote, FakeLocalSummaryDataSource())
+  val vm = StudyResourcesViewModel(repo, authRepo)
+
+  vm.showTtsMissingNoticeOnCurrentScreen()
+  assertTrue(vm.aiPracticeState.value.notice != null)
+  assertTrue(vm.flashcardsState.value.notice != null)
+  assertTrue(vm.visualSummaryState.value.notice != null)
+  assertTrue(vm.savedSummariesState.value.notice != null)
+
+  vm.clear()
+  assertNull(vm.aiPracticeState.value.notice)
+  assertNull(vm.flashcardsState.value.notice)
+  assertNull(vm.visualSummaryState.value.notice)
+  assertNull(vm.savedSummariesState.value.notice)
  }
 }
