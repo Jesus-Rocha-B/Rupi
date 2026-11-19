@@ -1,6 +1,7 @@
 package pe.rupi.mobile.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +17,8 @@ class GamificationViewModel(
  private val authRepository: AuthRepository
 ) : ViewModel() {
 
+ private var activeJob: Job? = null
+
  private val _achievementsState = MutableStateFlow(AchievementsUiState())
  val achievementsState: StateFlow<AchievementsUiState> = _achievementsState.asStateFlow()
 
@@ -29,7 +32,8 @@ class GamificationViewModel(
   val current = _achievementsState.value
   if (current.isLoading || (!force && current.overview != null)) return
   _achievementsState.value = current.copy(isLoading = true, notice = loadingNotice())
-  launchSessionAware(
+  activeJob?.cancel()
+  activeJob = launchSessionAware(
    authRepository = authRepository,
    onError = { msg -> _achievementsState.value = _achievementsState.value.copy(isLoading = false, notice = errorNotice(msg)) }
   ) {
@@ -42,7 +46,8 @@ class GamificationViewModel(
   val current = _dailyGoalState.value
   if (current.isLoading || (!force && current.dashboard != null)) return
   _dailyGoalState.value = current.copy(isLoading = true, notice = loadingNotice())
-  launchSessionAware(
+  activeJob?.cancel()
+  activeJob = launchSessionAware(
    authRepository = authRepository,
    onError = { msg -> _dailyGoalState.value = _dailyGoalState.value.copy(isLoading = false, notice = errorNotice(msg)) }
   ) {
@@ -54,8 +59,13 @@ class GamificationViewModel(
  fun updateDailyTarget(target: Int) {
   val current = _dailyGoalState.value
   if (current.isLoading) return
+  if (target !in 1..20) {
+   _dailyGoalState.value = current.copy(notice = errorNotice("La meta diaria debe estar entre 1 y 20 lecciones."))
+   return
+  }
   _dailyGoalState.value = current.copy(isLoading = true, notice = loadingNotice())
-  launchSessionAware(
+  activeJob?.cancel()
+  activeJob = launchSessionAware(
    authRepository = authRepository,
    onError = { msg -> _dailyGoalState.value = _dailyGoalState.value.copy(isLoading = false, notice = errorNotice(msg)) }
   ) {
@@ -138,6 +148,8 @@ class GamificationViewModel(
  }
 
  fun clear() {
+  activeJob?.cancel()
+  activeJob = null
   _achievementsState.value = AchievementsUiState()
   _dailyGoalState.value = DailyGoalUiState()
   _dailyChallengeState.value = DailyChallengeUiState()
