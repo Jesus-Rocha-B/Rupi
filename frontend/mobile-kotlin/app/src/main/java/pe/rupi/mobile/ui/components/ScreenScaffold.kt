@@ -513,6 +513,7 @@ class ScreenScaffold(
   val container = LinearLayout(activity).apply {
    orientation = LinearLayout.HORIZONTAL
    gravity = Gravity.CENTER_VERTICAL
+   minimumHeight = dp(54)
    isClickable = true
    isFocusable = true
    val mins = if (estimatedMinutes > 0) " · $estimatedMinutes min" else ""
@@ -652,6 +653,8 @@ class ScreenScaffold(
   radio.typeface = RupiUi.fontBold(activity)
   radio.textSize = 16.5f
   radio.minHeight = dp(52)
+  radio.minWidth = dp(48)
+  radio.isFocusable = true
   radio.layoutParams = RadioGroup.LayoutParams(-1, -2).apply { topMargin = dp(6); bottomMargin = dp(2) }
  }
 
@@ -664,7 +667,9 @@ class ScreenScaffold(
  }
 
  fun backButton(label: String, action: () -> Unit): Button =
-  button(label, kind = RupiUi.Kind.STICKER, iconRes = R.drawable.ic_arrow_left, action = action)
+  button(label, kind = RupiUi.Kind.STICKER, iconRes = R.drawable.ic_arrow_left, action = action).apply {
+   contentDescription = "Volver: $label"
+  }
 
  fun input(label: String, password: Boolean = false): EditText {
   currentLayout.addView(TextView(activity).apply {
