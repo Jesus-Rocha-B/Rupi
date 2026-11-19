@@ -1,6 +1,7 @@
 package pe.rupi.mobile.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +15,8 @@ class TopicsViewModel(
  private val authRepository: AuthRepository
 ) : ViewModel() {
 
+ private var activeJob: Job? = null
+
  private val _uiState = MutableStateFlow(TopicsUiState())
  val uiState: StateFlow<TopicsUiState> = _uiState.asStateFlow()
 
@@ -21,7 +24,8 @@ class TopicsViewModel(
   val current = _uiState.value
   if (current.isLoading || (!force && current.routesLoaded)) return
   _uiState.value = current.copy(isLoading = true, notice = loadingNotice())
-  launchSessionAware(
+  activeJob?.cancel()
+  activeJob = launchSessionAware(
    authRepository = authRepository,
    onError = { msg -> _uiState.value = _uiState.value.copy(isLoading = false, notice = errorNotice(msg)) }
   ) {
@@ -38,7 +42,8 @@ class TopicsViewModel(
    return
   }
   _uiState.value = _uiState.value.copy(isLoading = true, notice = loadingNotice())
-  launchSessionAware(
+  activeJob?.cancel()
+  activeJob = launchSessionAware(
    authRepository = authRepository,
    onError = { msg -> _uiState.value = _uiState.value.copy(isLoading = false, notice = errorNotice(msg)) }
   ) {
@@ -57,6 +62,8 @@ class TopicsViewModel(
  }
 
  fun clear() {
+  activeJob?.cancel()
+  activeJob = null
   _uiState.value = TopicsUiState()
  }
 }

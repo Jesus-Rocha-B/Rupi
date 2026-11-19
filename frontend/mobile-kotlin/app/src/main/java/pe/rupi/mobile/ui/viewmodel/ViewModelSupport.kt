@@ -15,7 +15,7 @@ internal inline fun ViewModel.launchSessionAware(
  authRepository: AuthRepository,
  crossinline onError: (String) -> Unit,
  crossinline block: suspend () -> Unit
-) {
+): kotlinx.coroutines.Job =
  viewModelScope.launch {
   try {
    block()
@@ -27,7 +27,6 @@ internal inline fun ViewModel.launchSessionAware(
    onError(e.message ?: "No pudimos continuar. Revisa tu conexión.")
   }
  }
-}
 
 internal fun loadingNotice(): NoticeMessage =
  NoticeMessage(text = LOADING_NOTICE_TEXT, tone = NoticeTone.INFO, scrollToTop = false)
