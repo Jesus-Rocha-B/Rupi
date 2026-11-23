@@ -56,16 +56,266 @@ class ScreenScaffold(
 
  fun dp(n: Int): Int = RupiUi.dp(activity, n)
 
+ fun mountLoginPage(): LinearLayout {
+  voice?.stop()
+  val frame = LinearLayout(activity).apply {
+   orientation = LinearLayout.VERTICAL
+   background = RupiUi.Paper(activity)
+  }
+  val scroll = ScrollView(activity).apply {
+   isFillViewport = true
+   clipToPadding = false
+  }
+  rootScroll = scroll
+
+  val outerLayout = LinearLayout(activity).apply {
+   orientation = LinearLayout.VERTICAL
+   setPadding(dp(16), dp(12), dp(16), dp(24))
+  }
+  scroll.addView(outerLayout, FrameLayout.LayoutParams(-1, -2))
+  frame.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+  activity.setContentView(frame)
+
+  frame.setOnApplyWindowInsetsListener { _, insets ->
+   @Suppress("DEPRECATION")
+   val top = insets.systemWindowInsetTop
+   @Suppress("DEPRECATION")
+   val bottom = insets.systemWindowInsetBottom
+   outerLayout.setPadding(dp(16), top + dp(12), dp(16), dp(24) + bottom)
+   insets
+  }
+
+  setupNoticeView(outerLayout)
+  contentContainer = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+  outerLayout.addView(contentContainer, LinearLayout.LayoutParams(-1, -2))
+  currentLayout = contentContainer
+  return contentContainer
+ }
+
+ fun mountDuolingoShell(
+  streakDays: Int = 3,
+  xpPoints: Int = 120,
+  hearts: Int = 5,
+  activeTab: Int = 0,
+  onTabSelected: (Int) -> Unit
+ ): LinearLayout {
+  voice?.stop()
+  val frame = LinearLayout(activity).apply {
+   orientation = LinearLayout.VERTICAL
+   background = RupiUi.Paper(activity)
+  }
+
+  // TOP STATS BAR (Estilo Duolingo)
+  val topBar = LinearLayout(activity).apply {
+   orientation = LinearLayout.HORIZONTAL
+   gravity = Gravity.CENTER_VERTICAL
+   background = RupiUi.rounded(Color.WHITE, 0f, dp(1), RupiUi.LINE)
+   setPadding(dp(14), dp(8), dp(14), dp(8))
+  }
+
+  // Bandera de Perú / Grado a la izquierda
+  val flagBadge = LinearLayout(activity).apply {
+   orientation = LinearLayout.HORIZONTAL
+   gravity = Gravity.CENTER_VERTICAL
+   setPadding(0, 0, dp(6), 0)
+   addView(ImageView(activity).apply {
+    setImageResource(R.drawable.ic_flag_pe)
+    scaleType = ImageView.ScaleType.FIT_CENTER
+   }, LinearLayout.LayoutParams(dp(24), dp(18)))
+   addView(TextView(activity).apply {
+    text = "Primaria 3.°"
+    typeface = RupiUi.fontExtraBold(activity)
+    textSize = 12.5f
+    setTextColor(RupiUi.FOREST)
+    setPadding(dp(6), 0, 0, 0)
+   })
+  }
+  topBar.addView(flagBadge, LinearLayout.LayoutParams(0, -2, 1f))
+
+  fun statItem(iconRes: Int, value: String, tintColor: Int): LinearLayout {
+   return LinearLayout(activity).apply {
+    orientation = LinearLayout.HORIZONTAL
+    gravity = Gravity.CENTER_VERTICAL
+    setPadding(dp(6), dp(2), dp(6), dp(2))
+    addView(ImageView(activity).apply {
+     setImageResource(iconRes)
+     val d = drawable.mutate()
+     d.setTint(tintColor)
+     setImageDrawable(d)
+    }, LinearLayout.LayoutParams(dp(18), dp(18)))
+    addView(TextView(activity).apply {
+     text = value
+     typeface = RupiUi.fontExtraBold(activity)
+     textSize = 13.5f
+     setTextColor(tintColor)
+     setPadding(dp(4), 0, 0, 0)
+    })
+   }
+  }
+
+  topBar.addView(statItem(R.drawable.ic_flame, "$streakDays", RupiUi.ORANGE))
+  topBar.addView(statItem(R.drawable.ic_gem, "$xpPoints", Color.rgb(0, 180, 216)))
+  topBar.addView(statItem(R.drawable.ic_heart, "$hearts", RupiUi.ORANGE_DARK))
+  frame.addView(topBar, LinearLayout.LayoutParams(-1, -2))
+
+  // SCROLLVIEW (Contenido en medio)
+  val scroll = ScrollView(activity).apply {
+   isFillViewport = true
+   clipToPadding = false
+  }
+  rootScroll = scroll
+
+  val outerLayout = LinearLayout(activity).apply {
+   orientation = LinearLayout.VERTICAL
+   setPadding(dp(14), dp(8), dp(14), dp(16))
+  }
+  scroll.addView(outerLayout, FrameLayout.LayoutParams(-1, -2))
+  frame.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+
+  // FIXED BOTTOM NAVBAR (Barra de navegación fija estilo Duolingo)
+  val bottomNav = LinearLayout(activity).apply {
+   orientation = LinearLayout.HORIZONTAL
+   gravity = Gravity.CENTER_VERTICAL
+   background = RupiUi.rounded(Color.WHITE, 0f, dp(2), RupiUi.LINE)
+   setPadding(dp(6), dp(4), dp(6), dp(6))
+   elevation = dp(4).toFloat()
+  }
+
+  val tabButtons = mutableListOf<LinearLayout>()
+
+  fun navTab(iconRes: Int, label: String, index: Int, isSelected: Boolean): LinearLayout {
+   val tabBox = LinearLayout(activity).apply {
+    orientation = LinearLayout.VERTICAL
+    gravity = Gravity.CENTER
+    isClickable = true
+    isFocusable = true
+    minimumHeight = dp(52)
+    background = if (isSelected) {
+     RupiUi.rounded(RupiUi.LEAF_SOFT, dp(12).toFloat(), dp(2), RupiUi.LEAF)
+    } else null
+    setPadding(dp(4), dp(4), dp(4), dp(4))
+   }
+
+   val iconView = ImageView(activity).apply {
+    setImageResource(iconRes)
+    val d = drawable.mutate()
+    d.setTint(if (isSelected) RupiUi.LEAF_DARK else RupiUi.MUTED)
+    setImageDrawable(d)
+   }
+   tabBox.addView(iconView, LinearLayout.LayoutParams(dp(22), dp(22)))
+
+   val textView = TextView(activity).apply {
+    text = label
+    typeface = if (isSelected) RupiUi.fontExtraBold(activity) else RupiUi.fontBody(activity)
+    textSize = 10.5f
+    setTextColor(if (isSelected) RupiUi.LEAF_DARK else RupiUi.MUTED)
+    gravity = Gravity.CENTER
+    setPadding(0, dp(2), 0, 0)
+   }
+   tabBox.addView(textView)
+
+   tabBox.setOnClickListener {
+    onTabSelected(index)
+    tabButtons.forEachIndexed { i, box ->
+     val active = (i == index)
+     box.background = if (active) {
+      RupiUi.rounded(RupiUi.LEAF_SOFT, dp(12).toFloat(), dp(2), RupiUi.LEAF)
+     } else null
+     val iv = box.getChildAt(0) as? ImageView
+     val tv = box.getChildAt(1) as? TextView
+     val tint = if (active) RupiUi.LEAF_DARK else RupiUi.MUTED
+     iv?.drawable?.mutate()?.setTint(tint)
+     tv?.typeface = if (active) RupiUi.fontExtraBold(activity) else RupiUi.fontBody(activity)
+     tv?.setTextColor(tint)
+    }
+   }
+   return tabBox
+  }
+
+  val tabParams = LinearLayout.LayoutParams(0, -2, 1f).apply {
+   setMargins(dp(2), 0, dp(2), 0)
+  }
+
+  val tabs = listOf(
+   Triple(R.drawable.ic_home, "Camino", 0),
+   Triple(R.drawable.ic_message_circle, "Tutor IA", 1),
+   Triple(R.drawable.ic_chest, "Misiones", 2),
+   Triple(R.drawable.ic_award, "Logros", 3),
+   Triple(R.drawable.ic_user, "Perfil", 4)
+  )
+
+  tabs.forEach { (icon, title, idx) ->
+   val tView = navTab(icon, title, idx, idx == activeTab)
+   tabButtons.add(tView)
+   bottomNav.addView(tView, tabParams)
+  }
+
+  frame.addView(bottomNav, LinearLayout.LayoutParams(-1, -2))
+  activity.setContentView(frame)
+
+  frame.setOnApplyWindowInsetsListener { _, insets ->
+   @Suppress("DEPRECATION")
+   val top = insets.systemWindowInsetTop
+   @Suppress("DEPRECATION")
+   val bottom = insets.systemWindowInsetBottom
+   topBar.setPadding(dp(14), top + dp(8), dp(14), dp(8))
+   bottomNav.setPadding(dp(6), dp(4), dp(6), dp(6) + bottom)
+   insets
+  }
+
+  setupNoticeView(outerLayout)
+  contentContainer = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+  outerLayout.addView(contentContainer, LinearLayout.LayoutParams(-1, -2))
+  currentLayout = contentContainer
+  return contentContainer
+ }
+
  fun mountPage(title: String): LinearLayout {
   voice?.stop()
   val frame = LinearLayout(activity).apply {
    orientation = LinearLayout.VERTICAL
    background = RupiUi.Paper(activity)
   }
-  val bar = header(title).apply {
-   setPadding(dp(16), dp(10), dp(16), dp(14))
+
+  var bar: LinearLayout? = null
+  if (title.isNotBlank()) {
+   bar = LinearLayout(activity).apply {
+    orientation = LinearLayout.HORIZONTAL
+    gravity = Gravity.CENTER_VERTICAL
+    background = RupiUi.rounded(Color.WHITE, 0f, dp(1), RupiUi.LINE)
+    setPadding(dp(12), dp(10), dp(16), dp(10))
+   }
+
+   val backBtn = ImageView(activity).apply {
+    setImageResource(R.drawable.ic_arrow_left)
+    val d = drawable.mutate()
+    d.setTint(RupiUi.FOREST)
+    setImageDrawable(d)
+    isClickable = true
+    isFocusable = true
+    background = RupiUi.rounded(RupiUi.LEAF_SOFT, dp(10).toFloat(), dp(1), RupiUi.LEAF)
+    setPadding(dp(6), dp(6), dp(6), dp(6))
+    setOnClickListener {
+     (activity as? androidx.activity.ComponentActivity)?.onBackPressedDispatcher?.onBackPressed() ?: run {
+      @Suppress("DEPRECATION")
+      activity.onBackPressed()
+     }
+    }
+   }
+   bar.addView(backBtn, LinearLayout.LayoutParams(dp(36), dp(36)).apply {
+    rightMargin = dp(10)
+   })
+
+   bar.addView(TextView(activity).apply {
+    text = title
+    typeface = RupiUi.fontTitle(activity)
+    textSize = 17f
+    setTextColor(RupiUi.FOREST)
+    maxLines = 1
+    ellipsize = android.text.TextUtils.TruncateAt.END
+   }, LinearLayout.LayoutParams(0, -2, 1f))
+   frame.addView(bar, LinearLayout.LayoutParams(-1, -2))
   }
-  frame.addView(bar, LinearLayout.LayoutParams(-1, -2))
 
   val scroll = ScrollView(activity).apply {
    isFillViewport = true
@@ -86,11 +336,23 @@ class ScreenScaffold(
    val top = insets.systemWindowInsetTop
    @Suppress("DEPRECATION")
    val bottom = insets.systemWindowInsetBottom
-   bar.setPadding(dp(16), top + dp(10), dp(16), dp(14))
-   outerLayout.setPadding(dp(16), dp(8), dp(16), dp(24) + bottom)
+   if (bar != null) {
+    bar.setPadding(dp(12), top + dp(6), dp(16), dp(10))
+    outerLayout.setPadding(dp(16), dp(8), dp(16), dp(24) + bottom)
+   } else {
+    outerLayout.setPadding(dp(16), top + dp(8), dp(16), dp(24) + bottom)
+   }
    insets
   }
 
+  setupNoticeView(outerLayout)
+  contentContainer = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+  outerLayout.addView(contentContainer, LinearLayout.LayoutParams(-1, -2))
+  currentLayout = contentContainer
+  return contentContainer
+ }
+
+ private fun setupNoticeView(outerLayout: LinearLayout) {
   noticeView = TextView(activity).apply {
    typeface = RupiUi.fontExtraBold(activity)
    textSize = 15f
@@ -109,11 +371,6 @@ class ScreenScaffold(
    noticeView,
    LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8); bottomMargin = dp(4) }
   )
-
-  contentContainer = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-  outerLayout.addView(contentContainer, LinearLayout.LayoutParams(-1, -2))
-  currentLayout = contentContainer
-  return contentContainer
  }
 
  fun rebuildBody(preserveScroll: Boolean = true, build: ScreenScaffold.() -> Unit) {

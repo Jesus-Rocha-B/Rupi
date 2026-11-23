@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import pe.rupi.mobile.BuildConfig
 import pe.rupi.mobile.R
@@ -47,14 +48,14 @@ private fun generateOfflineTutorResponse(question: String): String {
 }
 
 /**
- * Pantalla de inicio de sesion inspirada en la arquitectura limpia y accesible de Duolingo (sin emojis).
+ * Pantalla de bienvenida y login estilo Duolingo: limpia, centrada, con el personaje Rupi y cero emojis.
  */
 fun mountLoginScreen(
 	scaffold: ScreenScaffold,
 	onLogin: (serverUrl: String, username: String, password: String) -> Unit,
 	onOpenSavedSummaries: () -> Unit
 ) {
-	scaffold.mountPage("Entra a tu aula")
+	scaffold.mountLoginPage()
 	scaffold.rebuildBody(preserveScroll = false) {
 		val context = scaffold.currentContainer().context
 		val dp = { n: Int -> scaffold.dp(n) }
@@ -65,11 +66,11 @@ fun mountLoginScreen(
 			"https://api.rupi.pe"
 		}
 
-		// Cabecera Duolingo: Mascota Rupi centrada con bienvenida limpia
+		// Mascota Rupi centrada con saludo limpio
 		val heroLayout = LinearLayout(context).apply {
 			orientation = LinearLayout.VERTICAL
 			gravity = Gravity.CENTER_HORIZONTAL
-			setPadding(0, dp(12), 0, dp(16))
+			setPadding(0, dp(16), 0, dp(20))
 		}
 		heroLayout.addView(
 			ImageView(context).apply {
@@ -77,26 +78,26 @@ fun mountLoginScreen(
 				scaleType = ImageView.ScaleType.FIT_CENTER
 				importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
 			},
-			LinearLayout.LayoutParams(dp(90), dp(96))
+			LinearLayout.LayoutParams(dp(96), dp(102))
 		)
 		heroLayout.addView(
 			TextView(context).apply {
 				text = "Rupi."
 				typeface = RupiUi.fontTitle(context)
-				textSize = 28f
+				textSize = 32f
 				setTextColor(RupiUi.FOREST)
 				gravity = Gravity.CENTER_HORIZONTAL
-				setPadding(0, dp(4), 0, 0)
+				setPadding(0, dp(6), 0, 0)
 			}
 		)
 		heroLayout.addView(
 			TextView(context).apply {
 				text = "Tu aventura escolar para aprender jugando en primaria"
 				typeface = RupiUi.fontBody(context)
-				textSize = 14f
+				textSize = 14.5f
 				setTextColor(RupiUi.MUTED)
 				gravity = Gravity.CENTER_HORIZONTAL
-				setPadding(dp(16), dp(2), dp(16), 0)
+				setPadding(dp(20), dp(4), dp(20), 0)
 			}
 		)
 		addView(heroLayout, LinearLayout.LayoutParams(-1, -2))
@@ -107,10 +108,10 @@ fun mountLoginScreen(
 
 		stickerCard {
 			text("Ingresa a tu cuenta", 20)
-			muted("Escribe tus credenciales escolares o ingresa directo con la cuenta de prueba:")
+			muted("Escribe tus datos del colegio o pulsa el boton directo de Mateo:")
 
 			user = input("Usuario escolar", hintText = "Ej: estudiante.demo")
-			password = input("Contraseña escolar", password = true, hintText = "Tu clave del colegio")
+			password = input("Contraseña escolar", password = true, hintText = "Tu clave de 6 numeros")
 
 			button("INGRESAR A MI AULA", kind = RupiUi.Kind.PRIMARY, iconRes = R.drawable.ic_check) {
 				val serverText = server?.text?.toString()?.trim()?.ifBlank { defaultServer } ?: defaultServer
@@ -134,15 +135,15 @@ fun mountLoginScreen(
 			onOpenSavedSummaries()
 		}
 
-		// Panel de conexion de desarrollo
+		// Panel desplegable de configuracion de servidor
 		val serverContainer = LinearLayout(context).apply {
 			orientation = LinearLayout.VERTICAL
 			visibility = View.GONE
 			setPadding(dp(8), dp(6), dp(8), dp(6))
 		}
 		scaffold.into(serverContainer) {
-			text("Ajustes de servidor escolar", 15)
-			muted("Selecciona la direccion de red de pruebas:")
+			text("Ajustes de red y servidor escolar", 15)
+			muted("Selecciona la direccion de red:")
 
 			val presetsRow = LinearLayout(context).apply {
 				orientation = LinearLayout.HORIZONTAL
@@ -177,7 +178,7 @@ fun mountLoginScreen(
 		}
 		scaffold.addView(serverContainer, LinearLayout.LayoutParams(-1, -2))
 
-		button("Ajustes de conexion de red", kind = RupiUi.Kind.QUIET) {
+		button("Ajustes de conexion", kind = RupiUi.Kind.QUIET) {
 			val isVisible = serverContainer.visibility == View.VISIBLE
 			serverContainer.visibility = if (isVisible) View.GONE else View.VISIBLE
 		}
@@ -185,8 +186,8 @@ fun mountLoginScreen(
 }
 
 /**
- * Pantalla principal con navegacion por pestanas estilo Duolingo:
- * Rutas (Camino) | Tutor IA (Chat) | Retos (Metas y Trofeos) | Perfil (Estudiante y Aula)
+ * Pantalla principal con Top Stats Bar y Fixed Bottom Navbar estilo Duolingo:
+ * Camino (Rutas) | Tutor IA (Chat) | Misiones (Retos) | Logros (Aula) | Perfil
  */
 fun mountTopicsScreen(
 	scaffold: ScreenScaffold,
@@ -199,178 +200,139 @@ fun mountTopicsScreen(
 	onRefresh: () -> Unit,
 	onLogout: () -> Unit
 ): LinearLayout {
-	scaffold.mountPage("Mis temas")
 	lateinit var routesContainer: LinearLayout
+
+	// Contenedores para cada pestana
+	lateinit var routesSection: LinearLayout
+	lateinit var tutorSection: LinearLayout
+	lateinit var questsSection: LinearLayout
+	lateinit var achievementsSection: LinearLayout
+	lateinit var profileSection: LinearLayout
+
+	fun switchTab(index: Int) {
+		routesSection.visibility = if (index == 0) View.VISIBLE else View.GONE
+		tutorSection.visibility = if (index == 1) View.VISIBLE else View.GONE
+		questsSection.visibility = if (index == 2) View.VISIBLE else View.GONE
+		achievementsSection.visibility = if (index == 3) View.VISIBLE else View.GONE
+		profileSection.visibility = if (index == 4) View.VISIBLE else View.GONE
+	}
+
+	scaffold.mountDuolingoShell(
+		streakDays = 3,
+		xpPoints = 120,
+		hearts = 5,
+		activeTab = 0,
+		onTabSelected = { index -> switchTab(index) }
+	)
+
 	scaffold.rebuildBody(preserveScroll = false) {
 		val context = scaffold.currentContainer().context
 		val dp = { n: Int -> scaffold.dp(n) }
 
-		// Barra superior de progreso del estudiante (estilo Duolingo: Racha y XP sin emojis)
-		val topStatusBar = LinearLayout(context).apply {
-			orientation = LinearLayout.HORIZONTAL
-			gravity = Gravity.CENTER_VERTICAL
-			background = RupiUi.rounded(Color.WHITE, dp(14).toFloat(), dp(2), RupiUi.SOFT_LINE)
-			setPadding(dp(12), dp(8), dp(12), dp(8))
-		}
-		val userLabel = LinearLayout(context).apply {
-			orientation = LinearLayout.VERTICAL
-		}
-		userLabel.addView(TextView(context).apply {
-			text = "Mateo Quispe"
-			typeface = RupiUi.fontTitle(context)
-			textSize = 15f
-			setTextColor(RupiUi.FOREST)
-		})
-		userLabel.addView(TextView(context).apply {
-			text = "3.° de primaria · I.E. 38001"
-			typeface = RupiUi.fontBody(context)
-			textSize = 12f
-			setTextColor(RupiUi.MUTED)
-		})
-		topStatusBar.addView(userLabel, LinearLayout.LayoutParams(0, -2, 1f))
-
-		fun statusBadge(iconRes: Int, textValue: String, colorTint: Int): LinearLayout {
-			return LinearLayout(context).apply {
-				orientation = LinearLayout.HORIZONTAL
-				gravity = Gravity.CENTER_VERTICAL
-				background = RupiUi.rounded(RupiUi.PAPER_DEEP, dp(10).toFloat(), dp(1), RupiUi.LINE)
-				setPadding(dp(8), dp(4), dp(8), dp(4))
-				addView(ImageView(context).apply {
-					setImageResource(iconRes)
-					val d = drawable.mutate()
-					d.setTint(colorTint)
-					setImageDrawable(d)
-				}, LinearLayout.LayoutParams(dp(16), dp(16)))
-				addView(TextView(context).apply {
-					text = textValue
-					typeface = RupiUi.fontExtraBold(context)
-					textSize = 13f
-					setTextColor(colorTint)
-					setPadding(dp(4), 0, 0, 0)
-				})
-			}
-		}
-
-		topStatusBar.addView(statusBadge(R.drawable.ic_flame, "3 dias", RupiUi.ORANGE), LinearLayout.LayoutParams(-2, -2).apply { rightMargin = dp(6) })
-		topStatusBar.addView(statusBadge(R.drawable.ic_star, "120 XP", RupiUi.SUN_DARK), LinearLayout.LayoutParams(-2, -2))
-		addView(topStatusBar, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
-
-		// Barra de pestanas estilo Duolingo (4 secciones: Rutas, Tutor IA, Retos, Perfil)
-		val tabsBar = LinearLayout(context).apply {
-			orientation = LinearLayout.HORIZONTAL
-			gravity = Gravity.CENTER
-			setPadding(0, dp(4), 0, dp(8))
-		}
-
-		val routesSection = LinearLayout(context).apply {
+		routesSection = LinearLayout(context).apply {
 			orientation = LinearLayout.VERTICAL
 			visibility = View.VISIBLE
 		}
-		val tutorSection = LinearLayout(context).apply {
+		tutorSection = LinearLayout(context).apply {
 			orientation = LinearLayout.VERTICAL
 			visibility = View.GONE
 		}
-		val challengesSection = LinearLayout(context).apply {
+		questsSection = LinearLayout(context).apply {
 			orientation = LinearLayout.VERTICAL
 			visibility = View.GONE
 		}
-		val profileSection = LinearLayout(context).apply {
+		achievementsSection = LinearLayout(context).apply {
+			orientation = LinearLayout.VERTICAL
+			visibility = View.GONE
+		}
+		profileSection = LinearLayout(context).apply {
 			orientation = LinearLayout.VERTICAL
 			visibility = View.GONE
 		}
 
-		fun selectTab(index: Int) {
-			routesSection.visibility = if (index == 0) View.VISIBLE else View.GONE
-			tutorSection.visibility = if (index == 1) View.VISIBLE else View.GONE
-			challengesSection.visibility = if (index == 2) View.VISIBLE else View.GONE
-			profileSection.visibility = if (index == 3) View.VISIBLE else View.GONE
-
-			for (i in 0 until tabsBar.childCount) {
-				val btn = tabsBar.getChildAt(i) as? Button ?: continue
-				val selected = (i == index)
-				btn.background = if (selected) {
-					RupiUi.tactile(context, RupiUi.Kind.PRIMARY, radiusDp = 12)
-				} else {
-					RupiUi.tactile(context, RupiUi.Kind.QUIET, radiusDp = 12)
-				}
-				btn.setTextColor(if (selected) Color.WHITE else RupiUi.FOREST)
-			}
-		}
-
-		fun createTab(title: String, index: Int, isInitial: Boolean, iconRes: Int): Button {
-			return Button(context).apply {
-				text = scaffold.iconLabel(iconRes, if (isInitial) Color.WHITE else RupiUi.FOREST, title, iconDp = 15)
-				isAllCaps = false
-				minHeight = dp(46)
-				typeface = RupiUi.fontExtraBold(context)
-				textSize = 12.5f
-				stateListAnimator = null
-				elevation = 0f
-				setPadding(dp(6), dp(8), dp(6), dp(10))
-				background = if (isInitial) {
-					RupiUi.tactile(context, RupiUi.Kind.PRIMARY, radiusDp = 12)
-				} else {
-					RupiUi.tactile(context, RupiUi.Kind.QUIET, radiusDp = 12)
-				}
-				setTextColor(if (isInitial) Color.WHITE else RupiUi.FOREST)
-				setOnClickListener { selectTab(index) }
-			}
-		}
-
-		val tabParams = LinearLayout.LayoutParams(0, -2, 1f).apply {
-			setMargins(dp(2), 0, dp(2), 0)
-		}
-		tabsBar.addView(createTab("Rutas", 0, true, R.drawable.ic_play), tabParams)
-		tabsBar.addView(createTab("Tutor IA", 1, false, R.drawable.ic_message_circle), tabParams)
-		tabsBar.addView(createTab("Retos", 2, false, R.drawable.ic_flame), tabParams)
-		tabsBar.addView(createTab("Perfil", 3, false, R.drawable.ic_user), tabParams)
-		addView(tabsBar, LinearLayout.LayoutParams(-1, -2))
-
-		// 1. SECCION: RUTAS DE APRENDIZAJE
+		// -----------------------------------------------------------------
+		// TAB 0: CAMINO DE APRENDIZAJE (Estilo Duolingo con Unit Banner)
+		// -----------------------------------------------------------------
 		scaffold.into(routesSection) {
-			mascotGuide(
-				eyebrow = "Camino de Aprendizaje",
-				message = "Elige una ruta escolar para avanzar parada por parada."
-			)
+			// Unit Banner estilo Duolingo (Sección y Unidad actual en verde vibrante)
+			val unitBanner = LinearLayout(context).apply {
+				orientation = LinearLayout.HORIZONTAL
+				gravity = Gravity.CENTER_VERTICAL
+				background = RupiUi.tactile(context, RupiUi.Kind.LEAF, radiusDp = 18)
+				setPadding(dp(18), dp(16), dp(16), dp(20))
+			}
+			val unitTexts = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+			unitTexts.addView(TextView(context).apply {
+				text = "SECCION 1 · UNIDAD 1"
+				typeface = RupiUi.fontExtraBold(context)
+				textSize = 11.5f
+				setTextColor(Color.rgb(219, 232, 210))
+			})
+			unitTexts.addView(TextView(context).apply {
+				text = "Aventura de Palabras y Lectura"
+				typeface = RupiUi.fontTitle(context)
+				textSize = 19f
+				setTextColor(Color.WHITE)
+				setPadding(0, dp(2), 0, 0)
+			})
+			unitBanner.addView(unitTexts, LinearLayout.LayoutParams(0, -2, 1f))
+
+			// Botón de cuaderno de apuntes en el banner
+			val bookBtn = FrameLayout(context).apply {
+				background = RupiUi.rounded(Color.WHITE, dp(14).toFloat(), dp(2), RupiUi.LEAF_DARK)
+				setPadding(dp(8), dp(8), dp(8), dp(8))
+				addView(ImageView(context).apply {
+					setImageResource(R.drawable.ic_book)
+					val d = drawable.mutate()
+					d.setTint(RupiUi.LEAF_DARK)
+					setImageDrawable(d)
+				}, FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
+			}
+			unitBanner.addView(bookBtn, LinearLayout.LayoutParams(dp(42), dp(42)))
+			addView(unitBanner, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+
+			// Contenedor dinámico de rutas escolares
 			routesContainer = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
 			addView(routesContainer, LinearLayout.LayoutParams(-1, -2))
-			button("Actualizar rutas escolares", kind = RupiUi.Kind.QUIET, iconRes = R.drawable.ic_star) { onRefresh() }
+
+			button("Actualizar camino escolar", kind = RupiUi.Kind.QUIET, iconRes = R.drawable.ic_star) { onRefresh() }
 		}
 		addView(routesSection, LinearLayout.LayoutParams(-1, -2))
 
-		// 2. SECCION: TUTOR IA (CHAT CON RUPI - PERSONAJE PRINCIPAL)
+		// -----------------------------------------------------------------
+		// TAB 1: TUTOR IA (CHAT CON RUPI - PERSONAJE PRINCIPAL)
+		// -----------------------------------------------------------------
 		scaffold.into(tutorSection) {
-			heroCard {
-				val tutorHeader = LinearLayout(context).apply {
-					orientation = LinearLayout.HORIZONTAL
-					gravity = Gravity.CENTER_VERTICAL
-				}
-				tutorHeader.addView(
-					ImageView(context).apply {
-						setImageResource(R.drawable.ic_rupi_mascot)
-						scaleType = ImageView.ScaleType.FIT_CENTER
-						importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-					},
-					LinearLayout.LayoutParams(dp(54), dp(58)).apply { rightMargin = dp(10) }
-				)
-				val tutorCopy = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-				tutorCopy.addView(TextView(context).apply {
-					text = "Tutor Rupi"
-					typeface = RupiUi.fontTitle(context)
-					textSize = 20f
-					setTextColor(RupiUi.FOREST)
-				})
-				tutorCopy.addView(TextView(context).apply {
-					text = "Tu guia de aprendizaje socratico con IA"
-					typeface = RupiUi.fontBody(context)
-					textSize = 13f
-					setTextColor(RupiUi.MUTED)
-				})
-				tutorHeader.addView(tutorCopy, LinearLayout.LayoutParams(0, -2, 1f))
-				addView(tutorHeader, LinearLayout.LayoutParams(-1, -2))
+			val tutorHeader = LinearLayout(context).apply {
+				orientation = LinearLayout.HORIZONTAL
+				gravity = Gravity.CENTER_VERTICAL
+				background = RupiUi.tactile(context, RupiUi.Kind.STICKER, radiusDp = 16)
+				setPadding(dp(14), dp(12), dp(14), dp(16))
 			}
+			tutorHeader.addView(
+				ImageView(context).apply {
+					setImageResource(R.drawable.ic_rupi_mascot)
+					scaleType = ImageView.ScaleType.FIT_CENTER
+					importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+				},
+				LinearLayout.LayoutParams(dp(54), dp(58)).apply { rightMargin = dp(12) }
+			)
+			val tutorCopy = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+			tutorCopy.addView(TextView(context).apply {
+				text = "Tutor Rupi"
+				typeface = RupiUi.fontTitle(context)
+				textSize = 20f
+				setTextColor(RupiUi.FOREST)
+			})
+			tutorCopy.addView(TextView(context).apply {
+				text = "Tu companero de estudio socratico con IA"
+				typeface = RupiUi.fontBody(context)
+				textSize = 13f
+				setTextColor(RupiUi.MUTED)
+			})
+			tutorHeader.addView(tutorCopy, LinearLayout.LayoutParams(0, -2, 1f))
+			addView(tutorHeader, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
 
-			// Historial de mensajes de chat interactivo
 			val chatHistoryLayout = LinearLayout(context).apply {
 				orientation = LinearLayout.VERTICAL
 				setPadding(0, dp(4), 0, dp(8))
@@ -412,32 +374,8 @@ fun mountTopicsScreen(
 				chatHistoryLayout.addView(bubbleFrame)
 			}
 
-			// Mensaje inicial de Rupi
-			appendMessage("Hola, Mateo. Soy Rupi, tu tutor de primaria. Preguntame cualquier duda sobre tus tareas o lecciones de hoy.", isUser = false)
+			appendMessage("Hola, Mateo. Soy Rupi, tu tutor de primaria. Preguntame sobre cualquier ejercicio o tema escolar.", isUser = false)
 			addView(chatHistoryLayout, LinearLayout.LayoutParams(-1, -2))
-
-			// Preguntas rapidas sugeridas
-			val suggestionsTitle = TextView(context).apply {
-				text = "Preguntas sugeridas para practicar:"
-				typeface = RupiUi.fontExtraBold(context)
-				textSize = 13f
-				setTextColor(RupiUi.MUTED)
-				setPadding(dp(2), dp(4), 0, dp(2))
-			}
-			addView(suggestionsTitle, LinearLayout.LayoutParams(-1, -2))
-
-			fun promptChip(label: String): Button {
-				return Button(context).apply {
-					text = label
-					isAllCaps = false
-					minHeight = dp(40)
-					typeface = RupiUi.fontBody(context)
-					textSize = 13f
-					background = RupiUi.rounded(Color.WHITE, dp(12).toFloat(), dp(1), RupiUi.LINE)
-					setTextColor(RupiUi.FOREST)
-					setPadding(dp(10), dp(6), dp(10), dp(6))
-				}
-			}
 
 			lateinit var chatInput: EditText
 
@@ -495,16 +433,22 @@ fun mountTopicsScreen(
 				"Dame un consejo para mi reto de hoy"
 			)
 			suggestions.forEach { prompt ->
-				val chipBtn = promptChip(prompt).apply {
-					setOnClickListener {
-						askQuestion(prompt)
-					}
+				val btn = Button(context).apply {
+					text = prompt
+					isAllCaps = false
+					minHeight = dp(40)
+					typeface = RupiUi.fontBody(context)
+					textSize = 13f
+					background = RupiUi.rounded(Color.WHITE, dp(12).toFloat(), dp(1), RupiUi.LINE)
+					setTextColor(RupiUi.FOREST)
+					setPadding(dp(10), dp(6), dp(10), dp(6))
+					setOnClickListener { askQuestion(prompt) }
 				}
-				addView(chipBtn, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+				addView(btn, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
 			}
 
 			card {
-				text("Escribe tu pregunta a Rupi", 16)
+				text("Preguntale a Rupi", 16)
 				chatInput = input("Consulta escolar", hintText = "Escribe tu duda aqui...")
 				button("ENVIAR CONSULTA", kind = RupiUi.Kind.PRIMARY, iconRes = R.drawable.ic_send) {
 					val message = chatInput.text.toString().trim()
@@ -517,20 +461,113 @@ fun mountTopicsScreen(
 		}
 		addView(tutorSection, LinearLayout.LayoutParams(-1, -2))
 
-		// 3. SECCION: RETOS & METAS DIARIAS
-		scaffold.into(challengesSection) {
-			heroCard {
-				chip("ACTIVIDAD DIARIA", RupiUi.LEAF_SOFT, RupiUi.SOFT_LINE, RupiUi.FOREST, iconRes = R.drawable.ic_flame)
-				text("Retos y Metas de Hoy", 22)
-				muted("Un reto nuevo cada dia para ganar puntos de experiencia y medallas escolares.")
-				button("Reto del dia", kind = RupiUi.Kind.PRIMARY, iconRes = R.drawable.ic_star) { onOpenDailyChallenge() }
-				button("Mi meta de paradas", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_check) { onOpenDailyGoal() }
-				button("Mis logros y trofeos", kind = RupiUi.Kind.SKY, iconRes = R.drawable.ic_award) { onOpenAchievements() }
+		// -----------------------------------------------------------------
+		// TAB 2: MISIONES Y RETOS (Estilo Quests de Duolingo)
+		// -----------------------------------------------------------------
+		scaffold.into(questsSection) {
+			// Banner morado/vibrante estilo Duolingo Quests
+			val questBanner = LinearLayout(context).apply {
+				orientation = LinearLayout.HORIZONTAL
+				gravity = Gravity.CENTER_VERTICAL
+				background = RupiUi.tactile(context, RupiUi.Kind.PRIMARY, radiusDp = 18)
+				setPadding(dp(16), dp(16), dp(16), dp(20))
+			}
+			questBanner.addView(
+				ImageView(context).apply {
+					setImageResource(R.drawable.ic_chest)
+					scaleType = ImageView.ScaleType.FIT_CENTER
+				},
+				LinearLayout.LayoutParams(dp(52), dp(52)).apply { rightMargin = dp(12) }
+			)
+			val qbTexts = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+			qbTexts.addView(TextView(context).apply {
+				text = "Bienvenido a tus misiones!"
+				typeface = RupiUi.fontTitle(context)
+				textSize = 19f
+				setTextColor(Color.WHITE)
+			})
+			qbTexts.addView(TextView(context).apply {
+				text = "Completa tus misiones escolares para ganar puntos y cofres."
+				typeface = RupiUi.fontBody(context)
+				textSize = 13f
+				setTextColor(Color.rgb(255, 240, 230))
+			})
+			questBanner.addView(qbTexts, LinearLayout.LayoutParams(0, -2, 1f))
+			addView(questBanner, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+
+			// Tarjeta Misión diaria con barra de progreso
+			card {
+				val qRow = LinearLayout(context).apply {
+					orientation = LinearLayout.HORIZONTAL
+					gravity = Gravity.CENTER_VERTICAL
+				}
+				qRow.addView(ImageView(context).apply {
+					setImageResource(R.drawable.ic_star)
+					val d = drawable.mutate()
+					d.setTint(RupiUi.SUN_DARK)
+					setImageDrawable(d)
+				}, LinearLayout.LayoutParams(dp(22), dp(22)).apply { rightMargin = dp(8) })
+				qRow.addView(TextView(context).apply {
+					text = "Mision del dia: Gana 20 XP"
+					typeface = RupiUi.fontExtraBold(context)
+					textSize = 16f
+					setTextColor(RupiUi.FOREST)
+				}, LinearLayout.LayoutParams(0, -2, 1f))
+				addView(qRow, LinearLayout.LayoutParams(-1, -2))
+
+				val pBar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+					max = 20
+					progress = 14
+					progressTintList = android.content.res.ColorStateList.valueOf(RupiUi.SUN_DARK)
+					progressBackgroundTintList = android.content.res.ColorStateList.valueOf(RupiUi.PAPER_DEEP)
+				}
+				addView(pBar, LinearLayout.LayoutParams(-1, dp(14)).apply { topMargin = dp(8); bottomMargin = dp(4) })
+				muted("14 de 20 XP completados hoy.")
+			}
+
+			// Reto del día y meta diaria
+			card {
+				text("Reto diario escolar", 17)
+				muted("Acepta el reto para duplicar tus puntos:")
+				button("COMENZAR RETO DEL DIA", kind = RupiUi.Kind.PRIMARY, iconRes = R.drawable.ic_star) { onOpenDailyChallenge() }
+			}
+
+			card {
+				text("Mi meta diaria de paradas", 17)
+				muted("Consulta tu ritmo de avance diario:")
+				button("VER META DE HOY", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_check) { onOpenDailyGoal() }
 			}
 		}
-		addView(challengesSection, LinearLayout.LayoutParams(-1, -2))
+		addView(questsSection, LinearLayout.LayoutParams(-1, -2))
 
-		// 4. SECCION: PERFIL DEL ESTUDIANTE Y AULA ESCOLAR
+		// -----------------------------------------------------------------
+		// TAB 3: LOGROS Y AULA (Trofeos y Tablero Escolar)
+		// -----------------------------------------------------------------
+		scaffold.into(achievementsSection) {
+			heroCard {
+				chip("TABLERO Y TROFEOS", RupiUi.LEAF_SOFT, RupiUi.SOFT_LINE, RupiUi.FOREST, iconRes = R.drawable.ic_award)
+				text("Tus Logros Escolares", 22)
+				muted("Revisa tus medallas conseguidas y compite sanamente con tus companeros de aula.")
+				button("ABRIR VITRINA DE TROFEOS", kind = RupiUi.Kind.SKY, iconRes = R.drawable.ic_award) { onOpenAchievements() }
+			}
+
+			card {
+				text("Unirse a un aula con codigo", 18)
+				muted("Si tu profesor te entrego un codigo escolar, escribelo aqui:")
+				val code = input("Codigo de clase", hintText = "Ej: AYACUCHO2026")
+				code.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+				code.filters = arrayOf(InputFilter.LengthFilter(40), InputFilter.AllCaps())
+				button("UNIRME AL AULA", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_check) {
+					val rawCode = code.text.toString().trim()
+					if (rawCode.isNotBlank()) onJoinByCode(rawCode)
+				}
+			}
+		}
+		addView(achievementsSection, LinearLayout.LayoutParams(-1, -2))
+
+		// -----------------------------------------------------------------
+		// TAB 4: PERFIL DEL ESTUDIANTE (Mateo Quispe)
+		// -----------------------------------------------------------------
 		scaffold.into(profileSection) {
 			stickerCard {
 				val profHeader = LinearLayout(context).apply {
@@ -543,13 +580,13 @@ fun mountTopicsScreen(
 						scaleType = ImageView.ScaleType.FIT_CENTER
 						importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
 					},
-					LinearLayout.LayoutParams(dp(60), dp(64)).apply { rightMargin = dp(12) }
+					LinearLayout.LayoutParams(dp(64), dp(68)).apply { rightMargin = dp(14) }
 				)
 				val profInfo = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
 				profInfo.addView(TextView(context).apply {
 					text = "Mateo Quispe"
 					typeface = RupiUi.fontTitle(context)
-					textSize = 22f
+					textSize = 24f
 					setTextColor(RupiUi.FOREST)
 				})
 				profInfo.addView(TextView(context).apply {
@@ -566,13 +603,11 @@ fun mountTopicsScreen(
 				})
 				profHeader.addView(profInfo, LinearLayout.LayoutParams(0, -2, 1f))
 				addView(profHeader, LinearLayout.LayoutParams(-1, -2))
-
-				chip("Estudiante Activo", RupiUi.LEAF_SOFT, Color.rgb(182, 211, 168), RupiUi.LEAF_DARK, iconRes = R.drawable.ic_check)
 			}
 
-			// Estadisticas escolares
+			// Estadísticas estilo perfil Duolingo
 			card {
-				text("Estadisticas de aprendizaje", 18)
+				text("Estadisticas de Mateo", 18)
 				val statsGrid = LinearLayout(context).apply {
 					orientation = LinearLayout.VERTICAL
 					setPadding(0, dp(4), 0, dp(4))
@@ -604,27 +639,14 @@ fun mountTopicsScreen(
 					statsGrid.addView(row)
 				}
 				statRow(R.drawable.ic_flame, "Racha de estudio:", "3 dias seguidos", RupiUi.ORANGE)
-				statRow(R.drawable.ic_star, "Puntos de experiencia:", "120 XP", RupiUi.SUN_DARK)
-				statRow(R.drawable.ic_award, "Trofeos y medallas:", "5 logros escolares", RupiUi.SKY)
+				statRow(R.drawable.ic_gem, "Puntos de experiencia:", "120 XP acumulados", Color.rgb(0, 180, 216))
+				statRow(R.drawable.ic_award, "Trofeos escolares:", "5 medallas", RupiUi.SKY)
 				addView(statsGrid, LinearLayout.LayoutParams(-1, -2))
 			}
 
-			// Unirse a aula por codigo
-			card {
-				text("Unirse a una clase con codigo", 18)
-				muted("Si tu docente te compartio un codigo de aula, ingresalo aqui:")
-				val code = input("Codigo de clase", hintText = "Ej: AYACUCHO2026")
-				code.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
-				code.filters = arrayOf(InputFilter.LengthFilter(40), InputFilter.AllCaps())
-				button("Unirme a la ruta de clase", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_check) {
-					val rawCode = code.text.toString().trim()
-					if (rawCode.isNotBlank()) onJoinByCode(rawCode)
-				}
-			}
-
-			section("Herramientas escolares")
-			button("Avisos y recordatorios de estudio", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_star) { onOpenNotifications() }
-			button("Resumenes descargados (sin internet)", kind = RupiUi.Kind.STICKER, iconRes = R.drawable.ic_volume_2) { onOpenSavedSummaries() }
+			section("Opciones de cuenta")
+			button("Avisos y recordatorios de estudio", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_volume_2) { onOpenNotifications() }
+			button("Resumenes descargados (sin internet)", kind = RupiUi.Kind.STICKER, iconRes = R.drawable.ic_book) { onOpenSavedSummaries() }
 			button("Cerrar sesion escolar", kind = RupiUi.Kind.DANGER, iconRes = R.drawable.ic_arrow_left) { onLogout() }
 		}
 		addView(profileSection, LinearLayout.LayoutParams(-1, -2))
