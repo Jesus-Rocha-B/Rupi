@@ -20,6 +20,7 @@ import android.text.style.ImageSpan
 import android.view.Gravity
 import android.view.View
 import android.view.ViewOutlineProvider
+import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -679,7 +680,12 @@ class ScreenScaffold(
    contentDescription = "Volver: $label"
   }
 
- fun input(label: String, password: Boolean = false, hintText: String? = null): EditText {
+ fun input(
+  label: String,
+  password: Boolean = false,
+  hintText: String? = null,
+  imeAction: Int = if (password) EditorInfo.IME_ACTION_DONE else EditorInfo.IME_ACTION_NEXT
+ ): EditText {
   currentLayout.addView(TextView(activity).apply {
    text = label
    typeface = RupiUi.fontExtraBold(activity)
@@ -698,6 +704,7 @@ class ScreenScaffold(
    background = RupiUi.field(activity)
    setPadding(dp(14), dp(12), dp(14), dp(12))
    inputType = if (password) InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD else InputType.TYPE_CLASS_TEXT
+   imeOptions = imeAction
    typeface = RupiUi.fontBody(activity)
   }
   currentLayout.addView(field, LinearLayout.LayoutParams(-1, -2))

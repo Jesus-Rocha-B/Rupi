@@ -44,9 +44,20 @@ class AuthViewModel(
    } catch (e: CancellationException) {
     throw e
    } catch (e: Exception) {
+    val rawMsg = e.message ?: ""
+    val friendly = when {
+     rawMsg.contains("failed to connect", ignoreCase = true) ||
+      rawMsg.contains("ECONNREFUSED", ignoreCase = true) ||
+      rawMsg.contains("ConnectException", ignoreCase = true) ->
+      "No pudimos conectar con el servidor escolar en $serverUrl (puerto 8081). Verifica que el backend esté encendido (Iniciar-Rupi). Si usas celular físico por USB ejecuta 'adb reverse' o usa la IP de tu PC."
+     rawMsg.contains("timeout", ignoreCase = true) ->
+      "El servidor demoró demasiado en responder. Revisa la conexión de red de tu dispositivo."
+     rawMsg.isNotBlank() -> rawMsg
+     else -> "No pudimos iniciar sesión. Revisa tus credenciales o conexión."
+    }
     _uiState.value = LoginUiState(
      isLoading = false,
-     notice = errorNotice(e.message ?: "No pudimos continuar. Revisa tu conexión.")
+     notice = errorNotice(friendly)
     )
    }
   }
