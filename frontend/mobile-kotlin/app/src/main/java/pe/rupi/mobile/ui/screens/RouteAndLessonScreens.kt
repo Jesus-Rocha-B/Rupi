@@ -57,38 +57,158 @@ fun renderRouteDetailBody(
    )
   }
 
+  var activeFound = false
+  var overallIndex = 0
+
   detail.unitGroups.forEach { group ->
    section(group.title)
    group.nodes.forEach { node ->
-    renderNodeTile(scaffold, route, node, onOpenNode, onBlockedNode)
+    val isActive = !activeFound && node.state != RouteNodeState.COMPLETADO && node.state != RouteNodeState.BLOQUEADO
+    if (isActive) activeFound = true
+    renderWindingStopNode(context, scaffold, route, node, overallIndex, isActive, onOpenNode, onBlockedNode)
+    overallIndex++
    }
   }
   if (detail.ungroupedNodes.isNotEmpty()) {
    if (detail.unitGroups.isNotEmpty()) section("Otras paradas")
    detail.ungroupedNodes.forEach { node ->
-    renderNodeTile(scaffold, route, node, onOpenNode, onBlockedNode)
+    val isActive = !activeFound && node.state != RouteNodeState.COMPLETADO && node.state != RouteNodeState.BLOQUEADO
+    if (isActive) activeFound = true
+    renderWindingStopNode(context, scaffold, route, node, overallIndex, isActive, onOpenNode, onBlockedNode)
+    overallIndex++
    }
   }
  }
 }
 
-private fun renderNodeTile(
+private fun renderWindingStopNode(
+ context: Context,
  scaffold: ScreenScaffold,
  route: LearningRouteSummary,
  node: RouteNode,
+ index: Int,
+ isActive: Boolean,
  onOpenNode: (LearningRouteSummary, RouteNode) -> Unit,
  onBlockedNode: () -> Unit
 ) {
- scaffold.routeStopTile(
-  sequence = node.sequence,
-  title = node.title,
-  stateLabel = node.state.label,
-  estimatedMinutes = node.estimatedMinutes,
-  completed = node.state == RouteNodeState.COMPLETADO,
-  locked = node.state == RouteNodeState.BLOQUEADO
- ) {
-  if (node.state == RouteNodeState.BLOQUEADO) onBlockedNode() else onOpenNode(route, node)
+ val dp = { n: Int -> scaffold.dp(n) }
+ val completed = node.state == RouteNodeState.COMPLETADO
+ val locked = node.state == RouteNodeState.BLOQUEADO
+
+ val stopWrapper = LinearLayout(context).apply {
+  orientation = LinearLayout.VERTICAL
+  gravity = android.view.Gravity.CENTER_HORIZONTAL
+  setPadding(0, dp(8), 0, dp(10))
+  isClickable = true
+  isFocusable = true
+  contentDescription = "Parada ${node.sequence}: ${node.title}. ${node.state.label}"
+  setOnClickListener {
+   if (locked) onBlockedNode() else onOpenNode(route, node)
+  }
  }
+
+ val offsetPattern = intArrayOf(0, -48, 0, 48)
+ val shiftX = dp(offsetPattern[index % 4])
+
+ if (isActive) {
+  val startBubble = android.widget.TextView(context).apply {
+   text = "EMPEZAR"
+   typeface = RupiUi.fontExtraBold(context)
+   textSize = 11.5f
+   setTextColor(Color.WHITE)
+   background = RupiUi.rounded(RupiUi.LEAF, dp(10).toFloat(), dp(2), RupiUi.LEAF_DARK)
+   setPadding(dp(12), dp(4), dp(12), dp(4))
+   gravity = android.view.Gravity.CENTER
+   translationX = shiftX.toFloat()
+  }
+  stopWrapper.addView(startBubble, LinearLayout.LayoutParams(-2, -2).apply {
+   bottomMargin = dp(4)
+  })
+ }
+
+ val stoneRow = LinearLayout(context).apply {
+  orientation = LinearLayout.HORIZONTAL
+  gravity = android.view.Gravity.CENTER
+  translationX = shiftX.toFloat()
+ }
+
+ if (isActive) {
+  val mascotIcon = android.widget.ImageView(context).apply {
+   setImageResource(R.drawable.ic_rupi_mascot)
+   scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+   importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+  }
+  stoneRow.addView(mascotIcon, LinearLayout.LayoutParams(dp(44), dp(48)).apply { rightMargin = dp(8) })
+ }
+
+ val stoneFrame = android.widget.FrameLayout(context).apply {
+  background = RupiUi.routeNodeCircle(context, completed = completed, locked = locked)
+  setPadding(0, 0, 0, dp(4))
+ }
+ val stoneIcon = android.widget.ImageView(context).apply {
+  val iconRes = when {
+   completed -> R.drawable.ic_check
+   locked -> R.drawable.ic_lock
+   else -> R.drawable.ic_star
+  }
+  setImageResource(iconRes)
+  val d = drawable.mutate()
+  d.setTint(if (completed) Color.WHITE else if (locked) RupiUi.MUTED else Color.WHITE)
+  setImageDrawable(d)
+  importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+ }
+ stoneFrame.addView(stoneIcon, android.widget.FrameLayout.LayoutParams(dp(26), dp(26), android.view.Gravity.CENTER))
+ stoneRow.addView(stoneFrame, LinearLayout.LayoutParams(dp(62), dp(66)))
+ stopWrapper.addView(stoneRow, LinearLayout.LayoutParams(-1, -2))
+
+ val labelView = android.widget.TextView(context).apply {
+  text = "Parada ${node.sequence}: ${node.title}"
+  typeface = RupiUi.fontExtraBold(context)
+  textSize = 13.5f
+  setTextColor(if (locked) RupiUi.MUTED else RupiUi.FOREST)
+  gravity = android.view.Gravity.CENTER_HORIZONTAL
+  translationX = shiftX.toFloat()
+  setPadding(dp(8), dp(4), dp(8), 0)
+ }
+ stopWrapper.addView(labelView, LinearLayout.LayoutParams(-2, -2))
+
+ val stateView = android.widget.TextView(context).apply {
+  val mins = if (node.estimatedMinutes > 0) "${node.estimatedMinutes} min · " else ""
+  text = "$mins${node.state.label}"
+  typeface = RupiUi.fontBody(context)
+  textSize = 12f
+  setTextColor(RupiUi.MUTED)
+  gravity = android.view.Gravity.CENTER_HORIZONTAL
+  translationX = shiftX.toFloat()
+ }
+ stopWrapper.addView(stateView, LinearLayout.LayoutParams(-2, -2))
+
+ if (node.sequence % 4 == 0) {
+  val milestoneBox = LinearLayout(context).apply {
+   orientation = LinearLayout.HORIZONTAL
+   gravity = android.view.Gravity.CENTER
+   background = RupiUi.rounded(RupiUi.FLASHCARD_FRONT, dp(12).toFloat(), dp(1), RupiUi.SUN)
+   setPadding(dp(10), dp(4), dp(10), dp(4))
+   translationX = shiftX.toFloat()
+   addView(android.widget.ImageView(context).apply {
+    setImageResource(R.drawable.ic_award)
+    val d = drawable.mutate()
+    d.setTint(RupiUi.SUN_DARK)
+    setImageDrawable(d)
+    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+   }, LinearLayout.LayoutParams(dp(16), dp(16)))
+   addView(android.widget.TextView(context).apply {
+    text = "Cofre escolar"
+    typeface = RupiUi.fontExtraBold(context)
+    textSize = 12f
+    setTextColor(RupiUi.FOREST)
+    setPadding(dp(4), 0, 0, 0)
+   })
+  }
+  stopWrapper.addView(milestoneBox, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(6) })
+ }
+
+ scaffold.addView(stopWrapper, LinearLayout.LayoutParams(-1, -2))
 }
 
 fun renderLessonBody(
