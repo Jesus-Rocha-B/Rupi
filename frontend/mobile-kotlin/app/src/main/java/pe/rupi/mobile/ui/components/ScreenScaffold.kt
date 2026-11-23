@@ -285,38 +285,42 @@ class ScreenScaffold(
  }
 
  /** Banner andino estilo panel de bienvenida de LoginView.tsx (cumbres verdes, sol y Rupi). */
- fun andeanWelcomeBanner(tag: String, heading: String, speech: String) {
+ fun andeanWelcomeBanner(tag: String, heading: String, speech: String, compact: Boolean = false) {
   val frame = FrameLayout(activity).apply {
    background = GradientDrawable(
     GradientDrawable.Orientation.TL_BR,
     intArrayOf(Color.rgb(255, 251, 240), Color.rgb(244, 250, 246), Color.rgb(230, 243, 235))
    ).apply {
-    cornerRadius = dp(22).toFloat()
+    cornerRadius = dp(if (compact) 16 else 22).toFloat()
     setStroke(dp(2), RupiUi.SOFT_LINE)
    }
    clipToOutline = true
   }
 
+  val hillsHeight = if (compact) 100 else 165
   val hills = ImageView(activity).apply {
    setImageResource(R.drawable.bg_andean_scene)
    scaleType = ImageView.ScaleType.FIT_XY
    alpha = 0.9f
    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
   }
-  frame.addView(hills, FrameLayout.LayoutParams(-1, dp(165), Gravity.BOTTOM))
+  frame.addView(hills, FrameLayout.LayoutParams(-1, dp(hillsHeight), Gravity.BOTTOM))
 
   val content = LinearLayout(activity).apply {
    orientation = LinearLayout.VERTICAL
-   setPadding(dp(16), dp(14), dp(16), dp(12))
+   val padH = if (compact) 12 else 16
+   val padTop = if (compact) 10 else 14
+   val padBottom = if (compact) 8 else 12
+   setPadding(dp(padH), dp(padTop), dp(padH), dp(padBottom))
   }
 
   val badge = TextView(activity).apply {
    text = tag
    typeface = RupiUi.fontTitle(activity)
-   textSize = 11f
+   textSize = if (compact) 10.5f else 11f
    setTextColor(Color.rgb(158, 89, 45))
    background = RupiUi.rounded(Color.rgb(253, 246, 236), 999f, dp(2), RupiUi.SUN)
-   setPadding(dp(12), dp(4), dp(12), dp(4))
+   setPadding(dp(if (compact) 10 else 12), dp(if (compact) 3 else 4), dp(if (compact) 10 else 12), dp(if (compact) 3 else 4))
   }
   content.addView(badge, LinearLayout.LayoutParams(-2, -2))
 
@@ -328,35 +332,39 @@ class ScreenScaffold(
   val balloon = LinearLayout(activity).apply {
    orientation = LinearLayout.VERTICAL
    background = RupiUi.speechBalloon(activity, RupiUi.LEAF, RupiUi.LEAF_DARK)
-   setPadding(dp(14), dp(10), dp(14), dp(14))
+   val bPad = if (compact) 10 else 14
+   val bPadV = if (compact) 8 else 10
+   setPadding(dp(bPad), dp(bPadV), dp(bPad), dp(bPad))
   }
   balloon.addView(TextView(activity).apply {
    text = heading
    typeface = RupiUi.fontTitle(activity)
-   textSize = 18f
+   textSize = if (compact) 16f else 18f
    setTextColor(RupiUi.FOREST)
    if (Build.VERSION.SDK_INT >= 28) isAccessibilityHeading = true
   })
   balloon.addView(TextView(activity).apply {
    text = speech
    typeface = RupiUi.fontBody(activity)
-   textSize = 13.5f
+   textSize = if (compact) 12.5f else 13.5f
    setTextColor(RupiUi.MUTED)
    setLineSpacing(0f, 1.15f)
-   setPadding(0, dp(3), 0, 0)
+   setPadding(0, dp(2), 0, 0)
   })
   row.addView(balloon, LinearLayout.LayoutParams(0, -2, 1f).apply { rightMargin = dp(8) })
 
+  val mascotW = if (compact) 68 else 92
+  val mascotH = if (compact) 74 else 98
   val mascot = ImageView(activity).apply {
    setImageResource(R.drawable.ic_rupi_mascot)
    scaleType = ImageView.ScaleType.FIT_CENTER
    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
   }
-  row.addView(mascot, LinearLayout.LayoutParams(dp(92), dp(98)))
+  row.addView(mascot, LinearLayout.LayoutParams(dp(mascotW), dp(mascotH)))
 
-  content.addView(row, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
+  content.addView(row, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(if (compact) 6 else 10) })
   frame.addView(content, FrameLayout.LayoutParams(-1, -2))
-  currentLayout.addView(frame, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6); bottomMargin = dp(6) })
+  currentLayout.addView(frame, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4); bottomMargin = dp(6) })
  }
 
  /** Tarjeta compacta de mascota guía (.mascot-card de App.css). */
@@ -671,16 +679,16 @@ class ScreenScaffold(
    contentDescription = "Volver: $label"
   }
 
- fun input(label: String, password: Boolean = false): EditText {
+ fun input(label: String, password: Boolean = false, hintText: String? = null): EditText {
   currentLayout.addView(TextView(activity).apply {
    text = label
    typeface = RupiUi.fontExtraBold(activity)
    textSize = 15f
    setTextColor(RupiUi.FOREST)
-   setPadding(0, dp(12), 0, dp(6))
+   setPadding(0, dp(10), 0, dp(4))
   })
   val field = EditText(activity).apply {
-   hint = label
+   hint = hintText ?: label
    contentDescription = label
    minHeight = dp(52)
    isSaveEnabled = false

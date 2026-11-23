@@ -11,38 +11,64 @@ import pe.rupi.mobile.ui.components.ScreenScaffold
 import pe.rupi.mobile.ui.state.TopicsUiState
 
 fun mountLoginScreen(
- scaffold: ScreenScaffold,
- onLogin: (serverUrl: String, username: String, password: String) -> Unit,
- onOpenSavedSummaries: () -> Unit
+	scaffold: ScreenScaffold,
+	onLogin: (serverUrl: String, username: String, password: String) -> Unit,
+	onOpenSavedSummaries: () -> Unit
 ) {
- scaffold.mountPage("Entra a tu aula")
- scaffold.rebuildBody(preserveScroll = false) {
-  andeanWelcomeBanner(
-   tag = "PERÚ · PRIMARIA",
-   heading = "¡Hola! Soy Rupi",
-   speech = "Tu compañero de aprendizaje. Inicia sesión con los datos que te dio tu profe."
-  )
-  lateinit var server: EditText
-  lateinit var user: EditText
-  lateinit var password: EditText
-  stickerCard {
-   text("Entra a tu aula", 22)
-   muted("Usa el usuario y la contraseña escolar de tu aula.")
-   server = input("Servidor Rupi (HTTPS)")
-   if (BuildConfig.DEBUG) server.setText("http://10.0.2.2:8081")
-   user = input("Usuario escolar")
-   password = input("Contraseña", password = true)
-   button("Entrar a aprender") {
-    val serverText = server.text.toString().trim()
-    val username = user.text.toString().trim()
-    val secret = password.text.toString()
-    password.setText("")
-    onLogin(serverText, username, secret)
-   }
-  }
-  section("Sin conexión")
-  button("Resúmenes descargados", kind = RupiUi.Kind.STICKER) { onOpenSavedSummaries() }
- }
+	scaffold.mountPage("Entra a tu aula")
+	scaffold.rebuildBody(preserveScroll = false) {
+		andeanWelcomeBanner(
+			tag = "PERÚ · PRIMARIA",
+			heading = "¡Hola! Soy Rupi",
+			speech = "Tu compañero de aventuras. Escribe tus datos del colegio para entrar a tu aula.",
+			compact = true
+		)
+		lateinit var user: EditText
+		lateinit var password: EditText
+		var server: EditText? = null
+
+		val defaultServer = if (BuildConfig.DEBUG) "http://10.0.2.2:8081" else "https://api.rupi.pe"
+
+		stickerCard {
+			text("Tu cuenta escolar", 20)
+			muted("Pídele tu usuario a tu profe si aún no lo recuerdas.")
+			user = input("Usuario escolar", hintText = "Ej: estudiante.demo")
+			password = input("Contraseña", password = true, hintText = "Tu clave del colegio")
+			button("¡Entrar a aprender!", kind = RupiUi.Kind.PRIMARY, iconRes = pe.rupi.mobile.R.drawable.ic_check) {
+				val serverText = server?.text?.toString()?.trim()?.ifBlank { defaultServer } ?: defaultServer
+				val username = user.text.toString().trim()
+				val secret = password.text.toString()
+				password.setText("")
+				onLogin(serverText, username, secret)
+			}
+			muted("¿Olvidaste tu contraseña? Pídesela a tu profesor o profesora.")
+		}
+
+		// Panel de configuración avanzada de servidor (oculto por defecto para no confundir a los niños)
+		val serverContainer = LinearLayout(scaffold.currentContainer().context).apply {
+			orientation = LinearLayout.VERTICAL
+			visibility = android.view.View.GONE
+			setPadding(scaffold.dp(4), scaffold.dp(6), scaffold.dp(4), scaffold.dp(6))
+		}
+		scaffold.into(serverContainer) {
+			text("Ajustes de conexión (Avanzado)", 15)
+			muted("Dirección del servidor escolar para pruebas o red local:")
+			server = input("Servidor Rupi", hintText = defaultServer).apply {
+				setText(defaultServer)
+			}
+		}
+		scaffold.addView(serverContainer, LinearLayout.LayoutParams(-1, -2))
+
+		button("⚙️ Ajustes de conexión (opcional)", kind = RupiUi.Kind.QUIET) {
+			val isVisible = serverContainer.visibility == android.view.View.VISIBLE
+			serverContainer.visibility = if (isVisible) android.view.View.GONE else android.view.View.VISIBLE
+		}
+
+		section("Estudio sin internet")
+		button("Ver resúmenes descargados", kind = RupiUi.Kind.STICKER, iconRes = pe.rupi.mobile.R.drawable.ic_star) {
+			onOpenSavedSummaries()
+		}
+	}
 }
 
 /**
