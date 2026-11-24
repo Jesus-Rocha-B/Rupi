@@ -37,29 +37,49 @@ class AuthViewModel(
   if (_uiState.value.isLoading) return
   _uiState.value = LoginUiState(isLoading = true, notice = loadingNotice())
   viewModelScope.launch {
-   try {
-    authRepository.login(serverUrl, username, password)
-    _uiState.value = LoginUiState(isLoading = false, notice = null)
-    onSuccess()
-   } catch (e: CancellationException) {
-    throw e
-   } catch (e: Exception) {
-    val rawMsg = e.message ?: ""
-    val friendly = when {
-     rawMsg.contains("failed to connect", ignoreCase = true) ||
+   val candidates = linkedSetOf(
+    serverUrl.trim().trimEnd('/'),
+    "http://127.0.0.1:8081",
+    "http://192.168.0.9:8081",
+    "http://10.0.2.2:8081"
+   )
+   var lastException: Exception? = null
+   for (target in candidates) {
+    try {
+     authRepository.login(target, username, password)
+     _uiState.value = LoginUiState(isLoading = false, notice = null)
+     onSuccess()
+     return@launch
+    } catch (e: CancellationException) {
+     throw e
+    } catch (e: Exception) {
+     lastException = e
+     val rawMsg = e.message ?: ""
+     val isConnectionRefused = rawMsg.contains("failed to connect", ignoreCase = true) ||
       rawMsg.contains("ECONNREFUSED", ignoreCase = true) ||
-      rawMsg.contains("ConnectException", ignoreCase = true) ->
-      "No pudimos conectar con el servidor escolar en $serverUrl (puerto 8081). Verifica que el backend esté encendido (Iniciar-Rupi). Si usas celular físico por USB ejecuta 'adb reverse' o usa la IP de tu PC."
-     rawMsg.contains("timeout", ignoreCase = true) ->
-      "El servidor demoró demasiado en responder. Revisa la conexión de red de tu dispositivo."
-     rawMsg.isNotBlank() -> rawMsg
-     else -> "No pudimos iniciar sesión. Revisa tus credenciales o conexión."
+      rawMsg.contains("ConnectException", ignoreCase = true) ||
+      rawMsg.contains("Network is unreachable", ignoreCase = true)
+     if (!isConnectionRefused) {
+      break
+     }
     }
-    _uiState.value = LoginUiState(
-     isLoading = false,
-     notice = errorNotice(friendly)
-    )
    }
+   val e = lastException ?: Exception("Error desconocido")
+   val rawMsg = e.message ?: ""
+   val friendly = when {
+    rawMsg.contains("failed to connect", ignoreCase = true) ||
+     rawMsg.contains("ECONNREFUSED", ignoreCase = true) ||
+     rawMsg.contains("ConnectException", ignoreCase = true) ->
+     "No pudimos conectar con el servidor escolar en $serverUrl (puerto 8081). Verifica que el backend esté encendido (Iniciar-Rupi)."
+    rawMsg.contains("timeout", ignoreCase = true) ->
+     "El servidor demoró demasiado en responder. Revisa la conexión de red de tu dispositivo."
+    rawMsg.isNotBlank() -> rawMsg
+    else -> "No pudimos iniciar sesión. Revisa tus credenciales o conexión."
+   }
+   _uiState.value = LoginUiState(
+    isLoading = false,
+    notice = errorNotice(friendly)
+   )
   }
  }
 
