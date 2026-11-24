@@ -941,30 +941,42 @@ class ScreenScaffold(
   label: String,
   password: Boolean = false,
   hintText: String? = null,
+  iconRes: Int? = null,
   imeAction: Int = if (password) EditorInfo.IME_ACTION_DONE else EditorInfo.IME_ACTION_NEXT
  ): EditText {
-  currentLayout.addView(TextView(activity).apply {
-   text = label
-   typeface = RupiUi.fontExtraBold(activity)
-   textSize = 15f
-   setTextColor(RupiUi.FOREST)
-   setPadding(0, dp(10), 0, dp(4))
-  })
+  if (label.isNotBlank()) {
+   currentLayout.addView(TextView(activity).apply {
+    text = label
+    typeface = RupiUi.fontExtraBold(activity)
+    textSize = 14f
+    setTextColor(RupiUi.FOREST)
+    setPadding(0, dp(8), 0, dp(4))
+   })
+  }
   val field = EditText(activity).apply {
    hint = hintText ?: label
-   contentDescription = label
-   minHeight = dp(52)
+   contentDescription = label.ifBlank { hintText ?: "Campo de texto" }
+   minimumHeight = dp(54)
    isSaveEnabled = false
-   textSize = 16.5f
+   textSize = 15.5f
    setTextColor(RupiUi.INK)
-   setHintTextColor(Color.rgb(112, 130, 118))
+   setHintTextColor(Color.rgb(150, 165, 155))
    background = RupiUi.field(activity)
-   setPadding(dp(14), dp(12), dp(14), dp(12))
+   setPadding(dp(16), dp(12), dp(16), dp(12))
    inputType = if (password) InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD else InputType.TYPE_CLASS_TEXT
    imeOptions = imeAction
    typeface = RupiUi.fontBody(activity)
+
+   if (iconRes != null) {
+    val d = androidx.core.content.ContextCompat.getDrawable(activity, iconRes)?.mutate()
+    d?.setTint(RupiUi.LEAF)
+    setCompoundDrawablesRelativeWithIntrinsicBounds(d, null, null, null)
+    compoundDrawablePadding = dp(12)
+   }
   }
-  currentLayout.addView(field, LinearLayout.LayoutParams(-1, -2))
+  currentLayout.addView(field, LinearLayout.LayoutParams(-1, -2).apply {
+   bottomMargin = dp(6)
+  })
   return field
  }
 
