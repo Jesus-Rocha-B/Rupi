@@ -51,7 +51,9 @@ class ScreenScaffold(
   private set
  lateinit var contentContainer: LinearLayout
   private set
+ private lateinit var noticeContainer: LinearLayout
  private lateinit var noticeView: TextView
+ private lateinit var noticeCloseBtn: TextView
  private lateinit var currentLayout: LinearLayout
 
  fun dp(n: Int): Int = RupiUi.dp(activity, n)
@@ -353,11 +355,16 @@ class ScreenScaffold(
  }
 
  private fun setupNoticeView(outerLayout: LinearLayout) {
+  noticeContainer = LinearLayout(activity).apply {
+   orientation = LinearLayout.HORIZONTAL
+   gravity = Gravity.CENTER_VERTICAL
+   visibility = View.GONE
+   setPadding(dp(14), dp(10), dp(8), dp(10))
+  }
+
   noticeView = TextView(activity).apply {
    typeface = RupiUi.fontExtraBold(activity)
-   textSize = 15f
-   setPadding(dp(14), dp(12), dp(14), dp(12))
-   visibility = View.GONE
+   textSize = 14f
    accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
    addTextChangedListener(object : TextWatcher {
     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -367,8 +374,28 @@ class ScreenScaffold(
     }
    })
   }
+  noticeContainer.addView(noticeView, LinearLayout.LayoutParams(0, -2, 1f))
+
+  noticeCloseBtn = TextView(activity).apply {
+   text = "✕"
+   textSize = 15f
+   typeface = RupiUi.fontExtraBold(activity)
+   gravity = Gravity.CENTER
+   minimumWidth = dp(36)
+   minimumHeight = dp(36)
+   isClickable = true
+   isFocusable = true
+   contentDescription = "Cerrar aviso"
+   setPadding(dp(6), dp(4), dp(6), dp(4))
+   setOnClickListener {
+    noticeView.text = ""
+    noticeContainer.visibility = View.GONE
+   }
+  }
+  noticeContainer.addView(noticeCloseBtn, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(6) })
+
   outerLayout.addView(
-   noticeView,
+   noticeContainer,
    LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8); bottomMargin = dp(4) }
   )
  }
@@ -402,9 +429,17 @@ class ScreenScaffold(
  }
 
  private fun paintNotice() {
-  noticeView.visibility = if (noticeView.text.isNullOrEmpty()) View.GONE else View.VISIBLE
-  noticeView.background = RupiUi.rounded(noticeTone.back, dp(14).toFloat(), dp(2), noticeTone.border)
-  noticeView.setTextColor(noticeTone.text)
+  val hasText = !noticeView.text.isNullOrEmpty()
+  if (::noticeContainer.isInitialized) {
+   noticeContainer.visibility = if (hasText) View.VISIBLE else View.GONE
+   if (hasText) {
+    noticeContainer.background = RupiUi.rounded(noticeTone.back, dp(14).toFloat(), dp(2), noticeTone.border)
+    noticeView.setTextColor(noticeTone.text)
+    if (::noticeCloseBtn.isInitialized) {
+     noticeCloseBtn.setTextColor(noticeTone.text)
+    }
+   }
+  }
  }
 
  private fun mapTone(tone: NoticeTone): RupiUi.Tone = when (tone) {

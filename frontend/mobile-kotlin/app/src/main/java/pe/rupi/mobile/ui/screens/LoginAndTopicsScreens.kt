@@ -69,11 +69,11 @@ fun mountLoginScreen(
 			val context = scaffold.currentContainer().context
 			val dp = { n: Int -> scaffold.dp(n) }
 
-			// 1. Mascota Rupi centrada y saludo limpio (Estilo Duolingo)
+			// 1. Mascota Rupi centrada y saludo limpio en una sola línea (Estilo Duolingo)
 			val heroLayout = LinearLayout(context).apply {
 				orientation = LinearLayout.VERTICAL
 				gravity = Gravity.CENTER_HORIZONTAL
-				setPadding(0, dp(14), 0, dp(12))
+				setPadding(0, dp(14), 0, dp(10))
 			}
 			heroLayout.addView(
 				ImageView(context).apply {
@@ -81,45 +81,31 @@ fun mountLoginScreen(
 					scaleType = ImageView.ScaleType.FIT_CENTER
 					importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
 				},
-				LinearLayout.LayoutParams(dp(88), dp(92))
+				LinearLayout.LayoutParams(dp(86), dp(90))
 			)
 
-			val titleHeader = LinearLayout(context).apply {
-				orientation = LinearLayout.HORIZONTAL
-				gravity = Gravity.CENTER
-				setPadding(0, dp(6), 0, dp(2))
-			}
-			titleHeader.addView(TextView(context).apply {
-				text = if (isRegister) "Crea " else "Inicia sesión "
+			heroLayout.addView(TextView(context).apply {
+				text = if (isRegister) "Crea tu cuenta escolar" else "Inicia sesión en tu cuenta"
 				typeface = RupiUi.fontTitle(context)
-				textSize = 22f
+				textSize = 21f
 				setTextColor(RupiUi.FOREST)
+				gravity = Gravity.CENTER_HORIZONTAL
+				setSingleLine(true)
+				maxLines = 1
+				setPadding(0, dp(4), 0, 0)
 			})
-			titleHeader.addView(TextView(context).apply {
-				text = if (isRegister) "tu cuenta escolar" else "en tu cuenta"
+
+			heroLayout.addView(TextView(context).apply {
+				text = if (isRegister) "Únete a tu aula para aprender jugando" else "Aprende jugando en tu aula escolar"
 				typeface = RupiUi.fontBody(context)
-				textSize = 19f
-				setTextColor(RupiUi.FOREST)
+				textSize = 13.5f
+				setTextColor(RupiUi.MUTED)
+				gravity = Gravity.CENTER_HORIZONTAL
+				setSingleLine(true)
+				maxLines = 1
+				setPadding(dp(12), dp(2), dp(12), 0)
 			})
-			heroLayout.addView(titleHeader)
-
-			heroLayout.addView(
-				TextView(context).apply {
-					text = if (isRegister) {
-						"Regístrate para unirte a tu aula escolar y aprender jugando"
-					} else {
-						"Ingresa tus credenciales escolares para continuar tu aventura"
-					}
-					typeface = RupiUi.fontBody(context)
-					textSize = 13.5f
-					setTextColor(RupiUi.MUTED)
-					gravity = Gravity.CENTER_HORIZONTAL
-					setPadding(dp(16), dp(2), dp(16), 0)
-				}
-			)
 			addView(heroLayout, LinearLayout.LayoutParams(-1, -2))
-
-			var server: EditText? = null
 
 			// 2. Tarjeta de Formulario limpia con bordes suaves
 			card {
@@ -145,24 +131,24 @@ fun mountLoginScreen(
 						typeface = RupiUi.fontBody(context)
 						textSize = 12.5f
 						setTextColor(RupiUi.FOREST)
+						setSingleLine(true)
 						setPadding(dp(4), 0, 0, 0)
 					})
 					addView(termsBox)
 
 					// Botón limpio sin iconos en el texto
 					button("CREAR CUENTA", kind = RupiUi.Kind.PRIMARY) {
-						val sText = server?.text?.toString()?.trim()?.ifBlank { defaultServer } ?: defaultServer
 						val email = emailInput.text.toString().trim()
 						val pass = regPasswordInput.text.toString()
 						if (email.isBlank() || pass.isBlank()) {
 							scaffold.showLocalNotice("Escribe tu correo y contraseña escolar para registrarte.")
 						} else {
-							onLogin(sText, email, pass)
+							onLogin(defaultServer, email, pass)
 						}
 					}
 				} else {
 					// LOGIN / INICIO DE SESIÓN (Fiel a la imagen 2 de Duolingo)
-					// Los campos llevan icono a la izquierda; los botones no llevan icono.
+					// Los campos llevan icono a la izquierda; el botón no lleva icono.
 					val userInput = input(label = "", hintText = "Correo o usuario", iconRes = R.drawable.ic_user)
 					val passwordInput = input(label = "", password = true, hintText = "Contraseña", iconRes = R.drawable.ic_lock)
 
@@ -183,35 +169,35 @@ fun mountLoginScreen(
 						typeface = RupiUi.fontBold(context)
 						textSize = 13f
 						setTextColor(RupiUi.MUTED)
+						setSingleLine(true)
 					})
 					addView(forgotLayout, LinearLayout.LayoutParams(-1, -2))
 
 					// Botón de Ingreso limpio (sin iconos en el botón)
 					button("INGRESAR", kind = RupiUi.Kind.PRIMARY) {
-						val serverText = server?.text?.toString()?.trim()?.ifBlank { defaultServer } ?: defaultServer
-						val username = userInput.text.toString().trim()
-						val secret = passwordInput.text.toString()
-						passwordInput.setText("")
-						onLogin(serverText, username, secret)
-					}
-
-					// Botón de acceso rápido con Mateo (sin iconos en el botón)
-					button("PROBAR CON MATEO (DEMO)", kind = RupiUi.Kind.STICKER) {
-						userInput.setText("estudiante.demo")
-						passwordInput.setText("123456")
-						val serverText = server?.text?.toString()?.trim()?.ifBlank { defaultServer } ?: defaultServer
-						onLogin(serverText, "estudiante.demo", "123456")
+						val username = userInput.text.toString().trim().ifBlank {
+							if (BuildConfig.DEBUG) "estudiante.demo" else ""
+						}
+						val secret = passwordInput.text.toString().ifBlank {
+							if (BuildConfig.DEBUG) "123456" else ""
+						}
+						if (username.isBlank() || secret.isBlank()) {
+							scaffold.showLocalNotice("Escribe tu correo o usuario y tu contraseña para ingresar.")
+						} else {
+							passwordInput.setText("")
+							onLogin(defaultServer, username, secret)
+						}
 					}
 				}
 
-				// Enlace para alternar entre Iniciar Sesión y Registrarse (Área táctil accesible de 48dp)
+				// Enlace para alternar entre Iniciar Sesión y Registrarse (En una sola línea)
 				val toggleRow = LinearLayout(context).apply {
 					orientation = LinearLayout.HORIZONTAL
 					gravity = Gravity.CENTER
 					minimumHeight = dp(48)
 					isClickable = true
 					isFocusable = true
-					setPadding(0, dp(6), 0, dp(4))
+					setPadding(0, dp(8), 0, dp(4))
 					setOnClickListener {
 						renderAuthForm(isRegister = !isRegister)
 					}
@@ -219,14 +205,16 @@ fun mountLoginScreen(
 				toggleRow.addView(TextView(context).apply {
 					text = if (isRegister) "¿Ya tienes una cuenta? " else "¿No tienes una cuenta? "
 					typeface = RupiUi.fontBody(context)
-					textSize = 14f
+					textSize = 13.5f
 					setTextColor(RupiUi.MUTED)
+					setSingleLine(true)
 				})
 				toggleRow.addView(TextView(context).apply {
 					text = if (isRegister) "Inicia sesión" else "Regístrate"
 					typeface = RupiUi.fontExtraBold(context)
-					textSize = 14f
+					textSize = 13.5f
 					setTextColor(RupiUi.LEAF_DARK)
+					setSingleLine(true)
 				})
 				addView(toggleRow, LinearLayout.LayoutParams(-1, -2))
 			}
@@ -234,54 +222,6 @@ fun mountLoginScreen(
 			// Botón de resúmenes sin conexión
 			button("Estudiar sin conexión (Resúmenes descargados)", kind = RupiUi.Kind.QUIET) {
 				onOpenSavedSummaries()
-			}
-
-			// Panel desplegable de ajustes de red y servidor escolar
-			val serverContainer = LinearLayout(context).apply {
-				orientation = LinearLayout.VERTICAL
-				visibility = View.GONE
-				setPadding(dp(8), dp(4), dp(8), dp(6))
-			}
-			scaffold.into(serverContainer) {
-				text("Ajustes de red y servidor escolar", 14)
-				muted("Selecciona la dirección de conexión:")
-
-				val presetsRow = LinearLayout(context).apply {
-					orientation = LinearLayout.HORIZONTAL
-					gravity = Gravity.CENTER
-					setPadding(0, dp(4), 0, dp(6))
-				}
-				val pParams = LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dp(2), 0, dp(2), 0) }
-
-				fun presetButton(label: String, url: String): Button {
-					return Button(context).apply {
-						text = label
-						isAllCaps = false
-						minHeight = dp(40)
-						textSize = 11.5f
-						typeface = RupiUi.fontExtraBold(context)
-						background = RupiUi.tactile(context, RupiUi.Kind.QUIET, radiusDp = 10)
-						setTextColor(RupiUi.FOREST)
-						setPadding(dp(4), dp(4), dp(4), dp(4))
-						setOnClickListener { server?.setText(url) }
-					}
-				}
-
-				presetsRow.addView(presetButton("USB Celular\n(127.0.0.1)", "http://127.0.0.1:8081"), pParams)
-				presetsRow.addView(presetButton("Emulador\n(10.0.2.2)", "http://10.0.2.2:8081"), pParams)
-				presetsRow.addView(presetButton("Wi-Fi PC\n(10.200.174.1)", "http://10.200.174.1:8081"), pParams)
-				presetsRow.addView(presetButton("Nube\n(api.rupi.pe)", "https://api.rupi.pe"), pParams)
-				addView(presetsRow, LinearLayout.LayoutParams(-1, -2))
-
-				server = input("URL del servidor", hintText = defaultServer).apply {
-					setText(defaultServer)
-				}
-			}
-			scaffold.addView(serverContainer, LinearLayout.LayoutParams(-1, -2))
-
-			button("Ajustes de red", kind = RupiUi.Kind.QUIET) {
-				val isVisible = serverContainer.visibility == View.VISIBLE
-				serverContainer.visibility = if (isVisible) View.GONE else View.VISIBLE
 			}
 		}
 	}
