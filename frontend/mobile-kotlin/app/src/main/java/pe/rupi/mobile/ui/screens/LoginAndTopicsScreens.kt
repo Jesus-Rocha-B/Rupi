@@ -230,6 +230,10 @@ fun mountLoginScreen(
 	renderAuthForm(isRegister = false)
 }
 
+private var selectedRouteFilter: Int = 0 // 0: Rutas RUPI Escuela, 1: Rutas Comunidad
+private var lastTopicsStateCache: TopicsUiState? = null
+private var lastOnOpenRouteCache: ((LearningRouteSummary) -> Unit)? = null
+
 /**
  * Pantalla principal con Top Stats Bar y Fixed Bottom Navbar estilo Duolingo:
  * Camino (Rutas) | Tutor IA (Chat) | Misiones (Retos) | Logros (Aula) | Perfil
@@ -336,6 +340,69 @@ fun mountTopicsScreen(
 			exploreHero.addView(exploreCopy, LinearLayout.LayoutParams(0, -2, 1f))
 			addView(exploreHero, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(14) })
 
+			// Filtros de navegación: Rutas de Escuela vs Rutas de la Comunidad
+			val filterLayout = LinearLayout(context).apply {
+				orientation = LinearLayout.HORIZONTAL
+				gravity = Gravity.CENTER_VERTICAL
+				setPadding(0, 0, 0, dp(12))
+			}
+			val chipEscuela = TextView(context)
+			val chipComunidad = TextView(context)
+
+			fun updateFilterChips() {
+				chipEscuela.apply {
+					text = "Rutas RUPI · Escuela"
+					typeface = if (selectedRouteFilter == 0) RupiUi.fontExtraBold(context) else RupiUi.fontBold(context)
+					textSize = 12.5f
+					setTextColor(if (selectedRouteFilter == 0) Color.WHITE else RupiUi.FOREST)
+					background = if (selectedRouteFilter == 0) {
+						RupiUi.rounded(RupiUi.FOREST, dp(16).toFloat(), dp(2), RupiUi.FOREST)
+					} else {
+						RupiUi.rounded(Color.WHITE, dp(16).toFloat(), dp(1), RupiUi.LINE)
+					}
+					setPadding(dp(14), dp(8), dp(14), dp(8))
+				}
+				chipComunidad.apply {
+					text = "Rutas de la Comunidad"
+					typeface = if (selectedRouteFilter == 1) RupiUi.fontExtraBold(context) else RupiUi.fontBold(context)
+					textSize = 12.5f
+					setTextColor(if (selectedRouteFilter == 1) Color.WHITE else RupiUi.FOREST)
+					background = if (selectedRouteFilter == 1) {
+						RupiUi.rounded(RupiUi.FOREST, dp(16).toFloat(), dp(2), RupiUi.FOREST)
+					} else {
+						RupiUi.rounded(Color.WHITE, dp(16).toFloat(), dp(1), RupiUi.LINE)
+					}
+					setPadding(dp(14), dp(8), dp(14), dp(8))
+				}
+			}
+
+			chipEscuela.setOnClickListener {
+				if (selectedRouteFilter != 0) {
+					selectedRouteFilter = 0
+					updateFilterChips()
+					val s = lastTopicsStateCache
+					val cb = lastOnOpenRouteCache
+					if (s != null && cb != null) {
+						renderTopicsRoutesList(scaffold, routesContainer, s, cb)
+					}
+				}
+			}
+			chipComunidad.setOnClickListener {
+				if (selectedRouteFilter != 1) {
+					selectedRouteFilter = 1
+					updateFilterChips()
+					val s = lastTopicsStateCache
+					val cb = lastOnOpenRouteCache
+					if (s != null && cb != null) {
+						renderTopicsRoutesList(scaffold, routesContainer, s, cb)
+					}
+				}
+			}
+			updateFilterChips()
+			filterLayout.addView(chipEscuela, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = dp(8) })
+			filterLayout.addView(chipComunidad, LinearLayout.LayoutParams(-2, -2))
+			addView(filterLayout, LinearLayout.LayoutParams(-1, -2))
+
 			// Contenedor dinámico de rutas escolares
 			routesContainer = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
 			addView(routesContainer, LinearLayout.LayoutParams(-1, -2))
@@ -345,157 +412,236 @@ fun mountTopicsScreen(
 		addView(routesSection, LinearLayout.LayoutParams(-1, -2))
 
 		// -----------------------------------------------------------------
-		// TAB 1: TUTOR IA (CHAT CON RUPI - PERSONAJE PRINCIPAL)
+		// TAB 1: TUTOR IA (CHAT AUTÉNTICO CON RUPI - ESTILO SLATE / DUOLINGO)
 		// -----------------------------------------------------------------
 		scaffold.into(tutorSection) {
-			val tutorHeader = LinearLayout(context).apply {
+			val chatBox = LinearLayout(context).apply {
+				orientation = LinearLayout.VERTICAL
+				background = RupiUi.rounded(
+					Color.rgb(18, 28, 23),
+					dp(20).toFloat(),
+					dp(1),
+					Color.rgb(36, 54, 44)
+				)
+				setPadding(dp(14), dp(16), dp(14), dp(14))
+			}
+
+			// CABECERA DEL CHAT (Avatar + Nombre + Estado En Línea)
+			val chatHeader = LinearLayout(context).apply {
 				orientation = LinearLayout.HORIZONTAL
 				gravity = Gravity.CENTER_VERTICAL
-				background = RupiUi.tactile(context, RupiUi.Kind.STICKER, radiusDp = 16)
-				setPadding(dp(14), dp(12), dp(14), dp(16))
+				setPadding(0, 0, 0, dp(12))
 			}
-			tutorHeader.addView(
+			chatHeader.addView(
 				ImageView(context).apply {
 					setImageResource(R.drawable.ic_rupi_mascot)
 					scaleType = ImageView.ScaleType.FIT_CENTER
+					background = RupiUi.rounded(Color.rgb(28, 42, 34), dp(22).toFloat(), dp(1), Color.rgb(45, 68, 55))
+					setPadding(dp(4), dp(4), dp(4), dp(4))
 					importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
 				},
-				LinearLayout.LayoutParams(dp(54), dp(58)).apply { rightMargin = dp(12) }
+				LinearLayout.LayoutParams(dp(44), dp(44)).apply { rightMargin = dp(10) }
 			)
-			val tutorCopy = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-			tutorCopy.addView(TextView(context).apply {
+			val headerTexts = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+			headerTexts.addView(TextView(context).apply {
 				text = "Tutor Rupi"
 				typeface = RupiUi.fontTitle(context)
-				textSize = 20f
-				setTextColor(RupiUi.FOREST)
+				textSize = 17.5f
+				setTextColor(Color.WHITE)
 			})
-			tutorCopy.addView(TextView(context).apply {
-				text = "Tu companero de estudio socratico con IA"
+			val statusRow = LinearLayout(context).apply {
+				orientation = LinearLayout.HORIZONTAL
+				gravity = Gravity.CENTER_VERTICAL
+			}
+			statusRow.addView(View(context).apply {
+				background = RupiUi.rounded(Color.rgb(74, 222, 128), dp(4).toFloat(), 0, 0)
+			}, LinearLayout.LayoutParams(dp(7), dp(7)).apply { rightMargin = dp(6) })
+			statusRow.addView(TextView(context).apply {
+				text = "En línea · Primaria Perú"
 				typeface = RupiUi.fontBody(context)
-				textSize = 13f
-				setTextColor(RupiUi.MUTED)
+				textSize = 12f
+				setTextColor(Color.rgb(156, 182, 168))
 			})
-			tutorHeader.addView(tutorCopy, LinearLayout.LayoutParams(0, -2, 1f))
-			addView(tutorHeader, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+			headerTexts.addView(statusRow)
+			chatHeader.addView(headerTexts, LinearLayout.LayoutParams(0, -2, 1f))
+			chatBox.addView(chatHeader)
+
+			chatBox.addView(View(context).apply {
+				setBackgroundColor(Color.rgb(32, 48, 39))
+			}, LinearLayout.LayoutParams(-1, dp(1)).apply { bottomMargin = dp(10) })
 
 			val chatHistoryLayout = LinearLayout(context).apply {
 				orientation = LinearLayout.VERTICAL
-				setPadding(0, dp(4), 0, dp(8))
+				setPadding(0, dp(4), 0, dp(4))
 			}
 
+			val suggestionsContainer = LinearLayout(context).apply {
+				orientation = LinearLayout.VERTICAL
+				setPadding(0, dp(6), 0, dp(10))
+			}
+			suggestionsContainer.addView(TextView(context).apply {
+				text = "Preguntas rápidas sugeridas:"
+				typeface = RupiUi.fontExtraBold(context)
+				textSize = 12f
+				setTextColor(Color.rgb(180, 205, 192))
+				setPadding(0, 0, 0, dp(6))
+			})
+
+			lateinit var chatInput: EditText
+			lateinit var askQuestion: (String) -> Unit
+
 			fun appendMessage(text: String, isUser: Boolean) {
-				val bubbleFrame = LinearLayout(context).apply {
+				val bubbleRow = LinearLayout(context).apply {
 					orientation = LinearLayout.HORIZONTAL
 					gravity = if (isUser) Gravity.END else Gravity.START
-					setPadding(0, dp(4), 0, dp(4))
+					setPadding(0, dp(5), 0, dp(5))
 				}
+
+				if (!isUser) {
+					val botAvatar = ImageView(context).apply {
+						setImageResource(R.drawable.ic_rupi_mascot)
+						scaleType = ImageView.ScaleType.FIT_CENTER
+						background = RupiUi.rounded(Color.rgb(28, 42, 34), dp(16).toFloat(), 0, 0)
+						setPadding(dp(3), dp(3), dp(3), dp(3))
+						importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+					}
+					bubbleRow.addView(botAvatar, LinearLayout.LayoutParams(dp(32), dp(32)).apply {
+						rightMargin = dp(8)
+						topMargin = dp(2)
+					})
+				}
+
 				val bubble = LinearLayout(context).apply {
 					orientation = LinearLayout.VERTICAL
 					background = if (isUser) {
-						RupiUi.rounded(RupiUi.LEAF_SOFT, dp(14).toFloat(), dp(2), Color.rgb(182, 211, 168))
+						RupiUi.rounded(Color.WHITE, dp(16).toFloat(), 0, 0)
 					} else {
-						RupiUi.rounded(Color.WHITE, dp(14).toFloat(), dp(2), RupiUi.SOFT_LINE)
+						RupiUi.rounded(Color.rgb(28, 42, 34), dp(16).toFloat(), dp(1), Color.rgb(44, 66, 54))
 					}
 					setPadding(dp(14), dp(10), dp(14), dp(10))
 				}
-				bubble.addView(TextView(context).apply {
-					this.text = if (isUser) "Tu" else "Rupi"
-					typeface = RupiUi.fontExtraBold(context)
-					textSize = 12f
-					setTextColor(if (isUser) RupiUi.LEAF_DARK else RupiUi.ORANGE_DARK)
-				})
+
 				bubble.addView(TextView(context).apply {
 					this.text = text
 					typeface = RupiUi.fontBody(context)
-					textSize = 14.5f
-					setTextColor(RupiUi.INK)
-					setLineSpacing(0f, 1.2f)
-					setPadding(0, dp(2), 0, 0)
+					textSize = 14f
+					setTextColor(if (isUser) Color.rgb(24, 30, 27) else Color.rgb(243, 244, 246))
+					setLineSpacing(0f, 1.25f)
 				})
+
 				val bubbleParams = LinearLayout.LayoutParams(-2, -2).apply {
-					if (isUser) leftMargin = dp(40) else rightMargin = dp(40)
+					if (isUser) leftMargin = dp(36) else rightMargin = dp(28)
 				}
-				bubbleFrame.addView(bubble, bubbleParams)
-				chatHistoryLayout.addView(bubbleFrame)
+				bubbleRow.addView(bubble, bubbleParams)
+
+				bubbleRow.alpha = 0f
+				bubbleRow.translationY = dp(8).toFloat()
+				chatHistoryLayout.addView(bubbleRow)
+				bubbleRow.animate().alpha(1f).translationY(0f).setDuration(160).start()
 			}
 
-			appendMessage("Hola, Mateo. Soy Rupi, tu tutor de primaria. Preguntame sobre cualquier ejercicio o tema escolar.", isUser = false)
-			addView(chatHistoryLayout, LinearLayout.LayoutParams(-1, -2))
+			appendMessage("¡Hola, Mateo! Soy Rupi, tu tutor escolar. ¿Qué tema o ejercicio de tu clase quieres practicar hoy?", isUser = false)
+			chatBox.addView(chatHistoryLayout)
 
-			lateinit var chatInput: EditText
+			askQuestion = { qText: String ->
+				if (qText.isNotBlank()) {
+					suggestionsContainer.visibility = View.GONE
+					appendMessage(qText, isUser = true)
 
-			fun askQuestion(qText: String) {
-				if (qText.isBlank()) return
-				appendMessage(qText, isUser = true)
-				val thinking = TextView(context).apply {
-					text = "Rupi esta pensando..."
-					typeface = RupiUi.fontBody(context)
-					textSize = 13f
-					setTextColor(RupiUi.MUTED)
-					setPadding(dp(14), dp(4), dp(14), dp(4))
-				}
-				chatHistoryLayout.addView(thinking)
+					val thinking = TextView(context).apply {
+						text = "Rupi está escribiendo..."
+						typeface = RupiUi.fontBody(context)
+						textSize = 12.5f
+						setTextColor(Color.rgb(148, 175, 160))
+						setPadding(dp(40), dp(4), dp(14), dp(4))
+					}
+					chatHistoryLayout.addView(thinking)
 
-				Thread {
-					val reply = try {
-						val url = java.net.URI("http://127.0.0.1:8000/api/v1/ia/tutor/chat").toURL()
-						val conn = url.openConnection() as java.net.HttpURLConnection
-						conn.connectTimeout = 3000
-						conn.readTimeout = 10000
-						conn.requestMethod = "POST"
-						conn.setRequestProperty("Content-Type", "application/json")
-						conn.doOutput = true
-						val body = org.json.JSONObject()
-							.put("message", qText)
-							.put("context", org.json.JSONObject()
-								.put("currentGrade", "3.° de primaria")
-								.put("currentSubject", "Primaria Peru")
-								.put("roadmapTitle", "Aventura Rupi")
-							)
-						conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
-						if (conn.responseCode in 200..299) {
-							val res = conn.inputStream.bufferedReader().use { it.readText() }
-							org.json.JSONObject(res).optString("reply", "")
-						} else {
+					Thread {
+						val reply = try {
+							val url = java.net.URI("http://127.0.0.1:8000/api/v1/ia/tutor/chat").toURL()
+							val conn = url.openConnection() as java.net.HttpURLConnection
+							conn.connectTimeout = 3000
+							conn.readTimeout = 10000
+							conn.requestMethod = "POST"
+							conn.setRequestProperty("Content-Type", "application/json")
+							conn.doOutput = true
+							val body = org.json.JSONObject()
+								.put("message", qText)
+								.put("context", org.json.JSONObject()
+									.put("currentGrade", "3.° de primaria")
+									.put("currentSubject", "Primaria Peru")
+									.put("roadmapTitle", "Aventura Rupi")
+								)
+							conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
+							if (conn.responseCode in 200..299) {
+								val res = conn.inputStream.bufferedReader().use { it.readText() }
+								org.json.JSONObject(res).optString("reply", "")
+							} else {
+								generateOfflineTutorResponse(qText)
+							}
+						} catch (_: Exception) {
 							generateOfflineTutorResponse(qText)
 						}
-					} catch (_: Exception) {
-						generateOfflineTutorResponse(qText)
-					}
-					context.let {
-						(it as? android.app.Activity)?.runOnUiThread {
-							chatHistoryLayout.removeView(thinking)
-							appendMessage(reply, isUser = false)
+						context.let {
+							(it as? android.app.Activity)?.runOnUiThread {
+								chatHistoryLayout.removeView(thinking)
+								appendMessage(reply, isUser = false)
+							}
 						}
-					}
-				}.start()
+					}.start()
+				}
 			}
 
 			val suggestions = listOf(
-				"Como resuelvo fracciones de matematicas?",
-				"Que es la fotosintesis en ciencias?",
-				"Quienes fueron los Incas en el Peru?",
-				"Dame un consejo para mi reto de hoy"
+				"¿Cómo resuelvo fracciones de primaria?",
+				"¿Qué es la fotosíntesis en ciencias?",
+				"¿Quiénes fueron los Incas en el Perú?",
+				"Dame un consejo para mi meta de hoy"
 			)
 			suggestions.forEach { prompt ->
 				val btn = Button(context).apply {
 					text = prompt
 					isAllCaps = false
-					minHeight = dp(40)
+					minHeight = dp(38)
 					typeface = RupiUi.fontBody(context)
-					textSize = 13f
-					background = RupiUi.rounded(Color.WHITE, dp(12).toFloat(), dp(1), RupiUi.LINE)
-					setTextColor(RupiUi.FOREST)
-					setPadding(dp(10), dp(6), dp(10), dp(6))
+					textSize = 12.5f
+					background = RupiUi.rounded(Color.rgb(25, 38, 30), dp(12).toFloat(), dp(1), Color.rgb(42, 64, 52))
+					setTextColor(Color.rgb(215, 235, 222))
+					setPadding(dp(12), dp(6), dp(12), dp(6))
 					setOnClickListener { askQuestion(prompt) }
 				}
-				addView(btn, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+				suggestionsContainer.addView(btn, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
 			}
+			chatBox.addView(suggestionsContainer)
 
-			card {
-				text("Preguntale a Rupi", 16)
-				chatInput = input("Consulta escolar", hintText = "Escribe tu duda aqui...")
-				button("ENVIAR CONSULTA", kind = RupiUi.Kind.PRIMARY, iconRes = R.drawable.ic_send) {
+			val inputBar = LinearLayout(context).apply {
+				orientation = LinearLayout.HORIZONTAL
+				gravity = Gravity.CENTER_VERTICAL
+				background = RupiUi.rounded(Color.rgb(24, 36, 29), dp(24).toFloat(), dp(1), Color.rgb(44, 66, 54))
+				setPadding(dp(14), dp(4), dp(6), dp(4))
+			}
+			chatInput = EditText(context).apply {
+				hint = "Escribe tu duda escolar aquí..."
+				setHintTextColor(Color.rgb(130, 155, 142))
+				setTextColor(Color.WHITE)
+				textSize = 13.5f
+				typeface = RupiUi.fontBody(context)
+				background = null
+				isSingleLine = true
+			}
+			inputBar.addView(chatInput, LinearLayout.LayoutParams(0, -2, 1f).apply { rightMargin = dp(6) })
+
+			val sendBtn = ImageView(context).apply {
+				setImageResource(R.drawable.ic_send)
+				val d = drawable.mutate()
+				d.setTint(Color.WHITE)
+				setImageDrawable(d)
+				background = RupiUi.rounded(RupiUi.ORANGE, dp(20).toFloat(), 0, 0)
+				setPadding(dp(10), dp(10), dp(10), dp(10))
+				isClickable = true
+				isFocusable = true
+				setOnClickListener {
 					val message = chatInput.text.toString().trim()
 					if (message.isNotBlank()) {
 						chatInput.setText("")
@@ -503,6 +649,10 @@ fun mountTopicsScreen(
 					}
 				}
 			}
+			inputBar.addView(sendBtn, LinearLayout.LayoutParams(dp(40), dp(40)))
+			chatBox.addView(inputBar, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+
+			addView(chatBox, LinearLayout.LayoutParams(-1, -2))
 		}
 		addView(tutorSection, LinearLayout.LayoutParams(-1, -2))
 
@@ -705,20 +855,36 @@ fun renderTopicsRoutesList(
 	state: TopicsUiState,
 	onOpenRoute: (LearningRouteSummary) -> Unit
 ) {
+	lastTopicsStateCache = state
+	lastOnOpenRouteCache = onOpenRoute
+
 	routesContainer.removeAllViews()
 	if (!state.routesLoaded) return
 	val context = routesContainer.context
 	val dp = { n: Int -> scaffold.dp(n) }
 
 	scaffold.into(routesContainer) {
-		if (state.routes.isEmpty()) {
-			card { muted("Todavia no estas en ninguna ruta. Pidele a tu profe el codigo de clase para unirte.") }
+		val displayedRoutes = if (selectedRouteFilter == 0) {
+			state.routes.filter { !it.title.contains("Comunidad", ignoreCase = true) }
+		} else {
+			state.routes.filter { it.title.contains("Comunidad", ignoreCase = true) }
+		}
+
+		if (displayedRoutes.isEmpty()) {
+			if (selectedRouteFilter == 1) {
+				card {
+					text("Rutas de la Comunidad", 16)
+					muted("Aún no tienes rutas comunitarias registradas. ¡Tu docente o tutor compartirá nuevos proyectos comunitarios muy pronto!")
+				}
+			} else {
+				card { muted("Todavia no estas en ninguna ruta. Pidele a tu profe el codigo de clase para unirte.") }
+			}
 			return@into
 		}
 
 		// Agrupar con jerarquia visual: Rutas del grado de Mateo (3.° de primaria) vs Otras rutas
-		val myGradeRoutes = state.routes.filter { it.gradeName.contains("3", ignoreCase = true) }
-		val otherRoutes = state.routes.filterNot { it.gradeName.contains("3", ignoreCase = true) }
+		val myGradeRoutes = displayedRoutes.filter { it.gradeName.contains("3", ignoreCase = true) }
+		val otherRoutes = displayedRoutes.filterNot { it.gradeName.contains("3", ignoreCase = true) }
 
 		fun renderRouteCard(route: LearningRouteSummary, isPriority: Boolean) {
 			val cardLayout = LinearLayout(context).apply {

@@ -176,61 +176,85 @@ class ScreenScaffold(
   scroll.addView(outerLayout, FrameLayout.LayoutParams(-1, -2))
   frame.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
 
-  // FIXED BOTTOM NAVBAR (Barra de navegación fija estilo Duolingo)
+  // FIXED BOTTOM NAVBAR (Barra de navegación fija estilo Duolingo sin recuadros toscos)
   val bottomNav = LinearLayout(activity).apply {
    orientation = LinearLayout.HORIZONTAL
    gravity = Gravity.CENTER_VERTICAL
-   background = RupiUi.rounded(Color.WHITE, 0f, dp(2), RupiUi.LINE)
-   setPadding(dp(6), dp(4), dp(6), dp(6))
-   elevation = dp(4).toFloat()
+   background = RupiUi.rounded(Color.WHITE, 0f, dp(1), RupiUi.LINE)
+   setPadding(dp(4), dp(6), dp(4), dp(8))
+   elevation = dp(8).toFloat()
   }
+
+  val tabThemes = intArrayOf(
+   Color.rgb(49, 114, 75),   // 0: Camino (Verde Hoja Rupi)
+   Color.rgb(14, 165, 233),  // 1: Tutor IA (Azul Cielo)
+   Color.rgb(249, 87, 56),   // 2: Misiones (Naranja Rupi)
+   Color.rgb(234, 179, 8),   // 3: Logros (Amarillo Sol)
+   Color.rgb(168, 85, 247)   // 4: Perfil (Morado Andino)
+  )
 
   val tabButtons = mutableListOf<LinearLayout>()
 
   fun navTab(iconRes: Int, label: String, index: Int, isSelected: Boolean): LinearLayout {
+   val themeColor = tabThemes[index % tabThemes.size]
    val tabBox = LinearLayout(activity).apply {
     orientation = LinearLayout.VERTICAL
     gravity = Gravity.CENTER
     isClickable = true
     isFocusable = true
-    minimumHeight = dp(52)
-    background = if (isSelected) {
-     RupiUi.rounded(RupiUi.LEAF_SOFT, dp(12).toFloat(), dp(2), RupiUi.LEAF)
-    } else null
-    setPadding(dp(4), dp(4), dp(4), dp(4))
+    minimumHeight = dp(50)
+    background = null
+    setPadding(dp(2), dp(4), dp(2), dp(4))
    }
 
    val iconView = ImageView(activity).apply {
     setImageResource(iconRes)
     val d = drawable.mutate()
-    d.setTint(if (isSelected) RupiUi.LEAF_DARK else RupiUi.MUTED)
+    d.setTint(if (isSelected) themeColor else RupiUi.MUTED)
     setImageDrawable(d)
+    if (isSelected) {
+     scaleX = 1.1f
+     scaleY = 1.1f
+    }
    }
-   tabBox.addView(iconView, LinearLayout.LayoutParams(dp(22), dp(22)))
+   tabBox.addView(iconView, LinearLayout.LayoutParams(dp(24), dp(24)))
 
    val textView = TextView(activity).apply {
     text = label
     typeface = if (isSelected) RupiUi.fontExtraBold(activity) else RupiUi.fontBody(activity)
     textSize = 10.5f
-    setTextColor(if (isSelected) RupiUi.LEAF_DARK else RupiUi.MUTED)
+    setTextColor(if (isSelected) themeColor else RupiUi.MUTED)
     gravity = Gravity.CENTER
-    setPadding(0, dp(2), 0, 0)
+    setPadding(0, dp(3), 0, 0)
    }
    tabBox.addView(textView)
 
+   val dotIndicator = View(activity).apply {
+    background = RupiUi.rounded(if (isSelected) themeColor else Color.TRANSPARENT, dp(2).toFloat(), 0, 0)
+   }
+   tabBox.addView(dotIndicator, LinearLayout.LayoutParams(dp(16), dp(3)).apply { topMargin = dp(2) })
+
    tabBox.setOnClickListener {
     onTabSelected(index)
+    // Tactile bounce animation on tap
+    tabBox.animate().scaleX(1.15f).scaleY(1.15f).setDuration(100).withEndAction {
+     tabBox.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
+    }.start()
+
     tabButtons.forEachIndexed { i, box ->
      val active = (i == index)
-     box.background = if (active) {
-      RupiUi.rounded(RupiUi.LEAF_SOFT, dp(12).toFloat(), dp(2), RupiUi.LEAF)
-     } else null
+     val color = tabThemes[i % tabThemes.size]
      val iv = box.getChildAt(0) as? ImageView
      val tv = box.getChildAt(1) as? TextView
-     val tint = if (active) RupiUi.LEAF_DARK else RupiUi.MUTED
+     val dot = box.getChildAt(2)
+
+     val tint = if (active) color else RupiUi.MUTED
      iv?.drawable?.mutate()?.setTint(tint)
+     iv?.scaleX = if (active) 1.1f else 1.0f
+     iv?.scaleY = if (active) 1.1f else 1.0f
      tv?.typeface = if (active) RupiUi.fontExtraBold(activity) else RupiUi.fontBody(activity)
      tv?.setTextColor(tint)
+     dot?.background = RupiUi.rounded(if (active) color else Color.TRANSPARENT, dp(2).toFloat(), 0, 0)
     }
    }
    return tabBox
