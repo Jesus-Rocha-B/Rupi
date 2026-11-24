@@ -276,6 +276,52 @@ object RupiUi {
   addState(intArrayOf(), rounded(Color.WHITE, r, s, SOFT_LINE))
  }
 
+ /** Tarjeta de opción grande 3D estilo Duolingo (Imagen 1). */
+ fun duolingoOptionCard(context: Context, isSelected: Boolean): LayerDrawable {
+  val r = dp(context, 16).toFloat()
+  val depth = dp(context, 4)
+  val stroke = dp(context, if (isSelected) 3 else 2)
+  val faceColor = if (isSelected) Color.rgb(221, 244, 255) else Color.WHITE
+  val borderColor = if (isSelected) Color.rgb(28, 176, 246) else Color.rgb(229, 229, 229)
+  val shadowColor = if (isSelected) Color.rgb(24, 153, 214) else Color.rgb(229, 229, 229)
+  return LayerDrawable(arrayOf(
+   rounded(shadowColor, r),
+   rounded(faceColor, r, stroke, borderColor)
+  )).apply {
+   setLayerInset(0, 0, depth, 0, 0)
+   setLayerInset(1, 0, 0, 0, depth)
+  }
+ }
+
+ /** Tarjeta de estadística doble para victoria (TOTAL XP y PRECISIÓN - Imagen 3). */
+ fun duolingoStatCard(context: Context, isGold: Boolean): LayerDrawable {
+  val r = dp(context, 16).toFloat()
+  val depth = dp(context, 4)
+  val faceColor = if (isGold) Color.rgb(255, 253, 240) else Color.rgb(240, 250, 242)
+  val borderColor = if (isGold) Color.rgb(255, 210, 106) else Color.rgb(88, 204, 2)
+  val shadowColor = if (isGold) Color.rgb(201, 142, 43) else Color.rgb(70, 163, 2)
+  return LayerDrawable(arrayOf(
+   rounded(shadowColor, r),
+   rounded(faceColor, r, dp(context, 2), borderColor)
+  )).apply {
+   setLayerInset(0, 0, depth, 0, 0)
+   setLayerInset(1, 0, 0, 0, depth)
+  }
+ }
+
+ /** Tarjeta temática andina / Ayacucho con fondo cálido y borde de piedra blanca. */
+ fun ayacuchoCard(context: Context): LayerDrawable {
+  val r = dp(context, 18).toFloat()
+  val depth = dp(context, 4)
+  return LayerDrawable(arrayOf(
+   rounded(Color.rgb(208, 195, 174), r),
+   rounded(Color.rgb(247, 245, 237), r, dp(context, 2), Color.rgb(185, 134, 40))
+  )).apply {
+   setLayerInset(0, 0, depth, 0, 0)
+   setLayerInset(1, 0, 0, 0, depth)
+  }
+ }
+
  /** Alternativa de una pregunta (.challenge-option): se marca en verde hoja suave al elegirla. */
  fun option(context: Context) = StateListDrawable().apply {
   val r = dp(context, 14).toFloat()

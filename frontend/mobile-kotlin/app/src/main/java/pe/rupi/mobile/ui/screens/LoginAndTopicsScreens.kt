@@ -1,5 +1,6 @@
 package pe.rupi.mobile.ui.screens
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
 import android.text.InputFilter
@@ -295,45 +296,45 @@ fun mountTopicsScreen(
 		}
 
 		// -----------------------------------------------------------------
-		// TAB 0: CAMINO DE APRENDIZAJE (Estilo Duolingo con Unit Banner)
+		// TAB 0: CAMINO DE APRENDIZAJE (Exploración escolar de Ayacucho)
 		// -----------------------------------------------------------------
 		scaffold.into(routesSection) {
-			// Unit Banner estilo Duolingo (Sección y Unidad actual en verde vibrante)
-			val unitBanner = LinearLayout(context).apply {
+			// Cabecera de exploración escolar con la mascota Rupi y ambientación de Ayacucho
+			val exploreHero = LinearLayout(context).apply {
 				orientation = LinearLayout.HORIZONTAL
 				gravity = Gravity.CENTER_VERTICAL
-				background = RupiUi.tactile(context, RupiUi.Kind.LEAF, radiusDp = 18)
-				setPadding(dp(18), dp(16), dp(16), dp(20))
+				background = RupiUi.ayacuchoCard(context)
+				setPadding(dp(16), dp(14), dp(16), dp(16))
 			}
-			val unitTexts = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-			unitTexts.addView(TextView(context).apply {
-				text = "SECCION 1 · UNIDAD 1"
+			exploreHero.addView(
+				ImageView(context).apply {
+					setImageResource(R.drawable.ic_rupi_mascot)
+					scaleType = ImageView.ScaleType.FIT_CENTER
+					importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+				},
+				LinearLayout.LayoutParams(dp(58), dp(62)).apply { rightMargin = dp(12) }
+			)
+			val exploreCopy = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+			exploreCopy.addView(TextView(context).apply {
+				text = "AYACUCHO · RUTAS ESCOLARES"
 				typeface = RupiUi.fontExtraBold(context)
 				textSize = 11.5f
-				setTextColor(Color.rgb(219, 232, 210))
+				setTextColor(RupiUi.SUN_DARK)
 			})
-			unitTexts.addView(TextView(context).apply {
-				text = "Aventura de Palabras y Lectura"
+			exploreCopy.addView(TextView(context).apply {
+				text = "¡Aprende jugando, Mateo!"
 				typeface = RupiUi.fontTitle(context)
 				textSize = 19f
-				setTextColor(Color.WHITE)
-				setPadding(0, dp(2), 0, 0)
+				setTextColor(RupiUi.FOREST)
 			})
-			unitBanner.addView(unitTexts, LinearLayout.LayoutParams(0, -2, 1f))
-
-			// Botón de cuaderno de apuntes en el banner
-			val bookBtn = FrameLayout(context).apply {
-				background = RupiUi.rounded(Color.WHITE, dp(14).toFloat(), dp(2), RupiUi.LEAF_DARK)
-				setPadding(dp(8), dp(8), dp(8), dp(8))
-				addView(ImageView(context).apply {
-					setImageResource(R.drawable.ic_book)
-					val d = drawable.mutate()
-					d.setTint(RupiUi.LEAF_DARK)
-					setImageDrawable(d)
-				}, FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
-			}
-			unitBanner.addView(bookBtn, LinearLayout.LayoutParams(dp(42), dp(42)))
-			addView(unitBanner, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+			exploreCopy.addView(TextView(context).apply {
+				text = "Elige una aventura escolar para avanzar en tu camino."
+				typeface = RupiUi.fontBody(context)
+				textSize = 13f
+				setTextColor(RupiUi.MUTED)
+			})
+			exploreHero.addView(exploreCopy, LinearLayout.LayoutParams(0, -2, 1f))
+			addView(exploreHero, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(14) })
 
 			// Contenedor dinámico de rutas escolares
 			routesContainer = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
@@ -706,16 +707,129 @@ fun renderTopicsRoutesList(
 ) {
 	routesContainer.removeAllViews()
 	if (!state.routesLoaded) return
+	val context = routesContainer.context
+	val dp = { n: Int -> scaffold.dp(n) }
+
 	scaffold.into(routesContainer) {
 		if (state.routes.isEmpty()) {
 			card { muted("Todavia no estas en ninguna ruta. Pidele a tu profe el codigo de clase para unirte.") }
+			return@into
 		}
-		state.routes.forEach { route ->
-			tile(
-				title = route.title,
-				detail = route.subtitleText(),
-				completed = route.isCompleted
-			) { onOpenRoute(route) }
+
+		// Agrupar con jerarquia visual: Rutas del grado de Mateo (3.° de primaria) vs Otras rutas
+		val myGradeRoutes = state.routes.filter { it.gradeName.contains("3", ignoreCase = true) }
+		val otherRoutes = state.routes.filterNot { it.gradeName.contains("3", ignoreCase = true) }
+
+		fun renderRouteCard(route: LearningRouteSummary, isPriority: Boolean) {
+			val cardLayout = LinearLayout(context).apply {
+				orientation = LinearLayout.VERTICAL
+				background = if (isPriority) RupiUi.ayacuchoCard(context) else RupiUi.card(context)
+				setPadding(dp(16), dp(16), dp(16), dp(16))
+				isClickable = true
+				isFocusable = true
+				contentDescription = "${route.title}. ${route.areaName}. ${route.completedNodes} de ${route.totalNodes} paradas."
+				setOnClickListener { onOpenRoute(route) }
+			}
+
+			// Fila superior: Chip de Area tematica + Chip de Grado
+			val chipsRow = LinearLayout(context).apply {
+				orientation = LinearLayout.HORIZONTAL
+				gravity = Gravity.CENTER_VERTICAL
+			}
+			val (areaColor, areaBorder, areaText) = when {
+				route.areaName.contains("Matem", ignoreCase = true) ->
+					Triple(Color.rgb(238, 246, 251), Color.rgb(147, 196, 223), RupiUi.SKY_DARK)
+				route.areaName.contains("Comun", ignoreCase = true) ->
+					Triple(Color.rgb(255, 243, 240), Color.rgb(254, 189, 173), RupiUi.ORANGE_DARK)
+				route.areaName.contains("Cien", ignoreCase = true) ->
+					Triple(RupiUi.LEAF_SOFT, Color.rgb(182, 211, 168), RupiUi.LEAF_DARK)
+				else ->
+					Triple(Color.rgb(255, 250, 235), Color.rgb(255, 224, 138), RupiUi.SUN_DARK)
+			}
+			chipsRow.addView(TextView(context).apply {
+				text = route.areaName.ifBlank { "Ruta Escolar" }
+				typeface = RupiUi.fontExtraBold(context)
+				textSize = 11.5f
+				setTextColor(areaText)
+				background = RupiUi.rounded(areaColor, dp(12).toFloat(), dp(1), areaBorder)
+				setPadding(dp(10), dp(4), dp(10), dp(4))
+			})
+			if (route.gradeName.isNotBlank()) {
+				chipsRow.addView(TextView(context).apply {
+					text = route.gradeName
+					typeface = RupiUi.fontBold(context)
+					textSize = 11.5f
+					setTextColor(RupiUi.MUTED)
+					background = RupiUi.rounded(Color.WHITE, dp(12).toFloat(), dp(1), RupiUi.LINE)
+					setPadding(dp(8), dp(4), dp(8), dp(4))
+				}, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(8) })
+			}
+			cardLayout.addView(chipsRow, LinearLayout.LayoutParams(-1, -2))
+
+			// Titulo grande y legible de la ruta
+			cardLayout.addView(TextView(context).apply {
+				text = route.title
+				typeface = RupiUi.fontTitle(context)
+				textSize = 18f
+				setTextColor(RupiUi.FOREST)
+				setPadding(0, dp(8), 0, dp(4))
+				setLineSpacing(0f, 1.15f)
+			})
+
+			// Barra de progreso 3D
+			val progressRow = LinearLayout(context).apply {
+				orientation = LinearLayout.HORIZONTAL
+				gravity = Gravity.CENTER_VERTICAL
+				setPadding(0, dp(4), 0, dp(4))
+			}
+			val pct = if (route.totalNodes > 0) ((route.completedNodes.toFloat() / route.totalNodes) * 100).toInt() else 0
+			val bar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+				max = route.totalNodes.coerceAtLeast(1)
+				progress = route.completedNodes
+				progressTintList = ColorStateList.valueOf(if (route.isCompleted) RupiUi.LEAF else RupiUi.ORANGE)
+				progressBackgroundTintList = ColorStateList.valueOf(RupiUi.PAPER_DEEP)
+			}
+			progressRow.addView(bar, LinearLayout.LayoutParams(0, dp(12), 1f))
+			progressRow.addView(TextView(context).apply {
+				text = "$pct%"
+				typeface = RupiUi.fontExtraBold(context)
+				textSize = 12f
+				setTextColor(if (route.isCompleted) RupiUi.LEAF_DARK else RupiUi.ORANGE_DARK)
+			}, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(10) })
+			cardLayout.addView(progressRow, LinearLayout.LayoutParams(-1, -2))
+
+			// Detalle de paradas
+			cardLayout.addView(TextView(context).apply {
+				text = "${route.completedNodes} de ${route.totalNodes} paradas completadas"
+				typeface = RupiUi.fontBody(context)
+				textSize = 12.5f
+				setTextColor(RupiUi.MUTED)
+			})
+
+			// Boton de accion tactil 3D
+			val actionBtn = Button(context).apply {
+				text = if (route.isCompleted) "REPASAR RUTA" else "CONTINUAR RUTA"
+				isAllCaps = false
+				typeface = RupiUi.fontExtraBold(context)
+				textSize = 13.5f
+				minimumHeight = dp(46)
+				background = RupiUi.tactile(context, if (route.isCompleted) RupiUi.Kind.LEAF else RupiUi.Kind.PRIMARY, radiusDp = 12)
+				setTextColor(Color.WHITE)
+				setOnClickListener { onOpenRoute(route) }
+			}
+			cardLayout.addView(actionBtn, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
+
+			addView(cardLayout, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(14) })
+		}
+
+		if (myGradeRoutes.isNotEmpty()) {
+			section("Mis Rutas de Aula · 3.° de primaria")
+			myGradeRoutes.forEach { route -> renderRouteCard(route, isPriority = true) }
+		}
+
+		if (otherRoutes.isNotEmpty()) {
+			section(if (myGradeRoutes.isNotEmpty()) "Otras Rutas y Exploración" else "Rutas Escolares")
+			otherRoutes.forEach { route -> renderRouteCard(route, isPriority = false) }
 		}
 	}
 }

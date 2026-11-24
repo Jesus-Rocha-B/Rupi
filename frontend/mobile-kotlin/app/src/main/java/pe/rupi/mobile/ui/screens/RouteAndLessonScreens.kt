@@ -39,26 +39,78 @@ fun renderRouteDetailBody(
   val route = state.route ?: detail.route
   val summary = detail.route
 
-  heroCard {
-   val areaGrade = listOf(summary.areaName, summary.gradeName).filter { it.isNotBlank() }.joinToString(" · ")
-   chip(areaGrade, Color.rgb(238, 246, 251), Color.rgb(147, 196, 223), RupiUi.SKY_DARK)
-   text(summary.title, 22)
-   val bar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
-    max = summary.totalNodes.coerceAtLeast(1)
-    progress = summary.completedNodes
-    progressTintList = ColorStateList.valueOf(RupiUi.LEAF)
-    progressBackgroundTintList = ColorStateList.valueOf(RupiUi.PAPER_DEEP)
-    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-   }
-   addView(bar, LinearLayout.LayoutParams(-1, dp(16)).apply { topMargin = dp(8) })
-   muted(
-    if (summary.totalNodes > 0 && summary.completedNodes >= summary.totalNodes) {
-     "¡Terminaste esta ruta! Puedes repasar cualquier parada."
-    } else {
-     "${summary.completedNodes} de ${summary.totalNodes} paradas completadas."
-    }
-   )
+  // Banner temático de Ayacucho y Huamanga (paisaje andino oficial)
+  val ayacuchoBanner = LinearLayout(context).apply {
+   orientation = LinearLayout.VERTICAL
+   background = RupiUi.ayacuchoCard(context)
+   setPadding(dp(16), dp(16), dp(16), dp(16))
   }
+
+  // Imagen fotográfica / ilustración de la Plaza Mayor de Ayacucho
+  val plazaImage = ImageView(context).apply {
+   setImageResource(R.drawable.bg_ayacucho_plaza)
+   scaleType = ImageView.ScaleType.CENTER_CROP
+   background = RupiUi.rounded(Color.WHITE, dp(14).toFloat(), dp(2), RupiUi.LINE)
+   clipToOutline = true
+   importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+  }
+  ayacuchoBanner.addView(plazaImage, LinearLayout.LayoutParams(-1, dp(120)).apply { bottomMargin = dp(12) })
+
+  val chipsRow = LinearLayout(context).apply {
+   orientation = LinearLayout.HORIZONTAL
+   gravity = Gravity.CENTER_VERTICAL
+  }
+  chipsRow.addView(TextView(context).apply {
+   text = "AYACUCHO · CUNA DE LA LIBERTAD Y RETABLOS"
+   typeface = RupiUi.fontExtraBold(context)
+   textSize = 11f
+   setTextColor(RupiUi.SUN_DARK)
+   background = RupiUi.rounded(Color.rgb(255, 250, 235), dp(10).toFloat(), dp(1), Color.rgb(255, 224, 138))
+   setPadding(dp(10), dp(4), dp(10), dp(4))
+  })
+  val areaGrade = listOf(summary.areaName, summary.gradeName).filter { it.isNotBlank() }.joinToString(" · ")
+  if (areaGrade.isNotBlank()) {
+   chipsRow.addView(TextView(context).apply {
+    text = areaGrade
+    typeface = RupiUi.fontBold(context)
+    textSize = 11f
+    setTextColor(RupiUi.SKY_DARK)
+    background = RupiUi.rounded(Color.rgb(238, 246, 251), dp(10).toFloat(), dp(1), Color.rgb(147, 196, 223))
+    setPadding(dp(8), dp(4), dp(8), dp(4))
+   }, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(6) })
+  }
+  ayacuchoBanner.addView(chipsRow, LinearLayout.LayoutParams(-1, -2))
+
+  ayacuchoBanner.addView(TextView(context).apply {
+   text = summary.title
+   typeface = RupiUi.fontTitle(context)
+   textSize = 21f
+   setTextColor(RupiUi.FOREST)
+   setPadding(0, dp(8), 0, dp(6))
+  })
+
+  val bar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+   max = summary.totalNodes.coerceAtLeast(1)
+   progress = summary.completedNodes
+   progressTintList = ColorStateList.valueOf(RupiUi.LEAF)
+   progressBackgroundTintList = ColorStateList.valueOf(RupiUi.PAPER_DEEP)
+   importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+  }
+  ayacuchoBanner.addView(bar, LinearLayout.LayoutParams(-1, dp(14)).apply { topMargin = dp(4); bottomMargin = dp(4) })
+
+  val pct = if (summary.totalNodes > 0) ((summary.completedNodes.toFloat() / summary.totalNodes) * 100).toInt() else 0
+  ayacuchoBanner.addView(TextView(context).apply {
+   text = if (summary.totalNodes > 0 && summary.completedNodes >= summary.totalNodes) {
+    "¡Terminaste este camino en Ayacucho! (100% completado)"
+   } else {
+    "${summary.completedNodes} de ${summary.totalNodes} paradas completadas ($pct%)"
+   }
+   typeface = RupiUi.fontBold(context)
+   textSize = 12.5f
+   setTextColor(RupiUi.MUTED)
+  })
+
+  addView(ayacuchoBanner, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
 
   var activeFound = false
   var overallIndex = 0
@@ -113,6 +165,17 @@ private fun renderWindingStopNode(
  val offsetPattern = intArrayOf(0, -48, 0, 48)
  val shiftX = dp(offsetPattern[index % 4])
 
+ // Cinta de sendero conectora entre paradas (estilo camino andino de Duolingo)
+ if (index > 0) {
+  val trailLine = View(context).apply {
+   background = RupiUi.rounded(Color.rgb(218, 207, 188), dp(4).toFloat())
+   translationX = shiftX.toFloat()
+  }
+  stopWrapper.addView(trailLine, LinearLayout.LayoutParams(dp(8), dp(20)).apply {
+   bottomMargin = dp(4)
+  })
+ }
+
  if (isActive) {
   val startBubble = android.widget.TextView(context).apply {
    text = "EMPEZAR"
@@ -120,7 +183,7 @@ private fun renderWindingStopNode(
    textSize = 11.5f
    setTextColor(Color.WHITE)
    background = RupiUi.rounded(RupiUi.LEAF, dp(10).toFloat(), dp(2), RupiUi.LEAF_DARK)
-   setPadding(dp(12), dp(4), dp(12), dp(4))
+   setPadding(dp(14), dp(4), dp(14), dp(4))
    gravity = android.view.Gravity.CENTER
    translationX = shiftX.toFloat()
   }

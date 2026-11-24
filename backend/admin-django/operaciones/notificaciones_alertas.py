@@ -102,7 +102,7 @@ class CanalCorreoAlerta(EstrategiaCanalAlerta):
 
     def despachar(self, mensaje: MensajeAlerta) -> ResultadoCanal:
         destinatario = mensaje.destinatario_email or getattr(
-            settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe'
+            settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'enriquerocha2345@gmail.com'
         )
         try:
             send_mail(
@@ -223,7 +223,7 @@ def enviar_alerta_caida_servicio(
     nombre_serv = _obtener_nombre_servicio(servicio)
     fecha_str = _formatear_fecha_actual()
     impacto = IMPACTOS_ESCOLAR.get(servicio.lower(), 'Afectación en la disponibilidad de la plataforma escolar.')
-    destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe')
+    destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'enriquerocha2345@gmail.com')
     destinatario_sms = getattr(settings, 'RUPI_ALERTA_SMS_NUMERO', '')
 
     asunto = f'[ALERTA {severidad} RUPI] Caída de servicio crítico: {nombre_serv}'
@@ -310,7 +310,7 @@ def enviar_notificacion_recuperacion(
     desp = despachador or despachador_default
     nombre_serv = _obtener_nombre_servicio(servicio)
     fecha_str = _formatear_fecha_actual()
-    destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe')
+    destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'enriquerocha2345@gmail.com')
     destinatario_sms = getattr(settings, 'RUPI_ALERTA_SMS_NUMERO', '')
 
     duracion_txt = f' luego de {duracion_segundos} segundos de indisponibilidad' if duracion_segundos else ''
@@ -358,7 +358,7 @@ def probar_canales_alerta(
     """Envía un mensaje de prueba a los canales de alerta (Correo y SMS/Webhook) para verificación."""
     desp = despachador or despachador_default
     fecha_str = _formatear_fecha_actual()
-    destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe')
+    destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'enriquerocha2345@gmail.com')
     destinatario_sms = getattr(settings, 'RUPI_ALERTA_SMS_NUMERO', '')
 
     asunto = '[PRUEBA DE ALERTA RUPI] Verificación de canales de notificación'
@@ -411,7 +411,7 @@ def enviar_alerta_fallo_respaldo(
     desp = despachador or despachador_default
     fecha_str = _formatear_fecha_actual()
     destinatario_email = (email_destino or '').strip() or getattr(
-        settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe'
+        settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'enriquerocha2345@gmail.com'
     )
     destinatario_sms = getattr(settings, 'RUPI_ALERTA_SMS_NUMERO', '')
 

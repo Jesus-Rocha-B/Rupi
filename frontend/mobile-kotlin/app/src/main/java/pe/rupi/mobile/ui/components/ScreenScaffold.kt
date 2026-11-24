@@ -1,6 +1,7 @@
 package pe.rupi.mobile.ui.components
 
 import android.app.Activity
+import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.Color
@@ -44,6 +45,7 @@ class ScreenScaffold(
  private val activity: Activity,
  private val voice: RupiVoice?
 ) {
+ val context: Context get() = activity
  var isBusy: Boolean = false
  private var noticeTone: RupiUi.Tone = RupiUi.Tone.INFO
 

@@ -68,7 +68,7 @@ def lista_incidentes(request):
     items = incidentes.listar_incidentes(estado=estado, limite=limite)
     abiertos = [i for i in items if i['estado'] in ('ABIERTO', 'EN_ATENCION')]
 
-    destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe')
+    destinatario_email = getattr(settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'enriquerocha2345@gmail.com')
     destinatario_sms = getattr(settings, 'RUPI_ALERTA_SMS_NUMERO', '')
     webhook_sms = getattr(settings, 'RUPI_ALERTA_SMS_WEBHOOK', '')
 

@@ -780,7 +780,7 @@ def estado_respaldos(limite: int = 20) -> dict:
 
     ultimo = historial[0] if historial else None
     alerta_email = politica.email_alerta or getattr(
-        settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'infraestructura@rupi.edu.pe'
+        settings, 'RUPI_ALERTA_EMAIL_RESPONSABLE', 'enriquerocha2345@gmail.com'
     )
 
     return {
