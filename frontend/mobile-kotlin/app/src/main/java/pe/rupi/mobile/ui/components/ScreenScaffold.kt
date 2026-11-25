@@ -996,13 +996,15 @@ class ScreenScaffold(
   radio.layoutParams = RadioGroup.LayoutParams(-1, -2).apply { topMargin = dp(6); bottomMargin = dp(2) }
  }
 
- fun listen(subject: String, value: () -> String) {
-  button("Escuchar $subject", kind = RupiUi.Kind.LISTEN, iconRes = R.drawable.ic_volume_2) {
+ fun listen(
+  subject: String,
+  kind: RupiUi.Kind = RupiUi.Kind.LISTEN,
+  value: () -> String
+ ): Button = button("Escuchar $subject", kind = kind, iconRes = R.drawable.ic_volume_2) {
    if (voice?.speak(value()) != true) {
     showLocalNotice("Para escuchar, instala o activa una voz en español en los ajustes de Android (Texto a voz).")
    }
-  }.contentDescription = "Escuchar $subject"
- }
+  }.apply { contentDescription = "Escuchar $subject" }
 
  fun backButton(label: String, action: () -> Unit): Button =
   button(label, kind = RupiUi.Kind.STICKER, iconRes = R.drawable.ic_arrow_left, action = action).apply {

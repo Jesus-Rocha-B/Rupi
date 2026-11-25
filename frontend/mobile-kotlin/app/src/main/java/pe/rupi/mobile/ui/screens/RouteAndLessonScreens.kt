@@ -2,6 +2,7 @@ package pe.rupi.mobile.ui.screens
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.animation.ObjectAnimator
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.DashPathEffect
@@ -10,11 +11,17 @@ import android.graphics.Path
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
+import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.graphics.drawable.StateListDrawable
 import android.widget.TextView
 import pe.rupi.mobile.R
 import pe.rupi.mobile.RupiUi
@@ -29,6 +36,79 @@ import pe.rupi.mobile.ui.components.ScreenScaffold
 import pe.rupi.mobile.ui.state.LessonUiState
 import pe.rupi.mobile.ui.state.NoticeTone
 import pe.rupi.mobile.ui.state.RouteDetailUiState
+
+private fun animatePopIn(view: View, celebratory: Boolean = false) {
+ view.alpha = 0f
+ view.scaleX = if (celebratory) 0.78f else 0.96f
+ view.scaleY = if (celebratory) 0.78f else 0.96f
+ view.translationY = RupiUi.dp(view.context, if (celebratory) 18 else 8).toFloat()
+ view.animate()
+  .alpha(1f)
+  .scaleX(1f)
+  .scaleY(1f)
+  .translationY(0f)
+  .setDuration(if (celebratory) 520 else 260)
+  .setInterpolator(if (celebratory) OvershootInterpolator(1.15f) else DecelerateInterpolator())
+  .start()
+}
+
+private fun pulseWhenVisible(view: View, scale: Float = 1.06f, durationMs: Long = 850L) {
+ val x = ObjectAnimator.ofFloat(view, View.SCALE_X, 1f, scale).apply {
+  duration = durationMs
+  repeatCount = ObjectAnimator.INFINITE
+  repeatMode = ObjectAnimator.REVERSE
+ }
+ val y = ObjectAnimator.ofFloat(view, View.SCALE_Y, 1f, scale).apply {
+  duration = durationMs
+  repeatCount = ObjectAnimator.INFINITE
+  repeatMode = ObjectAnimator.REVERSE
+ }
+ val listener = object : View.OnAttachStateChangeListener {
+  override fun onViewAttachedToWindow(v: View) { x.start(); y.start() }
+  override fun onViewDetachedFromWindow(v: View) { x.cancel(); y.cancel() }
+ }
+ view.addOnAttachStateChangeListener(listener)
+ if (view.isAttachedToWindow) { x.start(); y.start() }
+}
+
+private fun floatWhenVisible(view: View, heightDp: Int = 4) {
+ val float = ObjectAnimator.ofFloat(
+  view,
+  View.TRANSLATION_Y,
+  0f,
+  -RupiUi.dp(view.context, heightDp).toFloat(),
+  0f
+ ).apply {
+  duration = 1700L
+  repeatCount = ObjectAnimator.INFINITE
+ }
+ val listener = object : View.OnAttachStateChangeListener {
+  override fun onViewAttachedToWindow(v: View) { float.start() }
+  override fun onViewDetachedFromWindow(v: View) { float.cancel() }
+ }
+ view.addOnAttachStateChangeListener(listener)
+ if (view.isAttachedToWindow) float.start()
+}
+
+private fun lessonChoiceBackground(context: Context): StateListDrawable {
+ val radius = RupiUi.dp(context, 14).toFloat()
+ val stroke = RupiUi.dp(context, 2)
+ return StateListDrawable().apply {
+  addState(
+   intArrayOf(android.R.attr.state_checked, -android.R.attr.state_enabled),
+   RupiUi.rounded(RupiUi.LEAF_SOFT, radius, stroke, RupiUi.LEAF)
+  )
+  addState(
+   intArrayOf(android.R.attr.state_checked),
+   RupiUi.rounded(Color.rgb(255, 242, 190), radius, stroke, RupiUi.GOLD_STROKE)
+  )
+  addState(
+   intArrayOf(-android.R.attr.state_enabled),
+   RupiUi.rounded(Color.rgb(250, 248, 242), radius, stroke, RupiUi.LINE)
+  )
+  addState(intArrayOf(), RupiUi.rounded(Color.WHITE, radius, stroke, RupiUi.LINE))
+ }
+}
 
 class RoadmapTrailLayout(context: Context) : LinearLayout(context) {
  private val bgDrawable = androidx.core.content.ContextCompat.getDrawable(context, R.drawable.bg_ayacucho_plaza)
@@ -420,81 +500,262 @@ fun renderLessonBody(
 	val dp = { n: Int -> scaffold.dp(n) }
 
 	scaffold.rebuildBody(preserveScroll = true) {
-		backButton("Volver a la ruta") { onBackToRoute(route) }
 		val lesson = state.lesson ?: return@rebuildBody
 
 		val totalQ = lesson.questions.size
 		val answeredQ = lesson.questions.count { state.answers.containsKey(it.id) }
+		val totalSteps = totalQ + 1
+		val currentStep = (answeredQ + 1).coerceAtMost(totalSteps)
+		val hasVideo = lesson.blocks.any { it.type == LessonBlockType.VIDEO && it.resourceUrl != null }
+		val lessonSearchText = listOf(route.title, route.areaName, node.title, lesson.title)
+			.joinToString(" ").lowercase()
+		val isHeatMaterialsLesson = lessonSearchText.contains("calor") &&
+			(lessonSearchText.contains("conductor") || lessonSearchText.contains("aislante"))
 
-		// Barra de progreso de preguntas estilo lección de Duolingo
-		if (totalQ > 0) {
-			val bar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
-				max = totalQ
-				progress = answeredQ
-				progressTintList = ColorStateList.valueOf(RupiUi.LEAF)
-				progressBackgroundTintList = ColorStateList.valueOf(RupiUi.PAPER_DEEP)
-				importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-			}
-			addView(bar, LinearLayout.LayoutParams(-1, dp(14)).apply {
-				topMargin = dp(4)
-				bottomMargin = dp(8)
-			})
-		}
-
-		// Prompt con Rupi y bocadillo de diálogo (Estilo Duolingo)
-		val promptRow = LinearLayout(context).apply {
-			orientation = LinearLayout.HORIZONTAL
-			gravity = Gravity.CENTER_VERTICAL
-			setPadding(0, dp(4), 0, dp(8))
-		}
-		promptRow.addView(
-			ImageView(context).apply {
-				setImageResource(R.drawable.ic_rupi_mascot)
-				scaleType = ImageView.ScaleType.FIT_CENTER
-				importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-			},
-			LinearLayout.LayoutParams(dp(54), dp(58)).apply { rightMargin = dp(10) }
-		)
-		val bubble = LinearLayout(context).apply {
-			orientation = LinearLayout.VERTICAL
-			background = RupiUi.rounded(Color.WHITE, dp(16).toFloat(), dp(2), RupiUi.LINE)
-			setPadding(dp(14), dp(10), dp(14), dp(10))
-		}
-		val promptText = lesson.instructions?.ifBlank { "¡Hola! Lee con atencion y responde las preguntas para ganar puntos de experiencia." }
-			?: "¡Hola! Lee con atencion y responde las preguntas para ganar puntos de experiencia."
-		bubble.addView(TextView(context).apply {
-			text = promptText
-			typeface = RupiUi.fontExtraBold(context)
-			textSize = 13.5f
-			setTextColor(RupiUi.FOREST)
-		})
-		promptRow.addView(bubble, LinearLayout.LayoutParams(0, -2, 1f))
-		addView(promptRow, LinearLayout.LayoutParams(-1, -2))
-
-		stickerCard {
-			chip("Parada ${node.sequence}", RupiUi.SUN, RupiUi.FOREST, RupiUi.FOREST)
+		val lessonHero = stickerCard(fill = Color.rgb(255, 251, 240)) {
+			val paradaLabel = listOf("Parada ${node.sequence}", route.areaName.ifBlank { route.title })
+				.filter { it.isNotBlank() }
+				.joinToString(" · ")
 			chip(
-				"${node.activityType.label} · ${route.title}",
+				paradaLabel,
 				RupiUi.LEAF_SOFT,
-				Color.rgb(148, 208, 161),
+				RupiUi.SOFT_LINE,
 				RupiUi.LEAF_DARK
 			)
-			text(lesson.title.ifBlank { node.title }, 22)
-			listen("la lección") {
+			text(lesson.title.ifBlank { node.title }, 20)
+
+			if (totalQ > 0) {
+				val stepLabel = TextView(context).apply {
+					text = "PASO $currentStep DE $totalSteps"
+					typeface = RupiUi.fontExtraBold(context)
+					textSize = 13f
+					gravity = Gravity.CENTER
+					setTextColor(RupiUi.FOREST)
+					background = RupiUi.rounded(RupiUi.LEAF_SOFT, dp(22).toFloat())
+					setPadding(dp(16), dp(5), dp(16), dp(5))
+				}
+				addView(stepLabel, LinearLayout.LayoutParams(-2, -2).apply {
+					gravity = Gravity.CENTER_HORIZONTAL
+					topMargin = dp(2)
+					bottomMargin = dp(5)
+				})
+
+				val progressStrip = LinearLayout(context).apply {
+					orientation = LinearLayout.HORIZONTAL
+					gravity = Gravity.CENTER_VERTICAL
+					setPadding(dp(4), dp(2), dp(4), dp(2))
+				}
+				for (stepIndex in 0 until totalSteps) {
+					if (stepIndex > 0) {
+						progressStrip.addView(View(context).apply {
+							background = RupiUi.rounded(
+								if (stepIndex <= answeredQ) RupiUi.LEAF else RupiUi.SOFT_LINE,
+								dp(6).toFloat()
+							)
+						}, LinearLayout.LayoutParams(0, dp(4), 1f).apply {
+							leftMargin = dp(2)
+							rightMargin = dp(2)
+						})
+					}
+					val isVideoStep = stepIndex == 0
+					val question = lesson.questions.getOrNull(stepIndex - 1)
+					val savedAnswer = question?.let { state.answers[it.id] }
+					val activeStep = stepIndex == currentStep - 1
+					val doneStep = if (isVideoStep) answeredQ > 0 else savedAnswer != null
+					val marker = FrameLayout(context).apply {
+						background = RupiUi.rounded(
+							when {
+								doneStep && (isVideoStep || savedAnswer?.isCorrect == true) -> RupiUi.LEAF
+								activeStep -> RupiUi.SUN
+								else -> Color.WHITE
+							},
+							dp(22).toFloat(),
+							dp(2),
+							when {
+								doneStep && (isVideoStep || savedAnswer?.isCorrect == true) -> RupiUi.LEAF_DARK
+								activeStep -> RupiUi.SUN_DARK
+								else -> RupiUi.LINE
+							}
+						)
+						contentDescription = if (isVideoStep) "Paso de la lección" else "Pregunta $stepIndex"
+						val markerText = when {
+							doneStep && (isVideoStep || savedAnswer?.isCorrect == true) -> "✓"
+							isVideoStep -> "▶"
+							else -> "$stepIndex"
+						}
+						addView(TextView(context).apply {
+							text = markerText
+							typeface = RupiUi.fontExtraBold(context)
+							textSize = if (isVideoStep && !doneStep) 11f else 13f
+							gravity = Gravity.CENTER
+							setTextColor(
+								if (doneStep && (isVideoStep || savedAnswer?.isCorrect == true)) Color.WHITE
+								else RupiUi.FOREST
+							)
+						}, FrameLayout.LayoutParams(-1, -1))
+						if (activeStep && !doneStep) pulseWhenVisible(this, 1.06f, 1050L)
+					}
+					progressStrip.addView(marker, LinearLayout.LayoutParams(dp(31), dp(31)))
+				}
+				val progressScroll = HorizontalScrollView(context).apply {
+					isHorizontalScrollBarEnabled = false
+					addView(progressStrip, ViewGroup.LayoutParams(-2, dp(35)))
+				}
+				addView(progressScroll, LinearLayout.LayoutParams(-1, dp(35)).apply {
+					bottomMargin = dp(3)
+				})
+			}
+
+			val guideRow = LinearLayout(context).apply {
+				orientation = LinearLayout.HORIZONTAL
+				gravity = Gravity.CENTER_VERTICAL
+				setPadding(0, dp(1), 0, dp(4))
+			}
+			val guideMascot = ImageView(context).apply {
+				setImageResource(R.drawable.rupi_explorer)
+				scaleType = ImageView.ScaleType.FIT_CENTER
+				contentDescription = "Rupi, el gallito de las rocas explorador"
+			}
+			guideRow.addView(guideMascot, LinearLayout.LayoutParams(dp(68), dp(70)).apply {
+				rightMargin = dp(8)
+			})
+			floatWhenVisible(guideMascot, 3)
+			val guideBubble = LinearLayout(context).apply {
+				orientation = LinearLayout.VERTICAL
+				gravity = Gravity.CENTER_VERTICAL
+				background = RupiUi.speechBalloon(context, RupiUi.LEAF, RupiUi.LEAF_DARK)
+				setPadding(dp(12), dp(8), dp(12), dp(10))
+			}
+			guideBubble.addView(TextView(context).apply {
+				text = if (hasVideo && answeredQ == 0) "¡Mira con atención!" else "¡Rupi te acompaña!"
+				typeface = RupiUi.fontExtraBold(context)
+				textSize = 14f
+				setTextColor(RupiUi.FOREST)
+			})
+			lesson.instructions?.takeIf { it.isNotBlank() }?.let { instructions ->
+				guideBubble.addView(TextView(context).apply {
+					text = instructions
+					typeface = RupiUi.fontBody(context)
+					textSize = 11.5f
+					maxLines = 2
+					ellipsize = android.text.TextUtils.TruncateAt.END
+					setTextColor(RupiUi.MUTED)
+					setPadding(0, dp(2), 0, 0)
+				})
+			}
+			guideRow.addView(guideBubble, LinearLayout.LayoutParams(0, -2, 1f))
+			addView(guideRow, LinearLayout.LayoutParams(-1, -2))
+
+			val audioButton = listen("la lección", kind = RupiUi.Kind.TANGERINE) {
 				(listOf(lesson.title) +
 					listOfNotNull(lesson.instructions) +
 					lesson.blocks.mapNotNull { it.text }).joinToString(". ")
 			}
+			audioButton.apply {
+				minimumHeight = dp(46)
+				textSize = 14.5f
+				setPadding(dp(10), dp(7), dp(10), dp(10))
+				(layoutParams as? LinearLayout.LayoutParams)?.let { params ->
+					params.topMargin = dp(4)
+					params.bottomMargin = dp(2)
+					layoutParams = params
+				}
+			}
+			pulseWhenVisible(audioButton, 1.012f, 1250L)
 		}
+		animatePopIn(lessonHero)
 
-		lesson.blocks.forEach { block ->
+		// Destaca el video antes de la lectura, manteniendo el orden original del resto de materiales.
+		lesson.blocks.sortedBy { if (it.type == LessonBlockType.VIDEO) 0 else 1 }.forEach { block ->
 			val link = block.resourceUrl
 			val body = block.text
 			when {
-				block.type == LessonBlockType.VIDEO && link != null -> card {
-					text("Video de la lección", 20)
-					if (body != null) muted(body)
-					button("Ver el video", kind = RupiUi.Kind.SKY, iconRes = R.drawable.ic_play) { onOpenExternalLink(link) }
+				block.type == LessonBlockType.VIDEO && link != null -> stickerCard(fill = Color.rgb(255, 251, 240)) {
+					val videoHeading = LinearLayout(context).apply {
+						orientation = LinearLayout.HORIZONTAL
+						gravity = Gravity.CENTER
+						setPadding(0, dp(2), 0, dp(8))
+					}
+					listOf(true, false, true).forEachIndexed { index, _ ->
+						if (index == 1) {
+							videoHeading.addView(TextView(context).apply {
+								text = "Video de la lección"
+								typeface = RupiUi.fontTitle(context)
+								textSize = 21f
+								gravity = Gravity.CENTER
+								setTextColor(RupiUi.FOREST)
+							}, LinearLayout.LayoutParams(0, -2, 1f))
+						} else {
+							videoHeading.addView(ImageView(context).apply {
+								setImageResource(R.drawable.ic_star)
+								setColorFilter(RupiUi.SUN)
+								scaleType = ImageView.ScaleType.FIT_CENTER
+							}, LinearLayout.LayoutParams(dp(18), dp(18)).apply {
+								if (index == 0) rightMargin = dp(8) else leftMargin = dp(8)
+							})
+						}
+					}
+					addView(videoHeading, LinearLayout.LayoutParams(-1, -2))
+					val videoCaption = if (isHeatMaterialsLesson) {
+						"Descubre qué materiales dejan pasar el calor."
+					} else {
+						"Mira el video para descubrir el tema de esta parada."
+					}
+					muted(videoCaption)
+
+					// Portada reutilizable: usa la ruta real, el paisaje ilustrado y la mascota de Rupi.
+					// La portada y el botón CTA abren el mismo enlace del recurso asignado.
+					val preview = FrameLayout(context).apply {
+						background = RupiUi.rounded(RupiUi.LEAF_SOFT, dp(18).toFloat(), dp(2), RupiUi.LEAF)
+						clipToOutline = true
+						minimumHeight = dp(164)
+						contentDescription = block.accessibleText
+					}
+					preview.addView(ImageView(context).apply {
+						setImageResource(if (isHeatMaterialsLesson) R.drawable.video_heat_materials else R.drawable.bg_andean_scene)
+						scaleType = ImageView.ScaleType.CENTER_CROP
+						alpha = 1f
+						importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+					}, FrameLayout.LayoutParams(-1, -1))
+					val playBadge = FrameLayout(context).apply {
+						background = RupiUi.rounded(RupiUi.LEAF, dp(50).toFloat(), dp(3), Color.WHITE)
+						elevation = dp(3).toFloat()
+						isClickable = true
+						isFocusable = true
+						contentDescription = "Reproducir video de la lección"
+						setOnClickListener { onOpenExternalLink(link) }
+						addView(ImageView(context).apply {
+							setImageResource(R.drawable.ic_play)
+							setColorFilter(Color.WHITE)
+							scaleType = ImageView.ScaleType.FIT_CENTER
+						}, FrameLayout.LayoutParams(dp(30), dp(30), Gravity.CENTER))
+					}
+					preview.addView(playBadge, FrameLayout.LayoutParams(dp(68), dp(68), Gravity.CENTER))
+					pulseWhenVisible(playBadge, 1.08f, 900L)
+					addView(preview, LinearLayout.LayoutParams(-1, dp(174)).apply {
+						topMargin = dp(6)
+						bottomMargin = dp(4)
+					})
+					button("Ver el video", kind = RupiUi.Kind.TANGERINE, iconRes = R.drawable.ic_play) { onOpenExternalLink(link) }
+					if (totalQ > 0) {
+						val afterVideo = LinearLayout(context).apply {
+							orientation = LinearLayout.HORIZONTAL
+							gravity = Gravity.CENTER
+							background = RupiUi.rounded(RupiUi.LEAF_SOFT, dp(24).toFloat())
+							setPadding(dp(12), dp(8), dp(12), dp(8))
+						}
+							afterVideo.addView(ImageView(context).apply {
+								setImageResource(R.drawable.ic_message_circle)
+							setColorFilter(RupiUi.LEAF_DARK)
+						}, LinearLayout.LayoutParams(dp(19), dp(19)).apply { rightMargin = dp(8) })
+						afterVideo.addView(TextView(context).apply {
+							text = "Después, responde $totalQ ${if (totalQ == 1) "pregunta" else "preguntas"}."
+							typeface = RupiUi.fontBold(context)
+							textSize = 14f
+							setTextColor(RupiUi.LEAF_DARK)
+						})
+						addView(afterVideo, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
+					}
 				}
 				link != null || block.type == LessonBlockType.ADJUNTO -> card {
 					chip("Material del profesor", Color.rgb(255, 248, 230), RupiUi.SUN, Color.rgb(107, 71, 5))
@@ -512,48 +773,72 @@ fun renderLessonBody(
 		}
 
 		lesson.questions.forEachIndexed { index, q ->
-			card {
-				text("${index + 1}. ${q.statement}", 20)
+			val answer = state.answers[q.id]
+			val questionCard = stickerCard(fill = when {
+				answer?.isCorrect == true -> Color.rgb(248, 253, 246)
+				answer != null -> Color.rgb(255, 251, 240)
+				else -> Color.WHITE
+			}) {
+				chip(
+					"PREGUNTA ${index + 1} DE $totalQ",
+					if (answer?.isCorrect == true) RupiUi.LEAF_SOFT else Color.rgb(255, 246, 218),
+					if (answer?.isCorrect == true) RupiUi.LEAF else RupiUi.GOLD_STROKE,
+					if (answer?.isCorrect == true) RupiUi.LEAF_DARK else RupiUi.SUN_DARK
+				)
+				text(q.statement, 20)
 				listen("la pregunta ${index + 1}") { RupiVoice.question(q.statement, q.options.map { it.text }) }
-				val answer = state.answers[q.id]
 				val group = RadioGroup(context)
 				val ids = mutableMapOf<Int, String>()
 				q.options.forEachIndexed { j, option ->
 					val radio = RadioButton(context).apply {
 						id = j + 1
-						text = if (answer != null && option.id == answer.correctOptionId) {
-							iconLabel(R.drawable.ic_check, RupiUi.LEAF_DARK, option.text, iconDp = 16)
-						} else {
-							option.text
-						}
+						text = option.text
 						minWidth = dp(48)
+						minHeight = dp(62)
 						setSingleLine(false)
 						setHorizontallyScrolling(false)
-						setPadding(dp(12), dp(12), dp(12), dp(12))
+						setPadding(dp(14), dp(12), dp(14), dp(12))
 						isEnabled = answer == null
 						setTextColor(RupiUi.INK)
 					}
 					styleOption(radio)
+					radio.background = lessonChoiceBackground(context)
 					ids[j + 1] = option.id
 					group.addView(radio)
+				}
+				if (answer != null) {
+					val correctIndex = q.options.indexOfFirst { it.id == answer.correctOptionId }
+					if (correctIndex >= 0) group.check(correctIndex + 1)
 				}
 				addView(group)
 				if (answer != null) {
 					val explanation = answer.explanation.ifBlank { q.explanation }
 					feedback(
-						(if (answer.isCorrect) "¡Excelente! " else "Sigamos aprendiendo. ") + explanation,
+						(if (answer.isCorrect) "¡Muy bien! " else "¡Buen intento! La alternativa correcta está en verde. ") + explanation,
 						if (answer.isCorrect) NoticeTone.OK else NoticeTone.RETRY,
 						iconRes = if (answer.isCorrect) R.drawable.ic_check else R.drawable.ic_arrow_left
 					)
 					listen("la explicación ${index + 1}") { explanation }
 				} else {
-					val submit = button("COMPROBAR RESPUESTA", kind = RupiUi.Kind.PRIMARY, enabled = false) {
+					val submit = button("Comprobar respuesta", kind = RupiUi.Kind.TANGERINE, enabled = false) {
 						val selected = ids[group.checkedRadioButtonId] ?: return@button
 						onSubmitAnswer(lesson.activityId, q.id, selected)
 					}
-					group.setOnCheckedChangeListener { _, checked -> submit.isEnabled = ids.containsKey(checked) }
+					group.setOnCheckedChangeListener { _, checked ->
+						submit.isEnabled = ids.containsKey(checked)
+						group.findViewById<RadioButton>(checked)?.let { selected ->
+							selected.animate().cancel()
+							selected.scaleX = 1f
+							selected.scaleY = 1f
+							selected.animate().scaleX(1.035f).scaleY(1.035f).setDuration(100)
+								.withEndAction {
+									selected.animate().scaleX(1f).scaleY(1f).setDuration(110).start()
+								}.start()
+						}
+					}
 				}
 			}
+			if (answer != null) animatePopIn(questionCard)
 		}
 
 		val result = state.completionResult
@@ -561,24 +846,24 @@ fun renderLessonBody(
 			val xp = result.experienceEarned
 			val message = result.rupiMessage
 
-			// Tarjeta de Victoria estilo Duolingo
-			heroCard {
+			// La API entrega premios, mensaje y siguiente parada; la vista solo los presenta con el diseño Rupi.
+			val completionCard = heroCard {
+				chip("¡PARADA COMPLETADA!", Color.rgb(255, 246, 218), RupiUi.GOLD_STROKE, RupiUi.SUN_DARK, iconRes = R.drawable.ic_award)
 				val mascotBox = LinearLayout(context).apply {
 					orientation = LinearLayout.VERTICAL
 					gravity = Gravity.CENTER_HORIZONTAL
 					setPadding(0, dp(8), 0, dp(10))
 				}
-				mascotBox.addView(
-					ImageView(context).apply {
+				val completionMascot = ImageView(context).apply {
 						setImageResource(R.drawable.ic_rupi_mascot)
 						scaleType = ImageView.ScaleType.FIT_CENTER
 						importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-					},
-					LinearLayout.LayoutParams(dp(80), dp(84))
-				)
+					}
+				mascotBox.addView(completionMascot, LinearLayout.LayoutParams(dp(80), dp(84)))
+				animatePopIn(completionMascot, celebratory = true)
 				mascotBox.addView(
 					TextView(context).apply {
-						text = "¡Lección Completada!"
+						text = "¡Parada completada!"
 						typeface = RupiUi.fontTitle(context)
 						textSize = 24f
 						setTextColor(RupiUi.FOREST)
@@ -586,6 +871,9 @@ fun renderLessonBody(
 					}
 				)
 				addView(mascotBox, LinearLayout.LayoutParams(-1, -2))
+				if (totalQ > 0) {
+					muted("$answeredQ de $totalQ preguntas respondidas")
+				}
 
 				if (xp > 0) {
 					chip("+$xp XP Ganados", Color.rgb(255, 248, 230), RupiUi.SUN, Color.rgb(107, 71, 5), iconRes = R.drawable.ic_gem)
@@ -599,13 +887,14 @@ fun renderLessonBody(
 					chip("¡Completaste toda la ruta escolar! $bonus", Color.rgb(227, 240, 248), Color.rgb(147, 196, 223), RupiUi.SKY_DARK, iconRes = R.drawable.ic_award)
 				}
 			}
+			animatePopIn(completionCard, celebratory = true)
 
 			result.nextUnlockedNode?.let { next ->
-				button("CONTINUAR A LA SIGUIENTE PARADA", kind = RupiUi.Kind.PRIMARY, iconRes = R.drawable.ic_play) {
+				button("Continuar a la siguiente parada", kind = RupiUi.Kind.TANGERINE, iconRes = R.drawable.ic_play) {
 					onOpenNextNode(route, next)
 				}
 			} ?: run {
-				button("VOLVER A LA RUTA", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_check) {
+				button("Volver a la ruta", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_check) {
 					onBackToRoute(route)
 				}
 			}
@@ -616,13 +905,13 @@ fun renderLessonBody(
 				feedback("Ya completaste esta parada. Puedes repasarla cuando quieras.", NoticeTone.OK)
 			} else {
 				val buttonLabel = when {
-					answeredAll -> "COMPLETAR PARADA Y GANAR XP"
+					answeredAll -> "¡Completar parada y ganar XP!"
 					lesson.questions.size == 1 -> "Responde la pregunta pendiente para terminar"
 					else -> "Responde las ${lesson.questions.size} preguntas para terminar"
 				}
 				button(
 					label = buttonLabel,
-					kind = if (answeredAll) RupiUi.Kind.PRIMARY else RupiUi.Kind.QUIET,
+					kind = if (answeredAll) RupiUi.Kind.TANGERINE else RupiUi.Kind.QUIET,
 					iconRes = if (answeredAll) R.drawable.ic_check else null,
 					enabled = answeredAll
 				) { onCompleteNode() }
@@ -638,6 +927,6 @@ fun renderLessonBody(
 			route = route
 		)
 		button("Practicar con Rupi (IA)", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_message_circle) { onOpenAiPractice(topic) }
-		button("Repasar con tarjetas", kind = RupiUi.Kind.QUIET, iconRes = R.drawable.ic_book) { onOpenFlashcards(topic) }
+		button("Repasar con tarjetas", kind = RupiUi.Kind.SUN, iconRes = R.drawable.ic_book) { onOpenFlashcards(topic) }
 	}
 }
