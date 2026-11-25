@@ -74,7 +74,7 @@ fun mountLoginScreen(
 			val heroLayout = LinearLayout(context).apply {
 				orientation = LinearLayout.VERTICAL
 				gravity = Gravity.CENTER_HORIZONTAL
-				setPadding(0, dp(14), 0, dp(10))
+				setPadding(0, dp(6), 0, dp(10))
 			}
 			heroLayout.addView(
 				ImageView(context).apply {
@@ -82,13 +82,13 @@ fun mountLoginScreen(
 					scaleType = ImageView.ScaleType.FIT_CENTER
 					importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
 				},
-				LinearLayout.LayoutParams(dp(86), dp(90))
+				LinearLayout.LayoutParams(dp(132), dp(138))
 			)
 
 			heroLayout.addView(TextView(context).apply {
 				text = if (isRegister) "Crea tu cuenta escolar" else "Inicia sesión en tu cuenta"
 				typeface = RupiUi.fontTitle(context)
-				textSize = 21f
+				textSize = 23f
 				setTextColor(RupiUi.FOREST)
 				gravity = Gravity.CENTER_HORIZONTAL
 				setSingleLine(true)
@@ -99,7 +99,7 @@ fun mountLoginScreen(
 			heroLayout.addView(TextView(context).apply {
 				text = if (isRegister) "Únete a tu aula para aprender jugando" else "Aprende jugando en tu aula escolar"
 				typeface = RupiUi.fontBody(context)
-				textSize = 13.5f
+				textSize = 14.5f
 				setTextColor(RupiUi.MUTED)
 				gravity = Gravity.CENTER_HORIZONTAL
 				setSingleLine(true)
@@ -138,7 +138,7 @@ fun mountLoginScreen(
 					addView(termsBox)
 
 					// Botón limpio sin iconos en el texto
-					button("CREAR CUENTA", kind = RupiUi.Kind.PRIMARY) {
+					button("CREAR CUENTA", kind = RupiUi.Kind.LOGIN_ORANGE) {
 						val email = emailInput.text.toString().trim()
 						val pass = regPasswordInput.text.toString()
 						if (email.isBlank() || pass.isBlank()) {
@@ -175,7 +175,7 @@ fun mountLoginScreen(
 					addView(forgotLayout, LinearLayout.LayoutParams(-1, -2))
 
 					// Botón de Ingreso limpio (sin iconos en el botón)
-					button("INGRESAR", kind = RupiUi.Kind.PRIMARY) {
+					button("INGRESAR", kind = RupiUi.Kind.LOGIN_ORANGE) {
 						val username = userInput.text.toString().trim().ifBlank {
 							if (BuildConfig.DEBUG) "estudiante.demo" else ""
 						}
@@ -191,17 +191,12 @@ fun mountLoginScreen(
 					}
 				}
 
-				// Enlace para alternar entre Iniciar Sesión y Registrarse (En una sola línea)
+				// Acción táctil para cambiar entre el acceso y el formulario de registro.
 				val toggleRow = LinearLayout(context).apply {
 					orientation = LinearLayout.HORIZONTAL
 					gravity = Gravity.CENTER
 					minimumHeight = dp(48)
-					isClickable = true
-					isFocusable = true
 					setPadding(0, dp(8), 0, dp(4))
-					setOnClickListener {
-						renderAuthForm(isRegister = !isRegister)
-					}
 				}
 				toggleRow.addView(TextView(context).apply {
 					text = if (isRegister) "¿Ya tienes una cuenta? " else "¿No tienes una cuenta? "
@@ -210,13 +205,21 @@ fun mountLoginScreen(
 					setTextColor(RupiUi.MUTED)
 					setSingleLine(true)
 				})
-				toggleRow.addView(TextView(context).apply {
+				val toggleButton = Button(context).apply {
 					text = if (isRegister) "Inicia sesión" else "Regístrate"
-					typeface = RupiUi.fontExtraBold(context)
+					isAllCaps = false
+					minHeight = dp(42)
+					minWidth = dp(48)
 					textSize = 13.5f
-					setTextColor(RupiUi.LEAF_DARK)
-					setSingleLine(true)
-				})
+					typeface = RupiUi.fontExtraBold(context)
+					stateListAnimator = null
+					background = RupiUi.tactile(context, RupiUi.Kind.STICKER, radiusDp = 12)
+					setTextColor(RupiUi.tactileText(RupiUi.Kind.STICKER))
+					setPadding(dp(10), dp(6), dp(10), dp(10))
+					contentDescription = if (isRegister) "Volver al inicio de sesión" else "Abrir registro escolar"
+					setOnClickListener { renderAuthForm(isRegister = !isRegister) }
+				}
+				toggleRow.addView(toggleButton, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(6) })
 				addView(toggleRow, LinearLayout.LayoutParams(-1, -2))
 			}
 
