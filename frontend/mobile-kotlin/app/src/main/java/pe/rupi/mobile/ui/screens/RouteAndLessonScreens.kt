@@ -33,7 +33,8 @@ import pe.rupi.mobile.ui.state.RouteDetailUiState
 class RoadmapTrailLayout(context: Context) : LinearLayout(context) {
  private val bgDrawable = androidx.core.content.ContextCompat.getDrawable(context, R.drawable.bg_ayacucho_plaza)
  private val overlayPaint = Paint().apply {
-  color = Color.argb(210, 250, 248, 238) // Warm overlay matching Andean plaza
+  // Mantiene legibles las paradas sin ocultar el paisaje andino de la ruta.
+  color = Color.argb(172, 250, 248, 238)
  }
 
  init {
@@ -65,32 +66,32 @@ class RoadmapTrailLayout(context: Context) : LinearLayout(context) {
 
  private val roadShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
   style = Paint.Style.STROKE
-  strokeWidth = RupiUi.dp(context, 68).toFloat()
-  color = Color.argb(45, 45, 35, 20)
+  strokeWidth = RupiUi.dp(context, 48).toFloat()
+  color = Color.argb(30, 23, 62, 48)
   strokeCap = Paint.Cap.ROUND
   strokeJoin = Paint.Join.ROUND
  }
 
  private val roadBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
   style = Paint.Style.STROKE
-  strokeWidth = RupiUi.dp(context, 58).toFloat()
-  color = Color.rgb(208, 182, 138) // Borde del camino de tierra/piedra
+  strokeWidth = RupiUi.dp(context, 40).toFloat()
+  color = Color.rgb(169, 192, 130) // Camino verde suave del mapa escolar
   strokeCap = Paint.Cap.ROUND
   strokeJoin = Paint.Join.ROUND
  }
 
  private val roadSurfacePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
   style = Paint.Style.STROKE
-  strokeWidth = RupiUi.dp(context, 50).toFloat()
-  color = Color.rgb(250, 241, 222) // Sendero andino claro
+  strokeWidth = RupiUi.dp(context, 33).toFloat()
+  color = Color.rgb(255, 246, 218) // Interior de pergamino cálido
   strokeCap = Paint.Cap.ROUND
   strokeJoin = Paint.Join.ROUND
  }
 
  private val roadDashPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
   style = Paint.Style.STROKE
-  strokeWidth = RupiUi.dpF(context, 3.5f)
-  color = Color.rgb(195, 165, 118) // Línea discontinua central del camino
+  strokeWidth = RupiUi.dpF(context, 3f)
+  color = Color.rgb(132, 163, 96) // Huellas para seguir el recorrido
   strokeCap = Paint.Cap.ROUND
   strokeJoin = Paint.Join.ROUND
   pathEffect = DashPathEffect(
@@ -145,43 +146,81 @@ fun renderRouteDetailBody(
   val route = state.route ?: detail.route
   val summary = detail.route
 
-  // Banner superior estilo Duolingo con ambientación de Ayacucho
+  // Resumen de ruta con materialidad de cuaderno, el avance real y la mascota original.
   val unitBanner = LinearLayout(context).apply {
    orientation = LinearLayout.VERTICAL
-   background = RupiUi.rounded(RupiUi.LEAF, dp(18).toFloat(), dp(2), RupiUi.LEAF_DARK)
-   setPadding(dp(16), dp(14), dp(16), dp(16))
+   background = RupiUi.rounded(RupiUi.CARD_SURFACE, dp(20).toFloat(), dp(2), RupiUi.LEAF)
+   setPadding(dp(14), dp(12), dp(14), dp(14))
+   elevation = dp(3).toFloat()
   }
   val areaGrade = listOf(summary.areaName, summary.gradeName).filter { it.isNotBlank() }.joinToString(" · ")
-  unitBanner.addView(TextView(context).apply {
-   text = if (areaGrade.isNotBlank()) "SECCIÓN 1 · $areaGrade" else "SECCIÓN 1 · AYACUCHO"
+  val headingRow = LinearLayout(context).apply {
+   orientation = LinearLayout.HORIZONTAL
+   gravity = Gravity.CENTER_VERTICAL
+  }
+  val headingCopy = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+  headingCopy.addView(TextView(context).apply {
+   text = summary.areaName.ifBlank { areaGrade.ifBlank { "Camino de aprendizaje" } }.uppercase()
    typeface = RupiUi.fontExtraBold(context)
-   textSize = 12f
-   setTextColor(Color.rgb(220, 255, 200))
-   letterSpacing = 0.05f
+   textSize = 10.5f
+   setTextColor(RupiUi.SUN_DARK)
+   maxLines = 1
+   ellipsize = android.text.TextUtils.TruncateAt.END
+   background = RupiUi.rounded(Color.rgb(255, 246, 218), dp(10).toFloat(), dp(1), RupiUi.SUN)
+   setPadding(dp(8), dp(4), dp(8), dp(4))
   })
-  unitBanner.addView(TextView(context).apply {
+  headingCopy.addView(TextView(context).apply {
    text = summary.title
    typeface = RupiUi.fontTitle(context)
-   textSize = 20.5f
-   setTextColor(Color.WHITE)
-   setPadding(0, dp(4), 0, dp(8))
+   textSize = 19f
+   setTextColor(RupiUi.FOREST)
+   maxLines = 3
+   ellipsize = android.text.TextUtils.TruncateAt.END
+   setLineSpacing(0f, 1.08f)
+   setPadding(0, dp(6), dp(4), dp(4))
   })
+  headingRow.addView(headingCopy, LinearLayout.LayoutParams(0, -2, 1f))
+  val mascotMedallion = android.widget.FrameLayout(context).apply {
+   background = RupiUi.rounded(RupiUi.SUN, dp(34).toFloat(), dp(2), RupiUi.GOLD_STROKE)
+   elevation = dp(2).toFloat()
+   contentDescription = "Rupi te acompaña en esta ruta"
+  }
+  mascotMedallion.addView(ImageView(context).apply {
+   setImageResource(R.drawable.ic_rupi_mascot)
+   scaleType = ImageView.ScaleType.FIT_CENTER
+   importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+  }, android.widget.FrameLayout.LayoutParams(dp(52), dp(52), Gravity.CENTER))
+  headingRow.addView(mascotMedallion, LinearLayout.LayoutParams(dp(62), dp(62)).apply { leftMargin = dp(6) })
+  unitBanner.addView(headingRow)
   val bar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
    max = summary.totalNodes.coerceAtLeast(1)
    progress = summary.completedNodes
-   progressTintList = ColorStateList.valueOf(RupiUi.SUN)
-   progressBackgroundTintList = ColorStateList.valueOf(Color.argb(70, 255, 255, 255))
+   progressTintList = ColorStateList.valueOf(RupiUi.LEAF)
+   progressBackgroundTintList = ColorStateList.valueOf(RupiUi.PAPER_DEEP)
    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
   }
-  unitBanner.addView(bar, LinearLayout.LayoutParams(-1, dp(12)).apply { bottomMargin = dp(4) })
+  unitBanner.addView(bar, LinearLayout.LayoutParams(-1, dp(10)).apply { topMargin = dp(8); bottomMargin = dp(5) })
   val pct = if (summary.totalNodes > 0) ((summary.completedNodes.toFloat() / summary.totalNodes) * 100).toInt() else 0
-  unitBanner.addView(TextView(context).apply {
-   text = "${summary.completedNodes} de ${summary.totalNodes} paradas completadas ($pct%)"
+  val progressCopy = LinearLayout(context).apply {
+   orientation = LinearLayout.HORIZONTAL
+   gravity = Gravity.CENTER_VERTICAL
+  }
+  progressCopy.addView(TextView(context).apply {
+   text = "${summary.completedNodes} de ${summary.totalNodes} paradas completadas"
    typeface = RupiUi.fontBold(context)
-   textSize = 12.5f
-   setTextColor(Color.rgb(230, 255, 220))
+   textSize = 12f
+   setTextColor(RupiUi.MUTED)
+  }, LinearLayout.LayoutParams(0, -2, 1f))
+  progressCopy.addView(TextView(context).apply {
+   text = "$pct%"
+   typeface = RupiUi.fontExtraBold(context)
+   textSize = 12f
+   setTextColor(RupiUi.LEAF_DARK)
+   background = RupiUi.rounded(RupiUi.LEAF_SOFT, dp(12).toFloat(), dp(1), RupiUi.SOFT_LINE)
+   setPadding(dp(9), dp(4), dp(9), dp(4))
   })
-  addView(unitBanner, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(14) })
+  unitBanner.addView(progressCopy)
+  addView(unitBanner, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
 
   // Sendero continuo y nodos en fondo paisajístico andino (RoadmapTrailLayout)
   val trailLayout = RoadmapTrailLayout(context)
@@ -229,6 +268,7 @@ private fun renderWindingStopNode(
   orientation = LinearLayout.VERTICAL
   gravity = Gravity.CENTER_HORIZONTAL
   setPadding(0, dp(12), 0, dp(16))
+  minimumHeight = dp(48)
   isClickable = true
   isFocusable = true
   contentDescription = "Parada ${node.sequence}: ${node.title}. ${node.state.label}"
@@ -243,12 +283,12 @@ private fun renderWindingStopNode(
 
  if (isActive) {
   val startBubble = TextView(context).apply {
-   text = "EMPEZAR"
+   text = "SIGUIENTE PARADA"
    typeface = RupiUi.fontExtraBold(context)
    textSize = 11.5f
-   setTextColor(Color.WHITE)
-   background = RupiUi.rounded(RupiUi.LEAF, dp(10).toFloat(), dp(2), RupiUi.LEAF_DARK)
-   setPadding(dp(14), dp(4), dp(14), dp(4))
+   setTextColor(RupiUi.FOREST)
+   background = RupiUi.rounded(RupiUi.SUN, dp(12).toFloat(), dp(1), RupiUi.GOLD_STROKE)
+   setPadding(dp(12), dp(5), dp(12), dp(5))
    gravity = Gravity.CENTER
    translationX = shiftX.toFloat()
   }
@@ -276,12 +316,16 @@ private fun renderWindingStopNode(
    scaleType = ImageView.ScaleType.FIT_CENTER
    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
   }
-  stoneRow.addView(mascotIcon, LinearLayout.LayoutParams(dp(46), dp(50)).apply { rightMargin = dp(6) })
+   stoneRow.addView(mascotIcon, LinearLayout.LayoutParams(dp(54), dp(58)).apply { rightMargin = dp(4) })
  }
 
  val stoneFrame = android.widget.FrameLayout(context).apply {
   background = RupiUi.routeNodeCircle(context, completed = completed, locked = locked)
-  setPadding(0, 0, 0, dp(4))
+   val nodeSize = if (isActive) 76 else if (completed) 68 else 64
+   minimumWidth = dp(nodeSize)
+   minimumHeight = dp(nodeSize)
+   setPadding(dp(3), dp(2), dp(3), dp(7))
+   importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
  }
  val stoneIcon = ImageView(context).apply {
   val iconRes = when {
@@ -291,22 +335,24 @@ private fun renderWindingStopNode(
   }
   setImageResource(iconRes)
   val d = drawable.mutate()
-  d.setTint(if (completed) Color.WHITE else if (locked) RupiUi.MUTED else Color.WHITE)
+  d.setTint(if (completed) Color.WHITE else if (locked) RupiUi.MUTED else RupiUi.FOREST)
   setImageDrawable(d)
   importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
  }
- stoneFrame.addView(stoneIcon, android.widget.FrameLayout.LayoutParams(dp(26), dp(26), Gravity.CENTER))
- stoneRow.addView(stoneFrame, LinearLayout.LayoutParams(dp(62), dp(66)))
+  val iconSize = if (isActive) 32 else 28
+  stoneFrame.addView(stoneIcon, android.widget.FrameLayout.LayoutParams(dp(iconSize), dp(iconSize), Gravity.CENTER))
+  val nodeSize = if (isActive) 76 else if (completed) 68 else 64
+  stoneRow.addView(stoneFrame, LinearLayout.LayoutParams(dp(nodeSize), dp(nodeSize + 4)))
 
  if (node.sequence % 4 == 0) {
   val chestIcon = ImageView(context).apply {
-   setImageResource(R.drawable.ic_award)
+   setImageResource(R.drawable.ic_chest)
    val d = drawable.mutate()
    d.setTint(RupiUi.SUN_DARK)
    setImageDrawable(d)
    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
   }
-  stoneRow.addView(chestIcon, LinearLayout.LayoutParams(dp(28), dp(28)).apply { leftMargin = dp(6) })
+  stoneRow.addView(chestIcon, LinearLayout.LayoutParams(dp(36), dp(36)).apply { leftMargin = dp(6) })
  }
 
  stopWrapper.addView(stoneRow, LinearLayout.LayoutParams(-1, -2))
@@ -317,20 +363,21 @@ private fun renderWindingStopNode(
   gravity = Gravity.CENTER_HORIZONTAL
   translationX = shiftX.toFloat()
   background = RupiUi.rounded(
-   if (locked) Color.rgb(248, 248, 248) else Color.WHITE,
-   dp(12).toFloat(),
-   dp(1),
-   if (locked) Color.rgb(225, 225, 225) else Color.rgb(215, 205, 185)
+   when { locked -> RupiUi.PAPER_DEEP; isActive -> Color.rgb(255, 246, 218); else -> Color.WHITE },
+   dp(14).toFloat(),
+   dp(if (isActive) 2 else 1),
+   when { locked -> RupiUi.LINE; isActive -> RupiUi.GOLD_STROKE; else -> RupiUi.SOFT_LINE }
   )
-  setPadding(dp(12), dp(5), dp(12), dp(5))
-  elevation = dp(2).toFloat()
+  minimumHeight = dp(44)
+  setPadding(dp(14), dp(7), dp(14), dp(7))
+  elevation = dp(if (isActive) 3 else 1).toFloat()
  }
 
  val labelView = TextView(context).apply {
   text = "${node.sequence}. ${node.title}"
   typeface = RupiUi.fontExtraBold(context)
   textSize = 12.5f
-  setTextColor(if (locked) RupiUi.MUTED else RupiUi.FOREST)
+  setTextColor(if (locked) RupiUi.MUTED else if (isActive) RupiUi.SUN_DARK else RupiUi.FOREST)
   gravity = Gravity.CENTER_HORIZONTAL
   maxLines = 2
   ellipsize = android.text.TextUtils.TruncateAt.END

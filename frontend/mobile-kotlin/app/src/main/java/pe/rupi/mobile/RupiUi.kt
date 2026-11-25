@@ -216,7 +216,7 @@ object RupiUi {
   val (fill, base, rim) = when {
    completed -> Triple(LEAF, LEAF_DARK, Color.WHITE)
    locked -> Triple(Color.rgb(199, 211, 188), Color.rgb(133, 152, 125), Color.WHITE)
-   else -> Triple(ORANGE, ORANGE_DARK, SUN)
+   else -> Triple(SUN, SUN_DARK, Color.WHITE)
   }
   return LayerDrawable(arrayOf(
    GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(base) },

@@ -113,7 +113,7 @@ class ScreenScaffold(
   val topBar = LinearLayout(activity).apply {
    orientation = LinearLayout.HORIZONTAL
    gravity = Gravity.CENTER_VERTICAL
-   background = RupiUi.rounded(Color.WHITE, 0f, dp(1), RupiUi.LINE)
+   background = RupiUi.rounded(RupiUi.CARD_SURFACE, dp(18).toFloat(), dp(1), RupiUi.SOFT_LINE)
    setPadding(dp(14), dp(8), dp(14), dp(8))
   }
 
@@ -121,13 +121,15 @@ class ScreenScaffold(
   val flagBadge = LinearLayout(activity).apply {
    orientation = LinearLayout.HORIZONTAL
    gravity = Gravity.CENTER_VERTICAL
-   setPadding(0, 0, dp(6), 0)
+   background = RupiUi.rounded(RupiUi.LEAF_SOFT, dp(18).toFloat(), dp(1), RupiUi.SOFT_LINE)
+   minimumHeight = dp(40)
+   setPadding(dp(8), dp(4), dp(10), dp(4))
    addView(ImageView(activity).apply {
     setImageResource(R.drawable.ic_flag_pe)
     scaleType = ImageView.ScaleType.FIT_CENTER
    }, LinearLayout.LayoutParams(dp(24), dp(18)))
    addView(TextView(activity).apply {
-    text = "Primaria 3.°"
+    text = "Primaria · 3.°"
     typeface = RupiUi.fontExtraBold(activity)
     textSize = 12.5f
     setTextColor(RupiUi.FOREST)
@@ -140,26 +142,34 @@ class ScreenScaffold(
    return LinearLayout(activity).apply {
     orientation = LinearLayout.HORIZONTAL
     gravity = Gravity.CENTER_VERTICAL
-    setPadding(dp(6), dp(2), dp(6), dp(2))
+    background = RupiUi.rounded(Color.WHITE, dp(16).toFloat(), dp(1), RupiUi.LINE)
+    minimumHeight = dp(38)
+    setPadding(dp(7), dp(3), dp(7), dp(3))
+    contentDescription = "$value ${when (iconRes) {
+     R.drawable.ic_flame -> "días de racha"
+     R.drawable.ic_gem -> "puntos de experiencia"
+     else -> "vidas"
+    }}"
     addView(ImageView(activity).apply {
      setImageResource(iconRes)
      val d = drawable.mutate()
      d.setTint(tintColor)
      setImageDrawable(d)
-    }, LinearLayout.LayoutParams(dp(18), dp(18)))
+    }, LinearLayout.LayoutParams(dp(17), dp(17)))
     addView(TextView(activity).apply {
      text = value
      typeface = RupiUi.fontExtraBold(activity)
-     textSize = 13.5f
-     setTextColor(tintColor)
-     setPadding(dp(4), 0, 0, 0)
+     textSize = 13f
+     setTextColor(RupiUi.FOREST)
+     setPadding(dp(3), 0, 0, 0)
     })
    }
   }
 
-  topBar.addView(statItem(R.drawable.ic_flame, "$streakDays", RupiUi.ORANGE))
-  topBar.addView(statItem(R.drawable.ic_gem, "$xpPoints", Color.rgb(0, 180, 216)))
-  topBar.addView(statItem(R.drawable.ic_heart, "$hearts", RupiUi.ORANGE_DARK))
+  fun statParams() = LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(5) }
+  topBar.addView(statItem(R.drawable.ic_flame, "$streakDays", Color.rgb(235, 131, 36)), statParams())
+  topBar.addView(statItem(R.drawable.ic_gem, "$xpPoints", Color.rgb(0, 145, 176)), statParams())
+  topBar.addView(statItem(R.drawable.ic_heart, "$hearts", Color.rgb(222, 118, 24)), statParams())
   frame.addView(topBar, LinearLayout.LayoutParams(-1, -2))
 
   // SCROLLVIEW (Contenido en medio)
@@ -180,18 +190,12 @@ class ScreenScaffold(
   val bottomNav = LinearLayout(activity).apply {
    orientation = LinearLayout.HORIZONTAL
    gravity = Gravity.CENTER_VERTICAL
-   background = RupiUi.rounded(Color.WHITE, 0f, dp(1), RupiUi.LINE)
-   setPadding(dp(4), dp(6), dp(4), dp(8))
+   background = RupiUi.rounded(RupiUi.CARD_SURFACE, dp(20).toFloat(), dp(1), RupiUi.SOFT_LINE)
+   setPadding(dp(5), dp(6), dp(5), dp(8))
    elevation = dp(8).toFloat()
   }
 
-  val tabThemes = intArrayOf(
-   Color.rgb(49, 114, 75),   // 0: Camino (Verde Hoja Rupi)
-   Color.rgb(14, 165, 233),  // 1: Tutor IA (Azul Cielo)
-   Color.rgb(249, 87, 56),   // 2: Misiones (Naranja Rupi)
-   Color.rgb(234, 179, 8),   // 3: Logros (Amarillo Sol)
-   Color.rgb(168, 85, 247)   // 4: Perfil (Morado Andino)
-  )
+  val tabThemes = IntArray(5) { RupiUi.LEAF }
 
   val tabButtons = mutableListOf<LinearLayout>()
 
@@ -202,28 +206,31 @@ class ScreenScaffold(
     gravity = Gravity.CENTER
     isClickable = true
     isFocusable = true
-    minimumHeight = dp(50)
-    background = null
-    setPadding(dp(2), dp(4), dp(2), dp(4))
+    minimumHeight = dp(58)
+    background = if (isSelected) RupiUi.tactile(activity, RupiUi.Kind.LEAF, radiusDp = 15)
+     else RupiUi.rounded(Color.WHITE, dp(15).toFloat(), dp(1), RupiUi.SOFT_LINE)
+    setPadding(dp(3), dp(5), dp(3), dp(5))
+    contentDescription = if (isSelected) "$label, seleccionado" else label
+    this.isSelected = isSelected
    }
 
    val iconView = ImageView(activity).apply {
     setImageResource(iconRes)
     val d = drawable.mutate()
-    d.setTint(if (isSelected) themeColor else RupiUi.MUTED)
+    d.setTint(if (isSelected) Color.WHITE else RupiUi.FOREST)
     setImageDrawable(d)
     if (isSelected) {
      scaleX = 1.1f
      scaleY = 1.1f
     }
    }
-   tabBox.addView(iconView, LinearLayout.LayoutParams(dp(24), dp(24)))
+   tabBox.addView(iconView, LinearLayout.LayoutParams(dp(22), dp(22)))
 
    val textView = TextView(activity).apply {
     text = label
     typeface = if (isSelected) RupiUi.fontExtraBold(activity) else RupiUi.fontBody(activity)
-    textSize = 10.5f
-    setTextColor(if (isSelected) themeColor else RupiUi.MUTED)
+    textSize = 9.5f
+    setTextColor(if (isSelected) Color.WHITE else RupiUi.MUTED)
     gravity = Gravity.CENTER
     setPadding(0, dp(3), 0, 0)
    }
@@ -237,7 +244,7 @@ class ScreenScaffold(
    tabBox.setOnClickListener {
     onTabSelected(index)
     // Tactile bounce animation on tap
-    tabBox.animate().scaleX(1.15f).scaleY(1.15f).setDuration(100).withEndAction {
+    tabBox.animate().scaleX(1.08f).scaleY(1.08f).setDuration(100).withEndAction {
      tabBox.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
     }.start()
 
@@ -248,12 +255,16 @@ class ScreenScaffold(
      val tv = box.getChildAt(1) as? TextView
      val dot = box.getChildAt(2)
 
-     val tint = if (active) color else RupiUi.MUTED
+     val tint = if (active) Color.WHITE else RupiUi.FOREST
      iv?.drawable?.mutate()?.setTint(tint)
      iv?.scaleX = if (active) 1.1f else 1.0f
      iv?.scaleY = if (active) 1.1f else 1.0f
      tv?.typeface = if (active) RupiUi.fontExtraBold(activity) else RupiUi.fontBody(activity)
      tv?.setTextColor(tint)
+     box.background = if (active) RupiUi.tactile(activity, RupiUi.Kind.LEAF, radiusDp = 15)
+      else RupiUi.rounded(Color.WHITE, dp(15).toFloat(), dp(1), RupiUi.SOFT_LINE)
+     box.isSelected = active
+     box.contentDescription = if (active) "${tv?.text}, seleccionado" else tv?.text?.toString()
      dot?.background = RupiUi.rounded(if (active) color else Color.TRANSPARENT, dp(2).toFloat(), 0, 0)
     }
    }

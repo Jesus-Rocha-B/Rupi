@@ -952,7 +952,7 @@ fun renderTopicsRoutesList(
 			val bar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
 				max = route.totalNodes.coerceAtLeast(1)
 				progress = route.completedNodes
-				progressTintList = ColorStateList.valueOf(if (route.isCompleted) RupiUi.LEAF else RupiUi.ORANGE)
+    progressTintList = ColorStateList.valueOf(if (route.isCompleted) RupiUi.LEAF else RupiUi.SUN_DARK)
 				progressBackgroundTintList = ColorStateList.valueOf(RupiUi.PAPER_DEEP)
 			}
 			progressRow.addView(bar, LinearLayout.LayoutParams(0, dp(12), 1f))
@@ -960,7 +960,7 @@ fun renderTopicsRoutesList(
 				text = "$pct%"
 				typeface = RupiUi.fontExtraBold(context)
 				textSize = 12f
-				setTextColor(if (route.isCompleted) RupiUi.LEAF_DARK else RupiUi.ORANGE_DARK)
+    setTextColor(if (route.isCompleted) RupiUi.LEAF_DARK else RupiUi.SUN_DARK)
 			}, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(10) })
 			cardLayout.addView(progressRow, LinearLayout.LayoutParams(-1, -2))
 
@@ -979,8 +979,8 @@ fun renderTopicsRoutesList(
 				typeface = RupiUi.fontExtraBold(context)
 				textSize = 13.5f
 				minimumHeight = dp(46)
-				background = RupiUi.tactile(context, if (route.isCompleted) RupiUi.Kind.LEAF else RupiUi.Kind.PRIMARY, radiusDp = 12)
-				setTextColor(Color.WHITE)
+    background = RupiUi.tactile(context, if (route.isCompleted) RupiUi.Kind.LEAF else RupiUi.Kind.SUN, radiusDp = 12)
+    setTextColor(if (route.isCompleted) Color.WHITE else RupiUi.FOREST)
 				setOnClickListener { onOpenRoute(route) }
 			}
 			cardLayout.addView(actionBtn, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
