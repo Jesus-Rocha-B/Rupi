@@ -279,6 +279,7 @@ fun mountTopicsScreen(
 		xpPoints = 120,
 		hearts = 5,
 		activeTab = 0,
+		hideTopBarTabs = setOf(3),
 		onTabSelected = { index -> switchTab(index) }
 	)
 
@@ -927,22 +928,98 @@ fun mountTopicsScreen(
 		// TAB 3: LOGROS Y AULA (Trofeos y Tablero Escolar)
 		// -----------------------------------------------------------------
 		scaffold.into(achievementsSection) {
+			fun compactAction(label: String, iconRes: Int, kind: RupiUi.Kind, action: () -> Unit) {
+				val actionButton = Button(context).apply {
+					text = label
+					isAllCaps = false
+					minHeight = dp(48)
+					minWidth = dp(48)
+					stateListAnimator = null
+					typeface = RupiUi.fontExtraBold(context)
+					textSize = 14f
+					setTextColor(RupiUi.tactileText(kind))
+					background = RupiUi.tactile(context, kind, radiusDp = 14)
+					val icon = context.getDrawable(iconRes)?.mutate()?.apply { setTint(kind.text) }
+					setCompoundDrawablesRelativeWithIntrinsicBounds(icon, null, null, null)
+					compoundDrawablePadding = dp(7)
+					setPadding(dp(14), dp(8), dp(14), dp(12))
+					setOnClickListener { action() }
+				}
+				scaffold.currentContainer().addView(actionButton, LinearLayout.LayoutParams(-2, dp(52)).apply {
+					gravity = Gravity.CENTER_HORIZONTAL
+					topMargin = dp(8)
+					bottomMargin = dp(4)
+				})
+			}
+
 			heroCard {
-				chip("TABLERO Y TROFEOS", RupiUi.LEAF_SOFT, RupiUi.SOFT_LINE, RupiUi.FOREST, iconRes = R.drawable.ic_award)
-				text("Tus Logros Escolares", 22)
-				muted("Revisa tus medallas conseguidas y compite sanamente con tus companeros de aula.")
-				button("ABRIR VITRINA DE TROFEOS", kind = RupiUi.Kind.SKY, iconRes = R.drawable.ic_award) { onOpenAchievements() }
+				chip("MISIÓN CUMPLIDA", RupiUi.LEAF_SOFT, RupiUi.SOFT_LINE, RupiUi.FOREST, iconRes = R.drawable.ic_star)
+				val achievementIntro = LinearLayout(context).apply {
+					orientation = LinearLayout.HORIZONTAL
+					gravity = Gravity.CENTER_VERTICAL
+				}
+				val achievementCopy = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+				achievementCopy.addView(TextView(context).apply {
+					text = "¡Tus logros escolares!"
+					typeface = RupiUi.fontTitle(context)
+					textSize = 21f
+					setTextColor(RupiUi.FOREST)
+				})
+				achievementCopy.addView(TextView(context).apply {
+					text = "Cada reto que completas te acerca a una nueva medalla."
+					typeface = RupiUi.fontBody(context)
+					textSize = 13.5f
+					setTextColor(RupiUi.MUTED)
+					setPadding(0, dp(4), 0, 0)
+				})
+				achievementIntro.addView(achievementCopy, LinearLayout.LayoutParams(0, -2, 1f))
+				achievementIntro.addView(ImageView(context).apply {
+					setImageResource(R.drawable.ic_rupi_mascot)
+					scaleType = ImageView.ScaleType.FIT_CENTER
+					contentDescription = "Rupi celebra tus logros"
+				}, LinearLayout.LayoutParams(dp(66), dp(72)).apply { leftMargin = dp(6) })
+				addView(achievementIntro, LinearLayout.LayoutParams(-1, -2))
+
+				val medals = LinearLayout(context).apply {
+					orientation = LinearLayout.HORIZONTAL
+					gravity = Gravity.CENTER
+					setPadding(0, dp(8), 0, dp(2))
+				}
+				val medalThemes = listOf(
+					Triple(R.drawable.ic_star, Color.rgb(255, 224, 139), RupiUi.GOLD_STROKE),
+					Triple(R.drawable.ic_award, RupiUi.LEAF_SOFT, RupiUi.LEAF_DARK),
+					Triple(R.drawable.ic_book, Color.rgb(224, 238, 250), RupiUi.SKY_DARK)
+				)
+				medalThemes.forEachIndexed { index, medal ->
+					val medalBadge = FrameLayout(context).apply {
+						background = RupiUi.rounded(medal.second, dp(24).toFloat(), dp(2), RupiUi.LINE)
+						contentDescription = listOf("Medalla de esfuerzo", "Medalla de constancia", "Medalla de aprendizaje")[index]
+						addView(ImageView(context).apply {
+							setImageResource(medal.first)
+							drawable.mutate().setTint(medal.third)
+							scaleType = ImageView.ScaleType.FIT_CENTER
+							importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+						}, FrameLayout.LayoutParams(dp(25), dp(25), Gravity.CENTER))
+					}
+					medals.addView(medalBadge, LinearLayout.LayoutParams(dp(48), dp(48)).apply {
+						leftMargin = dp(7)
+						rightMargin = dp(7)
+					})
+				}
+				addView(medals, LinearLayout.LayoutParams(-1, -2))
+				compactAction("Ver mis trofeos", R.drawable.ic_award, RupiUi.Kind.LOGIN_ORANGE) { onOpenAchievements() }
 			}
 
 			card {
-				text("Unirse a un aula con codigo", 18)
-				muted("Si tu profesor te entrego un codigo escolar, escribelo aqui:")
-				val code = input("Codigo de clase", hintText = "Ej: AYACUCHO2026")
+				text("Unirme a mi aula", 19)
+				muted("Aprende junto a tus compañeros. Pídele el código a tu profe.")
+				val code = input("Código de aula", hintText = "Ej. AYACUCHO2026")
 				code.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
 				code.filters = arrayOf(InputFilter.LengthFilter(40), InputFilter.AllCaps())
-				button("UNIRME AL AULA", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_check) {
+				compactAction("Unirme al aula", R.drawable.ic_check, RupiUi.Kind.LEAF) {
 					val rawCode = code.text.toString().trim()
 					if (rawCode.isNotBlank()) onJoinByCode(rawCode)
+					else scaffold.showLocalNotice("Escribe el código de tu aula para unirte.")
 				}
 			}
 		}

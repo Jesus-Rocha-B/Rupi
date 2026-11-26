@@ -101,6 +101,7 @@ class ScreenScaffold(
   xpPoints: Int = 120,
   hearts: Int = 5,
   activeTab: Int = 0,
+ hideTopBarTabs: Set<Int> = emptySet(),
   onTabSelected: (Int) -> Unit
  ): LinearLayout {
   voice?.stop()
@@ -183,6 +184,14 @@ class ScreenScaffold(
    orientation = LinearLayout.VERTICAL
    setPadding(dp(14), dp(8), dp(14), dp(16))
   }
+  var selectedTab = activeTab
+  var statusBarInset = 0
+  fun updateTopBarVisibility() {
+   val hidden = selectedTab in hideTopBarTabs
+   topBar.visibility = if (hidden) View.GONE else View.VISIBLE
+   outerLayout.setPadding(dp(14), dp(8) + if (hidden) statusBarInset else 0, dp(14), dp(16))
+  }
+  updateTopBarVisibility()
   scroll.addView(outerLayout, FrameLayout.LayoutParams(-1, -2))
   frame.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
 
@@ -242,6 +251,8 @@ class ScreenScaffold(
    tabBox.addView(dotIndicator, LinearLayout.LayoutParams(dp(16), dp(3)).apply { topMargin = dp(2) })
 
    tabBox.setOnClickListener {
+    selectedTab = index
+    updateTopBarVisibility()
     onTabSelected(index)
     // Tactile bounce animation on tap
     tabBox.animate().scaleX(1.08f).scaleY(1.08f).setDuration(100).withEndAction {
@@ -297,7 +308,9 @@ class ScreenScaffold(
    val top = insets.systemWindowInsetTop
    @Suppress("DEPRECATION")
    val bottom = insets.systemWindowInsetBottom
+   statusBarInset = top
    topBar.setPadding(dp(14), top + dp(8), dp(14), dp(8))
+   updateTopBarVisibility()
    bottomNav.setPadding(dp(6), dp(4), dp(6), dp(6) + bottom)
    insets
   }
@@ -1059,6 +1072,7 @@ class ScreenScaffold(
   enabled: Boolean = true,
   kind: RupiUi.Kind = RupiUi.Kind.PRIMARY,
   iconRes: Int? = null,
+  radiusDp: Int = 14,
   action: () -> Unit
  ): Button {
   val button = Button(activity).apply {
@@ -1071,7 +1085,7 @@ class ScreenScaffold(
    textSize = 16f
    stateListAnimator = null
    elevation = 0f
-   background = RupiUi.tactile(activity, kind)
+   background = RupiUi.tactile(activity, kind, radiusDp)
    setTextColor(RupiUi.tactileText(kind))
    setOnClickListener { if (!isBusy) action() }
    isSingleLine = false

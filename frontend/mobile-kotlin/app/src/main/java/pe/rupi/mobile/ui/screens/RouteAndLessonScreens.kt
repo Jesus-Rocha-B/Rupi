@@ -736,7 +736,13 @@ fun renderLessonBody(
 						topMargin = dp(6)
 						bottomMargin = dp(4)
 					})
-					button("Ver el video", kind = RupiUi.Kind.TANGERINE, iconRes = R.drawable.ic_play) { onOpenExternalLink(link) }
+					val videoButton = button(
+						"Ver el video",
+						kind = RupiUi.Kind.TANGERINE,
+						iconRes = R.drawable.ic_play,
+						radiusDp = 18
+					) { onOpenExternalLink(link) }
+					pulseWhenVisible(videoButton, 1.018f, 1150L)
 					if (totalQ > 0) {
 						val afterVideo = LinearLayout(context).apply {
 							orientation = LinearLayout.HORIZONTAL

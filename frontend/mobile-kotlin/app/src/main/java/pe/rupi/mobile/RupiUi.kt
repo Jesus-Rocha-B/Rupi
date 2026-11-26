@@ -73,7 +73,7 @@ object RupiUi {
   PRIMARY(ORANGE, FOREST, FOREST, Color.WHITE),
   /** Naranja cálido con volumen para la acción principal del acceso escolar. */
   LOGIN_ORANGE(Color.rgb(255, 139, 0), Color.rgb(23, 62, 48), Color.rgb(143, 65, 0), Color.WHITE),
-  TANGERINE(Color.rgb(245, 142, 38), Color.rgb(177, 86, 13), Color.rgb(145, 69, 11), FOREST),
+  TANGERINE(Color.rgb(255, 157, 31), Color.rgb(224, 116, 18), Color.rgb(161, 73, 8), FOREST),
   LEAF(RupiUi.LEAF, LEAF_DARK, LEAF_DARK, Color.WHITE),
   SKY(RupiUi.SKY, SKY_DARK, SKY_DARK, Color.WHITE),
   SUN(RupiUi.SUN, FOREST, FOREST, FOREST),
