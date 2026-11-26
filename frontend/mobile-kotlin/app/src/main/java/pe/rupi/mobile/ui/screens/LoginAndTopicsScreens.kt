@@ -1,5 +1,7 @@
 package pe.rupi.mobile.ui.screens
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
@@ -7,6 +9,7 @@ import android.text.InputFilter
 import android.text.InputType
 import android.view.Gravity
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -260,6 +263,7 @@ fun mountTopicsScreen(
 	lateinit var questsSection: LinearLayout
 	lateinit var achievementsSection: LinearLayout
 	lateinit var profileSection: LinearLayout
+	var refreshMissionAnimations: (() -> Unit)? = null
 
 	fun switchTab(index: Int) {
 		routesSection.visibility = if (index == 0) View.VISIBLE else View.GONE
@@ -267,6 +271,7 @@ fun mountTopicsScreen(
 		questsSection.visibility = if (index == 2) View.VISIBLE else View.GONE
 		achievementsSection.visibility = if (index == 3) View.VISIBLE else View.GONE
 		profileSection.visibility = if (index == 4) View.VISIBLE else View.GONE
+		refreshMissionAnimations?.invoke()
 	}
 
 	scaffold.mountDuolingoShell(
@@ -660,79 +665,259 @@ fun mountTopicsScreen(
 		addView(tutorSection, LinearLayout.LayoutParams(-1, -2))
 
 		// -----------------------------------------------------------------
-		// TAB 2: MISIONES Y RETOS (Estilo Quests de Duolingo)
+		// TAB 2: MISIONES RUPI — metas, reto del día y avance con la misma lógica.
 		// -----------------------------------------------------------------
 		scaffold.into(questsSection) {
-			// Banner morado/vibrante estilo Duolingo Quests
+			// Cabecera con paisaje andino y el gallito de las rocas Rupi como guía.
+			val missionHeader = FrameLayout(context).apply {
+				background = RupiUi.rounded(RupiUi.PAPER, dp(20).toFloat(), dp(2), RupiUi.LINE)
+				clipToOutline = true
+				minimumHeight = dp(100)
+			}
+			missionHeader.addView(ImageView(context).apply {
+				setImageResource(R.drawable.bg_andean_scene)
+				scaleType = ImageView.ScaleType.FIT_XY
+				alpha = 0.32f
+				importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+			}, FrameLayout.LayoutParams(-1, dp(66), Gravity.BOTTOM))
+
+			val heading = LinearLayout(context).apply {
+				orientation = LinearLayout.VERTICAL
+				gravity = Gravity.CENTER_VERTICAL
+				setPadding(dp(14), dp(10), dp(104), dp(12))
+			}
+			heading.addView(TextView(context).apply {
+				text = "Misiones de hoy"
+				typeface = RupiUi.fontTitle(context)
+				textSize = 23f
+				setTextColor(RupiUi.FOREST)
+				if (Build.VERSION.SDK_INT >= 28) isAccessibilityHeading = true
+			})
+			heading.addView(TextView(context).apply {
+				text = "¡Rupi te acompaña en cada reto!"
+				typeface = RupiUi.fontBody(context)
+				textSize = 13f
+				setTextColor(RupiUi.MUTED)
+			})
+			missionHeader.addView(heading, FrameLayout.LayoutParams(-1, -1))
+
+			val mascot = ImageView(context).apply {
+				setImageResource(R.drawable.ic_rupi_mascot)
+				scaleType = ImageView.ScaleType.FIT_CENTER
+				contentDescription = "Rupi, gallito de las rocas explorador, te saluda"
+			}
+			missionHeader.addView(mascot, FrameLayout.LayoutParams(dp(96), dp(98), Gravity.RIGHT or Gravity.CENTER_VERTICAL).apply {
+				rightMargin = dp(5)
+			})
+			val helloSpark = ImageView(context).apply {
+				setImageResource(R.drawable.ic_star)
+				setColorFilter(RupiUi.SUN_DARK)
+				importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+			}
+			missionHeader.addView(helloSpark, FrameLayout.LayoutParams(dp(20), dp(20), Gravity.TOP or Gravity.RIGHT).apply {
+				topMargin = dp(8); rightMargin = dp(80)
+			})
+
+			// Rupi saluda con un rebote suave; la animación se detiene al salir de pantalla.
+			val mascotBob = ObjectAnimator.ofFloat(mascot, View.TRANSLATION_Y, 0f, -dp(4).toFloat(), 0f).apply {
+				duration = 1500L
+				repeatCount = ValueAnimator.INFINITE
+				interpolator = AccelerateDecelerateInterpolator()
+			}
+			val sparkTwinkle = ObjectAnimator.ofFloat(helloSpark, View.ALPHA, 0.45f, 1f, 0.45f).apply {
+				duration = 1050L
+				repeatCount = ValueAnimator.INFINITE
+				interpolator = AccelerateDecelerateInterpolator()
+			}
+			fun refreshAnimations() {
+				val shouldAnimate = questsSection.visibility == View.VISIBLE && questsSection.isAttachedToWindow
+				if (shouldAnimate) {
+					if (!mascotBob.isStarted) mascotBob.start()
+					if (!sparkTwinkle.isStarted) sparkTwinkle.start()
+				} else {
+					mascotBob.cancel()
+					sparkTwinkle.cancel()
+					mascot.translationY = 0f
+					helloSpark.alpha = 1f
+				}
+			}
+			refreshMissionAnimations = ::refreshAnimations
+			questsSection.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+				override fun onViewAttachedToWindow(view: View) = refreshAnimations()
+				override fun onViewDetachedFromWindow(view: View) = refreshAnimations()
+			})
+			questsSection.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> refreshAnimations() }
+			refreshAnimations()
+			addView(missionHeader, LinearLayout.LayoutParams(-1, dp(104)).apply { bottomMargin = dp(10) })
+
+			// Invitación naranja a las misiones y sus cofres.
 			val questBanner = LinearLayout(context).apply {
 				orientation = LinearLayout.HORIZONTAL
 				gravity = Gravity.CENTER_VERTICAL
-				background = RupiUi.tactile(context, RupiUi.Kind.PRIMARY, radiusDp = 18)
-				setPadding(dp(16), dp(16), dp(16), dp(20))
+				background = RupiUi.tactile(context, RupiUi.Kind.LOGIN_ORANGE, radiusDp = 18)
+				setPadding(dp(14), dp(10), dp(14), dp(14))
 			}
-			questBanner.addView(
-				ImageView(context).apply {
-					setImageResource(R.drawable.ic_chest)
-					scaleType = ImageView.ScaleType.FIT_CENTER
-				},
-				LinearLayout.LayoutParams(dp(52), dp(52)).apply { rightMargin = dp(12) }
-			)
+			questBanner.addView(ImageView(context).apply {
+				setImageResource(R.drawable.ic_chest)
+				scaleType = ImageView.ScaleType.FIT_CENTER
+				contentDescription = "Cofre de recompensas"
+			}, LinearLayout.LayoutParams(dp(54), dp(54)).apply { rightMargin = dp(12) })
 			val qbTexts = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
 			qbTexts.addView(TextView(context).apply {
-				text = "Bienvenido a tus misiones!"
+				text = "¡Vamos por tus misiones!"
 				typeface = RupiUi.fontTitle(context)
-				textSize = 19f
+				textSize = 18f
 				setTextColor(Color.WHITE)
 			})
 			qbTexts.addView(TextView(context).apply {
-				text = "Completa tus misiones escolares para ganar puntos y cofres."
+				text = "Completa retos y gana puntos para tu aventura."
 				typeface = RupiUi.fontBody(context)
-				textSize = 13f
-				setTextColor(Color.rgb(255, 240, 230))
+				textSize = 12.5f
+				setTextColor(Color.WHITE)
+				setLineSpacing(0f, 1.05f)
 			})
 			questBanner.addView(qbTexts, LinearLayout.LayoutParams(0, -2, 1f))
-			addView(questBanner, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+			addView(questBanner, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
 
-			// Tarjeta Misión diaria con barra de progreso
+			// Progreso de XP; la llamita conserva la señal visual de racha de Rupi.
 			card {
-				val qRow = LinearLayout(context).apply {
+				val missionRow = LinearLayout(context).apply {
 					orientation = LinearLayout.HORIZONTAL
 					gravity = Gravity.CENTER_VERTICAL
 				}
-				qRow.addView(ImageView(context).apply {
+				missionRow.addView(ImageView(context).apply {
 					setImageResource(R.drawable.ic_star)
-					val d = drawable.mutate()
-					d.setTint(RupiUi.SUN_DARK)
-					setImageDrawable(d)
-				}, LinearLayout.LayoutParams(dp(22), dp(22)).apply { rightMargin = dp(8) })
-				qRow.addView(TextView(context).apply {
-					text = "Mision del dia: Gana 20 XP"
-					typeface = RupiUi.fontExtraBold(context)
-					textSize = 16f
+					setColorFilter(RupiUi.SUN_DARK)
+					contentDescription = null
+				}, LinearLayout.LayoutParams(dp(22), dp(22)).apply { rightMargin = dp(7) })
+				missionRow.addView(TextView(context).apply {
+					text = "Misión del día"
+					typeface = RupiUi.fontTitle(context)
+					textSize = 17f
 					setTextColor(RupiUi.FOREST)
 				}, LinearLayout.LayoutParams(0, -2, 1f))
-				addView(qRow, LinearLayout.LayoutParams(-1, -2))
+				val reward = TextView(context).apply {
+					text = "Gana 20 XP"
+					typeface = RupiUi.fontExtraBold(context)
+					textSize = 12.5f
+					setTextColor(RupiUi.FOREST)
+					background = RupiUi.pill(context, RupiUi.SUN, RupiUi.SUN_DARK)
+					setPadding(dp(10), dp(6), dp(10), dp(6))
+				}
+				missionRow.addView(reward)
+				addView(missionRow, LinearLayout.LayoutParams(-1, -2))
 
-				val pBar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+				val progressRow = LinearLayout(context).apply {
+					orientation = LinearLayout.HORIZONTAL
+					gravity = Gravity.CENTER_VERTICAL
+					setPadding(0, dp(8), 0, 0)
+				}
+				progressRow.addView(ImageView(context).apply {
+					setImageResource(R.drawable.ic_flame)
+					setColorFilter(RupiUi.ORANGE)
+					contentDescription = "Racha de estudio"
+				}, LinearLayout.LayoutParams(dp(24), dp(24)).apply { rightMargin = dp(7) })
+				val xpBar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
 					max = 20
 					progress = 14
-					progressTintList = android.content.res.ColorStateList.valueOf(RupiUi.SUN_DARK)
-					progressBackgroundTintList = android.content.res.ColorStateList.valueOf(RupiUi.PAPER_DEEP)
+					progressTintList = ColorStateList.valueOf(RupiUi.LEAF)
+					progressBackgroundTintList = ColorStateList.valueOf(RupiUi.PAPER_DEEP)
+					importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
 				}
-				addView(pBar, LinearLayout.LayoutParams(-1, dp(14)).apply { topMargin = dp(8); bottomMargin = dp(4) })
+				progressRow.addView(xpBar, LinearLayout.LayoutParams(0, dp(14), 1f))
+				progressRow.addView(TextView(context).apply {
+					text = "14/20"
+					typeface = RupiUi.fontExtraBold(context)
+					textSize = 13f
+					setTextColor(RupiUi.FOREST)
+					setPadding(dp(7), 0, 0, 0)
+				}, LinearLayout.LayoutParams(-2, -2))
+				addView(progressRow, LinearLayout.LayoutParams(-1, -2))
 				muted("14 de 20 XP completados hoy.")
 			}
 
-			// Reto del día y meta diaria
-			card {
-				text("Reto diario escolar", 17)
-				muted("Acepta el reto para duplicar tus puntos:")
-				button("COMENZAR RETO DEL DIA", kind = RupiUi.Kind.PRIMARY, iconRes = R.drawable.ic_star) { onOpenDailyChallenge() }
+			// Reto escolar en amarillo maíz, con botón corto y táctil.
+			stickerCard(fill = Color.rgb(255, 248, 220)) {
+				val challengeTitle = LinearLayout(context).apply {
+					orientation = LinearLayout.HORIZONTAL
+					gravity = Gravity.CENTER_VERTICAL
+				}
+				challengeTitle.addView(ImageView(context).apply {
+					setImageResource(R.drawable.ic_book)
+					setColorFilter(RupiUi.FOREST)
+					contentDescription = null
+				}, LinearLayout.LayoutParams(dp(28), dp(28)).apply { rightMargin = dp(9) })
+				val copy = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+				copy.addView(TextView(context).apply {
+					text = "Reto diario escolar"
+					typeface = RupiUi.fontTitle(context)
+					textSize = 17f
+					setTextColor(RupiUi.FOREST)
+				})
+				copy.addView(TextView(context).apply {
+					text = "Acepta el reto para duplicar tus puntos."
+					typeface = RupiUi.fontBody(context)
+					textSize = 12.5f
+					setTextColor(RupiUi.MUTED)
+				})
+				challengeTitle.addView(copy, LinearLayout.LayoutParams(0, -2, 1f))
+				addView(challengeTitle, LinearLayout.LayoutParams(-1, -2))
+				button("COMENZAR RETO", kind = RupiUi.Kind.LOGIN_ORANGE, iconRes = R.drawable.ic_star) {
+					onOpenDailyChallenge()
+				}
 			}
 
-			card {
-				text("Mi meta diaria de paradas", 17)
-				muted("Consulta tu ritmo de avance diario:")
+			// Meta diaria con la llamita ilustrada y sus pasos visuales.
+			stickerCard(fill = RupiUi.LEAF_SOFT) {
+				val goalHeader = LinearLayout(context).apply {
+					orientation = LinearLayout.HORIZONTAL
+					gravity = Gravity.CENTER_VERTICAL
+				}
+				goalHeader.addView(ImageView(context).apply {
+					setImageResource(R.drawable.ic_llama)
+					scaleType = ImageView.ScaleType.FIT_CENTER
+					contentDescription = "Llamita andina de Rupi"
+				}, LinearLayout.LayoutParams(dp(54), dp(60)).apply { rightMargin = dp(10) })
+				val goalCopy = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+				goalCopy.addView(TextView(context).apply {
+					text = "Mi meta diaria de paradas"
+					typeface = RupiUi.fontTitle(context)
+					textSize = 17f
+					setTextColor(RupiUi.FOREST)
+				})
+				goalCopy.addView(TextView(context).apply {
+					text = "Consulta tu ritmo de avance diario."
+					typeface = RupiUi.fontBody(context)
+					textSize = 12.5f
+					setTextColor(RupiUi.MUTED)
+				})
+				goalHeader.addView(goalCopy, LinearLayout.LayoutParams(0, -2, 1f))
+				addView(goalHeader, LinearLayout.LayoutParams(-1, -2))
+
+				val steps = LinearLayout(context).apply {
+					orientation = LinearLayout.HORIZONTAL
+					gravity = Gravity.CENTER
+					setPadding(0, dp(8), 0, dp(2))
+				}
+				(0..2).forEach { index ->
+					val node = TextView(context).apply {
+						text = if (index < 2) "✓" else ""
+						gravity = Gravity.CENTER
+						typeface = RupiUi.fontExtraBold(context)
+						textSize = 15f
+						setTextColor(Color.WHITE)
+						background = RupiUi.rounded(
+							if (index < 2) RupiUi.LEAF else Color.WHITE,
+							dp(24).toFloat(), dp(3), if (index < 2) Color.WHITE else RupiUi.LEAF
+						)
+						contentDescription = if (index < 2) "Parada completada" else "Siguiente parada"
+					}
+					steps.addView(node, LinearLayout.LayoutParams(dp(42), dp(42)))
+					if (index < 2) {
+						steps.addView(View(context).apply { setBackgroundColor(RupiUi.LEAF) }, LinearLayout.LayoutParams(0, dp(5), 1f))
+					}
+				}
+				goalCopy.addView(steps, LinearLayout.LayoutParams(-1, -2))
 				button("VER META DE HOY", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_check) { onOpenDailyGoal() }
 			}
 		}

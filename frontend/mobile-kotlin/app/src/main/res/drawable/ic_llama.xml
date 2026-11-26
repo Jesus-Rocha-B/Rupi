@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <!-- Llamita andina pequeña para acompañar la meta diaria. -->
+    <path
+        android:fillColor="#2E173E30"
+        android:pathData="M16,84 C28,79 65,79 80,84 C67,91 29,91 16,84 Z" />
+    <!-- Patas -->
+    <path android:fillColor="#9A623E" android:pathData="M27,66 L26,82 Q26,86 31,86 Q35,86 34,82 L35,67 Z" />
+    <path android:fillColor="#9A623E" android:pathData="M43,66 L44,82 Q44,86 49,86 Q53,86 51,82 L51,66 Z" />
+    <path android:fillColor="#9A623E" android:pathData="M62,65 L62,82 Q62,86 67,86 Q71,86 69,81 L70,63 Z" />
+    <!-- Cuerpo lanudo -->
+    <path
+        android:fillColor="#FFF8E9"
+        android:strokeColor="#C6A878"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round"
+        android:pathData="M18,58 C17,51 22,47 29,48 C32,41 40,42 44,47 C50,41 58,44 60,49 C68,47 75,53 73,60 C77,67 71,72 64,70 C59,75 50,73 47,70 C40,75 32,72 31,69 C24,72 18,67 18,62 Z" />
+    <!-- Cuello y cabeza -->
+    <path
+        android:fillColor="#FFF8E9"
+        android:strokeColor="#C6A878"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round"
+        android:pathData="M48,60 C46,52 47,39 52,32 C53,25 59,22 65,25 C70,27 71,33 68,37 C73,39 77,43 76,48 C75,54 68,57 62,54 L60,66 Z" />
+    <!-- Orejas -->
+    <path
+        android:fillColor="#FFF8E9"
+        android:strokeColor="#C6A878"
+        android:strokeWidth="2.2"
+        android:strokeLineJoin="round"
+        android:pathData="M54,28 C49,19 50,12 55,10 C60,15 61,21 60,27 Z" />
+    <path
+        android:fillColor="#FFF8E9"
+        android:strokeColor="#C6A878"
+        android:strokeWidth="2.2"
+        android:strokeLineJoin="round"
+        android:pathData="M65,27 C64,17 68,11 73,12 C76,18 74,24 70,30 Z" />
+    <!-- Manta con motivo andino -->
+    <path
+        android:fillColor="#F0783E"
+        android:strokeColor="#8E4930"
+        android:strokeWidth="1.8"
+        android:pathData="M24,51 L57,51 L59,66 L25,66 Z" />
+    <path
+        android:fillColor="#FFD26A"
+        android:pathData="M26,54 L32,58 L38,54 L44,58 L50,54 L56,58 L56,61 L50,57 L44,61 L38,57 L32,61 L26,57 Z" />
+    <path
+        android:fillColor="#31724B"
+        android:pathData="M27,62 L32,59 L37,62 L42,59 L47,62 L52,59 L56,62 L56,64 L51,62 L47,65 L42,62 L37,65 L32,62 L27,65 Z" />
+    <!-- Ojo y hocico -->
+    <path android:fillColor="#173E30" android:pathData="M69,36 A2.4,2.8 0,1 0,73.8 36 A2.4,2.8 0,1 0,69 36 Z" />
+    <path
+        android:fillColor="#F3D9AF"
+        android:strokeColor="#C6A878"
+        android:strokeWidth="1.6"
+        android:pathData="M72,43 Q80,40 82,45 Q80,51 73,49 Z" />
+</vector>
