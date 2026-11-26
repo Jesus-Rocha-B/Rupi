@@ -279,7 +279,7 @@ fun mountTopicsScreen(
 		xpPoints = 120,
 		hearts = 5,
 		activeTab = 0,
-		hideTopBarTabs = setOf(3),
+		hideTopBarTabs = setOf(3, 4),
 		onTabSelected = { index -> switchTab(index) }
 	)
 
@@ -1029,85 +1029,30 @@ fun mountTopicsScreen(
 		// TAB 4: PERFIL DEL ESTUDIANTE (Mateo Quispe)
 		// -----------------------------------------------------------------
 		scaffold.into(profileSection) {
-			stickerCard {
-				val profHeader = LinearLayout(context).apply {
-					orientation = LinearLayout.HORIZONTAL
-					gravity = Gravity.CENTER_VERTICAL
-				}
-				profHeader.addView(
-					ImageView(context).apply {
-						setImageResource(R.drawable.ic_rupi_mascot)
-						scaleType = ImageView.ScaleType.FIT_CENTER
-						importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-					},
-					LinearLayout.LayoutParams(dp(64), dp(68)).apply { rightMargin = dp(14) }
-				)
-				val profInfo = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-				profInfo.addView(TextView(context).apply {
-					text = "Mateo Quispe"
-					typeface = RupiUi.fontTitle(context)
-					textSize = 24f
-					setTextColor(RupiUi.FOREST)
-				})
-				profInfo.addView(TextView(context).apply {
-					text = "Estudiante · 3.° de primaria"
-					typeface = RupiUi.fontExtraBold(context)
-					textSize = 14f
-					setTextColor(RupiUi.LEAF)
-				})
-				profInfo.addView(TextView(context).apply {
-					text = "I.E. 38001 Mariscal Sucre"
-					typeface = RupiUi.fontBody(context)
-					textSize = 13f
-					setTextColor(RupiUi.MUTED)
-				})
-				profHeader.addView(profInfo, LinearLayout.LayoutParams(0, -2, 1f))
-				addView(profHeader, LinearLayout.LayoutParams(-1, -2))
-			}
-
-			// Estadísticas estilo perfil Duolingo
-			card {
-				text("Estadisticas de Mateo", 18)
-				val statsGrid = LinearLayout(context).apply {
-					orientation = LinearLayout.VERTICAL
-					setPadding(0, dp(4), 0, dp(4))
-				}
-				fun statRow(iconRes: Int, label: String, value: String, tint: Int) {
-					val row = LinearLayout(context).apply {
-						orientation = LinearLayout.HORIZONTAL
-						gravity = Gravity.CENTER_VERTICAL
-						setPadding(0, dp(6), 0, dp(6))
+			// Cada ilustración conserva su proporción y cada acción tiene foco independiente.
+			fun panel(image: Int, label: String, action: (() -> Unit)? = null) {
+				val view = ImageView(context).apply {
+					setImageResource(image)
+					adjustViewBounds = true
+					scaleType = ImageView.ScaleType.FIT_CENTER
+					contentDescription = label
+					if (action != null) {
+						minimumHeight = dp(48)
+						isFocusable = true
+						val ripple = android.util.TypedValue()
+						context.theme.resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)
+						if (ripple.resourceId != 0) foreground = context.getDrawable(ripple.resourceId)
+						setOnClickListener { action() }
 					}
-					row.addView(ImageView(context).apply {
-						setImageResource(iconRes)
-						val d = drawable.mutate()
-						d.setTint(tint)
-						setImageDrawable(d)
-					}, LinearLayout.LayoutParams(dp(20), dp(20)).apply { rightMargin = dp(8) })
-					row.addView(TextView(context).apply {
-						text = label
-						typeface = RupiUi.fontBody(context)
-						textSize = 14f
-						setTextColor(RupiUi.MUTED)
-					}, LinearLayout.LayoutParams(0, -2, 1f))
-					row.addView(TextView(context).apply {
-						text = value
-						typeface = RupiUi.fontExtraBold(context)
-						textSize = 14.5f
-						setTextColor(RupiUi.FOREST)
-					})
-					statsGrid.addView(row)
 				}
-				statRow(R.drawable.ic_flame, "Racha de estudio:", "3 dias seguidos", RupiUi.ORANGE)
-				statRow(R.drawable.ic_gem, "Puntos de experiencia:", "120 XP acumulados", Color.rgb(0, 180, 216))
-				statRow(R.drawable.ic_award, "Trofeos escolares:", "5 medallas", RupiUi.SKY)
-				addView(statsGrid, LinearLayout.LayoutParams(-1, -2))
+				addView(view, LinearLayout.LayoutParams(-1, -2))
 			}
-
-			section("Opciones de cuenta")
-			button("Avisos y recordatorios de estudio", kind = RupiUi.Kind.LEAF, iconRes = R.drawable.ic_volume_2) { onOpenNotifications() }
-			button("Resumenes descargados (sin internet)", kind = RupiUi.Kind.STICKER, iconRes = R.drawable.ic_book) { onOpenSavedSummaries() }
-			button("Cerrar sesion escolar", kind = RupiUi.Kind.DANGER, iconRes = R.drawable.ic_arrow_left) { onLogout() }
+			panel(R.drawable.profile_identity, "Mateo Quispe. Estudiante de tercero de primaria. I.E. 38001 Mariscal Sucre.")
+			panel(R.drawable.profile_progress, "Mi progreso: 3 días de racha, 120 XP acumulados y 5 medallas.")
+			panel(R.drawable.profile_account, "Mi cuenta")
+			panel(R.drawable.profile_reminders, "Avisos y recordatorios de estudio", onOpenNotifications)
+			panel(R.drawable.profile_downloads, "Resúmenes descargados para estudiar sin internet", onOpenSavedSummaries)
+			panel(R.drawable.profile_logout, "Cerrar sesión escolar", onLogout)
 		}
 		addView(profileSection, LinearLayout.LayoutParams(-1, -2))
 	}
