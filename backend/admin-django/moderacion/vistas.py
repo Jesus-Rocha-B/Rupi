@@ -35,6 +35,8 @@ def publicar(request):
 
 
 @api({'POST'}, exigir_origen=False)
+# CAPAS DE VALIDACIÓN EXISTENTES: exige token interno antes de evaluar y registrar la respuesta.
+# Es un punto de referencia para diseñar la HU-55, no una implementación completa de esa historia.
 def interna(request):
     expected = settings.RUPI_MONITOR_TOKEN
     received = request.headers.get('X-Rupi-Monitor-Token', '')

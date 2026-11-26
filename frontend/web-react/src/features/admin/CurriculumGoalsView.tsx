@@ -6,6 +6,8 @@ import './CurriculumGoals.css'
 type Props = { admin: Administrator; onSessionLost: (message: string) => void }
 const label = (tipo: string) => tipo === 'META' ? 'Meta' : 'Estándar'
 
+// SEMANA 11 · HU-50: este padre conserva el estado compartido de la unidad y sus registros.
+// Los datos bajan a GoalForm por props; save y cancel permiten que el hijo avise al padre.
 export function CurriculumGoalsView({ admin, onSessionLost }: Props) {
   const [catalog, setCatalog] = useState<CurriculumCatalog | null>(null)
   const [version, setVersion] = useState<string | null>(null)
@@ -27,7 +29,7 @@ export function CurriculumGoalsView({ admin, onSessionLost }: Props) {
     editorRef.current?.querySelector<HTMLTextAreaElement>('textarea:not(:disabled)')?.focus({ preventScroll: true })
   }, [editing])
   useEffect(() => {
-    const abort = new AbortController(); setLoading(true); setError(''); setUnits([]); setUnitId(''); setEditing(null); setData(null)
+    const abort = new AbortController()
     fetchCurriculumCatalog(version, abort.signal).then(async found => {
       if (abort.signal.aborted) return
       setCatalog(found)
@@ -37,17 +39,22 @@ export function CurriculumGoalsView({ admin, onSessionLost }: Props) {
       .finally(() => { if (!abort.signal.aborted) setLoading(false) })
     return () => abort.abort()
   }, [version, retry, onSessionLost])
+  // SEMANA 11: al cambiar unitId, consulta sus registros; la limpieza cancela la petición anterior.
   useEffect(() => {
-    setData(null); setEditing(null); setMessage('')
     if (!unitId) return
-    const abort = new AbortController(); setError('')
+    const abort = new AbortController()
     fetchUnitGoals(unitId, abort.signal).then(found => { if (!abort.signal.aborted) setData(found) })
       .catch(e => { if (!abort.signal.aborted) { if (e instanceof AdminApiError && e.status === 401) onSessionLost(e.message); else setError(e.message) } })
     return () => abort.abort()
   }, [unitId, onSessionLost])
+  function selectUnit(id: string) { setUnitId(id); setData(null); setEditing(null); setMessage(''); setError('') }
+  function reloadCatalog() { setLoading(true); setError(''); setUnits([]); selectUnit('') }
   const unit = units.find(u => u.id === unitId)
+  // SEMANA 11: lista derivada del estado; filter crea otro arreglo sin modificar units.
   const available = units.filter(u => (!grade || u.gradoId === grade) && (!area || u.areaId === area))
   const writable = admin.permisos.includes('curriculo.gestionar') && Boolean(data?.editable)
+  // SEMANA 11 · HU-50: callback que recibe los datos del formulario hijo.
+  // await espera la API sin bloquear la interfaz; setData actualiza la vista con la respuesta del servidor.
   async function save(input: GoalInput, reason: string) {
     if (!editing || busy) return
     setBusy(true); setError(''); setMessage('')
@@ -60,15 +67,15 @@ export function CurriculumGoalsView({ admin, onSessionLost }: Props) {
     } finally { setBusy(false) }
   }
   return <section className="admin-goals" aria-labelledby="goals-title">
-    <header className="goals-heading"><div><p className="admin-muted">Catálogo curricular / Unidades</p><h1 id="goals-title">Metas y estándares</h1><p>Registra los aprendizajes esperados y corrígelos conservando su relación curricular.</p></div><button className="admin-btn" disabled={busy || loading} onClick={() => setRetry(n => n + 1)}><RefreshCw size={15} />Recargar</button></header>
+    <header className="goals-heading"><div><p className="admin-muted">Catálogo curricular / Unidades</p><h1 id="goals-title">Metas y estándares</h1><p>Registra los aprendizajes esperados y corrígelos conservando su relación curricular.</p></div><button className="admin-btn" disabled={busy || loading} onClick={() => { reloadCatalog(); setRetry(n => n + 1) }}><RefreshCw size={15} />Recargar</button></header>
     {error && <p role="alert" className="admin-feedback admin-feedback--error">{error}</p>}
     {message && <p role="status" className="admin-feedback admin-feedback--info">{message}</p>}
     <fieldset className="goals-filters" disabled={busy || loading}>
       <legend className="goals-sr">Filtrar unidades curriculares</legend>
-      <label>Catálogo<select aria-label="Catálogo" value={catalog?.version?.id ?? ''} onChange={e => { setGrade(''); setArea(''); setVersion(e.target.value) }}><option value="" disabled>Selecciona catálogo</option>{catalog?.versiones.map(v => <option key={v.id} value={v.id}>{v.etiqueta} · {v.estado}</option>)}</select></label>
-      <label>Grado<select aria-label="Grado" value={grade} onChange={e => { setGrade(e.target.value); setUnitId('') }}><option value="">Todos los grados</option>{catalog?.grados.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}</select></label>
-      <label>Área<select aria-label="Área" value={area} onChange={e => { setArea(e.target.value); setUnitId('') }}><option value="">Todas las áreas</option>{catalog?.areas.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></label>
-      <label>Unidad<select aria-label="Unidad" value={unitId} onChange={e => setUnitId(e.target.value)}><option value="">Selecciona una unidad</option>{available.map(u => <option key={u.id} value={u.id}>{u.grado} · {u.titulo} ({u.codigo})</option>)}</select></label>
+      <label>Catálogo<select aria-label="Catálogo" value={catalog?.version?.id ?? ''} onChange={e => { reloadCatalog(); setGrade(''); setArea(''); setVersion(e.target.value) }}><option value="" disabled>Selecciona catálogo</option>{catalog?.versiones.map(v => <option key={v.id} value={v.id}>{v.etiqueta} · {v.estado}</option>)}</select></label>
+      <label>Grado<select aria-label="Grado" value={grade} onChange={e => { setGrade(e.target.value); selectUnit('') }}><option value="">Todos los grados</option>{catalog?.grados.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}</select></label>
+      <label>Área<select aria-label="Área" value={area} onChange={e => { setArea(e.target.value); selectUnit('') }}><option value="">Todas las áreas</option>{catalog?.areas.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></label>
+      <label>Unidad<select aria-label="Unidad" value={unitId} onChange={e => selectUnit(e.target.value)}><option value="">Selecciona una unidad</option>{available.map(u => <option key={u.id} value={u.id}>{u.grado} · {u.titulo} ({u.codigo})</option>)}</select></label>
     </fieldset>
     {loading && <p role="status">Cargando unidades…</p>}
     {!loading && !unit && <p className="admin-card">{available.length ? 'Selecciona una unidad para consultar sus metas y estándares.' : 'No hay unidades para estos filtros.'}</p>}
@@ -83,10 +90,13 @@ export function CurriculumGoalsView({ admin, onSessionLost }: Props) {
   </section>
 }
 
+// SEMANA 11 · HU-50: formulario hijo controlado con value/onChange y validaciones de campos.
+// Su estado input es el borrador del formulario; la lista compartida sigue perteneciendo al padre.
 function GoalForm({ record, unit, data, writable, busy, save, cancel }: { record: CurriculumGoal | 'new'; unit: CurriculumUnit; data: UnitGoals; writable: boolean; busy: boolean; save: (input: GoalInput, reason: string) => Promise<void>; cancel: () => void }) {
   const existing = record === 'new' ? null : record
   const [input, setInput] = useState<GoalInput>({ tipo: existing?.tipo ?? 'META', codigo: existing?.codigo ?? '', descripcion: existing?.descripcion ?? '', competenciaId: existing?.competenciaId ?? data.competencias[0]?.id ?? '' })
   const [reason, setReason] = useState('')
+  // SEMANA 11: preventDefault evita recargar la página; save(input, reason) notifica al padre.
   const submit = (event: FormEvent) => { event.preventDefault(); if (writable && !busy) void save(input, reason) }
   return <><h2>{existing ? `${writable ? 'Editar' : 'Consultar'} ${label(existing.tipo).toLowerCase()}` : 'Nuevo registro'}</h2><div className="goals-link"><LockKeyhole size={17} /><span>{unit.grado} · {unit.area}<br /><strong>{unit.titulo}</strong></span></div>
     <form onSubmit={submit}><fieldset disabled={busy || !writable} className="goals-form"><label>Tipo<select aria-label="Tipo" disabled={!!existing} value={input.tipo} onChange={e => setInput({ ...input, tipo: e.target.value as GoalInput['tipo'] })}><option value="META">Meta</option><option value="ESTANDAR">Estándar</option></select></label><label>Código<input required disabled={!!existing} maxLength={60} pattern="[A-Za-z0-9][A-Za-z0-9_-]{1,59}" value={input.codigo} onChange={e => setInput({ ...input, codigo: e.target.value.toUpperCase() })} placeholder="Ej. MAT-U1-M01" /></label><label className="goals-full">Competencia<select aria-label="Competencia" required disabled={!!existing} value={input.competenciaId} onChange={e => setInput({ ...input, competenciaId: e.target.value })}>{data.competencias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}{existing && !data.competencias.some(c => c.id === existing.competenciaId) && <option value={existing.competenciaId}>{existing.competencia}</option>}</select></label><label className="goals-full">Descripción<textarea aria-label="Descripción" required minLength={10} maxLength={4000} rows={5} value={input.descripcion} onChange={e => setInput({ ...input, descripcion: e.target.value })} /></label>{existing && <label className="goals-full">Motivo de la corrección<textarea aria-label="Motivo de la corrección" required minLength={5} maxLength={500} rows={2} value={reason} onChange={e => setReason(e.target.value)} /></label>}</fieldset>

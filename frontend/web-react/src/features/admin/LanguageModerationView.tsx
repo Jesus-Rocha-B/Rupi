@@ -4,6 +4,7 @@ import { AdminApiError, fetchLanguageRules, saveLanguageRules, evaluateLanguage,
 import './LanguageModeration.css'
 import { InteractionHistoryView } from './InteractionHistoryView'
 
+// SEMANA 11 · HU-53: el padre coordina el borrador de reglas, las pruebas y la publicación.
 export function LanguageModerationView({ admin, onSessionLost }: { admin: Administrator; onSessionLost: (message: string) => void }) {
   const [data, setData] = useState<LanguageState | null>(null)
   const [terms, setTerms] = useState<Record<string, string>>({})
@@ -28,6 +29,8 @@ export function LanguageModerationView({ admin, onSessionLost }: { admin: Admini
     return () => c.abort()
   }, [retry, fail])
   function changed() { setDirty(true); setDecision(null); setResults([]); setMessage('') }
+  // HU-53: cada acción llama a la API correspondiente; guardar no equivale a publicar.
+  // El servidor exige pruebas superadas y una revisión vigente antes de activar el borrador.
   async function act(action: 'save' | 'test' | 'publish' | 'evaluate') {
     if (!data || busy) return
     setBusy(true); setError(''); setMessage('')

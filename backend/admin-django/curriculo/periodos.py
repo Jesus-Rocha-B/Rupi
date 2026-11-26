@@ -39,6 +39,7 @@ def consultar(anio_id):
     return data
 
 
+# HU-52: verifica cantidad, orden y límites de fechas antes de guardar el calendario.
 def validar(datos, y):
     tipo = datos.get('tipo')
     if tipo not in ('BIMESTRE', 'TRIMESTRE'):
@@ -97,6 +98,7 @@ def periodo_para(inicio, fin, periods):
     return next((p for p in periods if p['comienza'] <= start <= end <= p['termina']), None)
 
 
+# HU-52: calcula el impacto sobre las planificaciones y devuelve un token para confirmar esa vista.
 def vista_previa(anio_id, datos, lock=False):
     calendar = consultar(anio_id)
     if not calendar['id']:
@@ -123,6 +125,8 @@ def vista_previa(anio_id, datos, lock=False):
 
 
 @transaction.atomic
+# HU-52: vuelve a comprobar la vista previa antes de guardar las asociaciones curriculares.
+# Django escribe curriculo_*; no cambia directamente las fechas de escuela_*.
 def aplicar(anio_id, datos, actor):
     anio(anio_id, True)
     preview = vista_previa(anio_id, datos, True)

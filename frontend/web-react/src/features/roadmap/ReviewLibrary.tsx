@@ -9,6 +9,10 @@ import './ReviewLibrary.css'
 
 type Topic = { route: RouteDetail; node: RouteDetail['nodes'][number] }
 export function ReviewLibrary({ student }: { student: Student }) {
+  return <ReviewLibraryContent key={`${student.id}:${student.gradeNumber}`} student={student} />
+}
+
+function ReviewLibraryContent({ student }: { student: Student }) {
   const [topics, setTopics] = useState<Topic[]>([])
   const [subject, setSubject] = useState('')
   const [selected, setSelected] = useState<Topic | null>(null)
@@ -19,7 +23,7 @@ export function ReviewLibrary({ student }: { student: Student }) {
   const [round, setRound] = useState(0)
   const grade = student.gradeNumber
   useEffect(() => {
-    const c = new AbortController(); setLoading(true); setError(''); setTopics([])
+    const c = new AbortController()
     fetchStudentRoutes(c.signal).then(async list => {
       const own = list.filter(r => r.grade.number === grade && reviewSubject(r.area.code))
         .sort((a, b) => (b.lastVisitedAt ?? '').localeCompare(a.lastVisitedAt ?? ''))
@@ -36,7 +40,6 @@ export function ReviewLibrary({ student }: { student: Student }) {
     return () => c.abort()
   }, [grade, retry])
   useEffect(() => {
-    setReview(null); setError('')
     if (!selected) return
     const c = new AbortController()
     quizRequest<{ questions: QuestionDto[]; feedback: Record<string, AnswerFeedbackResponse> }>(`student/learning-routes/${selected.route.versionRouteId}/nodes/${selected.node.id}/review`, 'GET', undefined, c.signal)
@@ -49,7 +52,8 @@ export function ReviewLibrary({ student }: { student: Student }) {
       })
       .catch(() => { if (!c.signal.aborted) setError('No pudimos abrir este repaso. Comprueba que la ruta siga disponible y vuelve a intentarlo.') })
     return () => c.abort()
-  }, [selected, retry])
+  }, [selected, retry, student.id, grade])
+  function selectTopic(topic: Topic | null) { setReview(null); setError(''); setSelected(topic) }
   const subjects = REVIEW_SUBJECTS
   const visible = topics.filter(t => !subject || t.route.area.code === subject)
   const bank = review?.questions ?? []
@@ -59,12 +63,12 @@ export function ReviewLibrary({ student }: { student: Student }) {
     <header className="review-library-heading">
       <div className="review-explorers" aria-hidden="true"><ExplorerBackpack /><RupiCharacter accessories={{ sombrero: 'SOMBRERO_EXPLORADOR' }} /></div>
       <div className="review-hero-content"><h1 id="review-library-title">¡Repasar y jugar!</h1><p className="review-grade">{grade ? `${grade}.º de primaria` : 'Tu grado aún no está asignado'} • Aprende a tu ritmo</p>
-        {!selected && !loading && !error && visible[0] && <div className="review-resume"><div><strong>¡Sigue repasando…</strong><p>{visible[0].node.title} · {visible[0].route.area.name}</p></div><button className="review-action" onClick={() => setSelected(visible[0])}>¡Repasar! <span aria-hidden="true">→</span></button></div>}
+        {!selected && !loading && !error && visible[0] && <div className="review-resume"><div><strong>¡Sigue repasando…</strong><p>{visible[0].node.title} · {visible[0].route.area.name}</p></div><button className="review-action" onClick={() => selectTopic(visible[0])}>¡Repasar! <span aria-hidden="true">→</span></button></div>}
       </div>
     </header>
     {selected && <nav aria-label="Ubicación del repaso" className="review-breadcrumb">Repasar y jugar → {grade ? `${grade}.º de primaria` : 'Mi grado'} → {selected.route.area.name} → {selected.node.title}</nav>}
-    {error && <div role="alert"><p>{error}</p><button onClick={() => setRetry(n => n + 1)}>Volver a intentar</button></div>}
-    {selected ? <><button onClick={() => setSelected(null)}>← Volver a mis temas</button><h2>{selected.node.title}</h2><p>{selected.route.title}</p>
+    {error && <div role="alert"><p>{error}</p><button onClick={() => { setError(''); setReview(null); setLoading(true); setRetry(n => n + 1) }}>Volver a intentar</button></div>}
+    {selected ? <><button onClick={() => selectTopic(null)}>← Volver a mis temas</button><h2>{selected.node.title}</h2><p>{selected.route.title}</p>
       {!review && !error && <p role="status">Preparando tu repaso…</p>}
       {review && <><p>Otros temas de {selected.route.area.name} para tu grado. Son ejercicios de repaso, no las preguntas de tu lección.</p><LessonReview key={`${selected.route.versionRouteId}:${selected.node.id}:${round}`} mode="practice" routeId={selected.route.versionRouteId} nodeId={selected.node.id} questions={quizQuestion} correctionQuestions={correctionQuestion} feedback={review.feedback} />{bank.length > 2 && <button type="button" onClick={() => {
         setRound(previous => { const next = previous + 1; try { sessionStorage.setItem(`rupi-review-round:${student.id}:${grade}:${selected.route.area.code}`, String(next + 1)) } catch { /* Optional round persistence. */ } return next })

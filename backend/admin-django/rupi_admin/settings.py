@@ -26,6 +26,8 @@ ALLOWED_HOSTS = _lista('RUPI_ADMIN_ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
 RUPI_ORIGENES_PERMITIDOS = _lista('RUPI_ADMIN_ORIGINS', ['http://localhost:5173', 'http://127.0.0.1:5173'])
 
 INSTALLED_APPS = [
+    'core',
+    'rest_framework',
     'identidad',
     'operaciones',
     'curriculo',
@@ -56,6 +58,8 @@ DATABASES = {
 
 # Ningún modelo se crea ni altera desde Django: el esquema se versiona en database/mysql/migrations.
 MIGRATION_MODULES = {app: None for app in INSTALLED_APPS}
+REST_FRAMEWORK = {'UNAUTHENTICATED_USER': None, 'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer']}
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LANGUAGE_CODE = 'es-pe'

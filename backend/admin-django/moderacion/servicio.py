@@ -38,6 +38,7 @@ def comprobar_revision(r, datos):
 
 
 @transaction.atomic
+# HU-53: guarda solo el borrador e invalida sus pruebas anteriores al cambiar la revisión.
 def guardar(datos, actor):
     config = motor.validar(datos.get('configuracion'))
     r = registro(True); comprobar_revision(r, datos)
@@ -48,6 +49,7 @@ def guardar(datos, actor):
 
 
 @transaction.atomic
+# HU-53: ejecuta los casos del motor de patrones y marca qué revisión pasó las pruebas.
 def probar(datos):
     r = registro(True); comprobar_revision(r, datos)
     results = motor.bateria(decode(r['borrador']))
@@ -57,6 +59,7 @@ def probar(datos):
 
 
 @transaction.atomic
+# HU-53: exige la revisión probada, conserva una versión histórica y activa la configuración.
 def publicar(datos, actor):
     r = registro(True); comprobar_revision(r, datos)
     if r['revision_probada'] != r['revision'] or not all(x['correcto'] for x in motor.bateria(decode(r['borrador']))):
@@ -70,6 +73,7 @@ def publicar(datos, actor):
     return consultar()
 
 
+# HU-53: evalúa con la versión publicada o con la protección base; nunca usa un borrador sin publicar.
 def evaluar_publicada(texto):
     r = registro()
     config = decode(r['publicada']) if r['publicada'] else motor.inicial()

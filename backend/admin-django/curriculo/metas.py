@@ -12,6 +12,7 @@ TABLAS = {'META': ('curriculo_meta_aprendizaje', 'curriculo_unidad_meta', 'meta_
           'ESTANDAR': ('curriculo_estandar', 'curriculo_unidad_estandar', 'estandar_id')}
 
 
+# HU-50: este helper ejecuta SQL parametrizado y devuelve diccionarios; no es una consulta ORM.
 def filas(sql, params=()):
     with connection.cursor() as cursor:
         cursor.execute(sql, params)
@@ -73,6 +74,8 @@ def consultar(unidad_id):
     return {'competencias': competencias, 'registros': registros, 'editable': u['estado'] != 'RETIRADO'}
 
 
+# HU-50: valida también en el servidor, aunque React ya haya comprobado el formulario.
+# Al corregir solo acepta descripción, motivo y revisión, conservando los vínculos curriculares.
 def validar(datos, editando=False):
     if not isinstance(datos, dict):
         raise ErrorDePeticion('Envía los datos del registro como un objeto JSON.')
@@ -98,6 +101,8 @@ def historial(tipo, registro_id, antes, despues, motivo, actor):
 
 
 @transaction.atomic
+# HU-50: comprueba la competencia, inserta registro y vínculo, y registra auditoría.
+# transaction.atomic mantiene estas escrituras juntas: un error revierte la operación.
 def crear(unidad_id, datos, actor):
     tabla, enlace, campo = tipo_valido(datos.get('tipo'))
     descripcion, codigo = validar(datos)
@@ -124,6 +129,8 @@ def crear(unidad_id, datos, actor):
 
 
 @transaction.atomic
+# HU-50: bloquea el registro durante la transacción y compara su revisión antes de corregirlo.
+# Así evita sobrescribir silenciosamente el trabajo de otro administrador.
 def modificar(unidad_id, tipo, registro_id, datos, actor):
     tabla, enlace, campo = tipo_valido(tipo)
     descripcion, motivo = validar(datos, True)

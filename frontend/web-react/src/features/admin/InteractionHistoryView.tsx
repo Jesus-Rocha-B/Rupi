@@ -7,6 +7,8 @@ const resources: Record<string,string> = { TUTOR:'Tutor Rupi', RECURSO_JSON:'Rec
 const traces: Record<string,string> = { IA_INTERACCION_CONSULTADA:'Consulta autorizada del detalle', IA_INTERACCION_REVISADA:'Revisión registrada' }
 const duration = (n: number | null) => n === null ? 'No disponible' : `${(n/1000).toFixed(1)} s`
 
+// SEMANA 11 · HU-54: el padre comparte los filtros, la página de resultados y la selección.
+// Los totales vienen del servidor porque el listado está paginado; no son solo las filas visibles.
 export function InteractionHistoryView({ admin, onSessionLost }: { admin: Administrator; onSessionLost: (message:string)=>void }) {
   const [filters,setFilters] = useState({q:'',desde:'',hasta:'',resultado:'',revision:''})
   const [query,setQuery] = useState(new URLSearchParams())
@@ -39,6 +41,8 @@ export function InteractionHistoryView({ admin, onSessionLost }: { admin: Admini
     })
     return () => { c.abort(); activeId.current=null; modal?.close(); document.body.style.overflow=previousOverflow; const returnTo = opener.current?.isConnected ? opener.current : document.querySelector<HTMLButtonElement>(`[data-interaction-id="${selected}"]`); returnTo?.focus() }
   },[selected,onSessionLost])
+  // HU-54: registra la revisión y recarga la lista para actualizar los indicadores.
+  // activeId evita mostrar la respuesta tardía de una interacción que el usuario ya cerró.
   async function review() {
     if (!selected || busy) return
     const id=selected; setBusy(true); setDetailError('')
@@ -46,6 +50,7 @@ export function InteractionHistoryView({ admin, onSessionLost }: { admin: Admini
     catch(e) { if(e instanceof AdminApiError && e.status===401) onSessionLost(e.message); else if(activeId.current===id) setDetailError(e instanceof Error ? e.message : 'No se guardó la revisión.') }
     finally { if(activeId.current===id) setBusy(false) }
   }
+  // SEMANA 11: cambiar query activa el useEffect de consulta; los filtros no modifican la base.
   function search(q:URLSearchParams) { setPage(null); setError(''); setQuery(q) }
   function navigate(n:number) { const q=new URLSearchParams(query); q.set('pagina',String(n));search(q) }
   return <section className="interaction-history" aria-labelledby="interaction-title">

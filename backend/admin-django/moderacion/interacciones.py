@@ -31,6 +31,8 @@ def cadena(meta, key, maximum):
 
 
 @transaction.atomic
+# HU-54: evalúa el texto original y guarda una copia con patrones sensibles ocultos.
+# La evaluación y el registro ocurren antes de devolver la decisión al servicio solicitante.
 def registrar(datos):
     texto = datos.get('texto')
     decision = servicio.evaluar_publicada(texto)
@@ -94,6 +96,7 @@ def serializar(row):
     return row
 
 
+# HU-54: aplica filtros en SQL, calcula totales del conjunto filtrado y devuelve una página de 20 filas.
 def listar(params, actor):
     where, values, page = filtros(params)
     stats = filas('SELECT COUNT(*) total, COALESCE(SUM(revisada_en IS NULL),0) pendientes, AVG(duracion_ms) promedio FROM ia_interaccion_auditoria WHERE '+where, values)[0]
@@ -119,6 +122,8 @@ def detalle(identifier, actor):
 
 
 @transaction.atomic
+# HU-54: marca una interacción una sola vez; repetir la acción no duplica el evento de revisión.
+# No modifica la respuesta original ni autoriza contenido previamente bloqueado.
 def revisar(identifier, actor):
     row = obtener(identifier, True)
     if row['revisada_en'] is None:
