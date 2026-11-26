@@ -427,10 +427,10 @@ fun mountTopicsScreen(
 			val chatBox = LinearLayout(context).apply {
 				orientation = LinearLayout.VERTICAL
 				background = RupiUi.rounded(
-					Color.rgb(18, 28, 23),
+					Color.rgb(255, 246, 227),
 					dp(20).toFloat(),
 					dp(1),
-					Color.rgb(36, 54, 44)
+					RupiUi.LINE
 				)
 				setPadding(dp(14), dp(16), dp(14), dp(14))
 			}
@@ -439,7 +439,8 @@ fun mountTopicsScreen(
 			val chatHeader = LinearLayout(context).apply {
 				orientation = LinearLayout.HORIZONTAL
 				gravity = Gravity.CENTER_VERTICAL
-				setPadding(0, 0, 0, dp(12))
+				background = RupiUi.rounded(Color.WHITE, dp(16).toFloat())
+                setPadding(dp(10), dp(8), dp(10), dp(8))
 			}
 			chatHeader.addView(
 				ImageView(context).apply {
@@ -456,7 +457,7 @@ fun mountTopicsScreen(
 				text = "Tutor Rupi"
 				typeface = RupiUi.fontTitle(context)
 				textSize = 17.5f
-				setTextColor(Color.WHITE)
+				setTextColor(RupiUi.FOREST)
 			})
 			val statusRow = LinearLayout(context).apply {
 				orientation = LinearLayout.HORIZONTAL
@@ -469,14 +470,14 @@ fun mountTopicsScreen(
 				text = "En línea · Primaria Perú"
 				typeface = RupiUi.fontBody(context)
 				textSize = 12f
-				setTextColor(Color.rgb(156, 182, 168))
+				setTextColor(RupiUi.LEAF)
 			})
 			headerTexts.addView(statusRow)
 			chatHeader.addView(headerTexts, LinearLayout.LayoutParams(0, -2, 1f))
 			chatBox.addView(chatHeader)
 
 			chatBox.addView(View(context).apply {
-				setBackgroundColor(Color.rgb(32, 48, 39))
+				setBackgroundColor(Color.TRANSPARENT)
 			}, LinearLayout.LayoutParams(-1, dp(1)).apply { bottomMargin = dp(10) })
 
 			val chatHistoryLayout = LinearLayout(context).apply {
@@ -489,10 +490,10 @@ fun mountTopicsScreen(
 				setPadding(0, dp(6), 0, dp(10))
 			}
 			suggestionsContainer.addView(TextView(context).apply {
-				text = "Preguntas rápidas sugeridas:"
+				text = "Preguntas rápidas:"
 				typeface = RupiUi.fontExtraBold(context)
 				textSize = 12f
-				setTextColor(Color.rgb(180, 205, 192))
+				setTextColor(RupiUi.FOREST)
 				setPadding(0, 0, 0, dp(6))
 			})
 
@@ -523,9 +524,9 @@ fun mountTopicsScreen(
 				val bubble = LinearLayout(context).apply {
 					orientation = LinearLayout.VERTICAL
 					background = if (isUser) {
-						RupiUi.rounded(Color.WHITE, dp(16).toFloat(), 0, 0)
+						RupiUi.rounded(Color.rgb(228, 248, 203), dp(16).toFloat(), 0, 0)
 					} else {
-						RupiUi.rounded(Color.rgb(28, 42, 34), dp(16).toFloat(), dp(1), Color.rgb(44, 66, 54))
+						RupiUi.rounded(Color.rgb(255, 253, 246), dp(16).toFloat(), dp(1), RupiUi.LINE)
 					}
 					setPadding(dp(14), dp(10), dp(14), dp(10))
 				}
@@ -534,7 +535,7 @@ fun mountTopicsScreen(
 					this.text = text
 					typeface = RupiUi.fontBody(context)
 					textSize = 14f
-					setTextColor(if (isUser) Color.rgb(24, 30, 27) else Color.rgb(243, 244, 246))
+					setTextColor(RupiUi.FOREST)
 					setLineSpacing(0f, 1.25f)
 				})
 
@@ -549,19 +550,30 @@ fun mountTopicsScreen(
 				bubbleRow.animate().alpha(1f).translationY(0f).setDuration(160).start()
 			}
 
-			appendMessage("¡Hola, Mateo! Soy Rupi, tu tutor escolar. ¿Qué tema o ejercicio de tu clase quieres practicar hoy?", isUser = false)
-			chatBox.addView(chatHistoryLayout)
+			appendMessage("¡Hola, Mateo! ¿Qué practicamos hoy?", isUser = false)
+			val conversation = FrameLayout(context)
+            conversation.addView(ImageView(context).apply {
+                setImageResource(R.drawable.tutor_landscape)
+                scaleType = ImageView.ScaleType.FIT_XY
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }, FrameLayout.LayoutParams(-1, dp(155), Gravity.BOTTOM))
+            val historyScroll = android.widget.ScrollView(context).apply { addView(chatHistoryLayout) }
+            conversation.addView(historyScroll)
+            chatHistoryLayout.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
+                if (bottom > oldBottom) historyScroll.post { historyScroll.smoothScrollTo(0, chatHistoryLayout.height) }
+            }
+            chatBox.addView(conversation, LinearLayout.LayoutParams(-1, dp((context.resources.configuration.screenHeightDp - 365).coerceAtLeast(220))))
 
 			askQuestion = { qText: String ->
 				if (qText.isNotBlank()) {
-					suggestionsContainer.visibility = View.GONE
+					
 					appendMessage(qText, isUser = true)
 
 					val thinking = TextView(context).apply {
 						text = "Rupi está escribiendo..."
 						typeface = RupiUi.fontBody(context)
 						textSize = 12.5f
-						setTextColor(Color.rgb(148, 175, 160))
+						setTextColor(RupiUi.FOREST)
 						setPadding(dp(40), dp(4), dp(14), dp(4))
 					}
 					chatHistoryLayout.addView(thinking)
@@ -608,32 +620,37 @@ fun mountTopicsScreen(
 				"¿Quiénes fueron los Incas en el Perú?",
 				"Dame un consejo para mi meta de hoy"
 			)
-			suggestions.forEach { prompt ->
+			val labels = listOf("½  Fracciones", "☘  Fotosíntesis", "⌂  Los incas", "◎  Mi meta de hoy")
+            suggestions.chunked(2).forEachIndexed { rowIndex, prompts ->
+                val row = LinearLayout(context)
+                suggestionsContainer.addView(row)
+                prompts.forEachIndexed { column, prompt ->
 				val btn = Button(context).apply {
-					text = prompt
+					text = labels[rowIndex * 2 + column]
 					isAllCaps = false
-					minHeight = dp(38)
+					minHeight = dp(48)
 					typeface = RupiUi.fontBody(context)
 					textSize = 12.5f
-					background = RupiUi.rounded(Color.rgb(25, 38, 30), dp(12).toFloat(), dp(1), Color.rgb(42, 64, 52))
-					setTextColor(Color.rgb(215, 235, 222))
+					background = RupiUi.rounded(Color.rgb(242, 249, 223), dp(12).toFloat(), dp(1), RupiUi.LEAF)
+					setTextColor(RupiUi.FOREST)
 					setPadding(dp(12), dp(6), dp(12), dp(6))
 					setOnClickListener { askQuestion(prompt) }
 				}
-				suggestionsContainer.addView(btn, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+				row.addView(btn, LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dp(2), dp(2), dp(2), dp(2)) })
+                }
 			}
 			chatBox.addView(suggestionsContainer)
 
 			val inputBar = LinearLayout(context).apply {
 				orientation = LinearLayout.HORIZONTAL
 				gravity = Gravity.CENTER_VERTICAL
-				background = RupiUi.rounded(Color.rgb(24, 36, 29), dp(24).toFloat(), dp(1), Color.rgb(44, 66, 54))
+				background = RupiUi.rounded(Color.WHITE, dp(24).toFloat(), dp(1), RupiUi.LINE)
 				setPadding(dp(14), dp(4), dp(6), dp(4))
 			}
 			chatInput = EditText(context).apply {
 				hint = "Escribe tu duda escolar aquí..."
-				setHintTextColor(Color.rgb(130, 155, 142))
-				setTextColor(Color.WHITE)
+				setHintTextColor(RupiUi.MUTED)
+				setTextColor(RupiUi.FOREST)
 				textSize = 13.5f
 				typeface = RupiUi.fontBody(context)
 				background = null
@@ -642,7 +659,8 @@ fun mountTopicsScreen(
 			inputBar.addView(chatInput, LinearLayout.LayoutParams(0, -2, 1f).apply { rightMargin = dp(6) })
 
 			val sendBtn = ImageView(context).apply {
-				setImageResource(R.drawable.ic_send)
+				contentDescription = "Enviar pregunta"
+                    setImageResource(R.drawable.ic_send)
 				val d = drawable.mutate()
 				d.setTint(Color.WHITE)
 				setImageDrawable(d)
