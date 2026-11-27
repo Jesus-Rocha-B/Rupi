@@ -45,12 +45,12 @@ APPEND_SLASH = False
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('RUPI_ADMIN_DB_NAME', 'rupi'),
-        'HOST': os.environ.get('RUPI_ADMIN_DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('RUPI_ADMIN_DB_PORT', '3306'),
-        # Usuario propio de Django (grants-django-admin.sql); la clave llega solo por entorno, nunca en el código.
-        'USER': os.environ.get('RUPI_ADMIN_DB_USERNAME', 'rupi_admin'),
-        'PASSWORD': os.environ.get('RUPI_ADMIN_DB_PASSWORD', ''),
+        'NAME': os.environ.get('RUPI_ADMIN_DB_NAME', os.environ.get('RUPI_DB_NAME', 'rupi')),
+        'HOST': os.environ.get('RUPI_ADMIN_DB_HOST', os.environ.get('RUPI_DB_HOST', '127.0.0.1')),
+        'PORT': os.environ.get('RUPI_ADMIN_DB_PORT', os.environ.get('RUPI_DB_PORT', '3306')),
+        # Usuario propio de Django (grants-django-admin.sql); toma RUPI_ADMIN_DB_* o el RUPI_DB_* local
+        'USER': os.environ.get('RUPI_ADMIN_DB_USERNAME', os.environ.get('RUPI_DB_USERNAME', 'rupi')),
+        'PASSWORD': os.environ.get('RUPI_ADMIN_DB_PASSWORD', os.environ.get('RUPI_DB_PASSWORD', 'rochabobadilla')),
         'CONN_MAX_AGE': 60,
         'OPTIONS': {'charset': 'utf8mb4'},
     }
