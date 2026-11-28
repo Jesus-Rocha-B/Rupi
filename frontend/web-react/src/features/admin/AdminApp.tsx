@@ -52,6 +52,11 @@ export function AdminApp() {
   const [serviceDown, setServiceDown] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [section, setSection] = useState<SectionId>('cuentas')
+  const [dark, setDark] = useState(() => localStorage.getItem('rupi-admin-theme') !== 'light')
+  function toggleTheme() {
+    localStorage.setItem('rupi-admin-theme', dark ? 'light' : 'dark')
+    setDark(!dark)
+  }
 
   useEffect(() => {
     document.title = 'Rupi · Consola de Administración'
@@ -122,7 +127,7 @@ export function AdminApp() {
   const currentGroup = groups.find(group => current && group.sections.includes(current.id))
 
   return (
-    <div className="admin-shell">
+    <div className="admin-shell console-workspace" data-theme={dark ? 'dark' : 'light'}>
       <a href="#admin-main" className="admin-skip">Saltar al contenido principal</a>
       <header className="admin-topbar admin-topbar--grouped">
         <div className="admin-brand">
@@ -158,15 +163,23 @@ export function AdminApp() {
           </button></div>
         </details>
       </header>
-      <main id="admin-main" className="admin-main">
+      <aside className="console-sidebar">
         {currentGroup && current?.id !== 'catalogo' && current?.id !== 'moderacion' && <nav className="admin-section-nav" aria-label={`Opciones de ${currentGroup.label}`}><span className="admin-section-context">{currentGroup.label}</span>{availableSections.filter(s => currentGroup.sections.includes(s.id)).map(item => { const Icon = item.icon; return <button key={item.id} type="button" className={`admin-section-link ${current.id === item.id ? 'is-active' : ''}`} aria-current={current.id === item.id ? 'page' : undefined} onClick={() => setSection(item.id)}><Icon size={18} aria-hidden="true" />{item.label}</button> })}</nav>}
+        <button type="button" className="console-theme" aria-pressed={dark} aria-label="Versión oscura" onClick={toggleTheme}>
+          <img src="/rupi-logo.jpg" alt="" />
+          <span className={dark ? 'selected' : ''}>Versión oscura</span>
+          <span className={!dark ? 'selected' : ''}>Versión clara</span>
+        </button>
+      </aside>
+      <main id="admin-main" className="admin-main">
+        <p>{currentGroup?.label} › {current?.label}</p>
         {!current && (
           <section className="admin-card admin-empty">
             <h1>Tu rol todavía no tiene secciones asignadas</h1>
             <p className="admin-muted">Pide a otra persona de administración que revise los permisos de tu rol.</p>
           </section>
         )}
-        {current?.id === 'cuentas' && <AccountsView admin={admin} onSessionLost={handleSessionLost} />}
+        {current?.id === 'cuentas' && <AccountsView onNavigate={setSection} admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'roles' && <RolesView onSessionLost={handleSessionLost} />}
         {current?.id === 'sesiones' && <SessionsView admin={admin} onSessionLost={handleSessionLost} />}
         {current?.id === 'acceso' && <AccessPolicyView admin={admin} onSessionLost={handleSessionLost} />}

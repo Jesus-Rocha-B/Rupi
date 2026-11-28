@@ -9,18 +9,20 @@ import {
   type AccountPage,
   type Administrator,
 } from '../../services/adminApi'
+import { AccountOverview } from './AccountOverview'
 import { AccountPanel } from './AccountPanel'
 import { NewAccountForm } from './NewAccountForm'
 import { SESSION_LOST, stateLabel, stateTone } from './accountStatus'
 
 interface Props {
+  onNavigate: (section: 'roles' | '2fa') => void
   admin: Administrator
   onSessionLost: (message: string) => void
 }
 
 type Panel = { kind: 'none' } | { kind: 'new' } | { kind: 'account'; id: string; created?: AccountDetail }
 
-export function AccountsView({ admin, onSessionLost }: Props) {
+export function AccountsView({ admin, onSessionLost, onNavigate }: Props) {
   const [search, setSearch] = useState('')
   const [query, setQuery] = useState('')
   const [role, setRole] = useState('')
@@ -84,7 +86,7 @@ export function AccountsView({ admin, onSessionLost }: Props) {
       <section className="admin-card admin-accounts-list" aria-labelledby="admin-accounts-title">
         <div className="admin-section-head">
           <div>
-            <h1 id="admin-accounts-title">Cuentas</h1>
+            <h1 id="admin-accounts-title">Gestión de usuarios</h1>
             <p className="admin-muted">Docentes y estudiantes de la plataforma. Ninguna cuenta se borra: se da de baja.</p>
           </div>
           {canManage && (
@@ -95,6 +97,8 @@ export function AccountsView({ admin, onSessionLost }: Props) {
           )}
         </div>
 
+        <AccountOverview revision={reloadKey} admin={admin} onNavigate={onNavigate} onSessionLost={onSessionLost} />
+        <h2>Cuentas</h2>
         <div className="admin-filters" role="search">
           <label className="admin-field admin-field--search">
             <span>Buscar</span>
@@ -141,6 +145,7 @@ export function AccountsView({ admin, onSessionLost }: Props) {
                 aria-pressed={selectedId === account.id}
                 onClick={() => setPanel({ kind: 'account', id: account.id })}
               >
+                <img className="console-avatar" src={`/explorador-${Array.from(account.usuario).reduce((hash, c) => hash * 31 + c.charCodeAt(0) | 0, 0) >>> 0 & 3}.png`} alt="" />
                 <span className="admin-account-name">
                   <strong>{displayName(account)}</strong>
                   <span>@{account.usuario}</span>
