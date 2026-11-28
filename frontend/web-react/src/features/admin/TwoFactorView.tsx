@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CheckCircle2, Clock, RefreshCw, RotateCcw, Search, ShieldCheck } from 'lucide-react'
+import { UserRound, TriangleAlert, Plus, RefreshCw, RotateCcw, Search, ShieldCheck } from 'lucide-react'
 import {
   AdminApiError,
   ROLE_LABELS,
@@ -123,6 +123,7 @@ export function TwoFactorView({ admin, onSessionLost }: Props) {
     }
   }
 
+  const coverage = summary.total ? Math.round(100 * summary.active / summary.total) : 0
   return (
     <div className="tfa-grid">
       <section className="admin-card tfa-panel">
@@ -130,7 +131,7 @@ export function TwoFactorView({ admin, onSessionLost }: Props) {
           <div>
             <h1>Autenticación de doble factor (2FA)</h1>
             <p className="admin-muted">
-              Obligatoria para todas las cuentas con privilegios de administración, soporte y docentes (RFC 6238 TOTP).
+              Obligatoria para las cuentas de administración, soporte y docentes.
             </p>
           </div>
           <button type="button" className="admin-btn admin-btn--quiet" onClick={() => load()} disabled={busy}>
@@ -143,13 +144,13 @@ export function TwoFactorView({ admin, onSessionLost }: Props) {
         {error && <p className="admin-feedback admin-feedback--error" role="alert">{error}</p>}
 
         {overview && (
-          <div className="tfa-own-box">
-            <div className="tfa-own-status">
+          <div className="tfa-overview"><div className="tfa-own-box">
+            <div className="tfa-own-status"><ShieldCheck className="tfa-shield" aria-hidden="true" />
               <div>
-                <span className="tfa-eyebrow">Tu cuenta (@{admin.usuario})</span>
+                <span className="tfa-eyebrow">Tu cuenta · @{admin.usuario}</span>
                 <h2>
                   {overview.propio.verificado
-                    ? 'Doble factor activado y protegido'
+                    ? 'Doble factor activado'
                     : 'Pendiente de escanear código QR'}
                 </h2>
                 <p className="admin-muted">
@@ -164,12 +165,28 @@ export function TwoFactorView({ admin, onSessionLost }: Props) {
                 onClick={handleRotateOwn}
                 disabled={busy}
               >
-                <RotateCcw size={16} aria-hidden="true" />
+                <Plus size={16} aria-hidden="true" />
                 {overview.propio.verificado ? 'Generar nuevo QR' : 'Rotar clave QR'}
               </button>
             </div>
 
-            {overview.propio.otpauthUri && overview.propio.secretoBase32 && (
+          </div>
+          {(overview.cuentas.length > 0 || overview.puedeGestionar) && ([
+            ['TODOS', summary.total, 'Cuentas obligatorias', 'Ver todas'],
+            ['ACTIVO', summary.active, 'Con 2FA activo', 'Filtrar activos'],
+            ['PENDIENTE', summary.pending, 'Pendiente de QR', 'Filtrar pendientes'],
+          ] as const).map(([filter, count, label, action]) => (
+            <button key={filter} type="button" className="tfa-metric" data-filter={filter}
+              aria-pressed={statusFilter === filter} onClick={() => setStatusFilter(filter)}>
+              <strong>{count}</strong>
+              {filter === 'ACTIVO' ? <span className="tfa-ring" style={{ backgroundImage: `conic-gradient(var(--metric-color) ${coverage}%, #58616d 0)` }}><b>{coverage} %</b></span>
+                : filter === 'TODOS' ? <ShieldCheck/> : <TriangleAlert/>}
+              <span>{label}</span><em>{action} →</em>
+            </button>
+          ))}
+          </div>
+        )}
+        {overview && <>            {overview.propio.otpauthUri && overview.propio.secretoBase32 && (
               <div className="tfa-setup-wrap">
                 <TwoFactorSetupCard
                   username={admin.usuario}
@@ -182,9 +199,7 @@ export function TwoFactorView({ admin, onSessionLost }: Props) {
                 />
               </div>
             )}
-          </div>
-        )}
-
+</>}
         {resetPreview && (
           <div className="tfa-reset-preview" role="region" aria-label="Nuevo QR tras reinicio">
             <div className="tfa-reset-head">
@@ -206,23 +221,8 @@ export function TwoFactorView({ admin, onSessionLost }: Props) {
         )}
       </section>
 
-      {overview && overview.cuentas.length > 0 && (
+      {overview && (overview.cuentas.length > 0 || overview.puedeGestionar) && (
         <section className="admin-card tfa-panel">
-          <div className="tfa-summary-bar">
-            <div className="tfa-stat">
-              <ShieldCheck size={18} aria-hidden="true" />
-              <span><strong>{summary.total}</strong> cuentas obligatorias</span>
-            </div>
-            <div className="tfa-stat tfa-stat--ok">
-              <CheckCircle2 size={18} aria-hidden="true" />
-              <span><strong>{summary.active}</strong> con 2FA activo</span>
-            </div>
-            <div className="tfa-stat tfa-stat--warn">
-              <Clock size={18} aria-hidden="true" />
-              <span><strong>{summary.pending}</strong> pendientes de QR</span>
-            </div>
-          </div>
-
           <div className="admin-filters">
             <label className="admin-search">
               <Search size={17} aria-hidden="true" />
@@ -250,7 +250,7 @@ export function TwoFactorView({ admin, onSessionLost }: Props) {
             <ul className="tfa-account-list">
               {filteredAccounts.map(row => (
                 <li key={row.id} className="tfa-account-row">
-                  <div className="tfa-account-info">
+                  <UserRound className="tfa-avatar" aria-hidden="true"/><div className="tfa-account-info">
                     <div className="tfa-account-title">
                       <strong>{row.nombre}</strong>
                       <span>@{row.usuario}</span>
@@ -265,7 +265,7 @@ export function TwoFactorView({ admin, onSessionLost }: Props) {
                         {row.verificado ? '2FA Activo' : 'Pendiente QR'}
                       </span>
                     </div>
-                    {row.activadoEn && (
+                    {!row.verificado && <small className="admin-muted">Pendiente de activación</small>}{row.activadoEn && (
                       <small className="admin-muted">Activado: {formatDateTime(row.activadoEn)}</small>
                     )}
                   </div>
